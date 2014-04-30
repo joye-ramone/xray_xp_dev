@@ -49,3 +49,7 @@ extern const int				idx2edge	[3][3];
 extern BOOL						b_radiosity;
 extern BOOL						b_noise;
 extern BOOL						b_nosun;
+// KD start
+extern BOOL						b_nolmaps;
+extern BOOL						b_skipinvalid;
+// KD end

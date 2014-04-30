@@ -295,7 +295,11 @@ public      :
     {
         return ( ::SymGetSymFromAddr ( m_hProcess       ,
                                        dwAddr           ,
+#ifdef _WIN64
+									   (PDWORD64)pdwDisplacement,
+#else
                                        pdwDisplacement  ,
+#endif
                                        Symbol            ) ) ;
     }
 
@@ -426,7 +430,12 @@ public      :
     {
         return ( ::SymRegisterCallback ( m_hProcess         ,
                                          CallbackFunction   ,
-                                         UserContext         ) ) ;
+#ifdef _WIN64
+                                         (ULONG64)UserContext    
+#else
+                                         UserContext     
+#endif
+										 ) ) ;
     }
 
 

@@ -294,7 +294,7 @@ LRESULT CALLBACK CTextView::TextViewWndProc(HWND hwnd, UINT uMsg, WPARAM wParam,
 	int zDelta, zTotal, nScrollCode, nScrollBarType;
 	LONG lWindowStyle;
 
-	CTextView* _this  = (CTextView*)GetWindowLongPtr(hwnd, GWL_USERDATA);
+	CTextView* _this  = (CTextView*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 	_ASSERTE(_this != NULL);
 	switch(uMsg)
 	{
@@ -413,7 +413,7 @@ void CTextView::Attach(HWND hwnd)
 
 	m_hwnd = hwnd;
 	m_pfnOldTextViewWndProc = SubclassWindow(hwnd, TextViewWndProc);
-	SetWindowLongPtr(hwnd, GWL_USERDATA, (LONG_PTR)this);
+	SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)this);
 	// Preserve original window styles that could be modified by SetScrollInfo().
 	m_lOldStyle = GetWindowLong(hwnd, GWL_STYLE);
 	ResizeTextView(TRUE);
@@ -425,7 +425,7 @@ void CTextView::Detach(void)
 	if (m_pfnOldTextViewWndProc)
 	{
 		SubclassWindow(m_hwnd, m_pfnOldTextViewWndProc);
-		SetWindowLongPtr(m_hwnd, GWL_USERDATA, NULL);
+		SetWindowLongPtr(m_hwnd, GWLP_USERDATA, NULL);
 
 		SCROLLINFO sinfo;
 		ZeroMemory(&sinfo, sizeof(sinfo));

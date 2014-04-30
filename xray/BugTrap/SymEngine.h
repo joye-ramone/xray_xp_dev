@@ -573,7 +573,7 @@ inline CSymEngine::CStackWalkContext::CStackWalkContext(void)
 inline BOOL CALLBACK CSymEngine::ReadProcessMemoryProc64(HANDLE hProcess, DWORD64 pBaseAddress, PVOID pBuffer, DWORD nSize, PDWORD pNumberOfBytesRead)
 {
 	hProcess;
-	return ReadProcessMemory(GetCurrentProcess(), (PVOID)pBaseAddress, pBuffer, nSize, pNumberOfBytesRead);
+	return ReadProcessMemory(GetCurrentProcess(), (PVOID)pBaseAddress, pBuffer, nSize, (SIZE_T *)pNumberOfBytesRead);
 }
 
 /**

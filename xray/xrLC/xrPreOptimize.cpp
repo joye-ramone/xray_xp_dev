@@ -129,7 +129,10 @@ void CBuild::PreOptimize()
 	if (dwInvalidFaces)	
 	{
 		err_save		();
-		Debug.fatal		(DEBUG_INFO,"* FATAL: %d invalid faces. Compilation aborted",dwInvalidFaces);
+		if (!b_skipinvalid)
+			Debug.fatal		(DEBUG_INFO,"* FATAL: %d invalid faces. Compilation aborted",dwInvalidFaces);
+		else
+			clMsg		("* Total %d invalid faces. Do something.",dwInvalidFaces);
 	}
 
 	Status("Adjacency check...");

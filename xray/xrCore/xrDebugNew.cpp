@@ -23,7 +23,11 @@ extern bool shared_str_initialized;
     #   define USE_BUG_TRAP
 #else
     #   define USE_BUG_TRAP
+#ifdef _WIN64
+    #	define DEBUG_INVOKE	__debugbreak
+#else
     #	define DEBUG_INVOKE	__asm int 3
+#endif
         static BOOL			bException	= FALSE;
 #endif
 
@@ -36,12 +40,17 @@ extern bool shared_str_initialized;
 #include <dbghelp.h>						// MiniDump flags
 
 #ifdef USE_BUG_TRAP
+#if defined(WIN32)
 #	include "../bugtrap/bugtrap.h"						// for BugTrap functionality
     #ifndef __BORLANDC__
         #	pragma comment(lib,"BugTrap.lib")		// Link to ANSI DLL
     #else
         #	pragma comment(lib,"BugTrapB.lib")		// Link to ANSI DLL
     #endif
+#elif defined(WIN64)
+#	include "bugtrap.h"						// for BugTrap functionality
+#	pragma comment(lib,"BugTrap-x64.lib")		// Link to x64 dll
+#endif
 #endif // USE_BUG_TRAP
 
 #include <new.h>							// for _set_new_mode

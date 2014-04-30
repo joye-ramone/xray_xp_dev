@@ -139,7 +139,7 @@ LRESULT CALLBACK CHyperLink::HyperLinkWndProc(HWND hwnd, UINT uMsg, WPARAM wPara
 	DWORD dwResult;
 	HDC hdc;
 
-	CHyperLink* _this  = (CHyperLink*)GetWindowLongPtr(hwnd, GWL_USERDATA);
+	CHyperLink* _this  = (CHyperLink*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 	_ASSERTE(_this != NULL);
 	switch(uMsg)
 	{
@@ -331,7 +331,7 @@ void CHyperLink::Attach(HWND hwnd)
 	_ASSERTE(m_hwnd == NULL);
 	_ASSERTE(g_pResManager != NULL);
 	m_hwnd = hwnd;
-	SetWindowLongPtr(hwnd, GWL_USERDATA, (LONG_PTR)this);
+	SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)this);
 	m_pfnOldHyperLinkWndProc = SubclassWindow(hwnd, HyperLinkWndProc);
 	InvalidateRect(hwnd, NULL, TRUE);
 }
@@ -341,7 +341,7 @@ void CHyperLink::Detach(void)
 	if (m_pfnOldHyperLinkWndProc)
 	{
 		SubclassWindow(m_hwnd, m_pfnOldHyperLinkWndProc);
-		SetWindowLongPtr(m_hwnd, GWL_USERDATA, NULL);
+		SetWindowLongPtr(m_hwnd, GWLP_USERDATA, NULL);
 		InvalidateRect(m_hwnd, NULL, TRUE);
 		m_pfnOldHyperLinkWndProc = NULL;
 		m_hwnd = NULL;

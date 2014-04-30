@@ -13,6 +13,10 @@ BOOL					b_R2		= FALSE;
 BOOL					b_noise		= FALSE;
 BOOL					b_radiosity	= FALSE;
 BOOL					b_nosun		= FALSE;
+// KD start
+BOOL					b_nolmaps	= FALSE;
+BOOL					b_skipinvalid	= FALSE;
+// KD end
 CThreadManager			mu_base;
 CThreadManager			mu_secondary;
 #define		MU_THREADS	4
@@ -211,7 +215,8 @@ void CBuild::Run	(LPCSTR P)
 	IsolateVertices				(TRUE);
 
 	//****************************************** All lighting + lmaps building and saving
-	Light						();
+	if (!b_nolmaps)
+		Light						();
 
 	//****************************************** Merge geometry
 	FPU::m64r					();

@@ -78,10 +78,19 @@ void BuildStackTrace	()
 	if (!GetThreadContext(GetCurrentThread(),&context))
 		return;
 
+#ifdef _WIN64
+	context.Rip				= program_counter();
+#else
 	context.Eip				= program_counter();
+#endif
 #ifndef _EDITOR
+#	ifdef _WIN64
+//	__asm					mov context.Rbp, ebp
+//	__asm					mov context.Rsp, esp
+#	else
 	__asm					mov context.Ebp, ebp
 	__asm					mov context.Esp, esp
+#	endif
 #else // _EDITOR
 	__asm					mov EBP, ebp
 	__asm					mov ESP, esp

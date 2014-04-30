@@ -16,6 +16,10 @@ CONDITIONAL COMPILATION :
 #include "BugslayerUtil.h"
 #include "CrashHandler.h"
 
+#ifdef _WIN64
+#define _AMD64_		// for winnt.h
+#endif
+
 // The project internal header file
 //#include "Internal.h"
 
@@ -458,7 +462,11 @@ LPCTSTR __stdcall GetFaultReason ( EXCEPTION_POINTERS * pExPtrs )
               SymGetSymFromAddr ( (HANDLE)GetCurrentProcessId ( )     ,
                                   (DWORD)pExPtrs->ExceptionRecord->
                                                      ExceptionAddress ,
+#ifdef _WIN64
+								  (PDWORD64)&dwDisp,
+#else
                                   &dwDisp                             ,
+#endif
                                   pSym                                ))
         {
             iCurr += wsprintf ( g_szBuff + iCurr , _T ( ", " ) ) ;
@@ -650,7 +658,12 @@ BOOL __stdcall CH_ReadProcessMemory ( HANDLE                      ,
                                  lpBaseAddress         ,
                                  lpBuffer              ,
                                  nSize                 ,
-                                 lpNumberOfBytesRead    ) ) ;
+#ifdef _WIN64
+								 (SIZE_T *)lpNumberOfBytesRead 
+#else
+                                 lpNumberOfBytesRead   
+#endif
+								 ) ) ;
 }
 
 // The internal function that does all the stack walking
@@ -772,7 +785,11 @@ LPCTSTR __stdcall
             if ( TRUE ==
                   SymGetSymFromAddr ( (HANDLE)GetCurrentProcessId ( ) ,
                                       g_stFrame.AddrPC.Offset         ,
+#ifdef _WIN64
+                                      (PDWORD64)&dwDisp               ,
+#else
                                       &dwDisp                         ,
+#endif
                                       pSym                            ))
             {
                 iCurr += wsprintf ( g_szBuff + iCurr , _T ( ", " ) ) ;
