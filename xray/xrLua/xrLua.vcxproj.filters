@@ -12,6 +12,64 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="luabind\class.cpp">
+      <Filter>luabind</Filter>
+    </ClCompile>
+    <ClCompile Include="luabind\class_info.cpp">
+      <Filter>luabind</Filter>
+    </ClCompile>
+    <ClCompile Include="luabind\class_registry.cpp">
+      <Filter>luabind</Filter>
+    </ClCompile>
+    <ClCompile Include="luabind\class_rep.cpp">
+      <Filter>luabind</Filter>
+    </ClCompile>
+    <ClCompile Include="luabind\create_class.cpp">
+      <Filter>luabind</Filter>
+    </ClCompile>
+    <ClCompile Include="luabind\error.cpp">
+      <Filter>luabind</Filter>
+    </ClCompile>
+    <ClCompile Include="luabind\find_best_match.cpp">
+      <Filter>luabind</Filter>
+    </ClCompile>
+    <ClCompile Include="luabind\function.cpp">
+      <Filter>luabind</Filter>
+    </ClCompile>
+    <ClCompile Include="luabind\implicit_cast.cpp">
+      <Filter>luabind</Filter>
+    </ClCompile>
+    <ClCompile Include="luabind\link_compatibility.cpp">
+      <Filter>luabind</Filter>
+    </ClCompile>
+    <ClCompile Include="luabind\object.cpp">
+      <Filter>luabind</Filter>
+    </ClCompile>
+    <ClCompile Include="luabind\object_rep.cpp">
+      <Filter>luabind</Filter>
+    </ClCompile>
+    <ClCompile Include="luabind\open.cpp">
+      <Filter>luabind</Filter>
+    </ClCompile>
+    <ClCompile Include="luabind\pcall.cpp">
+      <Filter>luabind</Filter>
+    </ClCompile>
+    <ClCompile Include="luabind\ref.cpp">
+      <Filter>luabind</Filter>
+    </ClCompile>
+    <ClCompile Include="luabind\scope.cpp">
+      <Filter>luabind</Filter>
+    </ClCompile>
+    <ClCompile Include="luabind\stack_content_by_name.cpp">
+      <Filter>luabind</Filter>
+    </ClCompile>
+    <ClCompile Include="luabind\weak_ref.cpp">
+      <Filter>luabind</Filter>
+    </ClCompile>
+    <ClCompile Include="luabind\wrapper_base.cpp">
+      <Filter>luabind</Filter>
+    </ClCompile>
+    <ClCompile Include="StdAfx.cpp" />
     <ClCompile Include="src\lapi.c">
       <Filter>core</Filter>
     </ClCompile>
@@ -22,9 +80,6 @@
       <Filter>core</Filter>
     </ClCompile>
     <ClCompile Include="src\lcoco.c">
-      <Filter>core</Filter>
-    </ClCompile>
-    <ClCompile Include="src\lcocolib.c">
       <Filter>core</Filter>
     </ClCompile>
     <ClCompile Include="src\lcode.c">
@@ -111,6 +166,9 @@
     <ClCompile Include="src\ltm.c">
       <Filter>core</Filter>
     </ClCompile>
+    <ClCompile Include="src\lua.c">
+      <Filter>core</Filter>
+    </ClCompile>
     <ClCompile Include="src\lundump.c">
       <Filter>core</Filter>
     </ClCompile>
@@ -120,66 +178,15 @@
     <ClCompile Include="src\lzio.c">
       <Filter>core</Filter>
     </ClCompile>
-    <ClCompile Include="luabind\class.cpp">
-      <Filter>luabind</Filter>
-    </ClCompile>
-    <ClCompile Include="luabind\class_info.cpp">
-      <Filter>luabind</Filter>
-    </ClCompile>
-    <ClCompile Include="luabind\class_registry.cpp">
-      <Filter>luabind</Filter>
-    </ClCompile>
-    <ClCompile Include="luabind\class_rep.cpp">
-      <Filter>luabind</Filter>
-    </ClCompile>
-    <ClCompile Include="luabind\create_class.cpp">
-      <Filter>luabind</Filter>
-    </ClCompile>
-    <ClCompile Include="luabind\error.cpp">
-      <Filter>luabind</Filter>
-    </ClCompile>
-    <ClCompile Include="luabind\find_best_match.cpp">
-      <Filter>luabind</Filter>
-    </ClCompile>
-    <ClCompile Include="luabind\function.cpp">
-      <Filter>luabind</Filter>
-    </ClCompile>
-    <ClCompile Include="luabind\implicit_cast.cpp">
-      <Filter>luabind</Filter>
-    </ClCompile>
-    <ClCompile Include="luabind\link_compatibility.cpp">
-      <Filter>luabind</Filter>
-    </ClCompile>
-    <ClCompile Include="luabind\object.cpp">
-      <Filter>luabind</Filter>
-    </ClCompile>
-    <ClCompile Include="luabind\object_rep.cpp">
-      <Filter>luabind</Filter>
-    </ClCompile>
-    <ClCompile Include="luabind\open.cpp">
-      <Filter>luabind</Filter>
-    </ClCompile>
-    <ClCompile Include="luabind\pcall.cpp">
-      <Filter>luabind</Filter>
-    </ClCompile>
-    <ClCompile Include="luabind\ref.cpp">
-      <Filter>luabind</Filter>
-    </ClCompile>
-    <ClCompile Include="luabind\scope.cpp">
-      <Filter>luabind</Filter>
-    </ClCompile>
-    <ClCompile Include="luabind\stack_content_by_name.cpp">
-      <Filter>luabind</Filter>
-    </ClCompile>
-    <ClCompile Include="luabind\weak_ref.cpp">
-      <Filter>luabind</Filter>
-    </ClCompile>
-    <ClCompile Include="luabind\wrapper_base.cpp">
-      <Filter>luabind</Filter>
-    </ClCompile>
-    <ClCompile Include="StdAfx.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="dynasm\dasm_proto.h">
+      <Filter>etc</Filter>
+    </ClInclude>
+    <ClInclude Include="dynasm\dasm_x86.h">
+      <Filter>etc</Filter>
+    </ClInclude>
+    <ClInclude Include="StdAfx.h" />
     <ClInclude Include="src\lapi.h">
       <Filter>core</Filter>
     </ClInclude>
@@ -267,13 +274,6 @@
     <ClInclude Include="src\lzio.h">
       <Filter>core</Filter>
     </ClInclude>
-    <ClInclude Include="dynasm\dasm_proto.h">
-      <Filter>etc</Filter>
-    </ClInclude>
-    <ClInclude Include="dynasm\dasm_x86.h">
-      <Filter>etc</Filter>
-    </ClInclude>
-    <ClInclude Include="StdAfx.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="dynasm\dasm_x86.lua">
@@ -296,6 +296,15 @@
     </None>
     <None Include="jitlib\trace.lua">
       <Filter>etc</Filter>
+    </None>
+    <None Include="src\ljit_x86.dasc">
+      <Filter>core</Filter>
+    </None>
+    <None Include="src\ljit_x86.dash">
+      <Filter>core</Filter>
+    </None>
+    <None Include="src\ljit_x86_inline.dash">
+      <Filter>core</Filter>
     </None>
   </ItemGroup>
 </Project>

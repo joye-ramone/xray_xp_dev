@@ -336,42 +336,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\lapi.c" />
-    <ClCompile Include="src\lauxlib.c" />
-    <ClCompile Include="src\lbaselib.c" />
-    <ClCompile Include="src\lcoco.c" />
-    <ClCompile Include="src\lcocolib.c" />
-    <ClCompile Include="src\lcode.c" />
-    <ClCompile Include="src\ldblib.c" />
-    <ClCompile Include="src\ldebug.c" />
-    <ClCompile Include="src\ldo.c" />
-    <ClCompile Include="src\ldump.c" />
-    <ClCompile Include="src\lfunc.c" />
-    <ClCompile Include="src\lgc.c" />
-    <ClCompile Include="src\linit.c" />
-    <ClCompile Include="src\liolib.c" />
-    <ClCompile Include="src\ljit_backend.c" />
-    <ClCompile Include="src\ljit_core.c" />
-    <ClCompile Include="src\ljit_dasm.c" />
-    <ClCompile Include="src\ljit_mem.c" />
-    <ClCompile Include="src\ljitlib.c" />
-    <ClCompile Include="src\llex.c" />
-    <ClCompile Include="src\lmathlib.c" />
-    <ClCompile Include="src\lmem.c" />
-    <ClCompile Include="src\loadlib.c" />
-    <ClCompile Include="src\lobject.c" />
-    <ClCompile Include="src\lopcodes.c" />
-    <ClCompile Include="src\loslib.c" />
-    <ClCompile Include="src\lparser.c" />
-    <ClCompile Include="src\lstate.c" />
-    <ClCompile Include="src\lstring.c" />
-    <ClCompile Include="src\lstrlib.c" />
-    <ClCompile Include="src\ltable.c" />
-    <ClCompile Include="src\ltablib.c" />
-    <ClCompile Include="src\ltm.c" />
-    <ClCompile Include="src\lundump.c" />
-    <ClCompile Include="src\lvm.c" />
-    <ClCompile Include="src\lzio.c" />
     <ClCompile Include="luabind\class.cpp">
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
@@ -524,9 +488,47 @@
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">TurnOffAllWarnings</WarningLevel>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
     </ClCompile>
+    <ClCompile Include="src\lapi.c" />
+    <ClCompile Include="src\lauxlib.c" />
+    <ClCompile Include="src\lbaselib.c" />
+    <ClCompile Include="src\lcoco.c" />
+    <ClCompile Include="src\lcode.c" />
+    <ClCompile Include="src\ldblib.c" />
+    <ClCompile Include="src\ldebug.c" />
+    <ClCompile Include="src\ldo.c" />
+    <ClCompile Include="src\ldump.c" />
+    <ClCompile Include="src\lfunc.c" />
+    <ClCompile Include="src\lgc.c" />
+    <ClCompile Include="src\linit.c" />
+    <ClCompile Include="src\liolib.c" />
+    <ClCompile Include="src\ljitlib.c" />
+    <ClCompile Include="src\ljit_backend.c" />
+    <ClCompile Include="src\ljit_core.c" />
+    <ClCompile Include="src\ljit_dasm.c" />
+    <ClCompile Include="src\ljit_mem.c" />
+    <ClCompile Include="src\llex.c" />
+    <ClCompile Include="src\lmathlib.c" />
+    <ClCompile Include="src\lmem.c" />
+    <ClCompile Include="src\loadlib.c" />
+    <ClCompile Include="src\lobject.c" />
+    <ClCompile Include="src\lopcodes.c" />
+    <ClCompile Include="src\loslib.c" />
+    <ClCompile Include="src\lparser.c" />
+    <ClCompile Include="src\lstate.c" />
+    <ClCompile Include="src\lstring.c" />
+    <ClCompile Include="src\lstrlib.c" />
+    <ClCompile Include="src\ltable.c" />
+    <ClCompile Include="src\ltablib.c" />
+    <ClCompile Include="src\ltm.c" />
+    <ClCompile Include="src\lua.c" />
+    <ClCompile Include="src\lundump.c" />
+    <ClCompile Include="src\lvm.c" />
+    <ClCompile Include="src\lzio.c" />
     <ClCompile Include="StdAfx.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="dynasm\dasm_proto.h" />
+    <ClInclude Include="dynasm\dasm_x86.h" />
     <ClInclude Include="src\lapi.h" />
     <ClInclude Include="src\lauxlib.h" />
     <ClInclude Include="src\lcoco.h" />
@@ -556,8 +558,6 @@
     <ClInclude Include="src\lundump.h" />
     <ClInclude Include="src\lvm.h" />
     <ClInclude Include="src\lzio.h" />
-    <ClInclude Include="dynasm\dasm_proto.h" />
-    <ClInclude Include="dynasm\dasm_x86.h" />
     <ClInclude Include="StdAfx.h" />
   </ItemGroup>
   <ItemGroup>
@@ -568,6 +568,9 @@
     <None Include="jitlib\opt.lua" />
     <None Include="jitlib\opt_lib.lua" />
     <None Include="jitlib\trace.lua" />
+    <None Include="src\ljit_x86.dasc" />
+    <None Include="src\ljit_x86.dash" />
+    <None Include="src\ljit_x86_inline.dash" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\xrCore\xrCore.vcxproj">
