@@ -25,7 +25,11 @@
 #endif //defined(MAKEFOURCC)
 
 #pragma comment(lib,"xrCore.lib")
-#pragma comment(lib,"nvDXTlibMTDLL.lib")
+#ifdef _WIN64
+#pragma comment(lib,"nvDXTlibMTDLL.vc8.x64.lib")
+#else
+#pragma comment(lib,"nvDXTlibMTDLL.vc8.lib")
+#endif
 
 #pragma warning( disable : 4995 )
 
