@@ -1,5 +1,20 @@
 #pragma once
 
+#ifdef _WIN64
+struct	cform_FailFace
+{
+	Fvector	P[3];
+	u64		props;
+};
+union	cform_mergeprops	{
+	u64			props;			// 8b
+	struct {
+		u32		dumb;			// 4b
+		u16		material;		// 2b
+		u16		sector;			// 2b
+	};
+};
+#else
 struct	cform_FailFace
 {
 	Fvector	P[3];
@@ -12,6 +27,7 @@ union	cform_mergeprops	{
 		u16		sector;			// 2b
 	};
 };
+#endif
 
 #pragma warning(disable:4267)
 #pragma warning(disable:4995)

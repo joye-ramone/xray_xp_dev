@@ -135,6 +135,20 @@ namespace ETOOLS{
 	{
 		xr_delete						(M);
 	}
+#ifdef _WIN64
+	ETOOLS_API void						 __stdcall collector_add_face_d	(CDB::Collector* CL, const Fvector& v0, const Fvector& v1, const Fvector& v2, u64 dummy)
+	{
+		CL->add_face_D					(v0,v1,v2,dummy);
+	}
+	ETOOLS_API void						 __stdcall collector_add_face_pd	(CDB::Collector* CL, const Fvector& v0, const Fvector& v1, const Fvector& v2, u64 dummy, float eps)
+	{
+		CL->add_face_packed_D			(v0,v1,v2,dummy,eps);
+	}
+	ETOOLS_API void						 __stdcall collectorp_add_face_d	(CDB::CollectorPacked* CL, const Fvector& v0, const Fvector& v1, const Fvector& v2, u64 dummy)
+	{
+		CL->add_face_D					(v0,v1,v2,dummy);
+	}
+#else
 	ETOOLS_API void						 __stdcall collector_add_face_d	(CDB::Collector* CL, const Fvector& v0, const Fvector& v1, const Fvector& v2, u32 dummy)
 	{
 		CL->add_face_D					(v0,v1,v2,dummy);
@@ -143,6 +157,11 @@ namespace ETOOLS{
 	{
 		CL->add_face_packed_D			(v0,v1,v2,dummy,eps);
 	}
+	ETOOLS_API void						 __stdcall collectorp_add_face_d	(CDB::CollectorPacked* CL, const Fvector& v0, const Fvector& v1, const Fvector& v2, u32 dummy)
+	{
+		CL->add_face_D					(v0,v1,v2,dummy);
+	}
+#endif
 
 	ETOOLS_API CDB::CollectorPacked*	 __stdcall create_collectorp		(const Fbox &bb, int apx_vertices, int apx_faces)
 	{
@@ -151,10 +170,6 @@ namespace ETOOLS{
 	ETOOLS_API void						 __stdcall destroy_collectorp		(CDB::CollectorPacked*& M)
 	{
 		xr_delete						(M);
-	}
-	ETOOLS_API void						 __stdcall collectorp_add_face_d	(CDB::CollectorPacked* CL, const Fvector& v0, const Fvector& v1, const Fvector& v2, u32 dummy)
-	{
-		CL->add_face_D					(v0,v1,v2,dummy);
 	}
 
 	ETOOLS_API CDB::COLLIDER* __stdcall get_collider	(){return XRC.collider();}

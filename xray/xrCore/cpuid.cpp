@@ -3,11 +3,13 @@
 
 #include "cpuid.h"
 
-#ifdef _M_AMD64
+//#ifdef _M_AMD64
 
 int _cpuid (_processor_info *pinfo)
 {
 	_processor_info&	P	= *pinfo;
+
+	/*
 	strcpy				(P.v_name,		"AuthenticAMD");
 	strcpy				(P.model_name,	"AMD64 family");
 	P.family			=	8;
@@ -16,8 +18,70 @@ int _cpuid (_processor_info *pinfo)
 	P.feature			=	_CPU_FEATURE_SSE | _CPU_FEATURE_SSE2;
 	P.os_support		=	_CPU_FEATURE_SSE | _CPU_FEATURE_SSE2;
 	return P.feature;
-}
+	*/
 
+	ZeroMemory(&P, sizeof(_processor_info));
+
+	int cpinfo[4];
+	// detect cpu vendor
+	__cpuid(cpinfo, 0);
+
+	memcpy(P.v_name, &(cpinfo[1]), sizeof(int));
+	memcpy(P.v_name+sizeof(int), &(cpinfo[3]), sizeof(int));
+	memcpy(P.v_name+2*sizeof(int), &(cpinfo[2]), sizeof(int));
+
+	// detect cpu model
+	__cpuid(cpinfo, 0x80000002);
+	memcpy(P.model_name, cpinfo, sizeof(cpinfo));
+	__cpuid(cpinfo, 0x80000003);
+	memcpy(P.model_name+16, cpinfo, sizeof(cpinfo));
+	__cpuid(cpinfo, 0x80000004);
+	memcpy(P.model_name+32, cpinfo, sizeof(cpinfo));
+
+	// detect cpu main features
+	__cpuid(cpinfo, 1);
+
+	P.stepping = cpinfo[0] & 0xf;
+    P.model = (u8)((cpinfo[0] >> 4) & 0xf) | ((u8)((cpinfo[0] >> 16) & 0xf) << 4);
+    P.family = (u8)((cpinfo[0] >> 8) & 0xf) | ((u8)((cpinfo[0] >> 20) & 0xff) << 4);
+
+	if (cpinfo[3] & (1 << 23))
+		P.feature |= _CPU_FEATURE_MMX;
+	if (cpinfo[3] & (1 << 25))
+		P.feature |= _CPU_FEATURE_SSE;
+	if (cpinfo[3] & (1 << 26))
+		P.feature |= _CPU_FEATURE_SSE2;
+	if (cpinfo[2] & 0x1)
+		P.feature |= _CPU_FEATURE_SSE3;
+	if (cpinfo[2] & 0x80000)
+		P.feature |= _CPU_FEATURE_SSE41;
+	if (cpinfo[2] & 0x100000)
+		P.feature |= _CPU_FEATURE_SSE42;
+
+	// and check 3DNow! support
+	__cpuid(cpinfo, 0x80000001);
+	if (cpinfo[3] & (1 << 31))
+		P.feature |= _CPU_FEATURE_3DNOW;
+
+	P.os_support = P.feature;
+
+	// get version of OS
+	DWORD dwMajorVersion = 0;
+	DWORD dwVersion = 0;
+	dwVersion = GetVersion();
+
+	dwMajorVersion = (DWORD)(LOBYTE(LOWORD(dwVersion)));
+
+	if (dwMajorVersion <= 5)		// XP don't support SSE3+ instruction sets
+	{
+		P.os_support	&= ~_CPU_FEATURE_SSE3	;
+		P.os_support	&= ~_CPU_FEATURE_SSE41	;
+		P.os_support	&= ~_CPU_FEATURE_SSE42	;
+	}
+
+	return P.feature;
+}
+/*
 #else
 
 #ifdef	M_VISUAL
@@ -48,12 +112,12 @@ int IsCPUID()
     return 1;
 }
 
-
+*/
 /***
 * int _os_support(int feature,...)
 *   - Checks if OS Supports the capablity or not
 ****************************************************************/
-
+/*
 #ifdef M_VISUAL
 void _os_support(int feature, int& res)
 {
@@ -107,13 +171,13 @@ void _os_support(int feature, int& res)
 }
 #endif
 
-
+*/
 /***
 *
 * void map_mname(int, int, const char *, char *) maps family and model to processor name
 *
 ****************************************************/
-
+/*
 void map_mname( int family, int model, const char * v_name, char *m_name)
 {
     if (!strncmp("AuthenticAMD", v_name, 12))
@@ -222,7 +286,7 @@ void map_mname( int family, int model, const char * v_name, char *m_name)
 
 }
 
-
+*/
 /***
 *
 * int _cpuid (_p_info *pinfo)
@@ -237,7 +301,7 @@ void map_mname( int family, int model, const char * v_name, char *m_name)
 *
 ****************************************************/
 
-
+/*
 int _cpuid (_processor_info *pinfo)
 {
     u32 dwStandard = 0;
@@ -261,7 +325,7 @@ int _cpuid (_processor_info *pinfo)
         return 0;
     }
 
-    _asm
+    __asm
     {
         push ebx
         push ecx
@@ -332,4 +396,4 @@ notamd:
    return feature;
 }
 
-#endif
+#endif*/

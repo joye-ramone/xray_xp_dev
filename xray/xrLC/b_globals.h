@@ -50,6 +50,8 @@ extern BOOL						b_radiosity;
 extern BOOL						b_noise;
 extern BOOL						b_nosun;
 // KD start
+extern BOOL						b_norgb;
 extern BOOL						b_nolmaps;
 extern BOOL						b_skipinvalid;
+extern float					f_lmap_quality;
 // KD end

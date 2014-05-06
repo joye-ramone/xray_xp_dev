@@ -200,8 +200,10 @@ void xrMU_Model::calc_lighting	()
 	CDB::CollectorPacked	CL	(BB,(u32)m_vertices.size(),(u32)m_faces.size());
 	export_cform_rcast		(CL,Fidentity);
 	CDB::MODEL*				M	= xr_new<CDB::MODEL>	();
+	clMsg	("...model '%s' - building collision",*m_name);
 	M->build				(CL.getV(),(u32)CL.getVS(),CL.getT(),(u32)CL.getTS());
 
+	clMsg	("...model '%s' - lighting",*m_name);
 	calc_lighting			(color,Fidentity,M,pBuild->L_static,LP_dont_rgb+LP_dont_sun);
 
 	xr_delete				(M);
@@ -301,7 +303,7 @@ void	o_test (int iA, int iB, int count, base_color* A, base_color* B, float& C, 
 
 void xrMU_Reference::calc_lighting	()
 {
-	model->calc_lighting		(color,xform,RCAST_Model,pBuild->L_static,(b_nosun?LP_dont_sun:0)|LP_DEFAULT);
+	model->calc_lighting		(color,xform,RCAST_Model,pBuild->L_static,(b_norgb?LP_dont_rgb:0)|(b_nosun?LP_dont_sun:0)|LP_DEFAULT);
 
 	R_ASSERT					(color.size()==model->color.size());
 

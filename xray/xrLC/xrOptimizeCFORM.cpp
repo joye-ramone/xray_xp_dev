@@ -159,7 +159,18 @@ void	CBuild::BuildCForm	()
 	MFS->w			(&hdr,sizeof(hdr));
 	// Data
 	MFS->w			(CL.getV(),(u32)CL.getVS()*sizeof(Fvector));
+
+#ifdef _WIN64
+	size_t t_size = CL.getTS();
+	for (size_t i = 0; i < t_size; ++i)
+	{
+		CDB::TRI *tri = &(CL.getT()[i]);
+		MFS->w(&(tri->verts[0]), 12);
+		MFS->w_u32(tri->dummy_low);
+	}
+#else
 	MFS->w			(CL.getT(),(u32)CL.getTS()*sizeof(CDB::TRI));
+#endif
 	// Clear pDeflector (it is stored in the same memory space with dwMaterialGame)
 	for (vecFaceIt I=g_faces.begin(); I!=g_faces.end(); I++)	{
 		Face* F			= *I;

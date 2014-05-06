@@ -12,7 +12,7 @@
 #pragma warning(pop)
 
 extern bool shared_str_initialized;
-
+// KD: we don't need BugTrap since it provides _only_ nice ui window and e-mail sending
 #ifdef __BORLANDC__
     #	include "d3d9.h"
     #	include "d3dx9.h"
@@ -20,11 +20,11 @@ extern bool shared_str_initialized;
     #	pragma comment(lib,"EToolsB.lib")
     #	define DEBUG_INVOKE	DebugBreak()
         static BOOL			bException	= TRUE;
-    #   define USE_BUG_TRAP
+//    #   define USE_BUG_TRAP
 #else
-    #   define USE_BUG_TRAP
+//    #   define USE_BUG_TRAP
 #ifdef _WIN64
-    #	define DEBUG_INVOKE	__debugbreak
+    #	define DEBUG_INVOKE	DebugBreak()
 #else
     #	define DEBUG_INVOKE	__asm int 3
 #endif
@@ -40,23 +40,24 @@ extern bool shared_str_initialized;
 #include <dbghelp.h>						// MiniDump flags
 
 #ifdef USE_BUG_TRAP
-#if defined(WIN32)
-#	include "../bugtrap/bugtrap.h"						// for BugTrap functionality
+#ifdef _WIN64
+#	include "bugtrap.h"						// for BugTrap functionality
+#	pragma comment(lib,"BugTrap-x64.lib")		// Link to x64 dll
+#else
+#	include "bugtrap.h"						// for BugTrap functionality
     #ifndef __BORLANDC__
         #	pragma comment(lib,"BugTrap.lib")		// Link to ANSI DLL
     #else
         #	pragma comment(lib,"BugTrapB.lib")		// Link to ANSI DLL
     #endif
-#elif defined(WIN64)
-#	include "bugtrap.h"						// for BugTrap functionality
-#	pragma comment(lib,"BugTrap-x64.lib")		// Link to x64 dll
 #endif
 #endif // USE_BUG_TRAP
 
 #include <new.h>							// for _set_new_mode
 #include <signal.h>							// for signals
 
-#if 0//def DEBUG
+#if 1//def DEBUG
+#	define USE_OWN_MINI_DUMP
 #	define USE_OWN_ERROR_MESSAGE_WINDOW
 #else // DEBUG
 #	define USE_OWN_MINI_DUMP
@@ -195,7 +196,8 @@ void gather_info		(const char *expression, const char *description, const char *
 			Msg			("stack trace:\n");
 
 #ifdef USE_OWN_ERROR_MESSAGE_WINDOW
-		buffer			+= sprintf(buffer,"stack trace:%s%s",endline,endline);
+		buffer			+= sprintf(buffer,"See log file and minidump for detailed information\r\n");
+//		buffer			+= sprintf(buffer,"stack trace:%s%s",endline,endline);
 #endif // USE_OWN_ERROR_MESSAGE_WINDOW
 
 		BuildStackTrace	();		
@@ -205,7 +207,7 @@ void gather_info		(const char *expression, const char *description, const char *
 				Msg		("%s",g_stackTrace[i]);
 
 #ifdef USE_OWN_ERROR_MESSAGE_WINDOW
-			buffer		+= sprintf(buffer,"%s%s",g_stackTrace[i],endline);
+//			buffer		+= sprintf(buffer,"%s%s",g_stackTrace[i],endline);
 #endif // USE_OWN_ERROR_MESSAGE_WINDOW
 		}
 
@@ -256,6 +258,7 @@ void xrDebug::backend	(const char *expression, const char *description, const ch
 	MessageBox			(NULL,assertion_info,"X-Ray error",MB_OK|MB_ICONERROR|MB_SYSTEMMODAL);
 #else
 #	ifdef USE_OWN_ERROR_MESSAGE_WINDOW
+		ShowCursor(TRUE);
 		int					result = 
 			MessageBox(
 				GetTopWindow(NULL),
@@ -642,11 +645,10 @@ LONG WINAPI UnhandledFilter	(_EXCEPTION_POINTERS *pExceptionInfo)
 	if (shared_str_initialized)
 		FlushLog			();
 
-#ifndef USE_OWN_ERROR_MESSAGE_WINDOW
-#	ifdef USE_OWN_MINI_DUMP
+#ifdef USE_OWN_MINI_DUMP
 		save_mini_dump		(pExceptionInfo);
-#	endif // USE_OWN_MINI_DUMP
-#else // USE_OWN_ERROR_MESSAGE_WINDOW
+#endif // USE_OWN_MINI_DUMP
+#ifdef USE_OWN_ERROR_MESSAGE_WINDOW
 	if (!error_after_dialog) {
 		if (Debug.get_on_dialog())
 			Debug.get_on_dialog()	(true);

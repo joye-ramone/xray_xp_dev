@@ -215,11 +215,12 @@ namespace CPU
 //------------------------------------------------------------------------------------
 void _initialize_cpu	(void) 
 {
-	Msg("* Detected CPU: %s %s, F%d/M%d/S%d, %.2f mhz, %d-clk 'rdtsc'",
+//	Msg("* Detected CPU: %s %s, F%d/M%d/S%d, %.2f mhz, %d-clk 'rdtsc'",
+	Msg("* Detected CPU: %s %s, F%d/M%d/S%d",
 		CPU::ID.v_name,CPU::ID.model_name,
-		CPU::ID.family,CPU::ID.model,CPU::ID.stepping,
-		float(CPU::clk_per_second/u64(1000000)),
-		u32(CPU::clk_overhead)
+		CPU::ID.family,CPU::ID.model,CPU::ID.stepping
+//		float(CPU::clk_per_second/u64(1000000)),
+//		u32(CPU::clk_overhead)
 		);
 
 //	DUMP_PHASE;
@@ -228,6 +229,9 @@ void _initialize_cpu	(void)
 		CPU::ID.feature	&= ~_CPU_FEATURE_3DNOW	;
 		CPU::ID.feature	&= ~_CPU_FEATURE_SSE	;
 		CPU::ID.feature	&= ~_CPU_FEATURE_SSE2	;
+		CPU::ID.feature	&= ~_CPU_FEATURE_SSE3	;
+		CPU::ID.feature	&= ~_CPU_FEATURE_SSE41	;
+		CPU::ID.feature	&= ~_CPU_FEATURE_SSE42	;
 	};
 
 	string128	features;	strcpy_s(features,sizeof(features),"RDTSC");
@@ -235,6 +239,9 @@ void _initialize_cpu	(void)
     if (CPU::ID.feature&_CPU_FEATURE_3DNOW)	strcat(features,", 3DNow!");
     if (CPU::ID.feature&_CPU_FEATURE_SSE)	strcat(features,", SSE");
     if (CPU::ID.feature&_CPU_FEATURE_SSE2)	strcat(features,", SSE2");
+	if (CPU::ID.feature&_CPU_FEATURE_SSE3)	strcat(features,", SSE3");
+	if (CPU::ID.feature&_CPU_FEATURE_SSE41)	strcat(features,", SSE4.1");
+	if (CPU::ID.feature&_CPU_FEATURE_SSE42)	strcat(features,", SSE4.2");
 	Msg("* CPU Features: %s\n",features);
 
 	Fidentity.identity		();	// Identity matrix

@@ -14,8 +14,10 @@ BOOL					b_noise		= FALSE;
 BOOL					b_radiosity	= FALSE;
 BOOL					b_nosun		= FALSE;
 // KD start
+BOOL					b_norgb		= FALSE;
 BOOL					b_nolmaps	= FALSE;
 BOOL					b_skipinvalid	= FALSE;
+float					f_lmap_quality = 4.f;
 // KD end
 CThreadManager			mu_base;
 CThreadManager			mu_secondary;

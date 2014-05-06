@@ -637,7 +637,17 @@ void DoStackTrace ( LPTSTR szString  ,
 
         stFrame.AddrPC.Mode = AddrModeFlat ;
 
-#if defined (_M_IX86)
+#if defined (_WIN64)
+		dwMachine                = IMAGE_FILE_MACHINE_AMD64 ;
+
+        stFrame.AddrPC.Offset    = stCtx.Rip    ;
+        stFrame.AddrStack.Offset = stCtx.Rsp    ;
+        stFrame.AddrFrame.Offset = stCtx.Rbp    ;
+        stFrame.AddrPC.Mode		 = AddrModeFlat ;
+        stFrame.AddrStack.Mode   = AddrModeFlat ;
+        stFrame.AddrFrame.Mode   = AddrModeFlat ;
+
+#elif defined (_M_IX86)
         dwMachine                = IMAGE_FILE_MACHINE_I386 ;
 
         stFrame.AddrPC.Offset    = stCtx.Eip    ;

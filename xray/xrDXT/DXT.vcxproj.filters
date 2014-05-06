@@ -12,24 +12,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="colorconvert.h">
-      <Filter>Convert</Filter>
-    </ClInclude>
-    <ClInclude Include="ddsTypes.h">
-      <Filter>Convert</Filter>
-    </ClInclude>
-    <ClInclude Include="dxtlib.h">
-      <Filter>Convert</Filter>
-    </ClInclude>
-    <ClInclude Include="nvdxt_options.h">
-      <Filter>Convert</Filter>
-    </ClInclude>
-    <ClInclude Include="tPixel.h">
-      <Filter>Convert</Filter>
-    </ClInclude>
-    <ClInclude Include="tVector.h">
-      <Filter>Convert</Filter>
-    </ClInclude>
     <ClInclude Include="ETextureParams.h">
       <Filter>Shared</Filter>
     </ClInclude>
@@ -48,14 +30,34 @@
     <ClInclude Include="tga.h">
       <Filter>NormalMap</Filter>
     </ClInclude>
-    <ClInclude Include="dds.h" />
     <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="dds\ConvertColor.h">
+      <Filter>Convert</Filter>
+    </ClInclude>
+    <ClInclude Include="dds\ddsTypes.h">
+      <Filter>Convert</Filter>
+    </ClInclude>
+    <ClInclude Include="dds\nvdxt_options.h">
+      <Filter>Convert</Filter>
+    </ClInclude>
+    <ClInclude Include="dds\nvErrorCodes.h">
+      <Filter>Convert</Filter>
+    </ClInclude>
+    <ClInclude Include="dds\tPixel.h">
+      <Filter>Convert</Filter>
+    </ClInclude>
+    <ClInclude Include="dds\tVector.h">
+      <Filter>Convert</Filter>
+    </ClInclude>
+    <ClInclude Include="dxtlib.h">
+      <Filter>Convert</Filter>
+    </ClInclude>
+    <ClInclude Include="dds.h">
+      <Filter>Convert</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DXT.cpp">
-      <Filter>Convert</Filter>
-    </ClCompile>
-    <ClCompile Include="nvdxt.cpp">
       <Filter>Convert</Filter>
     </ClCompile>
     <ClCompile Include="ETextureParams.cpp">
@@ -77,11 +79,6 @@
       <Filter>NormalMap</Filter>
     </ClCompile>
     <ClCompile Include="StdAfx.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="nvDXTlibMTDLL.lib">
-      <Filter>Convert</Filter>
-    </Library>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

@@ -34,6 +34,22 @@ namespace CDB
 	{
 	public:
 		u32				verts	[3];		// 3*4 = 12b
+#ifdef _WIN64
+		union	{
+			u64			dummy;				// 8b
+			struct {
+				u64		material:14;		// 
+				u64		suppress_shadows:1;	// 
+				u64		suppress_wm:1;		// 
+				u64		sector:16;			// 
+				u64		dumb:32;
+			};
+			struct {
+				u32 dummy_low;
+				u32 dummy_high;
+			};
+		};
+#else
 		union	{
 			u32			dummy;				// 4b
 			struct {
@@ -43,6 +59,7 @@ namespace CDB
 				u32		sector:16;			// 
 			};
 		};
+#endif
 	public:
 		IC u32			IDvert	(u32 ID)		{ return verts[ID];	}
 	};
@@ -100,6 +117,22 @@ namespace CDB
 	struct XRCDB_API RESULT
 	{
 		Fvector			verts	[3];
+#ifdef _WIN64
+		union	{
+			u64			dummy;				// 8b
+			struct {
+				u64		material:14;		// 
+				u64		suppress_shadows:1;	// 
+				u64		suppress_wm:1;		// 
+				u64		sector:16;			// 
+				u64		dumb:32;
+			};
+			struct {
+				u32 dummy_low;
+				u32 dummy_high;
+			};
+		};
+#else
 		union	{
 			u32			dummy;				// 4b
 			struct {
@@ -109,6 +142,7 @@ namespace CDB
 				u32		sector:16;			// 
 			};
 		};
+#endif
 		int				id;
 		float			range;
 		float			u,v;
@@ -163,9 +197,14 @@ namespace CDB
 		u32				VPack				( const Fvector& V, float eps);
 	public:
 		void			add_face			( const Fvector& v0, const Fvector& v1, const Fvector& v2, u16 material, u16 sector	);
+#ifdef _WIN64
+		void			add_face_D			( const Fvector& v0, const Fvector& v1, const Fvector& v2, u64 dummy );
+		void			add_face_packed_D	( const Fvector& v0, const Fvector& v1, const Fvector& v2, u64 dummy, float eps = EPS );
+#else
 		void			add_face_D			( const Fvector& v0, const Fvector& v1, const Fvector& v2, u32 dummy );
-		void			add_face_packed		( const Fvector& v0, const Fvector& v1, const Fvector& v2, u16 material, u16 sector, float eps = EPS );
 		void			add_face_packed_D	( const Fvector& v0, const Fvector& v1, const Fvector& v2, u32 dummy, float eps = EPS );
+#endif
+		void			add_face_packed		( const Fvector& v0, const Fvector& v1, const Fvector& v2, u16 material, u16 sector, float eps = EPS );
         void			remove_duplicate_T	( );
 		void			calc_adjacency		( xr_vector<u32>& dest		);
 
@@ -194,7 +233,11 @@ namespace CDB
 		CollectorPacked		(const Fbox &bb, int apx_vertices=5000, int apx_faces=5000);
 
 		void				add_face	( const Fvector& v0, const Fvector& v1, const Fvector& v2, u16 material, u16 sector );
+#ifdef _WIN64
+		void				add_face_D	( const Fvector& v0, const Fvector& v1, const Fvector& v2, u64 dummy );
+#else
 		void				add_face_D	( const Fvector& v0, const Fvector& v1, const Fvector& v2, u32 dummy );
+#endif
 		xr_vector<Fvector>& getV_Vec()	{ return verts;				}
 		Fvector*			getV()		{ return &*verts.begin();	}
 		size_t				getVS()		{ return verts.size();		}
