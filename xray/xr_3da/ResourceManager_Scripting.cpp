@@ -135,13 +135,7 @@ void	CResourceManager::LS_Load			()
 	}
 
 	// initialize lua standard library functions 
-	luaopen_base	(LSVM); 
-	luaopen_table	(LSVM);
-	luaopen_string	(LSVM);
-	luaopen_math	(LSVM);
-#ifdef USE_JIT
-	luaopen_jit		(LSVM);
-#endif
+	luaL_openlibs(LSVM);	//RvP
 
 	luabind::open						(LSVM);
 #if !XRAY_EXCEPTIONS
@@ -149,10 +143,9 @@ void	CResourceManager::LS_Load			()
 		luabind::set_error_callback		(LuaError);
 #endif
 
-	function		(LSVM, "log",	LuaLog);
-
+	function		(LSVM, "log",	LuaLog);		
 	module			(LSVM)
-	[
+	[		
 		class_<adopt_sampler>("_sampler")
 			.def(								constructor<const adopt_sampler&>())
 			.def("texture",						&adopt_sampler::_texture		,return_reference_to(_1))
@@ -226,9 +219,7 @@ void	CResourceManager::LS_Load			()
 	}
 	FS.file_list_close			(folder);
 
-#ifdef USE_JIT
 	luaJIT_setmode			(LSVM,LUAJIT_MODE_ENGINE,LUAJIT_MODE_ON);
-#endif
 }
 
 void	CResourceManager::LS_Unload			()

@@ -184,6 +184,8 @@ ICF	u32	script_time_global	()	{ return 0; }
 void CScriptEngine::script_register(lua_State *L)
 {
 	module(L)[
+		def("log1",	(void(*)(LPCSTR msg)) &Log),	//RvP
+
 		class_<profile_timer_script>("profile_timer")
 			.def(constructor<>())
 			.def(constructor<profile_timer_script&>())

@@ -511,7 +511,7 @@ void	R_dsgraph_structure::r_dsgraph_render_subspace	(IRender_Sector* _sector, CF
 	View							= 0;
 }
 
-#include "stdafx.h"
+#include "../stdafx.h"
 #include "..\fhierrarhyvisual.h"
 #include "..\SkeletonCustom.h"
 #include "..\fmesh.h"

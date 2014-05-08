@@ -39,7 +39,7 @@
 #include "engine.h"
 #include "defines.h"
 #ifndef NO_XRLOG
-#include "log.h"
+#include "../xrCore/log.h"
 #endif
 #include "device.h"
 #include "fs.h"
@@ -53,7 +53,8 @@ extern ENGINE_API CInifile *pGameIni;
 #pragma comment( lib, "xrCore.lib"	)
 #pragma comment( lib, "xrCDB.lib"	)
 #pragma comment( lib, "xrSound.lib"	)
-#pragma comment( lib, "xrLUA.lib"	)
+#pragma comment( lib, "lua5.1.lib"	)
+#pragma comment( lib, "luabind.lib"	)
 
 #pragma comment( lib, "winmm.lib"		)
 

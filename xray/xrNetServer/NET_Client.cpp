@@ -407,7 +407,6 @@ BOOL IPureClient::Connect	(LPCSTR options)
 		R_CHK(net_Address_server->AddComponent	(DPNA_KEY_HOSTNAME, ServerNameUNICODE, 2*u32(wcslen(ServerNameUNICODE) + 1), DPNA_DATATYPE_STRING ));
 		R_CHK(net_Address_server->AddComponent	(DPNA_KEY_PORT,	&psSV_Port, sizeof(psSV_Port), DPNA_DATATYPE_DWORD ));
 
-
 		// Debug
 		// dump_URL		("! cl ",	net_Address_device);
 		// dump_URL		("! en ",	net_Address_server);

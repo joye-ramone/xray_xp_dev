@@ -120,6 +120,7 @@ void xrCore::_initialize	(LPCSTR _ApplicationName, LogCallback cb, BOOL init_fs,
     #endif
 #endif // DEBUG
 	}
+	
 	SetLogCB				(cb);
 	init_counter++;
 }

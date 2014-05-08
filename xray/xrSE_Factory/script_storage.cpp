@@ -111,18 +111,6 @@ CScriptStorage::CScriptStorage		()
 //	luaopen_io				(lua());
 #endif
 
-#ifdef USE_JIT
-	if (strstr(Core.Params,"-nojit")) {
-//		luaopen_jit			(lua());
-//		luaopen_coco		(lua());
-//		luaJIT_setmode		(lua(),2,LUAJIT_MODE_DEBUG);
-	}
-		else {
-		luaopen_jit			(lua());
-		luaopen_coco		(lua());
-	}
-#endif
-
 	if (strstr(Core.Params,"-_g"))
 		file_header			= file_header_new;
 	else

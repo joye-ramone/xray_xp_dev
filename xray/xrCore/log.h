@@ -1,6 +1,12 @@
 #ifndef logH
 #define logH
 
+//+RvP
+#include <Windows.h>
+#include <fstream>
+#include <ctime>
+//-RvP
+
 #define VPUSH(a)	a.x,a.y,a.z
 
 void 	XRCORE_API	__cdecl		Msg			(LPCSTR format, ...);

@@ -16,23 +16,11 @@ static BOOL 				no_log			= TRUE;
 xr_vector<shared_str>*		LogFile			= NULL;
 static LogCallback			LogCB			= 0;
 
+static std::ofstream LogStream;
+static bool LogStreamOpened = false;
+
 void FlushLog			(LPCSTR file_name)
 {
-	if (no_log)
-		return;
-
-	logCS.Enter			();
-	
-	IWriter				*f = FS.w_open(file_name);
-    if (f) {
-        for (u32 it=0; it<LogFile->size(); it++)	{
-			LPCSTR		s	= *((*LogFile)[it]);
-			f->w_string	(s?s:"");
-		}
-        FS.w_close		(f);
-    }
-
-	logCS.Leave			();
 }
 
 void FlushLog			()
@@ -57,6 +45,18 @@ void AddOne				(const char *split)
 		shared_str			temp = shared_str(split);
 //		DUMP_PHASE;
 		LogFile->push_back	(temp);
+
+		//+RvP
+		if(LogStreamOpened){
+			time_t t = time(NULL);
+			tm* ti = localtime(&t);
+			char buf[64];
+			strftime(buf, 64, "[%x %X]\t", ti);
+
+			LogStream << buf << split << "\n";
+			LogStream.flush();
+		}
+		//-RvP
 	}
 
 	//exec CallBack
@@ -168,18 +168,41 @@ void CreateLog			(BOOL nl)
 	if (FS.path_exist("$logs$"))
 		FS.update_path	(logFName,"$logs$",logFName);
 	if (!no_log){
-        IWriter *f		= FS.w_open	(logFName);
-        if (f==NULL){
-        	MessageBox	(NULL,"Can't create log file.","Error",MB_ICONERROR);
-        	abort();
-        }
-        FS.w_close		(f);
+		//+RvP
+		if(!LogStream.is_open()){					
+			LogStream.open(logFName);
+			
+			if(!LogStream.is_open()){				
+				MessageBox	(NULL,"Can't create log file.","Error",MB_ICONERROR);
+        		abort();
+			}
+			
+			time_t t = time(NULL);
+			tm* ti = localtime(&t);
+			char buf[64];
+			strftime(buf, 64, "[%x %X]\t", ti);
+						
+			for (u32 it=0; it<LogFile->size(); it++)	{
+				LPCSTR		s	= *((*LogFile)[it]);			
+				LogStream << buf << (s?s:"") << "\n";
+			}
+			LogStream.flush();
+			LogStreamOpened = true;
+		}
+		//-RvP
     }
 	LogFile->reserve		(128);
 }
 
 void CloseLog(void)
 {
+	//+RvP
+	if(LogStream.is_open()){
+		LogStream.close();		
+	}
+	LogStreamOpened = false;
+	//-RvP
+
 	FlushLog		();
  	LogFile->clear	();
 	xr_delete		(LogFile);

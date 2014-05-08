@@ -88,14 +88,6 @@ void CScriptProcess::update()
 		ai().script_engine().script_log	(ScriptStorage::eLuaMessageTypeInfo,"%s",g_ca_stdout);
 		fflush							(stderr);
 	}
-
-#if defined(_DEBUG) && !defined(USE_JIT)
-	try {
-		lua_setgcthreshold	(ai().script_engine().lua(),0);
-	}
-	catch(...) {
-	}
-#endif
 }
 
 void CScriptProcess::add_script	(LPCSTR	script_name,bool do_string, bool reload)
