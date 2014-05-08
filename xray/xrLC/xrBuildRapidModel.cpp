@@ -161,7 +161,18 @@ void CBuild::BuildRapid		(BOOL bSaveForOtherCompilers)
 
 		// Data
 		MFS->w					(CL.getV(),(u32)CL.getVS()*sizeof(Fvector));
-		MFS->w					(CL.getT(),(u32)CL.getTS()*sizeof(CDB::TRI));
+/*		uncomment this in case of compatibility needs with old xrDO_Light
+#ifdef _WIN64
+		size_t t_size = CL.getTS();
+		for (size_t i = 0; i < t_size; ++i)
+		{
+			CDB::TRI *tri = &(CL.getT()[i]);
+			MFS->w(&(tri->verts[0]), 12);
+			MFS->w_u32(tri->dummy_low);
+		}
+#else*/
+		MFS->w			(CL.getT(),(u32)CL.getTS()*sizeof(CDB::TRI));
+//#endif
 		MFS->close_chunk		();
 
 		MFS->open_chunk			(1);

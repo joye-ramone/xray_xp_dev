@@ -8,6 +8,7 @@
 #include "cl_intersect.h"
 #include "Etextureparams.h"
 #include "r_light.h"
+#include "global_options.h"
 
 #define NUM_THREADS		3
 
@@ -19,6 +20,11 @@ enum
 	LP_dont_hemi		= (1<<2),
 	LP_dont_sun			= (1<<3),
 };
+
+// KD start
+BOOL					b_norgb		= FALSE;
+BOOL					b_nosun		= FALSE;
+// KD end
 
 float	color_intensity	(Fcolor& c)
 {
@@ -246,16 +252,30 @@ void xrLoad(LPCSTR name)
 		{
 			Surface_Init		();
 			F = fs->open_chunk	(EB_Textures);
+#ifdef _WIN64
+			u32 tex_count	= F->length()/sizeof(help_b_texture);
+#else
 			u32 tex_count	= F->length()/sizeof(b_texture);
+#endif
 			for (u32 t=0; t<tex_count; t++)
 			{
 				Progress		(float(t)/float(tex_count));
 
+#ifdef _WIN64
+				// workaround for ptr size mismatching
+				help_b_texture	TEX;
+				F->r			(&TEX,sizeof(TEX));
+
+				b_BuildTexture	BT;
+				CopyMemory		(&BT,&TEX,sizeof(TEX) - 4);	// ptr should be copied separately
+				BT.pSurface		= (u32 *)TEX.pSurface;
+#else
 				b_texture		TEX;
 				F->r			(&TEX,sizeof(TEX));
 
 				b_BuildTexture	BT;
 				CopyMemory		(&BT,&TEX,sizeof(TEX));
+#endif
 
 				// load thumbnail
 				LPSTR N			= BT.name;
@@ -304,8 +324,13 @@ void xrLoad(LPCSTR name)
 							u32			w=0, h=0;
 							BT.pSurface = Surface_Load(N,w,h); 
 							R_ASSERT2	(BT.pSurface,"Can't load surface");
+							// KD: in case of thm doesn't correspond to texture let's reset thm params to actual texture ones
 							if ((w != BT.dwWidth) || (h != BT.dwHeight))
-								Msg		("! THM doesn't correspond to the texture: %dx%d -> %dx%d", BT.dwWidth, BT.dwHeight, w, h);
+							{
+								Msg		("! THM doesn't correspond to the texture: %dx%d -> %dx%d, reseting", BT.dwWidth, BT.dwHeight, w, h);
+								BT.dwWidth = w;
+								BT.dwHeight = h;
+							}
 							BT.Vflip	();
 						} else {
 							// Free surface memory
@@ -658,7 +683,7 @@ public:
 						if (P.y<BB.min.y) continue;
 						
 						// light point
-						LightPoint		(&DB,amount,P,t_n,Selected,0);
+						LightPoint		(&DB,amount,P,t_n,Selected,(b_norgb?LP_dont_rgb:0)|(b_nosun?LP_dont_sun:0)|LP_DEFAULT);
 						count			+= 1;
 					}
 				}

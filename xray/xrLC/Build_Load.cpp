@@ -354,6 +354,7 @@ void CBuild::Load	(const b_params& Params, const IReader& _in_FS)
 							is_tga_missing = true;
 							continue;
 						}
+						// KD: in case of thm doesn't correspond to texture let's reset thm params to actual texture ones
 						if ((w != BT.dwWidth) || (h != BT.dwHeight))
 						{
 							Msg		("! THM doesn't correspond to the texture: %dx%d -> %dx%d, reseting", BT.dwWidth, BT.dwHeight, w, h);
