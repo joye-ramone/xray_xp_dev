@@ -27,6 +27,9 @@ void	CRenderTarget::phase_accumulator()
 		RCache.set_ColorWriteEnable					();
 		RImplementation.r_dsgraph_render_emissive	();
 
+		// KD: hud emissive geometry fix
+		RImplementation.r_dsgraph_render_hud_emissive	();
+
 		// Stencil	- draw only where stencil >= 0x1
 		RCache.set_Stencil					(TRUE,D3DCMP_LESSEQUAL,0x01,0xff,0x00);
 		RCache.set_CullMode					(CULL_NONE);

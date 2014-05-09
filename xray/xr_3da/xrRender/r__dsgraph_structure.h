@@ -44,6 +44,8 @@ public:
 #if RENDER==R_R2
 	R_dsgraph::mapSorted_T										mapWmark;			// sorted
 	R_dsgraph::mapSorted_T										mapEmissive;
+	R_dsgraph::mapHUD_T											mapHUDEmissive;
+	R_dsgraph::mapHUD_T											mapHUDSorted;
 #endif
 
 	// Runtime structures 
@@ -133,6 +135,8 @@ public:
 #if RENDER==R_R2
 		mapWmark.destroy		();
 		mapEmissive.destroy		();
+		mapHUDEmissive.destroy	();
+		mapHUDSorted.destroy	();
 #endif
 	}
 
@@ -143,8 +147,10 @@ public:
 
 	void		r_dsgraph_render_graph							(u32	_priority,	bool _clear=true);
 	void		r_dsgraph_render_hud							();
+	void		r_dsgraph_render_hud_emissive					();
 	void		r_dsgraph_render_lods							(bool	_setup_zb,	bool _clear);
 	void		r_dsgraph_render_sorted							();
+	void		r_dsgraph_render_hud_sorted						();
 	void		r_dsgraph_render_emissive						();
 	void		r_dsgraph_render_wmarks							();
 	void		r_dsgraph_render_distort						();

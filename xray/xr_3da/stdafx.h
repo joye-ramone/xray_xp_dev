@@ -62,9 +62,9 @@ extern ENGINE_API CInifile *pGameIni;
 #pragma comment( lib, "dinput8.lib"		)
 #pragma comment( lib, "dxguid.lib"		)
 
-#ifndef DEBUG
+//#ifndef DEBUG
 #	define LUABIND_NO_ERROR_CHECKING
-#endif
+//#endif
 
 #if	!defined(DEBUG) || defined(FORCE_NO_EXCEPTIONS)
 	// release: no error checking, no exceptions

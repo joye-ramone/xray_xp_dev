@@ -64,6 +64,12 @@ void	CBlender_Compile::_cpp_Compile	(ShaderElement* _SH)
 	bDetail_Bump	= FALSE;
 	if(bDetail)
 		Device.Resources->m_textures_description.GetTextureUsage(base, bDetail_Diffuse, bDetail_Bump);
+
+	// KD
+	bParallax		= FALSE;
+	Device.Resources->m_textures_description.GetParallax(base, bParallax);
+	// KD
+
 /*
 	if (bDetail && Device.Resources->m_description->line_exist("association",base))	
 	{

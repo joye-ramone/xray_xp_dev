@@ -84,9 +84,6 @@
     <ClInclude Include="doug_lea_memory_allocator.h">
       <Filter>Core\memory</Filter>
     </ClInclude>
-    <ClInclude Include="DetailFormat.h">
-      <Filter>Details</Filter>
-    </ClInclude>
     <ClInclude Include="..\xrRender\DetailManager.h">
       <Filter>Details</Filter>
     </ClInclude>
@@ -242,6 +239,9 @@
     </ClInclude>
     <ClInclude Include="r2_rendertarget_wallmarks.h">
       <Filter>Core_Target</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xrRender\DetailFormat.h">
+      <Filter>Details</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

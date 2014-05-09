@@ -76,13 +76,25 @@ void CTextureDescrMngr::LoadLTX()
 				texture_desc& desc		= m_texture_details[item.first];
 				desc.m_spec				= xr_new<texture_spec>();
 
-				string_path				bmode;
-				int res = sscanf		(item.second.c_str(),"bump_mode[%[^]]], material[%f]",bmode,&desc.m_spec->m_material);
-				R_ASSERT(res==2);
+				string_path				bmode, bparallax;
+				int res = sscanf		(item.second.c_str(),"bump_mode[%[^]]], material[%f], parallax[%[^]]",bmode,&desc.m_spec->m_material,bparallax);
+				R_ASSERT(res>=2);
 				if ((bmode[0]=='u')&&(bmode[1]=='s')&&(bmode[2]=='e')&&(bmode[3]==':'))
 				{
 					// bump-map specified
 					desc.m_spec->m_bump_name	=	bmode+4;
+				}
+				if (res == 3)
+				{
+					if ((bparallax[0]=='y')&&(bparallax[1]=='e')&&(bparallax[2]=='s'))
+					{
+						// parallax
+						desc.m_spec->m_parallax = TRUE;
+					} else {
+						desc.m_spec->m_parallax = FALSE;
+					}
+				} else {
+					desc.m_spec->m_parallax = FALSE;
 				}
 			}
 		}//"specification"
@@ -269,6 +281,18 @@ BOOL CTextureDescrMngr::GetDetailTexture(const shared_str& tex_name, LPCSTR& res
 		}
 	}
 	return FALSE;
+}
+// KD
+void CTextureDescrMngr::GetParallax(const shared_str& tex_name, BOOL& bParallax) const
+{
+	map_TD::const_iterator I = m_texture_details.find	(tex_name);
+	if (I!=m_texture_details.end())
+	{
+		if(I->second.m_spec)
+		{
+			bParallax = I->second.m_spec->m_parallax;
+		}
+	}
 }
 /*
 	// Load detail textures association

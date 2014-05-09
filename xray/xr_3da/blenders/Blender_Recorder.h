@@ -24,6 +24,7 @@ public:
 	BOOL				bDetail;
 	BOOL				bDetail_Diffuse;
 	BOOL				bDetail_Bump;
+	BOOL				bParallax;				// KD: not every texture needs steep parallax
 	int					iElement;
 
 public:

@@ -17,6 +17,7 @@ class CTextureDescrMngr
 	{
 		shared_str			m_bump_name;
 		float				m_material;
+		bool				m_parallax;
 	};
 	struct texture_desc{
 		texture_assoc*		m_assoc;
@@ -39,6 +40,9 @@ public:
 public:
 	shared_str	GetBumpName		(const shared_str& tex_name) const;
 	float		GetMaterial		(const shared_str& tex_name) const;
+// KD
+	void		GetParallax		(const shared_str& tex_name, BOOL& bParallax) const;
+// KD
 	void		GetTextureUsage	(const shared_str& tex_name, BOOL& bDiffuse, BOOL& bBump) const;
 	BOOL		GetDetailTexture(const shared_str& tex_name, LPCSTR& res, R_constant_setup* &CS) const;
 #ifdef _EDITOR

@@ -359,7 +359,7 @@ void CRender::Render		()
 	// Wall marks
 	if(Wallmarks)	{
 		Target->phase_wallmarks					();
-		g_r										= 0;
+		if (!ps_common_flags.test(RFLAG_BLOODMARKS)) g_r										= 0;
 		Wallmarks->Render						();				// wallmarks has priority as normal geometry
 	}
 
@@ -415,6 +415,7 @@ void CRender::render_forward				()
 		r_dsgraph_render_graph					(1)	;					// normal level, secondary priority
 		PortalTraverser.fade_render				()	;					// faded-portals
 		r_dsgraph_render_sorted					()	;					// strict-sorted geoms
+		r_dsgraph_render_hud_sorted				()	;
 		g_pGamePersistent->Environment().RenderLast()	;					// rain/thunder-bolts
 	}
 

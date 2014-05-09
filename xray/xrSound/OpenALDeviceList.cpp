@@ -107,8 +107,9 @@ void ALDeviceList::Enumerate()
 						m_devices.push_back				(ALDeviceDesc(actualDeviceName,minor,major));
 						m_devices.back().xram			= (alIsExtensionPresent("EAX-RAM") == TRUE);
 						m_devices.back().eax			= (alIsExtensionPresent("EAX2.0") == TRUE);
-						m_devices.back().eax_unwanted	= ((0==xr_strcmp(actualDeviceName,AL_GENERIC_HARDWARE))||
-														   (0==xr_strcmp(actualDeviceName,AL_GENERIC_SOFTWARE)));
+						// KD: disable unwanted eax flag to force eax on all devices
+						m_devices.back().eax_unwanted	= 0;/*((0==xr_strcmp(actualDeviceName,AL_GENERIC_HARDWARE))||
+														   (0==xr_strcmp(actualDeviceName,AL_GENERIC_SOFTWARE)));*/
 						++index;
 					}
 					alcDestroyContext(context);

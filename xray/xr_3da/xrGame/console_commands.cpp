@@ -311,7 +311,7 @@ public:
 	}
 };
 
-#ifndef MASTER_GOLD
+//#ifndef MASTER_GOLD
 class CCC_TimeFactor : public IConsole_Command {
 public:
 					CCC_TimeFactor	(LPCSTR N) : IConsole_Command(N) {}
@@ -322,7 +322,7 @@ public:
 		Device.time_factor	(time_factor);
 	}
 };
-#endif // MASTER_GOLD
+//#endif // MASTER_GOLD
 
 //-----------------------------------------------------------------------
 class CCC_DemoRecord : public IConsole_Command
@@ -627,7 +627,7 @@ public:
 };
 
 
-#ifndef MASTER_GOLD
+//#ifndef MASTER_GOLD
 class CCC_Script : public IConsole_Command {
 public:
 	CCC_Script(LPCSTR N) : IConsole_Command(N)  { bEmptyArgsHandled = true; };
@@ -679,7 +679,7 @@ public:
 		}
 	}
 };
-#endif // MASTER_GOLD
+//#endif // MASTER_GOLD
 
 #ifdef DEBUG
 
@@ -1003,7 +1003,7 @@ struct CCC_ClearSmartCastStats : public IConsole_Command {
 };
 #endif
 
-#ifndef MASTER_GOLD
+//#ifndef MASTER_GOLD
 #	include "game_graph.h"
 struct CCC_JumpToLevel : public IConsole_Command {
 	CCC_JumpToLevel(LPCSTR N) : IConsole_Command(N)  {};
@@ -1026,7 +1026,7 @@ struct CCC_JumpToLevel : public IConsole_Command {
 		Msg							("! There is no level \"%s\" in the game graph!",level);
 	}
 };
-#endif // MASTER_GOLD
+//#endif // MASTER_GOLD
 
 #include "GamePersistent.h"
 
@@ -1500,14 +1500,14 @@ void CCC_RegisterCommands()
 #endif // DEBUG
 
 
-#ifndef MASTER_GOLD
+//#ifndef MASTER_GOLD
 	CMD1(CCC_JumpToLevel,	"jump_to_level"		);
 	CMD3(CCC_Mask,			"g_god",			&psActorFlags,	AF_GODMODE	);
 	CMD3(CCC_Mask,			"g_unlimitedammo",	&psActorFlags,	AF_UNLIMITEDAMMO);
 	CMD1(CCC_Script,		"run_script");
 	CMD1(CCC_ScriptCommand,	"run_string");
 	CMD1(CCC_TimeFactor,	"time_factor");		
-#endif // MASTER_GOLD
+//#endif // MASTER_GOLD
 
 	CMD3(CCC_Mask,		"g_autopickup",			&psActorFlags,	AF_AUTOPICKUP);
 

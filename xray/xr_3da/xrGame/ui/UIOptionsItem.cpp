@@ -99,7 +99,10 @@ void CUIOptionsItem::SaveValue(){
 			m_entry == "r__supersample"	|| 
 			m_entry == "rs_refresh_60hz"||
 			m_entry == "rs_no_v_sync"	||
-			m_entry == "texture_lod")
+			m_entry == "texture_lod"	||
+			// KD: additional options
+			m_entry == "r__detail_radius"	||
+			m_entry == "r__detail_density")
 	m_optionsManager.DoVidRestart();
 
 	if (/*m_entry == "snd_freq" ||*/ m_entry == "snd_efx")
