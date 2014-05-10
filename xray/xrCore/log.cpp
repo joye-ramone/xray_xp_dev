@@ -51,8 +51,8 @@ void AddOne				(const char *split)
 			tm* ti = localtime(&t);
 			char buf[64];
 			strftime(buf, 64, "[%x %X]\t", ti);
-
-			LogWriter->w_printf("%s%s\n", buf, split);
+			
+			LogWriter->w_printf("%s%s\r\n", buf, split);
 			LogWriter->flush();
 		}
 		//-RvP
