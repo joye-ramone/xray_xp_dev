@@ -1,0 +1,234 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{e5d683f6-a1ac-443e-b5fc-5a7689a48eac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{4f5f2294-7a1b-4380-8aaf-a2ae48d4c9f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\nvtt">
+      <UniqueIdentifier>{92a18275-4657-4a10-a9ac-2f953fb3edd8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\nvcore">
+      <UniqueIdentifier>{dc1e3440-0dd5-41f9-91f2-681ff1865c8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\nvmath">
+      <UniqueIdentifier>{8e496606-8f35-4119-ae07-780907fd0e9a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\nvtt\nvtt.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\nvtt\nvtt_wrapper.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvtt\CompressDXT.h">
+      <Filter>src\nvtt</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvtt\CompressionOptions.h">
+      <Filter>src\nvtt</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvtt\Compressor.h">
+      <Filter>src\nvtt</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvtt\CompressRGB.h">
+      <Filter>src\nvtt</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvtt\InputOptions.h">
+      <Filter>src\nvtt</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvtt\nvtt.h">
+      <Filter>src\nvtt</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvtt\nvtt_wrapper.h">
+      <Filter>src\nvtt</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvtt\OptimalCompressDXT.h">
+      <Filter>src\nvtt</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvtt\OutputOptions.h">
+      <Filter>src\nvtt</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvtt\QuickCompressDXT.h">
+      <Filter>src\nvtt</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvtt\SingleColorLookup.h">
+      <Filter>src\nvtt</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvcore\BitArray.h">
+      <Filter>src\nvcore</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvcore\Containers.h">
+      <Filter>src\nvcore</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvcore\Debug.h">
+      <Filter>src\nvcore</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvcore\DefsGnucDarwin.h">
+      <Filter>src\nvcore</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvcore\DefsGnucLinux.h">
+      <Filter>src\nvcore</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvcore\DefsGnucWin32.h">
+      <Filter>src\nvcore</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvcore\DefsVcWin32.h">
+      <Filter>src\nvcore</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvcore\Library.h">
+      <Filter>src\nvcore</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvcore\Memory.h">
+      <Filter>src\nvcore</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvcore\nvcore.h">
+      <Filter>src\nvcore</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvcore\Prefetch.h">
+      <Filter>src\nvcore</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvcore\Ptr.h">
+      <Filter>src\nvcore</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvcore\Radix.h">
+      <Filter>src\nvcore</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvcore\StdStream.h">
+      <Filter>src\nvcore</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvcore\Stream.h">
+      <Filter>src\nvcore</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvcore\StrLib.h">
+      <Filter>src\nvcore</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvcore\TextReader.h">
+      <Filter>src\nvcore</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvcore\TextWriter.h">
+      <Filter>src\nvcore</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvcore\Tokenizer.h">
+      <Filter>src\nvcore</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvmath\Basis.h">
+      <Filter>src\nvmath</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvmath\Box.h">
+      <Filter>src\nvmath</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvmath\Color.h">
+      <Filter>src\nvmath</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvmath\Matrix.h">
+      <Filter>src\nvmath</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvmath\Montecarlo.h">
+      <Filter>src\nvmath</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvmath\nvmath.h">
+      <Filter>src\nvmath</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvmath\Plane.h">
+      <Filter>src\nvmath</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvmath\Quaternion.h">
+      <Filter>src\nvmath</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvmath\Random.h">
+      <Filter>src\nvmath</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvmath\SphericalHarmonic.h">
+      <Filter>src\nvmath</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvmath\Triangle.h">
+      <Filter>src\nvmath</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nvmath\Vector.h">
+      <Filter>src\nvmath</Filter>
+    </ClInclude>
+    <ClInclude Include="include\nvconfig.h">
+      <Filter>include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\nvtt\CompressDXT.cpp">
+      <Filter>src\nvtt</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nvtt\CompressionOptions.cpp">
+      <Filter>src\nvtt</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nvtt\Compressor.cpp">
+      <Filter>src\nvtt</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nvtt\CompressRGB.cpp">
+      <Filter>src\nvtt</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nvtt\InputOptions.cpp">
+      <Filter>src\nvtt</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nvtt\nvtt.cpp">
+      <Filter>src\nvtt</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nvtt\nvtt_wrapper.cpp">
+      <Filter>src\nvtt</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nvtt\OptimalCompressDXT.cpp">
+      <Filter>src\nvtt</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nvtt\OutputOptions.cpp">
+      <Filter>src\nvtt</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nvtt\QuickCompressDXT.cpp">
+      <Filter>src\nvtt</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nvcore\Debug.cpp">
+      <Filter>src\nvcore</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nvcore\Library.cpp">
+      <Filter>src\nvcore</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nvcore\Memory.cpp">
+      <Filter>src\nvcore</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nvcore\Radix.cpp">
+      <Filter>src\nvcore</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nvcore\StrLib.cpp">
+      <Filter>src\nvcore</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nvcore\TextReader.cpp">
+      <Filter>src\nvcore</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nvcore\TextWriter.cpp">
+      <Filter>src\nvcore</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nvcore\Tokenizer.cpp">
+      <Filter>src\nvcore</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nvmath\Basis.cpp">
+      <Filter>src\nvmath</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nvmath\Montecarlo.cpp">
+      <Filter>src\nvmath</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nvmath\Plane.cpp">
+      <Filter>src\nvmath</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nvmath\Random.cpp">
+      <Filter>src\nvmath</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nvmath\SphericalHarmonic.cpp">
+      <Filter>src\nvmath</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nvmath\Triangle.cpp">
+      <Filter>src\nvmath</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nvmath\TriBox.cpp">
+      <Filter>src\nvmath</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

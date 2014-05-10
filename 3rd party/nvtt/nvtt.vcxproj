@@ -1,0 +1,143 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\nvconfig.h" />
+    <ClInclude Include="include\nvtt\nvtt.h" />
+    <ClInclude Include="include\nvtt\nvtt_wrapper.h" />
+    <ClInclude Include="src\nvcore\BitArray.h" />
+    <ClInclude Include="src\nvcore\Containers.h" />
+    <ClInclude Include="src\nvcore\Debug.h" />
+    <ClInclude Include="src\nvcore\DefsGnucDarwin.h" />
+    <ClInclude Include="src\nvcore\DefsGnucLinux.h" />
+    <ClInclude Include="src\nvcore\DefsGnucWin32.h" />
+    <ClInclude Include="src\nvcore\DefsVcWin32.h" />
+    <ClInclude Include="src\nvcore\Library.h" />
+    <ClInclude Include="src\nvcore\Memory.h" />
+    <ClInclude Include="src\nvcore\nvcore.h" />
+    <ClInclude Include="src\nvcore\Prefetch.h" />
+    <ClInclude Include="src\nvcore\Ptr.h" />
+    <ClInclude Include="src\nvcore\Radix.h" />
+    <ClInclude Include="src\nvcore\StdStream.h" />
+    <ClInclude Include="src\nvcore\Stream.h" />
+    <ClInclude Include="src\nvcore\StrLib.h" />
+    <ClInclude Include="src\nvcore\TextReader.h" />
+    <ClInclude Include="src\nvcore\TextWriter.h" />
+    <ClInclude Include="src\nvcore\Tokenizer.h" />
+    <ClInclude Include="src\nvmath\Basis.h" />
+    <ClInclude Include="src\nvmath\Box.h" />
+    <ClInclude Include="src\nvmath\Color.h" />
+    <ClInclude Include="src\nvmath\Matrix.h" />
+    <ClInclude Include="src\nvmath\Montecarlo.h" />
+    <ClInclude Include="src\nvmath\nvmath.h" />
+    <ClInclude Include="src\nvmath\Plane.h" />
+    <ClInclude Include="src\nvmath\Quaternion.h" />
+    <ClInclude Include="src\nvmath\Random.h" />
+    <ClInclude Include="src\nvmath\SphericalHarmonic.h" />
+    <ClInclude Include="src\nvmath\Triangle.h" />
+    <ClInclude Include="src\nvmath\Vector.h" />
+    <ClInclude Include="src\nvtt\CompressDXT.h" />
+    <ClInclude Include="src\nvtt\CompressionOptions.h" />
+    <ClInclude Include="src\nvtt\Compressor.h" />
+    <ClInclude Include="src\nvtt\CompressRGB.h" />
+    <ClInclude Include="src\nvtt\InputOptions.h" />
+    <ClInclude Include="src\nvtt\nvtt.h" />
+    <ClInclude Include="src\nvtt\nvtt_wrapper.h" />
+    <ClInclude Include="src\nvtt\OptimalCompressDXT.h" />
+    <ClInclude Include="src\nvtt\OutputOptions.h" />
+    <ClInclude Include="src\nvtt\QuickCompressDXT.h" />
+    <ClInclude Include="src\nvtt\SingleColorLookup.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\nvcore\Debug.cpp" />
+    <ClCompile Include="src\nvcore\Library.cpp" />
+    <ClCompile Include="src\nvcore\Memory.cpp" />
+    <ClCompile Include="src\nvcore\Radix.cpp" />
+    <ClCompile Include="src\nvcore\StrLib.cpp" />
+    <ClCompile Include="src\nvcore\TextReader.cpp" />
+    <ClCompile Include="src\nvcore\TextWriter.cpp" />
+    <ClCompile Include="src\nvcore\Tokenizer.cpp" />
+    <ClCompile Include="src\nvmath\Basis.cpp" />
+    <ClCompile Include="src\nvmath\Montecarlo.cpp" />
+    <ClCompile Include="src\nvmath\Plane.cpp" />
+    <ClCompile Include="src\nvmath\Random.cpp" />
+    <ClCompile Include="src\nvmath\SphericalHarmonic.cpp" />
+    <ClCompile Include="src\nvmath\Triangle.cpp" />
+    <ClCompile Include="src\nvmath\TriBox.cpp" />
+    <ClCompile Include="src\nvtt\CompressDXT.cpp" />
+    <ClCompile Include="src\nvtt\CompressionOptions.cpp" />
+    <ClCompile Include="src\nvtt\Compressor.cpp" />
+    <ClCompile Include="src\nvtt\CompressRGB.cpp" />
+    <ClCompile Include="src\nvtt\InputOptions.cpp" />
+    <ClCompile Include="src\nvtt\nvtt.cpp" />
+    <ClCompile Include="src\nvtt\nvtt_wrapper.cpp" />
+    <ClCompile Include="src\nvtt\OptimalCompressDXT.cpp" />
+    <ClCompile Include="src\nvtt\OutputOptions.cpp" />
+    <ClCompile Include="src\nvtt\QuickCompressDXT.cpp" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{0EB257DC-5CFC-44B0-82C9-CE6B158BE473}</ProjectGuid>
+    <RootNamespace>nvtt</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>x:\libraries\</OutDir>
+    <IntDir>x:\intermediate\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>X:\trunk\3rd party\nvtt\src;X:\trunk\3rd party\nvtt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

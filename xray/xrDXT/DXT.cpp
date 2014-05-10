@@ -135,11 +135,27 @@ IC u32 GetPowerOf2Plus1(u32 v)
 void FillRect(u8* data, u8* new_data, u32 offs, u32 pitch, u32 h, u32 full_pitch){
 	for (u32 i=0; i<h; i++) CopyMemory(data+(full_pitch*i+offs),new_data+i*pitch,pitch);
 }
-using namespace nvDDS;
+//using namespace nvDDS;
 int DXTCompressImage	(LPCSTR out_name, u8* raw_data, u32 w, u32 h, u32 pitch, 
 						STextureParams* fmt, u32 depth)
 {
 	R_ASSERT((0!=w)&&(0!=h));
+	gFileOut = _open( out_name, _O_WRONLY|_O_BINARY|_O_CREAT|_O_TRUNC,_S_IWRITE);
+    if (gFileOut==-1){
+        fprintf(stderr, "Can't open output file %s\n", out_name);
+        return false;
+    }
+	if ((fmt->flags.is(STextureParams::flGenerateMipMaps))&&(STextureParams::kMIPFilterAdvanced==fmt->mip_filter))
+	{
+
+	}
+	else
+	{
+
+	}
+	_close					(gFileOut);
+
+/*	R_ASSERT((0!=w)&&(0!=h));
 
     gFileOut = _open( out_name, _O_WRONLY|_O_BINARY|_O_CREAT|_O_TRUNC,_S_IWRITE);
     if (gFileOut==-1){
@@ -263,7 +279,7 @@ int DXTCompressImage	(LPCSTR out_name, u8* raw_data, u32 w, u32 h, u32 pitch,
 		}
 		unlink				(out_name);
 		return 0;
-	}else					return 1;
+	}else					return 1;*/
 }
 
 extern int DXTCompressBump(LPCSTR out_name, u8* raw_data, u8* normal_map, u32 w, u32 h, u32 pitch, STextureParams* fmt, u32 depth);
