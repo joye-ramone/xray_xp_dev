@@ -403,8 +403,9 @@ void CActor::ActorUse()
 }
 BOOL CActor::HUDview				( )const 
 { 
-	return IsFocused()&&(cam_active==eacFirstEye)&&
-		((!m_holder) || (m_holder && m_holder->allowWeapon() && m_holder->HUDView() ) ); 
+	return IsFocused()
+		&&(cam_active==eacFirstEye)		
+		&&((!m_holder) || (m_holder && m_holder->allowWeapon() && m_holder->HUDView() ) ); 
 }
 
 //void CActor::IR_OnMousePress(int btn)

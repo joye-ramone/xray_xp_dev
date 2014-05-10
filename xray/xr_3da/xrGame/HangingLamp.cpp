@@ -105,6 +105,7 @@ BOOL CHangingLamp::net_Spawn(CSE_Abstract* DC)
 	light_render->set_color	(clr);
 	light_render->set_cone	(lamp->spot_cone_angle);
 	light_render->set_texture(*lamp->light_texture);
+	light_render->set_virtual_size(lamp->m_virtual_size);
 
 	if (lamp->glow_texture.size())	{
 		glow_render				= ::Render->glow_create();
@@ -122,6 +123,7 @@ BOOL CHangingLamp::net_Spawn(CSE_Abstract* DC)
 		light_ambient->set_range(lamp->m_ambient_radius);
 		light_ambient->set_color(clr);
 		light_ambient->set_texture(*lamp->m_ambient_texture);
+		light_ambient->set_virtual_size(lamp->m_virtual_size);
 	}
 
 	fHealth					= lamp->m_health;

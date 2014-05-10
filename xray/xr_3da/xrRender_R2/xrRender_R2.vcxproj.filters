@@ -102,9 +102,6 @@
     <ClInclude Include="..\xrRender\xrStripify.h">
       <Filter>Stripifier</Filter>
     </ClInclude>
-    <ClInclude Include="light.h">
-      <Filter>Lights</Filter>
-    </ClInclude>
     <ClInclude Include="..\xrRender\Light_DB.h">
       <Filter>Lights</Filter>
     </ClInclude>
@@ -242,6 +239,9 @@
     </ClInclude>
     <ClInclude Include="..\xrRender\DetailFormat.h">
       <Filter>Details</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xrRender\light.h">
+      <Filter>Lights</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

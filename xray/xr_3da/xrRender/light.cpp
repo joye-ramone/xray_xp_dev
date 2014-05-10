@@ -18,6 +18,7 @@ light::light		(void)	: ISpatial(g_SpatialSpace)
 	frame_render	= 0;
 
 #if RENDER==R_R2
+	virtual_size	= 0;
 	ZeroMemory		(omnipart,sizeof(omnipart));
 	s_spot			= NULL;
 	s_point			= NULL;
