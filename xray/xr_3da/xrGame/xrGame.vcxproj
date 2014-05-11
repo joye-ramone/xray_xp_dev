@@ -529,7 +529,7 @@
       <WarningLevel>Level4</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <DisableSpecificWarnings>4237;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4995;4237;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>X:\trunk\xray\Luabind;X:\trunk\xray\LuaJIT\src;$(WindowsSdkDir)include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2007%29\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>
@@ -1093,6 +1093,7 @@
     <ClInclude Include="damage_manager.h" />
     <ClInclude Include="damage_manager_inline.h" />
     <ClInclude Include="DamageSource.h" />
+    <ClInclude Include="script_additional_libs.h" />
     <ClInclude Include="wrapper_abstract.h" />
     <ClInclude Include="wrapper_abstract_inline.h" />
     <ClInclude Include="action_management_config.h" />
@@ -2764,6 +2765,7 @@
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|x64'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
+    <ClCompile Include="script_additional_libs.cpp" />
     <ClCompile Include="script_property_evaluator_wrapper.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|x64'">pch_script.h</PrecompiledHeaderFile>
