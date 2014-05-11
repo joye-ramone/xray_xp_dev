@@ -438,11 +438,12 @@ void		xrRender_initconsole	()
 
 	// KD
 	CMD3(CCC_Mask,			"r__bloodmarks",		&ps_common_flags,			RFLAG_BLOODMARKS);
-	CMD3(CCC_Mask,			"r2_true_sun_shadows",	&ps_r2_ls_flags,			R2FLAG_TRUE_SHADOWS		);
+	CMD3(CCC_Mask,			"r2_sun_true_shadows",	&ps_r2_ls_flags,			R2FLAG_TRUE_SHADOWS		);
 	CMD3(CCC_Mask,			"r2_soft_water",		&ps_r2_ls_flags,			R2FLAG_SOFT_WATER		);
 	CMD3(CCC_Mask,			"r2_soft_particles",	&ps_r2_ls_flags,			R2FLAG_SOFT_PARTICLES	);
 	CMD3(CCC_Token,			"r2_steep_parallax",	&ps_steep_parallax,			ext_quality_token	);
 	CMD4(CCC_detail_radius,	"r__detail_radius",		&ps_r__detail_radius,		49,	250	);
+	CMD3(CCC_Mask,			"r__actor_shadow",		&ps_common_flags,			RFLAG_ACTOR_SHADOW	);
 }
 
 void	xrRender_apply_tf		()

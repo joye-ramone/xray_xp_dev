@@ -141,6 +141,7 @@ extern ECORE_API int			ps_r__detail_radius;
 enum
 {
 	RFLAG_BLOODMARKS					= (1<<0),
+	RFLAG_ACTOR_SHADOW					= (1<<1),
 };
 
 #endif

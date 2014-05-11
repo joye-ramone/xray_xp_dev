@@ -272,7 +272,7 @@
 			<text font="letterica16" r="215" g="195" b="170">ui_mm_r2_true_sun_shadows</text>
 		</cap_true_sun_shadows>
 		<check_true_sun_shadows x="194" y="0" width="30" height="21">
-			<options_item entry="r2_true_sun_shadows" group="mm_opt_video_adv"/>
+			<options_item entry="r2_sun_true_shadows" group="mm_opt_video_adv"/>
 		</check_true_sun_shadows>		
 		
 		<cap_soft_water x="20" y="0" width="143" height="21">

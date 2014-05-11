@@ -568,7 +568,7 @@ void	R_dsgraph_structure::r_dsgraph_render_subspace	(IRender_Sector* _sector, CF
 			}
 		}
 #if RENDER==R_R2
-		if (g_pGameLevel && (phase==RImplementation.PHASE_SMAP))	g_pGameLevel->pHUD->Render_Actor_Shadow();		// ACtor Shadow
+		if (g_pGameLevel && (phase==RImplementation.PHASE_SMAP) && ps_common_flags.test(RFLAG_ACTOR_SHADOW))	g_pGameLevel->pHUD->Render_Actor_Shadow();		// ACtor Shadow
 #endif
 	}
 

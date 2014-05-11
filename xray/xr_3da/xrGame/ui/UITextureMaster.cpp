@@ -113,7 +113,7 @@ float CUITextureMaster::GetTextureHeight(const char* texture_name){
 		return (*it).second.rect.height();
 	// KD: we don't need to die :)
 //	R_ASSERT3(false,"CUITextureMaster::GetTextureHeight Can't find texture", texture_name);
-	Msg("CUITextureMaster::GetTextureHeight Can't find texture", texture_name);
+	Msg("! CUITextureMaster::GetTextureHeight Can't find texture", texture_name);
 	return 0;
 }
 
@@ -125,7 +125,7 @@ Frect CUITextureMaster::GetTextureRect(const char* texture_name){
 
 	// KD: we don't need to die :)
 //	R_ASSERT3(false,"CUITextureMaster::GetTextureHeight Can't find texture", texture_name);
-	Msg("CUITextureMaster::GetTextureRect Can't find texture", texture_name);
+	Msg("! CUITextureMaster::GetTextureRect Can't find texture", texture_name);
 	return Frect();
 }
 
@@ -137,7 +137,7 @@ float CUITextureMaster::GetTextureWidth(const char* texture_name){
 		return (*it).second.rect.width();
 	// KD: we don't need to die :)
 //	R_ASSERT3(false,"CUITextureMaster::GetTextureHeight Can't find texture", texture_name);
-	Msg("CUITextureMaster::GetTextureWidth Can't find texture", texture_name);
+	Msg("! CUITextureMaster::GetTextureWidth Can't find texture", texture_name);
 	return 0;
 }
 
@@ -149,7 +149,7 @@ LPCSTR CUITextureMaster::GetTextureFileName(const char* texture_name){
 		return *((*it).second.file);
 	// KD: we don't need to die :)
 //	R_ASSERT3(false,"CUITextureMaster::GetTextureHeight Can't find texture", texture_name);
-	Msg("CUITextureMaster::GetTextureFileName Can't find texture", texture_name);
+	Msg("! CUITextureMaster::GetTextureFileName Can't find texture", texture_name);
 	return 0;
 }
 
@@ -172,7 +172,7 @@ void CUITextureMaster::GetTextureShader(LPCSTR texture_name, ref_shader& sh){
 
 //	R_ASSERT3(it != m_textures.end(), "can't find texture", texture_name);
 	if (it == m_textures.end())
-		Msg("CUITextureMaster::GetTextureShader Can't find texture", texture_name);
+		Msg("! CUITextureMaster::GetTextureShader Can't find texture", texture_name);
 
 	sh.create("hud\\default", *((*it).second.file));	
 }
