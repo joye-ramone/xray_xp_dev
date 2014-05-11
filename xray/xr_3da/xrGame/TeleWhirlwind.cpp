@@ -55,12 +55,12 @@ void CTeleWhirlwind::set_throw_power(float throw_pow)
 void CTeleWhirlwind::draw_out_impact(Fvector& dir,float& val)
 {
 	VERIFY2(m_saved_impacts.size(),"NO IMPACTS ADDED!");
+	// Ѕудет вылет, если вектор пустой, а пустым он бывает. ѕросто добавим проверку. Real Wolf.
+	if (0==m_saved_impacts.size()) return;
 	dir.set(m_saved_impacts[0].force);
 	val=dir.magnitude();
 	if(!fis_zero(val))dir.mul(1.f/val);
-	// Ѕудет вылет, если вектор пустой, а пустым он бывает. ѕросто добавим проверку. Real Wolf.
-	if (m_saved_impacts.size() )
-		m_saved_impacts.erase(m_saved_impacts.begin());
+	m_saved_impacts.erase(m_saved_impacts.begin());
 }
 
 static bool RemovePred(CTelekineticObject *tele_object)

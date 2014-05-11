@@ -6,6 +6,9 @@
 #pragma warning(disable:4244)
 #pragma warning(disable:4018)
 #include "dxtlib.h"
+#ifdef USE_NVTT
+	#include <nvtt/nvtt.h>
+#endif
 #pragma warning(pop)
 #include "ETextureParams.h"
 #include "dds.h"
@@ -47,6 +50,7 @@ int __cdecl WriteDTXnFile (DWORD count, const void *buffer, void * userData)
     return _write(gFileOut, buffer, count);
 }
 
+#ifndef USE_NVTT
 NV_ERROR_CODE nvDXTWriteCallback(const void *buffer, 
                                  size_t count,  
                                  const MIPMapData * mipMapData, 
@@ -57,6 +61,58 @@ NV_ERROR_CODE nvDXTWriteCallback(const void *buffer,
 		return NV_FAIL;
 	return NV_OK;
 }
+#else
+using namespace nvtt;
+struct dds_writer: public OutputHandler {
+			dds_writer(HFILE& fileout);
+
+	virtual void	beginImage(int size, int width, int height, int depth, int face, int miplevel);
+	virtual bool	writeData(const void* data, int size);
+	HFILE& w;
+};
+
+inline dds_writer::dds_writer(HFILE& _fileout): w(_fileout) {}
+
+void dds_writer::beginImage(int size, int width, int height, int depth, int face, int miplevel)
+{
+}
+
+bool dds_writer::writeData(const void* data, int size)
+{
+	if (size==sizeof(DDS_HEADER)){
+	// correct DDS header
+		DDS_HEADER* hdr=(DDS_HEADER*)data;
+		if (hdr->dwSize==size){
+			switch (hdr->ddspf.dwFourCC){ 
+			case fcc_DXT1:
+			case fcc_DXT2:
+			case fcc_DXT3:
+			case fcc_DXT4:
+			case fcc_DXT5:
+				hdr->ddspf.dwRGBBitCount = 0;
+				break;
+			}
+		}
+	}
+	_write(w, data, size);
+	return true;
+}
+
+struct dds_error: public ErrorHandler {
+	virtual void error(Error e);
+};
+void dds_error::error(Error e)
+{
+	switch (e){
+		case Error_Unknown:				MessageBox(0,"Unknown error","DXT compress error",MB_ICONERROR|MB_OK);			break;
+		case Error_InvalidInput:		MessageBox(0,"Invalid input","DXT compress error",MB_ICONERROR|MB_OK);			break;
+		case Error_UnsupportedFeature:	MessageBox(0,"Unsupported feature","DXT compress error",MB_ICONERROR|MB_OK);	break;
+		case Error_CudaError:			MessageBox(0,"CUDA error","DXT compress error",MB_ICONERROR|MB_OK);				break;
+		case Error_FileOpen:			MessageBox(0,"File open error","DXT compress error",MB_ICONERROR|MB_OK);		break;
+		case Error_FileWrite:			MessageBox(0,"File write error","DXT compress error",MB_ICONERROR|MB_OK);		break;
+	}
+}
+#endif
 
 void __cdecl ReadDTXnFile (DWORD count, void *buffer, void * userData)
 {
@@ -135,33 +191,117 @@ IC u32 GetPowerOf2Plus1(u32 v)
 void FillRect(u8* data, u8* new_data, u32 offs, u32 pitch, u32 h, u32 full_pitch){
 	for (u32 i=0; i<h; i++) CopyMemory(data+(full_pitch*i+offs),new_data+i*pitch,pitch);
 }
-//using namespace nvDDS;
+
 int DXTCompressImage	(LPCSTR out_name, u8* raw_data, u32 w, u32 h, u32 pitch, 
 						STextureParams* fmt, u32 depth)
 {
 	R_ASSERT((0!=w)&&(0!=h));
+
 	gFileOut = _open( out_name, _O_WRONLY|_O_BINARY|_O_CREAT|_O_TRUNC,_S_IWRITE);
     if (gFileOut==-1){
         fprintf(stderr, "Can't open output file %s\n", out_name);
         return false;
     }
-	if ((fmt->flags.is(STextureParams::flGenerateMipMaps))&&(STextureParams::kMIPFilterAdvanced==fmt->mip_filter))
-	{
 
+#ifdef USE_NVTT
+	bool result = false;
+	InputOptions in_opts;
+	in_opts.setTextureLayout((fmt->type==STextureParams::ttCubeMap)?TextureType_Cube:TextureType_2D, w, h);
+	if (fmt->flags.is(STextureParams::flGenerateMipMaps))	in_opts.setMipmapGeneration(true);
+    else													in_opts.setMipmapGeneration(false);
+
+	switch(fmt->mip_filter){
+		// KD: in all the projects used default mipmap filter - triangle
+		case STextureParams::kMIPFilterBox		:	in_opts.setMipmapFilter(MipmapFilter_Box)		;	break;	
+		case STextureParams::kMIPFilterTriangle	:	in_opts.setMipmapFilter(MipmapFilter_Triangle)	;	break;	
+		case STextureParams::kMIPFilterKaiser	:	in_opts.setMipmapFilter(MipmapFilter_Kaiser)	;	break;	
 	}
-	else
-	{
+	in_opts.setWrapMode(WrapMode_Clamp);
+	in_opts.setNormalMap(false);
+	in_opts.setConvertToNormalMap(false);
+	in_opts.setGamma(2.2f, 2.2f);
+	in_opts.setNormalizeMipmaps(false);
 
-	}
-	_close					(gFileOut);
+	CompressionOptions comp_opts;
+    switch(fmt->fmt){
+		case STextureParams::tfDXT1				: 	comp_opts.setFormat(Format_DXT1)	; 	break;
+		case STextureParams::tfADXT1			: 	comp_opts.setFormat(Format_DXT1a)	; 	break;
+		case STextureParams::tfDXT3				: 	comp_opts.setFormat(Format_DXT3)	; 	break;
+		case STextureParams::tfDXT5				: 	comp_opts.setFormat(Format_DXT5)	; 	break;
+		case STextureParams::tfRGB				: 	comp_opts.setFormat(Format_RGB)		; 	break;
+		case STextureParams::tfRGBA				: 	comp_opts.setFormat(Format_RGBA)	; 	break;
+    }
+	comp_opts.setQuality(Quality_Highest);
+	comp_opts.setQuantization(!!(fmt->flags.is(STextureParams::flDitherColor)), false, !!(fmt->flags.is(STextureParams::flBinaryAlpha)));
 
-/*	R_ASSERT((0!=w)&&(0!=h));
-
-    gFileOut = _open( out_name, _O_WRONLY|_O_BINARY|_O_CREAT|_O_TRUNC,_S_IWRITE);
-    if (gFileOut==-1){
+	HFILE fileout = _open( out_name, _O_WRONLY|_O_BINARY|_O_CREAT|_O_TRUNC,_S_IWRITE);
+    if (fileout==-1){
         fprintf(stderr, "Can't open output file %s\n", out_name);
         return false;
     }
+
+	OutputOptions out_opts;
+
+	dds_writer dds(gFileOut);
+	out_opts.setOutputHandler(&dds);
+	dds_error dds_e;
+	out_opts.setErrorHandler(&dds_e);
+
+	if ((fmt->flags.is(STextureParams::flGenerateMipMaps))&&(STextureParams::kMIPFilterAdvanced==fmt->mip_filter))
+	{
+		in_opts.setMipmapGeneration(false);
+		u8* pImagePixels	= 0;
+		int numMipmaps		= GetPowerOf2Plus1(__min(w,h));
+		u32 line_pitch		= w*2*4;
+		pImagePixels		= xr_alloc<u8>(line_pitch*h);
+		u32 w_offs			= 0;
+		u32 dwW				= w;
+		u32 dwH				= h;
+		u32 dwP				= pitch;
+		u32* pLastMip		= xr_alloc<u32>(w*h*4);
+		CopyMemory			(pLastMip,raw_data,w*h*4);
+		FillRect			(pImagePixels,(u8*)pLastMip,w_offs,pitch,dwH,line_pitch);
+		w_offs				+= dwP;
+
+		float	inv_fade	= clampr(1.f-float(fmt->fade_amount)/100.f,0.f,1.f);
+		float	blend		= fmt->flags.is_any(STextureParams::flFadeToColor|STextureParams::flFadeToAlpha)?inv_fade:1.f;
+		for (int i=1; i<numMipmaps; i++){
+			u32* pNewMip	= Build32MipLevel(dwW,dwH,dwP,pLastMip,fmt,i<fmt->fade_delay?0.f:1.f-blend);
+			FillRect		(pImagePixels,(u8*)pNewMip,w_offs,dwP,dwH,line_pitch);
+			xr_free			(pLastMip); 
+			pLastMip		= pNewMip; 
+			pNewMip			= 0;
+			w_offs			+= dwP;
+		}
+		xr_free				(pLastMip);
+
+		RGBAImage			pImage(w*2, h);
+		rgba_t* pixels		= pImage.pixels();
+		u8* pixel			= pImagePixels;
+		for (u32 k=0; k<w*2*h; k++,pixel+=4)
+			pixels[k].set	(pixel[2],pixel[1],pixel[0],pixel[3]);
+
+		in_opts.setMipmapData(pixels, w, h);
+		result = Compressor().process(in_opts, comp_opts, out_opts);
+		xr_free				(pImagePixels);
+	}
+	else
+	{
+		RGBAImage			pImage(w,h);
+		rgba_t* pixels		= pImage.pixels();
+		u8* pixel			= raw_data;
+		for (u32 k=0; k<w*h; k++,pixel+=4)
+			pixels[k].set	(pixel[2],pixel[1],pixel[0],pixel[3]);
+		in_opts.setMipmapData(pixels, w, h);
+		result = Compressor().process(in_opts, comp_opts, out_opts);
+	}
+	_close					(gFileOut);
+	if (result==false){
+		unlink				(out_name);
+		return 0;
+	}else					return 1;
+
+#else
 
 	NV_ERROR_CODE hr=NV_FAIL;
 // convert to Options
@@ -279,7 +419,8 @@ int DXTCompressImage	(LPCSTR out_name, u8* raw_data, u32 w, u32 h, u32 pitch,
 		}
 		unlink				(out_name);
 		return 0;
-	}else					return 1;*/
+	}else					return 1;
+#endif
 }
 
 extern int DXTCompressBump(LPCSTR out_name, u8* raw_data, u8* normal_map, u32 w, u32 h, u32 pitch, STextureParams* fmt, u32 depth);

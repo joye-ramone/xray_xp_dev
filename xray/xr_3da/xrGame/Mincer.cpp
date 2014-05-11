@@ -119,8 +119,8 @@ void CMincer ::Center	(Fvector& C) const
 
 void CMincer::NotificateDestroy			(CPHDestroyableNotificate *dn)
 {
-	Fvector dir;
-	float impulse;
+	Fvector dir = {0,0,0};
+	float impulse = 0;
 	//if(!m_telekinetics.has_impacts()) return;
 
 	//CObject* obj=Level().Objects.net_Find(id);
