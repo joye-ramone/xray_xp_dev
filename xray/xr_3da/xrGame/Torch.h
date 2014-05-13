@@ -22,7 +22,10 @@ protected:
 
 	float			m_delta_h;
 	Fvector2		m_prev_hp;
+public:
 	bool			m_switched_on;
+protected:
+	bool			b_lastState;
 	ref_light		light_render;
 	ref_light		light_omni;
 	ref_glow		glow_render;
@@ -57,8 +60,9 @@ public:
 			float	NightVisionBattery		  ();
 protected:
 	bool					m_bNightVisionEnabled;
+public:
 	bool					m_bNightVisionOn;
-
+protected:
 	HUD_SOUND				m_NightVisionOnSnd;
 	HUD_SOUND				m_NightVisionOffSnd;
 	HUD_SOUND				m_NightVisionIdleSnd;

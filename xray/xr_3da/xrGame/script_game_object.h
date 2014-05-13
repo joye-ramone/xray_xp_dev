@@ -556,6 +556,17 @@ public:
 
 			bool				invulnerable						() const;
 			void				invulnerable						(bool invulnerable);
+			
+			/************************************************** added by Ray Twitty (aka Shadows) START **************************************************/
+			// фонарь
+			void				EnableTorch							(bool enable);
+			void				SwitchTorch							();
+			bool				TorchEnabled						();
+			// ПНВ
+			void				EnableNightVision					(bool enable);
+			void				SwitchNightVision					();
+			bool				NightVisionEnabled					();
+			/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };

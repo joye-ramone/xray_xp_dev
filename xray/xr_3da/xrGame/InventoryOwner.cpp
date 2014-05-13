@@ -439,14 +439,35 @@ void CInventoryOwner::OnItemDropUpdate ()
 
 void CInventoryOwner::OnItemBelt	(CInventoryItem *inventory_item, EItemPlace previous_place)
 {
+	/************************************************** added by Ray Twitty (aka Shadows) START **************************************************/
+	// Колбек перемещения предмета на пояс
+	CGameObject	*object = smart_cast<CGameObject*>(this);
+	VERIFY		(object);
+	object->callback(GameObject::eOnItemBelt)(inventory_item->object().lua_game_object());
+	/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
+
 //.	attach		(inventory_item);
 }
 void CInventoryOwner::OnItemRuck	(CInventoryItem *inventory_item, EItemPlace previous_place)
 {
+	/************************************************** added by Ray Twitty (aka Shadows) START **************************************************/
+	// Колбек перемещения предмета в рюкзак
+	CGameObject	*object = smart_cast<CGameObject*>(this);
+	VERIFY		(object);
+	object->callback(GameObject::eOnItemRuck)(inventory_item->object().lua_game_object());
+	/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
+
 	detach		(inventory_item);
 }
 void CInventoryOwner::OnItemSlot	(CInventoryItem *inventory_item, EItemPlace previous_place)
 {
+	/************************************************** added by Ray Twitty (aka Shadows) START **************************************************/
+	// Колбек перемещения предмета в слот
+	CGameObject	*object = smart_cast<CGameObject*>(this);
+	VERIFY		(object);
+	object->callback(GameObject::eOnItemSlot)(inventory_item->object().lua_game_object());
+	/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
+
 	attach		(inventory_item);
 }
 

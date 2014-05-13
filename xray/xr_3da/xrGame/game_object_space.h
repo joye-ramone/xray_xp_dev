@@ -49,6 +49,20 @@ namespace GameObject {
 		eTraderSoundEnd,
 
 		eInvBoxItemTake,
+		/************************************************** added by Ray Twitty (aka Shadows) START **************************************************/
+		// клавиатура/мышь
+		eOnKeyPress,
+		eOnKeyRelease,
+		eOnKeyHold,
+		eOnMouseMove,
+		eOnMouseWheel,
+		// инвентарь
+		eOnItemBelt,
+		eOnItemSlot,
+		eOnItemRuck,
+		// фонарь
+		eSwitchTorch,
+		/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
 		eDummy = u32(-1),
 	};
 };

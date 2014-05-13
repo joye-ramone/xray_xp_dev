@@ -689,6 +689,18 @@ void CActor::HitSignal(float perc, Fvector& vLocalDir, CObject* who, s16 element
 		float power_factor = perc/100.f; clamp(power_factor,0.f,1.f);
 		VERIFY(motion_ID.valid());
 		tpKinematics->PlayFX(motion_ID,power_factor);
+
+		/************************************************** added by Ray Twitty (aka Shadows) START **************************************************/
+		// Колбек на хит актора
+		// Колбек вызывается только когда актор жив, у остальных объектов пыс вызывали также. При необходимости переместить ниже.
+		callback(GameObject::eHit)(
+			lua_game_object(),
+			perc,
+			vLocalDir,
+			smart_cast<const CGameObject*>(who)->lua_game_object(),
+			element
+		);
+		/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
 	}
 }
 void start_tutorial(LPCSTR name);

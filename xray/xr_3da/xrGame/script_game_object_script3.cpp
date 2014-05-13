@@ -261,6 +261,17 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("movement_enabled",			&CScriptGameObject::movement_enabled)
 
 		.def("critically_wounded",			&CScriptGameObject::critically_wounded)
+		
+		/************************************************** added by Ray Twitty (aka Shadows) START **************************************************/
+		// фонарь
+		.def("enable_torch",				&CScriptGameObject::EnableTorch)
+		.def("switch_torch",				&CScriptGameObject::SwitchTorch)
+		.def("torch_enabled",				&CScriptGameObject::TorchEnabled)
+		// ПНВ
+		.def("enable_night_vision",			&CScriptGameObject::EnableNightVision)
+		.def("switch_night_vision",			&CScriptGameObject::SwitchNightVision)
+		.def("night_vision_enabled",		&CScriptGameObject::NightVisionEnabled)
+		/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
 
 	;return	(instance);
 }

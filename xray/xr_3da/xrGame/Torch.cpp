@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "pch_script.h"
 #include "torch.h"
 #include "entity.h"
 #include "actor.h"
@@ -17,6 +18,8 @@
 #include "UIGameCustom.h"
 #include "actorEffector.h"
 #include "CustomOutfit.h"
+#include "game_object_space.h"
+#include "script_callback_ex.h"
 
 static const float		TIME_2_HIDE					= 5.f;
 static const float		TORCH_INERTION_CLAMP		= PI_DIV_6;
@@ -42,6 +45,7 @@ CTorch::CTorch(void)
 	lanim						= 0;
 	time2hide					= 0;
 	fBrightness					= 1.f;
+	b_lastState					= false;
 
 	/*m_NightVisionRechargeTime	= 6.f;
 	m_NightVisionRechargeTimeMin= 2.f;
@@ -212,6 +216,19 @@ void CTorch::Switch	(bool light_on)
 
 		pVisual->LL_SetBoneVisible			(bi,	light_on,	TRUE); //hack
 	}
+
+	/************************************************** added by Ray Twitty (aka Shadows) START **************************************************/
+	// Колбек на переключение фонаря
+	if(b_lastState == light_on) return;
+	b_lastState = light_on;
+	callback(GameObject::eSwitchTorch)(light_on);
+	// вызываем событие также и для актора (при использовании его фонарика)
+	CActor *pA = smart_cast<CActor *>(H_Parent());
+	if ((pA) ? true : false)
+	{
+		Actor()->callback(GameObject::eSwitchTorch)(light_on);
+	}
+	/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
 }
 
 BOOL CTorch::net_Spawn(CSE_Abstract* DC) 
