@@ -267,6 +267,22 @@ bool CInventory::Slot(PIItem pIItem, bool bNotActivate)
 		return false;
 	}
 
+#ifdef WEAPONS_DOUBLE_SLOTS
+	/*
+		Вещь была в слоте. Да, такое может быть :).
+		Тут необходимо проверять именно так, потому что
+		GetSlot вернет новый слот, а не старый. Real Wolf.
+
+	*/
+	for (int i = 0; i < m_slots.size(); i++)
+		if (m_slots[i].m_pIItem == pIItem)
+		{
+			if(i == m_iActiveSlot) 
+				Activate(NO_ACTIVE_SLOT);
+			m_slots[i].m_pIItem = NULL;
+			break;
+		}
+#endif
 
 	m_slots[pIItem->GetSlot()].m_pIItem = pIItem;
 

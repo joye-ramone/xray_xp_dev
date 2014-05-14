@@ -49,12 +49,34 @@ void CUIInventoryWnd::ActivatePropertiesBox()
     
 	bool	b_show			= false;
 
+	
+	uint32 slot = CurrentIItem()->GetSlot();
+#ifdef WEAPONS_DOUBLE_SLOTS
+	// ƒобавим в контекстное меню выбор слота. Real Wolf.
+	bool is_double_slot = slot == RIFLE_SLOT || slot == PISTOL_SLOT;
+	if (is_double_slot)
+	{
+		if (!m_pInv->m_slots[PISTOL_SLOT].m_pIItem || m_pInv->m_slots[PISTOL_SLOT].m_pIItem != CurrentIItem() )
+		{
+			UIPropertiesBox.AddItem("st_move_to_slot1",  NULL, INVENTORY_TO_SLOT1_ACTION);
+			b_show			= true;
+		}
 
-	if(!pOutfit && CurrentIItem()->GetSlot()!=NO_ACTIVE_SLOT && !m_pInv->m_slots[CurrentIItem()->GetSlot()].m_bPersistent && m_pInv->CanPutInSlot(CurrentIItem()))
+		if (!m_pInv->m_slots[RIFLE_SLOT].m_pIItem || m_pInv->m_slots[RIFLE_SLOT].m_pIItem != CurrentIItem() )
+		{
+			UIPropertiesBox.AddItem("st_move_to_slot2",  NULL, INVENTORY_TO_SLOT2_ACTION);
+			b_show			= true;
+		}
+	}
+#else
+	bool is_double_slot = false;
+#endif
+	if(!is_double_slot && !pOutfit && CurrentIItem()->GetSlot()!=NO_ACTIVE_SLOT && !m_pInv->m_slots[CurrentIItem()->GetSlot()].m_bPersistent && m_pInv->CanPutInSlot(CurrentIItem()))
 	{
 		UIPropertiesBox.AddItem("st_move_to_slot",  NULL, INVENTORY_TO_SLOT_ACTION);
 		b_show			= true;
 	}
+
 	if(CurrentIItem()->Belt() && m_pInv->CanPutInBelt(CurrentIItem()))
 	{
 		UIPropertiesBox.AddItem("st_move_on_belt",  NULL, INVENTORY_TO_BELT_ACTION);
@@ -218,6 +240,17 @@ void CUIInventoryWnd::ProcessPropertiesBoxClicked	()
 	{
 		switch(UIPropertiesBox.GetClickedItem()->GetTAG())
 		{
+#ifdef WEAPONS_DOUBLE_SLOTS
+		// —обственно и само действие по клику из контекстного меню. Real Wolf.
+		case INVENTORY_TO_SLOT1_ACTION:
+			CurrentIItem()->SetSlot(PISTOL_SLOT);
+			ToSlot(CurrentItem(), true);
+			break;
+		case INVENTORY_TO_SLOT2_ACTION:
+			CurrentIItem()->SetSlot(RIFLE_SLOT);
+			ToSlot(CurrentItem(), true);
+			break;
+#endif
 		case INVENTORY_TO_SLOT_ACTION:	
 			ToSlot(CurrentItem(), true);
 			break;

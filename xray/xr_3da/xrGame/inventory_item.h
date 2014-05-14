@@ -157,6 +157,7 @@ public:
 			bool				CanTrade			() const;
 	virtual bool 				IsNecessaryItem	    (CInventoryItem* item);
 	virtual bool				IsNecessaryItem	    (const shared_str& item_sect){return false;};
+			void				SetSlot				(u32 slot)					{m_slot = slot;};
 protected:
 	
 	u32							m_slot;

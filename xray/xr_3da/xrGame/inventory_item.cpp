@@ -130,9 +130,7 @@ void CInventoryItem::Load(LPCSTR section)
 	R_ASSERT			(m_weight>=0.f);
 
 	m_cost				= pSettings->r_u32(section, "cost");
-
 	m_slot				= READ_IF_EXISTS(pSettings,r_u32,section,"slot", NO_ACTIVE_SLOT);
-
 
 	// Description
 	if ( pSettings->line_exist(section, "description") )
@@ -374,6 +372,7 @@ void CInventoryItem::save(NET_Packet &packet)
 {
 	packet.w_u8				((u8)m_eItemPlace);
 	packet.w_float			(m_fCondition);
+	packet.w_u8				((u8)m_slot);
 
 	if (object().H_Parent()) {
 		packet.w_u8			(0);
@@ -534,8 +533,12 @@ void CInventoryItem::load(IReader &packet)
 {
 	m_eItemPlace			= (EItemPlace)packet.r_u8();
 	m_fCondition			= packet.r_float();
+	m_slot					= (u32)packet.r_u8();
+	if (m_slot == 255)
+		m_slot = NO_ACTIVE_SLOT;
 
 	u8						tmp = packet.r_u8();
+	
 	if (!tmp)
 		return;
 	

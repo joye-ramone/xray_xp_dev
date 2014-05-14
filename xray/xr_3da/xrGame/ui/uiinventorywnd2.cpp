@@ -205,14 +205,31 @@ bool CUIInventoryWnd::ToBag(CUICellItem* itm, bool b_use_cursor_pos)
 		bool result							= GetInventory()->Ruck(iitem);
 		VERIFY								(result);
 		CUICellItem* i						= old_owner->RemoveItem(itm, (old_owner==new_owner) );
-		
-		if(b_use_cursor_pos)
-			new_owner->SetItem				(i,old_owner->GetDragItemPosition());
+#ifdef NO_FREE_ROOM_RUCK_FIX		
+		if (result = new_owner->CanSetItem(i) )
+		{
+#endif
+			if(b_use_cursor_pos)
+				new_owner->SetItem				(i,old_owner->GetDragItemPosition() );
+			else
+				new_owner->SetItem				(i);
+			SendEvent_Item2Ruck					(iitem);
+#ifdef NO_FREE_ROOM_RUCK_FIX
+		}
 		else
-			new_owner->SetItem				(i);
+		{
+			//Msg("Place item fail!");
 
-		SendEvent_Item2Ruck					(iitem);
+			NET_Packet					P;
+			iitem->object().u_EventGen	(P, GE_OWNERSHIP_REJECT, iitem->object().H_Parent()->ID());
+			P.w_u16						(u16(iitem->object().ID()));
+			iitem->object().u_EventSend(P);
+		}
+
+		return result;
+#else
 		return true;
+#endif
 	}
 	return false;
 }
@@ -242,7 +259,7 @@ bool CUIInventoryWnd::ToBelt(CUICellItem* itm, bool b_use_cursor_pos)
 			new_owner->SetItem				(i);
 
 		SendEvent_Item2Belt					(iitem);
-		return								true;
+		return true;
 	}
 	return									false;
 }
@@ -273,12 +290,35 @@ bool CUIInventoryWnd::OnItemDrop(CUICellItem* itm)
 
 	EListType t_new		= GetType(new_owner);
 	EListType t_old		= GetType(old_owner);
-	if(t_new == t_old)	return true;
 
+#ifdef WEAPONS_DOUBLE_SLOTS
+	// Для слотов проверим ниже. Real Wolf.
+	if(t_new == t_old && t_new != iwSlot) return true;
+#else
+	if(t_new == t_old && t_new) return true;
+#endif
 	switch(t_new){
-		case iwSlot:{
-			if(GetSlotList(CurrentIItem()->GetSlot())==new_owner)
+		case iwSlot:
+		{
+			uint32 slot = CurrentIItem()->GetSlot();
+#ifdef WEAPONS_DOUBLE_SLOTS
+			if(GetSlotList(slot)==new_owner && t_new != t_old)
+#else
+			if(GetSlotList(slot)==new_owner)
+#endif
 				ToSlot	(itm, true);
+#ifdef WEAPONS_DOUBLE_SLOTS
+			else if (new_owner == m_pUIPistolList && slot == RIFLE_SLOT)
+			{
+				CurrentIItem()->SetSlot(PISTOL_SLOT);
+				ToSlot	(itm, true);
+			}
+			else if (new_owner == m_pUIAutomaticList && slot == PISTOL_SLOT)
+			{
+				CurrentIItem()->SetSlot(RIFLE_SLOT);
+				ToSlot	(itm, true);
+			}
+#endif
 		}break;
 		case iwBag:{
 			ToBag	(itm, true);
@@ -306,8 +346,22 @@ bool CUIInventoryWnd::OnItemDbClick(CUICellItem* itm)
 			ToBag	(itm, false);
 		}break;
 
-		case iwBag:{
-			if(!ToSlot(itm, false)){
+		case iwBag:
+		{
+			PIItem item = (PIItem)itm->m_pData;
+#ifdef WEAPONS_DOUBLE_SLOTS
+			// При двойном клике выбираем свободный слот. Real Wolf.
+			uint32 slot = item->GetSlot();
+			if (slot == PISTOL_SLOT || slot == RIFLE_SLOT)
+			{
+				uint32 double_slot = slot == PISTOL_SLOT? RIFLE_SLOT: PISTOL_SLOT;
+				if (GetInventory()->m_slots[slot].m_pIItem)
+					if (!GetInventory()->m_slots[double_slot].m_pIItem)
+						item->SetSlot(double_slot);
+			}
+#endif
+			if(!ToSlot(itm, false))
+			{
 				if( !ToBelt(itm, false) )
 					ToSlot	(itm, true);
 			}

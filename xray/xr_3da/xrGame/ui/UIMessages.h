@@ -135,4 +135,9 @@ enum EUIMessages
 	MAP_SHOW_HINT,
 	MAP_HIDE_HINT,
 	MAP_SELECT_SPOT,
+#ifdef WEAPONS_DOUBLE_SLOTS
+	// ƒл€ контекстного меню равнозначных слотов оружи€. Real Wolf.
+	INVENTORY_TO_SLOT1_ACTION,
+	INVENTORY_TO_SLOT2_ACTION,
+#endif
 };
