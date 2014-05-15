@@ -216,6 +216,8 @@ protected:
 //	для режима приближения и снайперского прицела
 ///////////////////////////////////////////////////
 protected:
+	// разрешение регулирования приближения. Real Wolf.
+	bool			m_bScopeDynamicZoom;
 	//разрешение режима приближения
 	bool			m_bZoomEnabled;
 	//текущий фактор приближения
@@ -237,8 +239,9 @@ protected:
 public:
 
 	IC bool					IsZoomEnabled		()	const	{return m_bZoomEnabled;}
-	virtual	void			ZoomInc				(){};
-	virtual	void			ZoomDec				(){};
+	virtual	void			ZoomInc				();
+	virtual	void			ZoomDec				();
+
 	virtual void			OnZoomIn			();
 	virtual void			OnZoomOut			();
 			bool			IsZoomed			()	const	{return m_bZoomMode;};
