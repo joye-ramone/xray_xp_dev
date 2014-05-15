@@ -3,9 +3,15 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
+#include "../pch_script.h"
 #include "UIWindow.h"
 #include "UISleepWnd.h"
 #include "../alife_space.h"
+#include "../actor.h"
+#include "../script_engine.h"
+#include "../script_engine_space.h"
+#include "../script_process.h"
+#include "../ai_space.h"
 #include "UIXmlInit.h"
 #include "UIButton.h"
 
@@ -71,20 +77,28 @@ void CUISleepWnd::Hide()
 
 void CUISleepWnd::SendMessage(CUIWindow *pWnd, s16 msg, void *pData)
 {
-	const s8 deltaMinutes = 30;
+	const s8 deltaMinutes = 15;
+	
 
 	if(pWnd == UISleepBtn && msg == BUTTON_CLICKED)
 	{
 		u32 restMsec = (m_Hours * 3600 + m_Minutes * 60) * 1000;
-		if (restMsec != 0)
-			Msg("Sleep %d Msec", restMsec);
+		if (restMsec != 0){
 
+				luabind::functor<void>	sleep;
+				if (ai().script_engine().functor("sleep_manager.sleep",sleep))
+					sleep(restMsec);
+			
+		}
 	}
 	else if(pWnd == UIWaitBtn && msg == BUTTON_CLICKED)
 	{
 		u32 restMsec = (m_Hours * 3600 + m_Minutes * 60) * 1000;
-		if (restMsec != 0)
-			Msg("Wait %d Msec", restMsec);
+		if (restMsec != 0){
+				luabind::functor<void>	wait;
+				if (ai().script_engine().functor("sleep_manager.wait",wait))
+					wait(restMsec);
+		}
 	}
 	else if(pWnd == UIPlusBtn && msg == BUTTON_CLICKED)
 	{
@@ -114,7 +128,6 @@ void CUISleepWnd::SendMessage(CUIWindow *pWnd, s16 msg, void *pData)
 
 	inherited::SendMessage(pWnd, msg, pData);
 }
-
 
 void CUISleepWnd::ModifyRestTime(s8 dHours, s8 dMinutes)
 {
