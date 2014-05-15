@@ -13,6 +13,7 @@ private:
 	float			cross_length_perc;
 	float			min_radius_perc;
 	float			max_radius_perc;
+	bool			m_is_enabled;
 
 	//текущий радиус прицела
 	float			radius;
@@ -31,4 +32,5 @@ public:
 			void	SetDispersion	(float disp);
 
 			void	Load			();
+			bool	IsEnabled		() {return m_is_enabled;};
 };

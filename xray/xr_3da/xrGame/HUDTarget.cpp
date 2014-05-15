@@ -234,7 +234,7 @@ void CHUDTarget::Render()
 	}
 
 	//отрендерить кружочек или крестик
-	if(!m_bShowCrosshair){
+	if(!m_bShowCrosshair || !HUDCrosshair.IsEnabled() ){
 		// actual rendering
 		u32			vOffset;
 		FVF::TL*	pv		= (FVF::TL*)RCache.Vertex.Lock(4,hGeom.stride(),vOffset);
