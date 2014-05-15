@@ -1,44 +1,47 @@
-// UISleepWnd.h:  окошко для выбора того, сколько спать
+// UISleepWnd.h:  окошко для выбора того, сколько спать или ждать
+// Red_Virus
 //////////////////////////////////////////////////////////////////////
 
 #pragma once
 
-#include "UIStatic.h"
+#include "uiwindow.h"
 
 class CUIButton;
+class CUIStatic;
+//class CUITrackButton;
 
-class CUISleepWnd: public CUIStatic
+class CUISleepWnd: public CUIWindow
 {
 private:
-	typedef			CUIStatic inherited;
+	typedef			CUIWindow inherited;
 public:
-					CUISleepWnd			();
-	virtual			~CUISleepWnd		();
+						CUISleepWnd			();
+	virtual				~CUISleepWnd		();
 
-
-	virtual void	Init				();
-	virtual void	SetText				(LPCSTR str);
-
-	virtual void	SendMessage			(CUIWindow *pWnd, s16 msg, void *pData);
+	void				Init				();
+	virtual void		Draw				();
+	virtual void		Show				();
+	virtual void		Hide				();
+	void				SendMessage			(CUIWindow *pWnd, s16 msg, void *pData);
 
 	// Изменяем текущее установленное время отдыха на дельта-значения
-	void			ModifyRestTime		(s8 dHours, s8 dMinutes);
+	void				ModifyRestTime		(s8 dHours, s8 dMinutes);
 	// Сбрасываем время в 0
-	void			ResetTime			()								{ SetRestTime(0, 0); }
+	void				ResetTime			()								{ SetRestTime(0, 0); }
+	
 protected:
 	// Устанавливаем на отображение время для сна
-	void			SetRestTime			(u8 hours, u8 minutes);
+	void				SetRestTime			(u8 hours, u8 minutes);
 	// Текущее запоменное время отдыха
-	s8				m_Hours, m_Minutes;
-/*
-	// Время индицирующее утро и вечер
-	s8				m_MorningH, m_EveningH, m_MorningM, m_EveningM;
-	// Текущее время
-	u8				m_CurrMins, m_CurrHours;
-*/
+	s8					m_Hours, m_Minutes;
+
 	// Контролы
-	CUIStatic*		UIStaticRestAmount;
-	CUIButton*		UIPlusBtn;
-	CUIButton*		UIMinusBtn;
-	CUIButton*		UIRestBtn;
+	CUIStatic*			UIStaticRestAmount;
+	//********
+	CUIButton*			UIPlusBtn;
+	CUIButton*			UIMinusBtn;
+	//********
+	CUIButton*			UISleepBtn; // кнопка - спать
+	CUIButton*			UIWaitBtn;	//кнопка - ожидать
+	//CUIButton*		UICloseBtn;
 };

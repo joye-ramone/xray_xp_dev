@@ -12,6 +12,7 @@ class CInventory;
 
 #include "UIOutfitInfo.h"
 #include "UIItemInfo.h"
+#include "UISleepWnd.h"
 #include "../inventory_space.h"
 
 class CArtefact;
@@ -73,6 +74,10 @@ protected:
 	CUIStatic					UIBagWnd;
 	CUIStatic					UIMoneyWnd;
 	CUIStatic					UIDescrWnd;
+	//*********************************************
+	//Red_Virus
+	CUISleepWnd					UISleepWnd;
+	//*********************************************
 	CUIFrameWindow				UIPersonalWnd;
 
 	CUI3tButton*				UIExitButton;

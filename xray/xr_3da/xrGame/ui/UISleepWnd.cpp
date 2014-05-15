@@ -1,7 +1,9 @@
-// UISleepWnd.cpp:  окошко для выбора того, сколько спать
+// UISleepWnd.cpp:  окошко для выбора того, сколько спать или ждать
+// Red_Virus
 //////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
+#include "UIWindow.h"
 #include "UISleepWnd.h"
 #include "../alife_space.h"
 #include "UIXmlInit.h"
@@ -21,17 +23,17 @@ CUISleepWnd::~CUISleepWnd()
 void CUISleepWnd::Init()
 {
 	CUIXml uiXml;
-	bool xml_result = uiXml.Init(CONFIG_PATH, UI_PATH, "sleep_dialog_new.xml");
+	bool xml_result = uiXml.Init(CONFIG_PATH, UI_PATH, "sleep_wnd.xml");
 	R_ASSERT2(xml_result, "xml file not found sleep_dialog_new.xml");
 
 	CUIXmlInit	xml_init;
-
-	// Statics
+	
+	xml_init.InitWindow					(uiXml, "main", 0, this);
+	
 	UIStaticRestAmount		= xr_new<CUIStatic>();UIStaticRestAmount->SetAutoDelete(true);
 	AttachChild				(UIStaticRestAmount);
-	xml_init.InitStatic		(uiXml, "rest_amount_static", 0, UIStaticRestAmount);
+	xml_init.InitStatic		(uiXml, "sleep_wait_amount_static", 0, UIStaticRestAmount);
 
-	// Plus, minus time
 	UIPlusBtn				= xr_new<CUIButton>();UIPlusBtn->SetAutoDelete(true);
 	AttachChild				(UIPlusBtn);
 	xml_init.InitButton		(uiXml, "plus_button", 0, UIPlusBtn);
@@ -40,25 +42,49 @@ void CUISleepWnd::Init()
 	AttachChild(UIMinusBtn);
 	xml_init.InitButton(uiXml, "minus_button", 0, UIMinusBtn);
 
-	// Perform sleep
-	UIRestBtn				= xr_new<CUIButton>();UIRestBtn->SetAutoDelete(true);
-	AttachChild(UIRestBtn);
-	xml_init.InitButton(uiXml, "rest_button", 0, UIRestBtn);
+	UISleepBtn				= xr_new<CUIButton>();UISleepBtn->SetAutoDelete(true);
+	AttachChild(UISleepBtn);
+	xml_init.InitButton(uiXml, "sleep_button", 0, UISleepBtn);
+	
+	UIWaitBtn				= xr_new<CUIButton>();UIWaitBtn->SetAutoDelete(true);
+	AttachChild(UIWaitBtn);
+	xml_init.InitButton(uiXml, "wait_button", 0, UIWaitBtn);
 
-	// Update timerest meter
 	ResetTime();
+}
+
+
+void CUISleepWnd::Draw()
+{
+	CUIWindow::Draw						();
+}
+
+void CUISleepWnd::Show() 
+{ 
+	inherited::Show(true);
+}
+
+void CUISleepWnd::Hide()
+{
+	inherited::Show(false);
 }
 
 void CUISleepWnd::SendMessage(CUIWindow *pWnd, s16 msg, void *pData)
 {
 	const s8 deltaMinutes = 30;
 
-	if(pWnd == UIRestBtn && msg == BUTTON_CLICKED)
+	if(pWnd == UISleepBtn && msg == BUTTON_CLICKED)
 	{
 		u32 restMsec = (m_Hours * 3600 + m_Minutes * 60) * 1000;
 		if (restMsec != 0)
-			GetMessageTarget()->SendMessage(this, SLEEP_WND_PERFORM_BUTTON_CLICKED, reinterpret_cast<void*>(&restMsec));
+			Msg("Sleep %d Msec", restMsec);
 
+	}
+	else if(pWnd == UIWaitBtn && msg == BUTTON_CLICKED)
+	{
+		u32 restMsec = (m_Hours * 3600 + m_Minutes * 60) * 1000;
+		if (restMsec != 0)
+			Msg("Wait %d Msec", restMsec);
 	}
 	else if(pWnd == UIPlusBtn && msg == BUTTON_CLICKED)
 	{
@@ -70,7 +96,7 @@ void CUISleepWnd::SendMessage(CUIWindow *pWnd, s16 msg, void *pData)
 		// Add fixed amount of minutes and hours
 		ModifyRestTime(0, -deltaMinutes);
 	}
-	else if ((UIPlusBtn == pWnd || UIMinusBtn == pWnd || UIRestBtn == pWnd) && BUTTON_DOWN == msg)
+	else if ((UIPlusBtn == pWnd || UIMinusBtn == pWnd || UISleepBtn == pWnd || UIWaitBtn == pWnd) && BUTTON_DOWN == msg)
 	{
 		CUIButton *pBtn = smart_cast<CUIButton*>(pWnd);
 		R_ASSERT(pBtn);
@@ -78,7 +104,7 @@ void CUISleepWnd::SendMessage(CUIWindow *pWnd, s16 msg, void *pData)
 		pBtn->EnableTextHighlighting(false);
 	}
 	
-	if ((UIPlusBtn == pWnd || UIMinusBtn == pWnd || UIRestBtn == pWnd) && BUTTON_CLICKED == msg)
+	if ((UIPlusBtn == pWnd || UIMinusBtn == pWnd || UISleepBtn == pWnd || UIWaitBtn == pWnd) && BUTTON_CLICKED == msg)
 	{
 		CUIButton *pBtn = smart_cast<CUIButton*>(pWnd);
 		R_ASSERT(pBtn);
@@ -139,8 +165,4 @@ void CUISleepWnd::SetRestTime(u8 hours, u8 minutes)
 	clamp						(m_Hours,s8(0),_h);
 	sprintf_s						(buf, "%02i:%02i", m_Hours, m_Minutes);
 	UIStaticRestAmount->SetText	(buf);
-}
-
-void CUISleepWnd::SetText(LPCSTR str){
-	this->UIRestBtn->SetText(str);
 }

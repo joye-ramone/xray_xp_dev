@@ -28,7 +28,6 @@ using namespace InventoryUtilities;
 #include "../entitycondition.h"
 
 #include "../game_cl_base.h"
-#include "UISleepWnd.h"
 #include "../ActorCondition.h"
 #include "UIDragDropListEx.h"
 #include "UIOutfitSlot.h"
@@ -84,7 +83,14 @@ void CUIInventoryWnd::Init()
 
 	UIDescrWnd.AttachChild				(&UIItemInfo);
 	UIItemInfo.Init						(0, 0, UIDescrWnd.GetWidth(), UIDescrWnd.GetHeight(), INVENTORY_ITEM_XML);
-
+	
+	//RedVirus
+	if (GameID() == GAME_SINGLE){
+		AttachChild							(&UISleepWnd);
+		UISleepWnd.Init();
+	}
+	//
+	
 	AttachChild							(&UIPersonalWnd);
 	xml_init.InitFrameWindow			(uiXml, "character_frame_window", 0, &UIPersonalWnd);
 
