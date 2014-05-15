@@ -2024,3 +2024,74 @@ Fvector	CCar::		ExitVelocity				()
 	return v;
 }
 
+/************************************************** added by Ray Twitty (aka Shadows) START **************************************************/
+// получить и задать текущее количество топлива
+float CCar::GetfFuel()
+{
+	return m_fuel;
+}
+void CCar::SetfFuel(float fuel)
+{
+	m_fuel = fuel;
+}
+// получить и задать размер топливного бака 
+float CCar::GetfFuelTank()
+{
+	return m_fuel_tank;
+}
+void CCar::SetfFuelTank(float fuel_tank)
+{
+	m_fuel_tank = fuel_tank;
+}
+// получить и задать величину потребление топлива
+float CCar::GetfFuelConsumption()
+{
+	return m_fuel_consumption;
+}
+void CCar::SetfFuelConsumption(float fuel_consumption)
+{
+	m_fuel_consumption = fuel_consumption;
+}
+// прибавить или убавить количество топлива
+void CCar::ChangefFuel(float fuel)
+{
+	if(m_fuel + fuel < 0)
+	{
+		m_fuel = 0;
+		return;
+	}
+
+	if(fuel < m_fuel_tank - m_fuel)
+	{
+		m_fuel += fuel;
+	}
+	else
+	{
+		m_fuel = m_fuel_tank;
+	}
+}
+// прибавить или убавить жизней :)
+void CCar::ChangefHealth(float health)
+{
+	float current_health = GetfHealth();
+	if(current_health + health < 0)
+	{
+		SetfHealth(0);
+		return;
+	}
+
+	if(health < 1 - current_health)
+	{
+		SetfHealth(current_health + health);
+	}
+	else
+	{
+		SetfHealth(1);
+	}
+}
+// активен ли сейчас двигатель
+bool CCar::isActiveEngine()
+{
+	return b_engine_on;
+}
+/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
