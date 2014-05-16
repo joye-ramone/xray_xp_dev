@@ -865,13 +865,6 @@ void CWeaponMagazined::InitAddons()
 
 	if(IsScopeAttached())
 	{
-		/*
-			Добавим поддержку широкоформатных прицельных сеток. Real Wolf.
-		*/ 
-		shared_str texture_name = "scope_texture";
-		if (UI()->is_16_9_mode() && pSettings->line_exist(cNameSect(), "scope_texture_16") )
-			texture_name = "scope_texture_16";
-
 		if(m_eScopeStatus == ALife::eAddonAttachable)
 		{
 			m_sScopeName = pSettings->r_string(cNameSect(), "scope_name");
@@ -879,24 +872,26 @@ void CWeaponMagazined::InitAddons()
 			m_iScopeY	 = pSettings->r_s32(cNameSect(),"scope_y");
 
 			shared_str scope_tex_name;
-			scope_tex_name = pSettings->r_string(*m_sScopeName, texture_name.c_str() );
+			scope_tex_name = pSettings->r_string(*m_sScopeName, "scope_texture" );
 			m_fScopeZoomFactor = pSettings->r_float	(*m_sScopeName, "scope_zoom_factor");
 			
 			if(m_UIScope) xr_delete(m_UIScope);
 			m_UIScope = xr_new<CUIStaticItem>();
 
-			m_UIScope->Init(*scope_tex_name, "hud\\default", 0, 0, alNone);
+//			m_UIScope->Init(*scope_tex_name, "hud\\default", 0, 0, alNone);
+			m_UIScope->Init(*scope_tex_name, "hud\\scopes", 0, 0, alNone);	// KD: special shader that account screen resolution
 
 		}
 		else if(m_eScopeStatus == ALife::eAddonPermanent)
 		{
 			m_fScopeZoomFactor = pSettings->r_float	(cNameSect(), "scope_zoom_factor");
 			shared_str scope_tex_name;
-			scope_tex_name = pSettings->r_string(cNameSect(), texture_name.c_str() );
+			scope_tex_name = pSettings->r_string(cNameSect(), "scope_texture" );
 
 			if(m_UIScope) xr_delete(m_UIScope);
 			m_UIScope = xr_new<CUIStaticItem>();
-			m_UIScope->Init(*scope_tex_name, "hud\\default", 0, 0, alNone);
+//			m_UIScope->Init(*scope_tex_name, "hud\\default", 0, 0, alNone);
+			m_UIScope->Init(*scope_tex_name, "hud\\scopes", 0, 0, alNone);	// KD: special shader that account screen resolution
 
 		}
 	}
