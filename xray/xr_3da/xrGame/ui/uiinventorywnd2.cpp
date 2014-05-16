@@ -167,7 +167,12 @@ bool CUIInventoryWnd::ToSlot(CUICellItem* itm, bool force_place)
 		SendEvent_Item2Slot					(iitem);
 
 		SendEvent_ActivateSlot				(iitem);
-		
+
+		/************************************************** added by Ray Twitty (aka Shadows) START **************************************************/
+		// обновляем статик веса в инвентаре
+		InventoryUtilities::UpdateWeight	(UIBagWnd, true);
+		/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
+
 		return								true;
 	}else
 	{ // in case slot is busy
@@ -205,6 +210,12 @@ bool CUIInventoryWnd::ToBag(CUICellItem* itm, bool b_use_cursor_pos)
 		bool result							= GetInventory()->Ruck(iitem);
 		VERIFY								(result);
 		CUICellItem* i						= old_owner->RemoveItem(itm, (old_owner==new_owner) );
+
+		/************************************************** added by Ray Twitty (aka Shadows) START **************************************************/
+		// обновляем статик веса в инвентаре
+		InventoryUtilities::UpdateWeight	(UIBagWnd, true);
+		/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
+
 #ifdef NO_FREE_ROOM_RUCK_FIX		
 		if (result = new_owner->CanSetItem(i) )
 		{
@@ -259,6 +270,12 @@ bool CUIInventoryWnd::ToBelt(CUICellItem* itm, bool b_use_cursor_pos)
 			new_owner->SetItem				(i);
 
 		SendEvent_Item2Belt					(iitem);
+
+		/************************************************** added by Ray Twitty (aka Shadows) START **************************************************/
+		// обновляем статик веса в инвентаре
+		InventoryUtilities::UpdateWeight	(UIBagWnd, true);
+		/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
+
 		return true;
 	}
 	return									false;
