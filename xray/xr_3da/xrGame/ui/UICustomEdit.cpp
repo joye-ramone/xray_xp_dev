@@ -1,10 +1,10 @@
 #include "stdafx.h"
-
-#include "stdafx.h"
 #include <dinput.h>
 #include "../HUDManager.h"
 #include "UICustomEdit.h"
 #include "../../LightAnimLibrary.h"
+//у меня без этого не компилит =(
+#pragma comment(lib, "xr_3da.lib")
 
 
 static u32 DILetters[] = { DIK_A, DIK_B, DIK_C, DIK_D, DIK_E, 

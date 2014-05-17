@@ -15,7 +15,13 @@
 #define DETECTOR_SLOT		8
 #define TORCH_SLOT			9
 #define ARTEFACT_SLOT		10
-#define SLOTS_TOTAL			11
+//red_virus
+#define HELMET_SLOT			11
+#define SLOT_QUICK_ACCESS_0 12
+#define SLOT_QUICK_ACCESS_1 13
+#define SLOT_QUICK_ACCESS_2 14
+#define SLOT_QUICK_ACCESS_3 15
+#define SLOTS_TOTAL			16
 
 #define RUCK_HEIGHT			280
 #define RUCK_WIDTH			7

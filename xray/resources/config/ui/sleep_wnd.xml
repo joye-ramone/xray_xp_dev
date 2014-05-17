@@ -3,7 +3,7 @@
 <!-- Red_Virus -->
 <window>
 
-	<main x="400" y="35" width="240" height="100">
+	<main x="650" y="0" width="240" height="100">
 		<text x="0" y="0" font="letterica18" r="255" g="128" b="64"></text>
 	</main>
 

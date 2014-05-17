@@ -92,6 +92,19 @@ protected:
 	CUIDragDropListEx*			m_pUIBeltList;
 	CUIDragDropListEx*			m_pUIPistolList;
 	CUIDragDropListEx*			m_pUIAutomaticList;
+	//red_virus**********************************************
+	CUIDragDropListEx*			m_pUIKnifeList;
+	CUIDragDropListEx*			m_pUIBinocularList;
+	CUIDragDropListEx*			m_pUIDetectorList;
+	CUIDragDropListEx*			m_pUITorchList;
+	CUIDragDropListEx*			m_pUIPDAList;
+	CUIDragDropListEx*			m_pUIHelmetList;
+	CUIDragDropListEx*			m_pUISlotQuickAccessList_0;
+	CUIDragDropListEx*			m_pUISlotQuickAccessList_1;
+	CUIDragDropListEx*			m_pUISlotQuickAccessList_2;
+	CUIDragDropListEx*			m_pUISlotQuickAccessList_3;
+	//********************************************************
+	
 	CUIOutfitDragDropList*		m_pUIOutfitList;
 	void						ClearAllLists				();
 	void						BindDragDropListEnents		(CUIDragDropListEx* lst);

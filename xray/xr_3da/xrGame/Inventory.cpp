@@ -62,19 +62,20 @@ CInventory::CInventory()
 	m_iLoadActiveSlot							= NO_ACTIVE_SLOT;
 	m_ActivationSlotReason						= eGeneral;
 	m_pTarget									= NULL;
-
-	string256 temp;
+	
+	//red_virus 
+	/*string256 temp;
 	for(u32 i=0; i<m_slots.size(); ++i ) 
 	{
 		sprintf_s(temp, "slot_persistent_%d", i+1);
 		if(pSettings->line_exist("inventory",temp)) 
 			m_slots[i].m_bPersistent = !!pSettings->r_bool("inventory",temp);
-	};
+	};*/
 
-	m_slots[PDA_SLOT].m_bVisible				= false;
+	m_slots[PDA_SLOT].m_bVisible				= true;
 	m_slots[OUTFIT_SLOT].m_bVisible				= false;
-	m_slots[DETECTOR_SLOT].m_bVisible			= false;
-	m_slots[TORCH_SLOT].m_bVisible				= false;
+	m_slots[DETECTOR_SLOT].m_bVisible			= true;
+	m_slots[TORCH_SLOT].m_bVisible				= true;
 
 	m_bSlotsUseful								= true;
 	m_bBeltUseful								= false;

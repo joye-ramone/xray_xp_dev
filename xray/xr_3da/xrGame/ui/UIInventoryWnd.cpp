@@ -150,15 +150,58 @@ void CUIInventoryWnd::Init()
 	m_pUIOutfitList						= xr_new<CUIOutfitDragDropList>(); AttachChild(m_pUIOutfitList); m_pUIOutfitList->SetAutoDelete(true);
 	xml_init.InitDragDropListEx			(uiXml, "dragdrop_outfit", 0, m_pUIOutfitList);
 	BindDragDropListEnents				(m_pUIOutfitList);
-
+	
+//red_virus
 	m_pUIPistolList						= xr_new<CUIDragDropListEx>(); AttachChild(m_pUIPistolList); m_pUIPistolList->SetAutoDelete(true);
-	xml_init.InitDragDropListEx			(uiXml, "dragdrop_pistol", 0, m_pUIPistolList);
+	xml_init.InitDragDropListEx			(uiXml, "dragdrop_slot_weapon_1", 0, m_pUIPistolList);
 	BindDragDropListEnents				(m_pUIPistolList);
 
-	m_pUIAutomaticList						= xr_new<CUIDragDropListEx>(); AttachChild(m_pUIAutomaticList); m_pUIAutomaticList->SetAutoDelete(true);
-	xml_init.InitDragDropListEx			(uiXml, "dragdrop_automatic", 0, m_pUIAutomaticList);
+	m_pUIAutomaticList					= xr_new<CUIDragDropListEx>(); AttachChild(m_pUIAutomaticList); m_pUIAutomaticList->SetAutoDelete(true);
+	xml_init.InitDragDropListEx			(uiXml, "dragdrop_slot_weapon_2", 0, m_pUIAutomaticList);
 	BindDragDropListEnents				(m_pUIAutomaticList);
+	
+	if (GameID() == GAME_SINGLE){
+		m_pUIKnifeList						= xr_new<CUIDragDropListEx>(); AttachChild(m_pUIKnifeList); m_pUIKnifeList->SetAutoDelete(true);
+		xml_init.InitDragDropListEx			(uiXml, "dragdrop_slot_weapon_0", 0, m_pUIKnifeList);
+		BindDragDropListEnents				(m_pUIKnifeList);	
+		
+		m_pUIBinocularList					= xr_new<CUIDragDropListEx>(); AttachChild(m_pUIBinocularList); m_pUIBinocularList->SetAutoDelete(true);
+		xml_init.InitDragDropListEx			(uiXml, "dragdrop_slot_weapon_3", 0, m_pUIBinocularList);
+		BindDragDropListEnents				(m_pUIBinocularList);
+		
+		m_pUIDetectorList					= xr_new<CUIDragDropListEx>(); AttachChild(m_pUIDetectorList); m_pUIDetectorList->SetAutoDelete(true);
+		xml_init.InitDragDropListEx			(uiXml, "dragdrop_slot_detector", 0, m_pUIDetectorList);
+		BindDragDropListEnents				(m_pUIDetectorList);
 
+		m_pUITorchList						= xr_new<CUIDragDropListEx>(); AttachChild(m_pUITorchList); m_pUITorchList->SetAutoDelete(true);
+		xml_init.InitDragDropListEx			(uiXml, "dragdrop_slot_torch", 0, m_pUITorchList);
+		BindDragDropListEnents				(m_pUITorchList);
+
+		m_pUIPDAList						= xr_new<CUIDragDropListEx>(); AttachChild(m_pUIPDAList); m_pUIPDAList->SetAutoDelete(true);
+		xml_init.InitDragDropListEx			(uiXml, "dragdrop_slot_pda", 0, m_pUIPDAList);
+		BindDragDropListEnents				(m_pUIPDAList);		
+		
+		m_pUIHelmetList						= xr_new<CUIDragDropListEx>(); AttachChild(m_pUIHelmetList); m_pUIHelmetList->SetAutoDelete(true);
+		xml_init.InitDragDropListEx			(uiXml, "dragdrop_slot_helmet", 0, m_pUIHelmetList);
+		BindDragDropListEnents				(m_pUIHelmetList);
+		
+		m_pUISlotQuickAccessList_0			= xr_new<CUIDragDropListEx>(); AttachChild(m_pUISlotQuickAccessList_0); m_pUISlotQuickAccessList_0->SetAutoDelete(true);
+		xml_init.InitDragDropListEx			(uiXml, "dragdrop_slot_quick_access_0", 0, m_pUISlotQuickAccessList_0);
+		BindDragDropListEnents				(m_pUISlotQuickAccessList_0);
+		
+		m_pUISlotQuickAccessList_1			= xr_new<CUIDragDropListEx>(); AttachChild(m_pUISlotQuickAccessList_1); m_pUISlotQuickAccessList_1->SetAutoDelete(true);
+		xml_init.InitDragDropListEx			(uiXml, "dragdrop_slot_quick_access_1", 0, m_pUISlotQuickAccessList_1);
+		BindDragDropListEnents				(m_pUISlotQuickAccessList_1);
+		
+		m_pUISlotQuickAccessList_2			= xr_new<CUIDragDropListEx>(); AttachChild(m_pUISlotQuickAccessList_2); m_pUISlotQuickAccessList_2->SetAutoDelete(true);
+		xml_init.InitDragDropListEx			(uiXml, "dragdrop_slot_quick_access_2", 0, m_pUISlotQuickAccessList_2);
+		BindDragDropListEnents				(m_pUISlotQuickAccessList_2);
+		
+		m_pUISlotQuickAccessList_3			= xr_new<CUIDragDropListEx>(); AttachChild(m_pUISlotQuickAccessList_3); m_pUISlotQuickAccessList_3->SetAutoDelete(true);
+		xml_init.InitDragDropListEx			(uiXml, "dragdrop_slot_quick_access_3", 0, m_pUISlotQuickAccessList_3);
+		BindDragDropListEnents				(m_pUISlotQuickAccessList_3);
+	}
+//
 	//pop-up menu
 	AttachChild							(&UIPropertiesBox);
 	UIPropertiesBox.Init				(0,0,300,300);
@@ -200,6 +243,17 @@ EListType CUIInventoryWnd::GetType(CUIDragDropListEx* l)
 	if(l==m_pUIAutomaticList)	return iwSlot;
 	if(l==m_pUIPistolList)		return iwSlot;
 	if(l==m_pUIOutfitList)		return iwSlot;
+//red
+	if(l==m_pUIKnifeList)				return iwSlot;
+	if(l==m_pUIBinocularList)			return iwSlot;
+	if(l==m_pUIDetectorList)			return iwSlot;
+	if(l==m_pUITorchList)				return iwSlot;
+	if(l==m_pUIPDAList)					return iwSlot;
+	if(l==m_pUIHelmetList)				return iwSlot;
+	if(l==m_pUISlotQuickAccessList_0)	return iwSlot;
+	if(l==m_pUISlotQuickAccessList_1)	return iwSlot;
+	if(l==m_pUISlotQuickAccessList_2)	return iwSlot;
+	if(l==m_pUISlotQuickAccessList_3)	return iwSlot;
 
 	NODEFAULT;
 #ifdef DEBUG
@@ -279,7 +333,8 @@ void CUIInventoryWnd::Update()
 		}
 		// update money
 		string64						sMoney;
-		sprintf_s							(sMoney,"%d RU", _money);
+		//red_virus
+		sprintf_s						(sMoney,"%d %s", _money, *CStringTable().translate("ui_st_money_regional"));
 		UIMoneyWnd.SetText				(sMoney);
 
 		// update outfit parameters
