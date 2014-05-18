@@ -103,6 +103,7 @@ protected:
 	CUIDragDropListEx*			m_pUISlotQuickAccessList_1;
 	CUIDragDropListEx*			m_pUISlotQuickAccessList_2;
 	CUIDragDropListEx*			m_pUISlotQuickAccessList_3;
+	CUIProgressBar				UIProgressBarSatiety;
 	//********************************************************
 	
 	CUIOutfitDragDropList*		m_pUIOutfitList;

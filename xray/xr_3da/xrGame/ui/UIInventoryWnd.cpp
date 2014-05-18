@@ -117,6 +117,13 @@ void CUIInventoryWnd::Init()
 	UIProgressBack.AttachChild	(&UIProgressBarRadiation);
 	xml_init.InitProgressBar (uiXml, "progress_bar_radiation", 0, &UIProgressBarRadiation);
 
+//red_virus
+	if (GameID() == GAME_SINGLE){
+		UIProgressBack.AttachChild	(&UIProgressBarSatiety);
+		xml_init.InitProgressBar (uiXml, "progress_bar_satiety", 0, &UIProgressBarSatiety);
+	}
+//
+
 	UIPersonalWnd.AttachChild			(&UIStaticPersonal);
 	xml_init.InitStatic					(uiXml, "static_personal",0, &UIStaticPersonal);
 //	UIStaticPersonal.Init				(1, UIPersonalWnd.GetHeight() - 175, 260, 260);
@@ -317,6 +324,15 @@ void CUIInventoryWnd::Update()
 
 		v = pEntityAlive->conditions().GetRadiation()*100.0f;
 		UIProgressBarRadiation.SetProgressPos	(v);
+		
+//red_virus
+		if (GameID() == GAME_SINGLE){
+			CActor*	m_pActor = smart_cast<CActor*>(Level().CurrentViewEntity());
+			
+			v =(m_pActor->conditions().GetSatiety())*100.0f;
+			UIProgressBarSatiety.SetProgressPos	(v);
+		}
+//
 
 		CInventoryOwner* pOurInvOwner	= smart_cast<CInventoryOwner*>(pEntityAlive);
 		u32 _money						= 0;

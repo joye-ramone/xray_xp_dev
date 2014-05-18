@@ -191,6 +191,12 @@
 			<texture>ui_scale_yellow_1</texture>
 		</progress>
     </progress_bar_radiation>
+	
+    <progress_bar_satiety x="63" y="22" width="10" height="124" horz="0" min="0" max="100" pos="0">
+		<progress>
+			<texture>ui_scale_yellow_1</texture>
+		</progress>
+    </progress_bar_satiety>
     
     <progress_bar_rank x="20" y="22" width="10" height="141" horz="0" min="0" max="100" pos="0">
 		<progress>
