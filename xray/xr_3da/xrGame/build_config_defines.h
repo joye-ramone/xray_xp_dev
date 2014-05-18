@@ -1,4 +1,3 @@
-
-// xray repo defines
-#define WEAPONS_DOUBLE_SLOTS		// равнозначные слоты для оружия
-#define NO_FREE_ROOM_RUCK_FIX		// отключает вылет при переполнении инвентаря
+// Настройки разных опциональных фич
+#define INV_DOUBLE_WPN_SLOTS		// включает равнозначные слоты для оружия (аналог CoP)
+#define INV_RUCK_UNLIMITED_FIX		// позволяет безболезненно использовать атрибут "unlimited" в теге dragdrop_bag, для создания лимитного инвентаря (фиксит вылет "no free room to place item" и выкидывает предмет, который не помещается в инвентарь)

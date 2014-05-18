@@ -281,7 +281,7 @@ bool CUIInventoryWnd::ToBag(CUICellItem* itm, bool b_use_cursor_pos)
 		InventoryUtilities::UpdateWeight	(UIBagWnd, true);
 		/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
 
-#ifdef NO_FREE_ROOM_RUCK_FIX		
+#ifdef INV_RUCK_UNLIMITED_FIX		
 		if (result = new_owner->CanSetItem(i) )
 		{
 #endif
@@ -290,7 +290,7 @@ bool CUIInventoryWnd::ToBag(CUICellItem* itm, bool b_use_cursor_pos)
 			else
 				new_owner->SetItem				(i);
 			SendEvent_Item2Ruck					(iitem);
-#ifdef NO_FREE_ROOM_RUCK_FIX
+#ifdef INV_RUCK_UNLIMITED_FIX
 		}
 		else
 		{
@@ -373,23 +373,23 @@ bool CUIInventoryWnd::OnItemDrop(CUICellItem* itm)
 	EListType t_new		= GetType(new_owner);
 	EListType t_old		= GetType(old_owner);
 
-#ifdef WEAPONS_DOUBLE_SLOTS
+#ifdef INV_DOUBLE_WPN_SLOTS
 	// Для слотов проверим ниже. Real Wolf.
 	if(t_new == t_old && t_new != iwSlot) return true;
 #else
-	if(t_new == t_old && t_new) return true;
+	if(t_new == t_old) return true;
 #endif
 	switch(t_new){
 		case iwSlot:
 		{
+#ifdef INV_DOUBLE_WPN_SLOTS
 			uint32 slot = CurrentIItem()->GetSlot();
-#ifdef WEAPONS_DOUBLE_SLOTS
 			if(GetSlotList(slot)==new_owner && t_new != t_old)
 #else
-			if(GetSlotList(slot)==new_owner)
+			if(GetSlotList(CurrentIItem()->GetSlot())==new_owner)
 #endif
 				ToSlot	(itm, true);
-#ifdef WEAPONS_DOUBLE_SLOTS
+#ifdef INV_DOUBLE_WPN_SLOTS
 			else if (new_owner == m_pUIPistolList && slot == RIFLE_SLOT)
 			{
 				CurrentIItem()->SetSlot(PISTOL_SLOT);
@@ -430,9 +430,9 @@ bool CUIInventoryWnd::OnItemDbClick(CUICellItem* itm)
 
 		case iwBag:
 		{
-			PIItem item = (PIItem)itm->m_pData;
-#ifdef WEAPONS_DOUBLE_SLOTS
+#ifdef INV_DOUBLE_WPN_SLOTS
 			// При двойном клике выбираем свободный слот. Real Wolf.
+			PIItem item = (PIItem)itm->m_pData;
 			uint32 slot = item->GetSlot();
 			if (slot == PISTOL_SLOT || slot == RIFLE_SLOT)
 			{

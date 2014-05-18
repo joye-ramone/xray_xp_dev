@@ -268,7 +268,7 @@ bool CInventory::Slot(PIItem pIItem, bool bNotActivate)
 		return false;
 	}
 
-#ifdef WEAPONS_DOUBLE_SLOTS
+#ifdef INV_DOUBLE_WPN_SLOTS
 	/*
 		Вещь была в слоте. Да, такое может быть :).
 		Тут необходимо проверять именно так, потому что
