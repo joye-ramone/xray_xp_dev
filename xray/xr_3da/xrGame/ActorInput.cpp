@@ -158,6 +158,69 @@ void CActor::IR_OnKeyboardPress(int cmd)
 				}
 			}
 		}break;
+//red_virus
+	case kUSE_SLOT_QUICK_ACCESS_0:
+		{
+			if(IsGameTypeSingle())
+			{
+				PIItem itm = inventory().m_slots[SLOT_QUICK_ACCESS_0].m_pIItem;
+				if (itm){
+					PIItem iitm = inventory().Same(itm,true);
+					if(iitm){
+						inventory().Eat(iitm);	
+					}else{
+						inventory().Eat(itm);
+					}
+				}
+			}
+		}break;
+	case kUSE_SLOT_QUICK_ACCESS_1:
+		{
+			if(IsGameTypeSingle())
+			{
+				PIItem itm = inventory().m_slots[SLOT_QUICK_ACCESS_1].m_pIItem;
+				if (itm){
+					PIItem iitm = inventory().Same(itm,true);
+					if(iitm){
+						inventory().Eat(iitm);	
+					}else{
+						inventory().Eat(itm);
+					}
+				}
+			}
+		}break;
+	case kUSE_SLOT_QUICK_ACCESS_2:
+		{
+			if(IsGameTypeSingle())
+			{
+				PIItem itm = inventory().m_slots[SLOT_QUICK_ACCESS_2].m_pIItem;
+				if (itm){
+					PIItem iitm = inventory().Same(itm,true);
+					if(iitm){
+						inventory().Eat(iitm);	
+					}else{
+						inventory().Eat(itm);
+					}
+				}
+			}
+		}break;
+	case kUSE_SLOT_QUICK_ACCESS_3:
+		{
+			if(IsGameTypeSingle())
+			{
+				PIItem itm = inventory().m_slots[SLOT_QUICK_ACCESS_3].m_pIItem;
+				if (itm){
+					PIItem iitm = inventory().Same(itm,true);
+					if(iitm){
+						inventory().Eat(iitm);	
+					}else{
+						inventory().Eat(itm);
+					}
+				}
+			}
+		}break;
+//		
+		
 	}
 }
 void CActor::IR_OnMouseWheel(int direction)

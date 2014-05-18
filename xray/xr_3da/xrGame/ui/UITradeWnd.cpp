@@ -608,7 +608,7 @@ void CUITradeWnd::SetCurrentItem(CUICellItem* itm)
 
 		string256			str;
 
-		sprintf_s				(str, "%d %d", m_pOthersTrade->GetItemPrice(CurrentIItem(), bBuying),*CStringTable().translate("ui_st_money_regional") );
+		sprintf_s				(str, "%d %s", m_pOthersTrade->GetItemPrice(CurrentIItem(), bBuying),*CStringTable().translate("ui_st_money_regional") );
 		m_uidata->UIItemInfo.UICost->SetText (str);
 	}
 }
