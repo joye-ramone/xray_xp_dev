@@ -90,7 +90,7 @@ void CUIInventoryWnd::InitInventory()
 			if(_itm)
 			{
 				CUICellItem* itm				= create_cell_item(_itm);
-				m_pUIBunocularList->SetItem		(itm);
+				m_pUIBinocularList->SetItem		(itm);
 			}
 			_itm								= m_pInv->m_slots[DETECTOR_SLOT].m_pIItem;
 			if(_itm)
