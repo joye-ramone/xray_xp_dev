@@ -66,7 +66,9 @@ void CUIInventoryWnd::ActivatePropertiesBox()
 			UIPropertiesBox.AddItem("st_move_to_slot2",  NULL, INVENTORY_TO_SLOT2_ACTION);
 			b_show			= true;
 		}
+	}
 	else if(!pOutfit && slot!=NO_ACTIVE_SLOT && !m_pInv->m_slots[slot].m_bPersistent && m_pInv->CanPutInSlot(CurrentIItem()))
+	{
 		UIPropertiesBox.AddItem("st_move_to_slot",  NULL, INVENTORY_TO_SLOT_ACTION);
 		b_show			= true;
 	}
