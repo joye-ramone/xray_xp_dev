@@ -530,7 +530,8 @@ void CUIInventoryWnd::ClearAllLists()
 	m_pUIAutomaticList->ClearAll			(true);
 
 #ifdef INV_NEW_SLOTS_SYSTEM
-if (GameID() == GAME_SINGLE){
+//if (GameID() == GAME_SINGLE){	// нельзя так делать - g_pGameLevel уже удален
+if (IsGameTypeSingle()) {
 	m_pUIKnifeList->ClearAll				(true);
 	m_pUIBinocularList->ClearAll			(true);
 	m_pUIDetectorList->ClearAll				(true);
