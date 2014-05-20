@@ -1,7 +1,7 @@
 #pragma once
 
 class CInventory;
-
+#include "../build_config_defines.h"
 #include "UIDialogWnd.h"
 #include "UIStatic.h"
 
@@ -12,7 +12,11 @@ class CInventory;
 
 #include "UIOutfitInfo.h"
 #include "UIItemInfo.h"
-#include "UISleepWnd.h"
+
+#ifdef INV_NEW_SLOTS_SYSTEM
+	#include "UISleepWnd.h"
+#endif
+
 #include "../inventory_space.h"
 
 class CArtefact;
@@ -74,10 +78,7 @@ protected:
 	CUIStatic					UIBagWnd;
 	CUIStatic					UIMoneyWnd;
 	CUIStatic					UIDescrWnd;
-	//*********************************************
-	//Red_Virus
-	CUISleepWnd					UISleepWnd;
-	//*********************************************
+
 	CUIFrameWindow				UIPersonalWnd;
 
 	CUI3tButton*				UIExitButton;
@@ -92,7 +93,9 @@ protected:
 	CUIDragDropListEx*			m_pUIBeltList;
 	CUIDragDropListEx*			m_pUIPistolList;
 	CUIDragDropListEx*			m_pUIAutomaticList;
-	//red_virus**********************************************
+
+#ifdef INV_NEW_SLOTS_SYSTEM	
+	CUISleepWnd					UISleepWnd;
 	CUIDragDropListEx*			m_pUIKnifeList;
 	CUIDragDropListEx*			m_pUIBinocularList;
 	CUIDragDropListEx*			m_pUIDetectorList;
@@ -104,7 +107,7 @@ protected:
 	CUIDragDropListEx*			m_pUISlotQuickAccessList_2;
 	CUIDragDropListEx*			m_pUISlotQuickAccessList_3;
 	CUIProgressBar				UIProgressBarSatiety;
-	//********************************************************
+#endif
 	
 	CUIOutfitDragDropList*		m_pUIOutfitList;
 	void						ClearAllLists				();

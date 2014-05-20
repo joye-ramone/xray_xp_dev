@@ -5,6 +5,7 @@
 #include "../xr_ioc_cmd.h"
 #include "xr_level_controller.h"
 #include "string_table.h"
+#include "build_config_defines.h"
 
 _binding	g_key_bindings		[bindings_count]; 
 _key_group	g_current_keygroup	= _sp;
@@ -92,12 +93,12 @@ _action  actions[]		= {
 	{ "speech_menu_7",		kSPEECH_MENU_7			,_mp},		
 	{ "speech_menu_8",		kSPEECH_MENU_8			,_mp},		
 	{ "speech_menu_9",		kSPEECH_MENU_9			,_mp},		
-	//red_virus
+#ifdef INV_NEW_SLOTS_SYSTEM
 	{ "use_slot_quick_access_0",			kUSE_SLOT_QUICK_ACCESS_0				,_sp},
 	{ "use_slot_quick_access_1",			kUSE_SLOT_QUICK_ACCESS_1				,_sp},
 	{ "use_slot_quick_access_2",			kUSE_SLOT_QUICK_ACCESS_2				,_sp},
 	{ "use_slot_quick_access_3",			kUSE_SLOT_QUICK_ACCESS_3				,_sp},
-	//																
+#endif																
 	{ "use_bandage",		kUSE_BANDAGE			,_sp},		
 	{ "use_medkit",			kUSE_MEDKIT				,_sp},		
 	{ "quick_save",			kQUICK_SAVE				,_sp},		

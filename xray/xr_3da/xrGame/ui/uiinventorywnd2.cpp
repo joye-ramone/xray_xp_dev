@@ -65,7 +65,7 @@ void CUIInventoryWnd::InitInventory()
 	SetCurrentItem				(NULL);
 
 	//Slots
-	//red_virus****************************************************************************************
+
 	PIItem  _itm							= m_pInv->m_slots[PISTOL_SLOT].m_pIItem;
 	if(_itm)
 	{
@@ -78,7 +78,8 @@ void CUIInventoryWnd::InitInventory()
 		CUICellItem* itm				= create_cell_item(_itm);
 		m_pUIAutomaticList->SetItem		(itm);
 	}
-
+	
+#ifdef INV_NEW_SLOTS_SYSTEM
 	if (GameID() == GAME_SINGLE){
 			_itm								= m_pInv->m_slots[KNIFE_SLOT].m_pIItem;
 			if(_itm)
@@ -141,7 +142,7 @@ void CUIInventoryWnd::InitInventory()
 				m_pUISlotQuickAccessList_3->SetItem		(itm);
 			}
 	}
-	//*****************************************************************************************
+#endif
 
 	PIItem _outfit						= m_pInv->m_slots[OUTFIT_SLOT].m_pIItem;
 	CUICellItem* outfit					= (_outfit)?create_cell_item(_outfit):NULL;
@@ -481,7 +482,8 @@ CUIDragDropListEx* CUIInventoryWnd::GetSlotList(u32 slot_idx)
 		case OUTFIT_SLOT:
 			return m_pUIOutfitList;
 			break;
-//red_virus
+			
+#ifdef INV_NEW_SLOTS_SYSTEM
 		case KNIFE_SLOT:
 			return m_pUIKnifeList;
 			break;
@@ -512,7 +514,7 @@ CUIDragDropListEx* CUIInventoryWnd::GetSlotList(u32 slot_idx)
 		case SLOT_QUICK_ACCESS_3:
 			return m_pUISlotQuickAccessList_3;
 			break;
-//
+#endif
 	};
 	return NULL;
 }
@@ -526,18 +528,19 @@ void CUIInventoryWnd::ClearAllLists()
 	m_pUIOutfitList->ClearAll				(true);
 	m_pUIPistolList->ClearAll				(true);
 	m_pUIAutomaticList->ClearAll			(true);
-//red_virus
+
+#ifdef INV_NEW_SLOTS_SYSTEM
 if (GameID() == GAME_SINGLE){
-		m_pUIKnifeList->ClearAll				(true);
-		m_pUIBinocularList->ClearAll			(true);
-		m_pUIDetectorList->ClearAll				(true);
-		m_pUITorchList->ClearAll				(true);
-		m_pUIPDAList->ClearAll					(true);
-		m_pUIHelmetList->ClearAll								(true);
-		m_pUISlotQuickAccessList_0->ClearAll					(true);
-		m_pUISlotQuickAccessList_1->ClearAll					(true);
-		m_pUISlotQuickAccessList_2->ClearAll					(true);
-		m_pUISlotQuickAccessList_3->ClearAll					(true);
-	}
-//
+	m_pUIKnifeList->ClearAll				(true);
+	m_pUIBinocularList->ClearAll			(true);
+	m_pUIDetectorList->ClearAll				(true);
+	m_pUITorchList->ClearAll				(true);
+	m_pUIPDAList->ClearAll					(true);
+	m_pUIHelmetList->ClearAll				(true);
+	m_pUISlotQuickAccessList_0->ClearAll	(true);
+	m_pUISlotQuickAccessList_1->ClearAll	(true);
+	m_pUISlotQuickAccessList_2->ClearAll	(true);
+	m_pUISlotQuickAccessList_3->ClearAll	(true);
+}
+#endif
 }

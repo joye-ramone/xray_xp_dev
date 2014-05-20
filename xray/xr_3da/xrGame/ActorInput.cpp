@@ -24,6 +24,7 @@
 #include "UI/UIStatic.h"
 #include "CharacterPhysicsSupport.h"
 #include "InventoryBox.h"
+#include "build_config_defines.h"
 
 bool g_bAutoClearCrouch = true;
 
@@ -158,7 +159,7 @@ void CActor::IR_OnKeyboardPress(int cmd)
 				}
 			}
 		}break;
-//red_virus
+#ifdef INV_NEW_SLOTS_SYSTEM
 	case kUSE_SLOT_QUICK_ACCESS_0:
 		{
 			if(IsGameTypeSingle())
@@ -219,7 +220,7 @@ void CActor::IR_OnKeyboardPress(int cmd)
 				}
 			}
 		}break;
-//		
+#endif		
 		
 	}
 }

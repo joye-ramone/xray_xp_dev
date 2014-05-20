@@ -63,6 +63,7 @@
 #include "script_callback_ex.h"
 #include "InventoryBox.h"
 #include "location_manager.h"
+#include "build_config_defines.h"
 
 const u32		patch_frames	= 50;
 const float		respawn_delay	= 1.f;
@@ -1553,16 +1554,16 @@ float	CActor::HitArtefactsOnBelt		(float hit_power, ALife::EHitType hit_type)
 		}
 	}
 
-//red_virus
-	CInventoryItem* helmet = inventory().m_slots[HELMET_SLOT].m_pIItem;
+#ifdef INV_NEW_SLOTS_SYSTEM
+	/*CInventoryItem* helmet = inventory().m_slots[HELMET_SLOT].m_pIItem;
 	if (helmet){
 		CArtefact* helmet_artefact = smart_cast<CArtefact*>(helmet);
 		if(helmet_artefact){
 			res_hit_power_k	+= helmet_artefact->m_ArtefactHitImmunities.AffectHit(1.0f, hit_type);
 			_af_count		+= 1.0f;
 		}
-	}
-//
+	}*/
+#endif
 	res_hit_power_k			-= _af_count;
 	return					res_hit_power_k * hit_power;
 }

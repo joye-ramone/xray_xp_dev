@@ -32,6 +32,7 @@ using namespace InventoryUtilities;
 #include "UIDragDropListEx.h"
 #include "UIOutfitSlot.h"
 #include "UI3tButton.h"
+#include "../build_config_defines.h"
 
 #define				INVENTORY_ITEM_XML		"inventory_item.xml"
 #define				INVENTORY_XML			"inventory_new.xml"
@@ -84,12 +85,12 @@ void CUIInventoryWnd::Init()
 	UIDescrWnd.AttachChild				(&UIItemInfo);
 	UIItemInfo.Init						(0, 0, UIDescrWnd.GetWidth(), UIDescrWnd.GetHeight(), INVENTORY_ITEM_XML);
 	
-	//RedVirus
+#ifdef INV_NEW_SLOTS_SYSTEM
 	if (GameID() == GAME_SINGLE){
 		AttachChild							(&UISleepWnd);
 		UISleepWnd.Init();
 	}
-	//
+#endif
 	
 	AttachChild							(&UIPersonalWnd);
 	xml_init.InitFrameWindow			(uiXml, "character_frame_window", 0, &UIPersonalWnd);
@@ -117,12 +118,12 @@ void CUIInventoryWnd::Init()
 	UIProgressBack.AttachChild	(&UIProgressBarRadiation);
 	xml_init.InitProgressBar (uiXml, "progress_bar_radiation", 0, &UIProgressBarRadiation);
 
-//red_virus
+#ifdef INV_NEW_SLOTS_SYSTEM
 	if (GameID() == GAME_SINGLE){
 		UIProgressBack.AttachChild	(&UIProgressBarSatiety);
 		xml_init.InitProgressBar (uiXml, "progress_bar_satiety", 0, &UIProgressBarSatiety);
 	}
-//
+#endif
 
 	UIPersonalWnd.AttachChild			(&UIStaticPersonal);
 	xml_init.InitStatic					(uiXml, "static_personal",0, &UIStaticPersonal);
@@ -157,8 +158,7 @@ void CUIInventoryWnd::Init()
 	m_pUIOutfitList						= xr_new<CUIOutfitDragDropList>(); AttachChild(m_pUIOutfitList); m_pUIOutfitList->SetAutoDelete(true);
 	xml_init.InitDragDropListEx			(uiXml, "dragdrop_outfit", 0, m_pUIOutfitList);
 	BindDragDropListEnents				(m_pUIOutfitList);
-	
-//red_virus
+
 	m_pUIPistolList						= xr_new<CUIDragDropListEx>(); AttachChild(m_pUIPistolList); m_pUIPistolList->SetAutoDelete(true);
 	xml_init.InitDragDropListEx			(uiXml, "dragdrop_slot_weapon_1", 0, m_pUIPistolList);
 	BindDragDropListEnents				(m_pUIPistolList);
@@ -166,7 +166,8 @@ void CUIInventoryWnd::Init()
 	m_pUIAutomaticList					= xr_new<CUIDragDropListEx>(); AttachChild(m_pUIAutomaticList); m_pUIAutomaticList->SetAutoDelete(true);
 	xml_init.InitDragDropListEx			(uiXml, "dragdrop_slot_weapon_2", 0, m_pUIAutomaticList);
 	BindDragDropListEnents				(m_pUIAutomaticList);
-	
+
+#ifdef INV_NEW_SLOTS_SYSTEM	
 	if (GameID() == GAME_SINGLE){
 		m_pUIKnifeList						= xr_new<CUIDragDropListEx>(); AttachChild(m_pUIKnifeList); m_pUIKnifeList->SetAutoDelete(true);
 		xml_init.InitDragDropListEx			(uiXml, "dragdrop_slot_weapon_0", 0, m_pUIKnifeList);
@@ -208,7 +209,8 @@ void CUIInventoryWnd::Init()
 		xml_init.InitDragDropListEx			(uiXml, "dragdrop_slot_quick_access_3", 0, m_pUISlotQuickAccessList_3);
 		BindDragDropListEnents				(m_pUISlotQuickAccessList_3);
 	}
-//
+#endif
+
 	//pop-up menu
 	AttachChild							(&UIPropertiesBox);
 	UIPropertiesBox.Init				(0,0,300,300);
@@ -250,7 +252,8 @@ EListType CUIInventoryWnd::GetType(CUIDragDropListEx* l)
 	if(l==m_pUIAutomaticList)	return iwSlot;
 	if(l==m_pUIPistolList)		return iwSlot;
 	if(l==m_pUIOutfitList)		return iwSlot;
-//red
+
+#ifdef INV_NEW_SLOTS_SYSTEM
 	if(l==m_pUIKnifeList)				return iwSlot;
 	if(l==m_pUIBinocularList)			return iwSlot;
 	if(l==m_pUIDetectorList)			return iwSlot;
@@ -261,6 +264,7 @@ EListType CUIInventoryWnd::GetType(CUIDragDropListEx* l)
 	if(l==m_pUISlotQuickAccessList_1)	return iwSlot;
 	if(l==m_pUISlotQuickAccessList_2)	return iwSlot;
 	if(l==m_pUISlotQuickAccessList_3)	return iwSlot;
+#endif
 
 	NODEFAULT;
 #ifdef DEBUG
@@ -325,14 +329,14 @@ void CUIInventoryWnd::Update()
 		v = pEntityAlive->conditions().GetRadiation()*100.0f;
 		UIProgressBarRadiation.SetProgressPos	(v);
 		
-//red_virus
+#ifdef INV_NEW_SLOTS_SYSTEM
 		if (GameID() == GAME_SINGLE){
 			CActor*	m_pActor = smart_cast<CActor*>(Level().CurrentViewEntity());
 			
 			v =(m_pActor->conditions().GetSatiety())*100.0f;
 			UIProgressBarSatiety.SetProgressPos	(v);
 		}
-//
+#endif
 
 		CInventoryOwner* pOurInvOwner	= smart_cast<CInventoryOwner*>(pEntityAlive);
 		u32 _money						= 0;

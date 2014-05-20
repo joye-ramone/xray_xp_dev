@@ -1,4 +1,5 @@
 #pragma once
+#include "build_config_defines.h"
 
 enum	EGameActions
 {
@@ -86,12 +87,12 @@ enum	EGameActions
 						
 	kUSE_BANDAGE,
 	kUSE_MEDKIT,		
-//red_virus	
+#ifdef INV_NEW_SLOTS_SYSTEM
 	kUSE_SLOT_QUICK_ACCESS_0,
 	kUSE_SLOT_QUICK_ACCESS_1,
 	kUSE_SLOT_QUICK_ACCESS_2,
 	kUSE_SLOT_QUICK_ACCESS_3,
-//	
+#endif	
 	kQUICK_SAVE,
 	kQUICK_LOAD,
 
