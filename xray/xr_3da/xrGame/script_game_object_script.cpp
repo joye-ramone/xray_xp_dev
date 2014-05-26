@@ -101,8 +101,14 @@ void CScriptGameObject::script_register(lua_State *L)
 				value("on_item_slot",				int(GameObject::eOnItemSlot)),
 				value("on_item_ruck",				int(GameObject::eOnItemRuck)),
 				// фонарь
-				value("switch_torch",				int(GameObject::eSwitchTorch))
+				value("switch_torch",				int(GameObject::eSwitchTorch)),
 				/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
+
+				// Added by Cribbledirge Start
+				value("on_mouse_press", int(GameObject::eOnMousePress)),
+				value("on_mouse_release", int(GameObject::eOnMouseRelease)),
+				value("on_mouse_hold", int(GameObject::eOnMouseHold))
+				// Cribbledirge End
 			],
 
 		def("buy_condition",				(void (*)(CScriptIniFile*,LPCSTR))(&::buy_condition)),

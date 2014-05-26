@@ -284,5 +284,11 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("weight",						&CScriptGameObject::Weight)
 		/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
 
+		/*************************************************** added by Cribbledirge START ***************************************************/
+
+		.def("is_actor_outdoors",			&CScriptGameObject::IsActorOutdoors)
+
+		/**************************************************** added by Cribbledirge END ****************************************************/
+
 	;return	(instance);
 }

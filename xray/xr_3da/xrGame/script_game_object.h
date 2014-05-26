@@ -579,6 +579,13 @@ public:
 			float				Weight								() const;
 			/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
 
+			/*************************************************** added by Cribbledirge START ***************************************************/
+
+			/* Checks to see if the player character is outdoors */
+			bool				IsActorOutdoors() const;
+
+			/**************************************************** added by Cribbledirge END ****************************************************/
+
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };
 add_to_type_list(CScriptGameObject)

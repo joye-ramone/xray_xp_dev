@@ -63,6 +63,13 @@ namespace GameObject {
 		// фонарь
 		eSwitchTorch,
 		/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
+
+		// Added by Cribbledirge Start.
+		/* Added in some mouse press detection for the player character. */
+		eOnMousePress,
+		eOnMouseRelease,
+		eOnMouseHold,
+		// Cribbledirge End
 		eDummy = u32(-1),
 	};
 };
