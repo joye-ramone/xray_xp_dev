@@ -543,7 +543,7 @@ bool CScriptGameObject::IsActorOutdoors() const
 	// Check to make sure all the params are available (we're in game and such).
 	if (!g_pGameLevel) 
 	{
-		Msg("Game Level Doesn't Exist.");
+		Msg("CScriptGameObject::IsActorOutdoors : Game Level Doesn't Exist.");
 		return FALSE;
 	}
 	CObject *e = g_pGameLevel->CurrentViewEntity();
