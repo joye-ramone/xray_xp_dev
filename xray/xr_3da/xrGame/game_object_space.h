@@ -69,6 +69,13 @@ namespace GameObject {
 		eOnMousePress,
 		eOnMouseRelease,
 		eOnMouseHold,
+
+		// These specifically say actor as I intend to add callbacks for NPCs firing their weapons.
+		eOnActorWeaponFire,
+		eOnActorWeaponJammed,
+		eOnActorWeaponEmpty,
+		eOnActorWeaponReload,
+
 		// Cribbledirge End
 		eDummy = u32(-1),
 	};

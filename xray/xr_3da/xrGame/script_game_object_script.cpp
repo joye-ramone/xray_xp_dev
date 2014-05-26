@@ -107,7 +107,11 @@ void CScriptGameObject::script_register(lua_State *L)
 				// Added by Cribbledirge Start
 				value("on_mouse_press", int(GameObject::eOnMousePress)),
 				value("on_mouse_release", int(GameObject::eOnMouseRelease)),
-				value("on_mouse_hold", int(GameObject::eOnMouseHold))
+				value("on_mouse_hold", int(GameObject::eOnMouseHold)),
+				value("on_actor_weapon_fire", int(GameObject::eOnActorWeaponFire)),
+				value("on_actor_weapon_reload", int(GameObject::eOnActorWeaponReload)),
+				value("on_actor_weapon_jammed", int(GameObject::eOnActorWeaponJammed)),
+				value("on_actor_weapon_empty", int(GameObject::eOnActorWeaponEmpty))
 				// Cribbledirge End
 			],
 

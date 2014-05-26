@@ -17,6 +17,13 @@
 #include "object_broker.h"
 #include "string_table.h"
 
+// Headers included by Cribbledirge (for callbacks).
+#include "pch_script.h"
+#include "script_callback_ex.h"
+#include "script_game_object.h"
+#include "game_object_space.h"
+
+
 CWeaponMagazined::CWeaponMagazined(LPCSTR name, ESoundTypes eSoundType) : CWeapon(name)
 {
 	m_eSoundShow		= ESoundTypes(SOUND_TYPE_ITEM_TAKING | eSoundType);
@@ -377,19 +384,50 @@ void CWeaponMagazined::OnStateSwitch	(u32 S)
 		break;
 	case eFire:
 		switch2_Fire	();
+#pragma todo("Cribbledirge: Smart cast can probably also cast these as NPCs as opposed to just actors.  Should test this out.")
+		// Callbacks added by Cribbledirge.
+		if (g_actor && smart_cast<CActor*>(H_Parent()))
+		{
+			Actor()->callback(GameObject::eOnActorWeaponFire)(
+				smart_cast<CActor*>(H_Parent())->lua_game_object());
+		}
 		break;
 	case eFire2:
 		switch2_Fire2	();
+		// Callbacks added by Cribbledirge.
+		if (g_actor && smart_cast<CActor*>(H_Parent()))
+		{
+			Actor()->callback(GameObject::eOnActorWeaponFire)(
+				smart_cast<CActor*>(H_Parent())->lua_game_object());
+		}
 		break;
 	case eMisfire:
 		if(smart_cast<CActor*>(this->H_Parent()) && (Level().CurrentViewEntity()==H_Parent()) )
 			HUD().GetUI()->AddInfoMessage("gun_jammed");
+		// Callbacks added by Cribbledirge.
+		if (g_actor && smart_cast<CActor*>(H_Parent()))
+		{
+			Actor()->callback(GameObject::eOnActorWeaponJammed)(
+				smart_cast<CActor*>(H_Parent())->lua_game_object());
+		}
 		break;
 	case eMagEmpty:
 		switch2_Empty	();
+		// Callbacks added by Cribbledirge.
+		if (g_actor && smart_cast<CActor*>(H_Parent()))
+		{
+			Actor()->callback(GameObject::eOnActorWeaponEmpty)(
+				smart_cast<CActor*>(H_Parent())->lua_game_object());
+		}
 		break;
 	case eReload:
 		switch2_Reload	();
+		// Callbacks added by Cribbledirge.
+		if (g_actor && smart_cast<CActor*>(H_Parent()))
+		{
+			Actor()->callback(GameObject::eOnActorWeaponReload)(
+				smart_cast<CActor*>(H_Parent())->lua_game_object());
+		}
 		break;
 	case eShowing:
 		switch2_Showing	();
