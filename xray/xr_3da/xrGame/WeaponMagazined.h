@@ -5,6 +5,7 @@
 #include "weapon.h"
 #include "hudsound.h"
 #include "ai_sounds.h"
+#include "GameObject.h"
 
 class ENGINE_API CMotionDef;
 
@@ -186,6 +187,9 @@ protected:
 	virtual void	StartIdleAnim		();
 	virtual	int		ShotsFired			() { return m_iShotNum; }
 	virtual float	GetWeaponDeterioration	();
+
+	// Callback function added by Cribbledirge.
+	virtual IC void	StateSwitchCallback(GameObject::ECallbackType actor_type, GameObject::ECallbackType npc_type);
 
 };
 

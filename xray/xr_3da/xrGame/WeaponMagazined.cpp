@@ -23,7 +23,6 @@
 #include "script_game_object.h"
 #include "game_object_space.h"
 
-
 CWeaponMagazined::CWeaponMagazined(LPCSTR name, ESoundTypes eSoundType) : CWeapon(name)
 {
 	m_eSoundShow		= ESoundTypes(SOUND_TYPE_ITEM_TAKING | eSoundType);
@@ -151,7 +150,7 @@ void CWeaponMagazined::FireStart		()
 			if(GetState()==eMisfire) return;
 
 			inherited::FireStart();
-			
+
 			if (iAmmoElapsed == 0) 
 				OnMagazineEmpty();
 			else
@@ -374,6 +373,24 @@ void CWeaponMagazined::ReloadMagazine()
 	VERIFY((u32)iAmmoElapsed == m_magazine.size());
 }
 
+// Function for callbacks added by Cribbledirge.
+void CWeaponMagazined::StateSwitchCallback(GameObject::ECallbackType actor_type, GameObject::ECallbackType npc_type)
+{
+	if (g_actor)
+	{
+		if (smart_cast<CActor*>(H_Parent()))  // This is an actor.
+		{
+			Actor()->callback(actor_type)(
+				smart_cast<CActor*>(H_Parent())->lua_game_object());
+		}
+		else if (smart_cast<CEntityAlive*>(H_Parent()))  // This is an NPC.
+		{
+			Actor()->callback(npc_type)(
+				smart_cast<CEntityAlive*>(H_Parent())->lua_game_object());
+		}
+	}
+}
+
 void CWeaponMagazined::OnStateSwitch	(u32 S)
 {
 	inherited::OnStateSwitch(S);
@@ -384,50 +401,25 @@ void CWeaponMagazined::OnStateSwitch	(u32 S)
 		break;
 	case eFire:
 		switch2_Fire	();
-#pragma todo("Cribbledirge: Smart cast can probably also cast these as NPCs as opposed to just actors.  Should test this out.")
-		// Callbacks added by Cribbledirge.
-		if (g_actor && smart_cast<CActor*>(H_Parent()))
-		{
-			Actor()->callback(GameObject::eOnActorWeaponFire)(
-				smart_cast<CActor*>(H_Parent())->lua_game_object());
-		}
 		break;
 	case eFire2:
 		switch2_Fire2	();
-		// Callbacks added by Cribbledirge.
-		if (g_actor && smart_cast<CActor*>(H_Parent()))
-		{
-			Actor()->callback(GameObject::eOnActorWeaponFire)(
-				smart_cast<CActor*>(H_Parent())->lua_game_object());
-		}
 		break;
 	case eMisfire:
 		if(smart_cast<CActor*>(this->H_Parent()) && (Level().CurrentViewEntity()==H_Parent()) )
 			HUD().GetUI()->AddInfoMessage("gun_jammed");
 		// Callbacks added by Cribbledirge.
-		if (g_actor && smart_cast<CActor*>(H_Parent()))
-		{
-			Actor()->callback(GameObject::eOnActorWeaponJammed)(
-				smart_cast<CActor*>(H_Parent())->lua_game_object());
-		}
+		StateSwitchCallback(GameObject::eOnActorWeaponJammed, GameObject::eOnNPCWeaponJammed);
 		break;
 	case eMagEmpty:
 		switch2_Empty	();
 		// Callbacks added by Cribbledirge.
-		if (g_actor && smart_cast<CActor*>(H_Parent()))
-		{
-			Actor()->callback(GameObject::eOnActorWeaponEmpty)(
-				smart_cast<CActor*>(H_Parent())->lua_game_object());
-		}
+		StateSwitchCallback(GameObject::eOnActorWeaponEmpty, GameObject::eOnNPCWeaponEmpty);
 		break;
 	case eReload:
 		switch2_Reload	();
 		// Callbacks added by Cribbledirge.
-		if (g_actor && smart_cast<CActor*>(H_Parent()))
-		{
-			Actor()->callback(GameObject::eOnActorWeaponReload)(
-				smart_cast<CActor*>(H_Parent())->lua_game_object());
-		}
+		StateSwitchCallback(GameObject::eOnActorWeaponReload, GameObject::eOnNPCWeaponReload);
 		break;
 	case eShowing:
 		switch2_Showing	();
@@ -497,7 +489,7 @@ void CWeaponMagazined::UpdateSounds	()
 	// ref_sound positions
 	if (sndShow.playing			())	sndShow.set_position		(get_LastFP());
 	if (sndHide.playing			())	sndHide.set_position		(get_LastFP());
-	if (sndShot.playing			()) sndShot.set_position		(get_LastFP());
+	if (sndShot.playing     ()) sndShot.set_position(get_LastFP());
 	if (sndReload.playing		()) sndReload.set_position		(get_LastFP());
 	if (sndEmptyClick.playing	())	sndEmptyClick.set_position	(get_LastFP());
 }
@@ -543,10 +535,17 @@ void CWeaponMagazined::state_Fire	(float dt)
 		
 		OnShot			();
 		static int i = 0;
-		if (i||m_iShotNum>m_iShootEffectorStart)
-			FireTrace		(p1,d);
+		if (i || m_iShotNum > m_iShootEffectorStart)
+		{
+			FireTrace(p1, d);
+
+			// Do Weapon Callback.  (Cribbledirge)
+			StateSwitchCallback(GameObject::eOnActorWeaponFire, GameObject::eOnNPCWeaponFire);
+		}
 		else
-			FireTrace		(m_vStartPos, m_vStartDir);
+		{
+			FireTrace(m_vStartPos, m_vStartDir);
+		}
 	}
 	
 	if(m_iShotNum == m_iQueueSize)

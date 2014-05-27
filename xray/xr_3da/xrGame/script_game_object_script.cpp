@@ -111,7 +111,13 @@ void CScriptGameObject::script_register(lua_State *L)
 				value("on_actor_weapon_fire", int(GameObject::eOnActorWeaponFire)),
 				value("on_actor_weapon_reload", int(GameObject::eOnActorWeaponReload)),
 				value("on_actor_weapon_jammed", int(GameObject::eOnActorWeaponJammed)),
-				value("on_actor_weapon_empty", int(GameObject::eOnActorWeaponEmpty))
+				value("on_actor_weapon_empty", int(GameObject::eOnActorWeaponEmpty)),
+
+				// NPC Callbacks.
+				value("on_npc_weapon_fire", int(GameObject::eOnNPCWeaponFire)),
+				value("on_npc_weapon_jammed", int(GameObject::eOnNPCWeaponJammed)),
+				value("on_npc_weapon_reload", int(GameObject::eOnNPCWeaponReload)),
+				value("on_npc_weapon_empty", int(GameObject::eOnNPCWeaponEmpty))
 				// Cribbledirge End
 			],
 

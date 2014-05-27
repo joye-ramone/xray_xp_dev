@@ -75,6 +75,12 @@ namespace GameObject {
 		eOnActorWeaponJammed,
 		eOnActorWeaponEmpty,
 		eOnActorWeaponReload,
+		
+		// NPC Weapon Callbacks.
+		eOnNPCWeaponFire,
+		eOnNPCWeaponJammed,
+		eOnNPCWeaponEmpty,
+		eOnNPCWeaponReload,
 
 		// Cribbledirge End
 		eDummy = u32(-1),
