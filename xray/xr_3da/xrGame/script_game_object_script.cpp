@@ -112,6 +112,8 @@ void CScriptGameObject::script_register(lua_State *L)
 				value("on_actor_weapon_reload", int(GameObject::eOnActorWeaponReload)),
 				value("on_actor_weapon_jammed", int(GameObject::eOnActorWeaponJammed)),
 				value("on_actor_weapon_empty", int(GameObject::eOnActorWeaponEmpty)),
+				value("on_actor_weapon_zoom_in", int(GameObject::eOnActorWeaponZoomIn)),
+				value("on_actor_weapon_zoom_out", int(GameObject::eOnActorWeaponZoomOut)),
 
 				// NPC Callbacks.
 				value("on_npc_weapon_fire", int(GameObject::eOnNPCWeaponFire)),

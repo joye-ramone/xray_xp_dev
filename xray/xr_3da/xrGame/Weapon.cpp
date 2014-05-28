@@ -27,6 +27,12 @@
 #include "object_broker.h"
 #include "../igame_persistent.h"
 
+// Headers included by Cribbledirge (for callbacks).
+#include "pch_script.h"
+#include "script_callback_ex.h"
+#include "script_game_object.h"
+#include "game_object_space.h"
+
 #define WEAPON_REMOVE_TIME		60000
 #define ROTATION_TIME			0.25f
 
@@ -36,47 +42,46 @@
 
 CWeapon::CWeapon(LPCSTR name)
 {
-	SetState				(eHidden);
+	SetState			(eHidden);
 	SetNextState			(eHidden);
-	m_sub_state				= eSubstateReloadBegin;
+	m_sub_state			= eSubstateReloadBegin;
 	m_bTriStateReload		= false;
-	SetDefaults				();
+	SetDefaults			();
 
 	m_Offset.identity		();
-	m_StrapOffset.identity	();
+	m_StrapOffset.identity	        ();
 
 	iAmmoCurrent			= -1;
 	m_dwAmmoCurrentCalcFrame= 0;
 
 	iAmmoElapsed			= -1;
 	iMagazineSize			= -1;
-	m_ammoType				= 0;
-	m_ammoName				= NULL;
+	m_ammoType			= 0;
+	m_ammoName			= NULL;
 
 	eHandDependence			= hdNone;
 
 	m_fZoomFactor			= g_fov;
-	m_fZoomRotationFactor	= 0.f;
+	m_fZoomRotationFactor	        = 0.f;
 
 
-	m_pAmmo					= NULL;
+	m_pAmmo			        = NULL;
 
 
 	m_pFlameParticles2		= NULL;
 	m_sFlameParticles2		= NULL;
 
-
-	m_fCurrentCartirdgeDisp = 1.f;
-
+	m_fCurrentCartirdgeDisp         = 1.f;
 	m_strap_bone0			= 0;
 	m_strap_bone1			= 0;
-	m_StrapOffset.identity	();
+	m_StrapOffset.identity	        ();
 	m_strapped_mode			= false;
 	m_can_be_strapped		= false;
-	m_ef_main_weapon_type	= u32(-1);
+	m_ef_main_weapon_type	        = u32(-1);
 	m_ef_weapon_type		= u32(-1);
-	m_UIScope				= NULL;
-	m_set_next_ammoType_on_reload = u32(-1);
+	m_UIScope		        = NULL;
+	m_set_next_ammoType_on_reload   = u32(-1);
+	m_bZoomingIn                    = false;
 }
 
 CWeapon::~CWeapon		()
@@ -1463,10 +1468,27 @@ void CWeapon::UpdateHudAdditonal		(Fmatrix& trans)
 		hud_rotation.translate_over	(offset);
 		trans.mulB_43				(hud_rotation);
 
-		if(pActor->IsZoomAimingMode())
-			m_fZoomRotationFactor += Device.fTimeDelta/m_fZoomRotateTime;
+#pragma todo("Cribbledirge: test these callbacks (including the one in the 'else' statmenet) to see if they work with scopes.")
+		if (pActor->IsZoomAimingMode())
+		{
+			m_fZoomRotationFactor += Device.fTimeDelta / m_fZoomRotateTime;
+			// Send callback for zoom in (Added by Cribbledirge).
+			if (!m_bZoomingIn)
+			{
+				pActor->callback(GameObject::eOnActorWeaponZoomIn)(lua_game_object());
+				m_bZoomingIn = true;
+			}
+		}
 		else
-			m_fZoomRotationFactor -= Device.fTimeDelta/m_fZoomRotateTime;
+		{
+			m_fZoomRotationFactor -= Device.fTimeDelta / m_fZoomRotateTime;
+			// Send callback for zoom out (Added by Cribbledirge).
+			if (m_bZoomingIn)
+			{
+				pActor->callback(GameObject::eOnActorWeaponZoomOut)(lua_game_object());
+				m_bZoomingIn = false;
+			}
+		}
 		clamp(m_fZoomRotationFactor, 0.f, 1.f);
 	}
 }

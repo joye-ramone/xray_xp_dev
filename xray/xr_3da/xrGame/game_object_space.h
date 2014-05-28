@@ -82,6 +82,10 @@ namespace GameObject {
 		eOnNPCWeaponEmpty,
 		eOnNPCWeaponReload,
 
+                // Called when the player zooms their weapon in or out.
+                eOnActorWeaponZoomIn,
+                eOnActorWeaponZoomOut,
+
 		// Cribbledirge End
 		eDummy = u32(-1),
 	};
