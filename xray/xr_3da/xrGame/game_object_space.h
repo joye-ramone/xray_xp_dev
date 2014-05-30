@@ -43,7 +43,7 @@ namespace GameObject {
 		eOnItemDrop,
 
 		eScriptAnimation,
-		
+
 		eTraderGlobalAnimationRequest,
 		eTraderHeadAnimationRequest,
 		eTraderSoundEnd,
@@ -75,16 +75,16 @@ namespace GameObject {
 		eOnActorWeaponJammed,
 		eOnActorWeaponEmpty,
 		eOnActorWeaponReload,
-		
+
 		// NPC Weapon Callbacks.
 		eOnNPCWeaponFire,
 		eOnNPCWeaponJammed,
 		eOnNPCWeaponEmpty,
 		eOnNPCWeaponReload,
 
-                // Called when the player zooms their weapon in or out.
-                eOnActorWeaponZoomIn,
-                eOnActorWeaponZoomOut,
+		// Called when the player zooms their weapon in or out.
+		eOnActorWeaponZoomIn,
+		eOnActorWeaponZoomOut,
 
 		// Cribbledirge End
 		eDummy = u32(-1),
@@ -92,8 +92,8 @@ namespace GameObject {
 };
 
 enum EBoneCallbackType{
-	bctDummy			= u32(0),	// 0 - required!!!
+	bctDummy = u32(0),	// 0 - required!!!
 	bctPhysics,
 	bctCustom,
-	bctForceU32			= u32(-1),
+	bctForceU32 = u32(-1),
 };
