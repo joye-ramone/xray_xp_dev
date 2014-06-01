@@ -1034,3 +1034,201 @@ float CScriptGameObject::Weight() const
 	return				(inventory_item->Weight());
 }
 /*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
+
+
+// KD
+// functions for CInventoryOwner class
+CScriptGameObject *CScriptGameObject::ItemOnBelt	(u32 item_id) const
+{
+	CInventoryOwner	*inventory_owner = smart_cast<CInventoryOwner*>(&object());
+	if (!inventory_owner) {
+		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CInventoryOwner : cannot access class member item_on_belt!");
+		return		(0);
+	}
+
+	TIItemContainer *belt = &(inventory_owner->inventory().m_belt);
+	if (belt->size() < item_id) {
+		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"item_on_belt: item id outside belt!");
+		return		(0);
+	}
+
+	CInventoryItem	*result = belt->at(item_id);
+	return			(result ? result->object().lua_game_object() : 0);
+}
+
+CScriptGameObject *CScriptGameObject::ItemInRuck	(u32 item_id) const
+{
+	CInventoryOwner	*inventory_owner = smart_cast<CInventoryOwner*>(&object());
+	if (!inventory_owner) {
+		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CInventoryOwner : cannot access class member item_on_belt!");
+		return		(0);
+	}
+
+	TIItemContainer *ruck = &(inventory_owner->inventory().m_ruck);
+	if (ruck->size() < item_id) {
+		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"item_in_ruck: item id outside ruck!");
+		return		(0);
+	}
+
+	CInventoryItem	*result = ruck->at(item_id);
+	return			(result ? result->object().lua_game_object() : 0);
+}
+
+bool CScriptGameObject::IsOnBelt	(CScriptGameObject *obj) const
+{
+	CInventoryItem	*inventory_item = smart_cast<CInventoryItem*>(&(obj->object()));
+	if (!inventory_item) {
+		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CInventoryItem : cannot access class member is_on_belt!");
+		return		(0);
+	}
+
+	CInventoryOwner	*inventory_owner = smart_cast<CInventoryOwner*>(&object());
+	if (!inventory_owner) {
+		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CInventoryOwner : cannot access class member is_on_belt!");
+		return		(0);
+	}
+	
+	return inventory_owner->inventory().InBelt(inventory_item);
+}
+
+bool CScriptGameObject::IsInRuck	(CScriptGameObject *obj) const
+{
+	CInventoryItem	*inventory_item = smart_cast<CInventoryItem*>(&(obj->object()));
+	if (!inventory_item) {
+		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CInventoryItem : cannot access class member is_in_ruck!");
+		return		(0);
+	}
+
+	CInventoryOwner	*inventory_owner = smart_cast<CInventoryOwner*>(&object());
+	if (!inventory_owner) {
+		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CInventoryOwner : cannot access class member is_in_ruck!");
+		return		(0);
+	}
+	
+	return inventory_owner->inventory().InRuck(inventory_item);
+}
+
+bool CScriptGameObject::IsInSlot	(CScriptGameObject *obj) const
+{
+	CInventoryItem	*inventory_item = smart_cast<CInventoryItem*>(&(obj->object()));
+	if (!inventory_item) {
+		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CInventoryItem : cannot access class member is_in_slot!");
+		return		(0);
+	}
+
+	CInventoryOwner	*inventory_owner = smart_cast<CInventoryOwner*>(&object());
+	if (!inventory_owner) {
+		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CInventoryOwner : cannot access class member is_in_slot!");
+		return		(0);
+	}
+	
+	return inventory_owner->inventory().InSlot(inventory_item);
+}
+
+void CScriptGameObject::MoveToRuck	(CScriptGameObject *obj)
+{
+	CInventoryItem	*inventory_item = smart_cast<CInventoryItem*>(&(obj->object()));
+	if (!inventory_item) {
+		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CInventoryItem : cannot access class member move_to_ruck!");
+		return;
+	}
+
+	CInventoryOwner	*inventory_owner = smart_cast<CInventoryOwner*>(&object());
+	if (!inventory_owner) {
+		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CInventoryOwner : cannot access class member move_to_ruck!");
+		return;
+	}
+
+	inventory_owner->inventory().Ruck(inventory_item);
+}
+
+void CScriptGameObject::MoveToSlot	(CScriptGameObject *obj, bool bNotActivate)
+{
+	CInventoryItem	*inventory_item = smart_cast<CInventoryItem*>(&(obj->object()));
+	if (!inventory_item) {
+		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CInventoryItem : cannot access class member move_to_slot!");
+		return;
+	}
+
+	CInventoryOwner	*inventory_owner = smart_cast<CInventoryOwner*>(&object());
+	if (!inventory_owner) {
+		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CInventoryOwner : cannot access class member move_to_slot!");
+		return;
+	}
+
+	inventory_owner->inventory().Slot(inventory_item, bNotActivate);
+}
+
+void CScriptGameObject::MoveToBelt	(CScriptGameObject *obj)
+{
+	CInventoryItem	*inventory_item = smart_cast<CInventoryItem*>(&(obj->object()));
+	if (!inventory_item) {
+		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CInventoryItem : cannot access class member move_to_belt!");
+		return;
+	}
+
+	CInventoryOwner	*inventory_owner = smart_cast<CInventoryOwner*>(&object());
+	if (!inventory_owner) {
+		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CInventoryOwner : cannot access class member move_to_belt!");
+		return;
+	}
+
+	inventory_owner->inventory().Belt(inventory_item);
+}
+
+u32 CScriptGameObject::BeltSize	() const
+{
+	CInventoryOwner	*inventory_owner = smart_cast<CInventoryOwner*>(&object());
+	if (!inventory_owner) {
+		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CInventoryOwner : cannot access class member move_to_belt!");
+		return (0);
+	}
+
+	return inventory_owner->inventory().m_belt.size();
+}
+
+u32 CScriptGameObject::RuckSize	() const
+{
+	CInventoryOwner	*inventory_owner = smart_cast<CInventoryOwner*>(&object());
+	if (!inventory_owner) {
+		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CInventoryOwner : cannot access class member move_to_belt!");
+		return (0);
+	}
+
+	return inventory_owner->inventory().m_ruck.size();
+}
+
+void CScriptGameObject::InvalidateInventory	()
+{
+	CInventoryOwner	*inventory_owner = smart_cast<CInventoryOwner*>(&object());
+	if (!inventory_owner) {
+		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CInventoryOwner : cannot access class member InvalidateInventory!");
+		return;
+	}
+
+	inventory_owner->inventory().InvalidateState();
+}
+// functions for CInventoryItem class
+u16 CScriptGameObject::GetIIFlags	()
+{
+	CInventoryItem	*inventory_item = smart_cast<CInventoryItem*>(&object());
+	if (!inventory_item) {
+		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CInventoryItem : cannot access class member GetIIFlags!");
+		return (0);
+	}
+
+	return inventory_item->m_flags.flags;
+}
+
+void CScriptGameObject::SetIIFlags	(Flags16 fl)
+{
+	CInventoryItem	*inventory_item = smart_cast<CInventoryItem*>(&object());
+	if (!inventory_item) {
+		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CInventoryItem : cannot access class member SetIIFlags!");
+		return;
+	}
+
+	inventory_item->m_flags = fl;
+}
+
+// KD

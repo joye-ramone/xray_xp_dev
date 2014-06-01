@@ -290,5 +290,65 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 
 		/**************************************************** added by Cribbledirge END ****************************************************/
 
+		// KD
+
+		// functions for CInventoryOwner class
+		.def("item_on_belt",			&CScriptGameObject::ItemOnBelt)
+		.def("item_in_ruck",			&CScriptGameObject::ItemInRuck)
+		.def("is_on_belt",				&CScriptGameObject::IsOnBelt)
+		.def("is_in_ruck",				&CScriptGameObject::IsInRuck)
+		.def("is_in_slot",				&CScriptGameObject::IsInSlot)
+		.def("move_to_ruck",			&CScriptGameObject::MoveToRuck)
+		.def("move_to_belt",			&CScriptGameObject::MoveToBelt)
+		.def("move_to_slot",			&CScriptGameObject::MoveToSlot)
+		.def("belt_count",				&CScriptGameObject::BeltSize)
+		.def("ruck_count",				&CScriptGameObject::RuckSize)
+		.def("invalidate_inventory",	&CScriptGameObject::InvalidateInventory)
+
+		// functions for CInventoryItem class
+		.def("set_inventory_item_flags",				&CScriptGameObject::SetIIFlags)
+		.def("get_inventory_item_flags",				&CScriptGameObject::GetIIFlags)
+
+		// functions for object testing
+		.def("is_game_object",				&CScriptGameObject::IsGameObject)
+		.def("is_car",						&CScriptGameObject::IsCar)
+		.def("is_helicopter",				&CScriptGameObject::IsHeli)
+		.def("is_holder",					&CScriptGameObject::IsHolderCustom)
+		.def("is_entity_alive",				&CScriptGameObject::IsEntityAlive)
+		.def("is_inventory_item",			&CScriptGameObject::IsInventoryItem)
+		.def("is_inventory_owner",			&CScriptGameObject::IsInventoryOwner)
+		.def("is_actor",					&CScriptGameObject::IsActor)
+		.def("is_custom_monster",			&CScriptGameObject::IsCustomMonster)
+		.def("is_weapon",					&CScriptGameObject::IsWeapon)
+		.def("is_medkit",					&CScriptGameObject::IsMedkit)
+		.def("is_eatable_item",				&CScriptGameObject::IsEatableItem)
+		.def("is_antirad",					&CScriptGameObject::IsAntirad)
+		.def("is_outfit",					&CScriptGameObject::IsCustomOutfit)
+		.def("is_scope",					&CScriptGameObject::IsScope)
+		.def("is_silencer",					&CScriptGameObject::IsSilencer)
+		.def("is_grenade_launcher",			&CScriptGameObject::IsGrenadeLauncher)
+		.def("is_weapon_magazined",			&CScriptGameObject::IsWeaponMagazined)
+		.def("is_space_restrictor",			&CScriptGameObject::IsSpaceRestrictor)
+		.def("is_stalker",					&CScriptGameObject::IsStalker)
+		.def("is_anomaly",					&CScriptGameObject::IsAnomaly)
+		.def("is_monster",					&CScriptGameObject::IsMonster)
+		.def("is_explosive",				&CScriptGameObject::IsExplosive)
+		.def("is_script_zone",				&CScriptGameObject::IsScriptZone)
+		.def("is_projector",				&CScriptGameObject::IsProjector)
+		.def("is_trader",					&CScriptGameObject::IsTrader)
+		.def("is_hud_item",					&CScriptGameObject::IsHudItem)
+		.def("is_food_item",				&CScriptGameObject::IsFoodItem)
+		.def("is_artefact",					&CScriptGameObject::IsArtefact)
+		.def("is_ammo",						&CScriptGameObject::IsAmmo)
+		.def("is_missile",					&CScriptGameObject::IsMissile)
+		.def("is_physics_shell_holder",		&CScriptGameObject::IsPhysicsShellHolder)
+		.def("is_grenade",					&CScriptGameObject::IsGrenade)
+		.def("is_bottle_item",				&CScriptGameObject::IsBottleItem)
+		.def("is_torch",					&CScriptGameObject::IsTorch)
+		.def("is_weapon_gl",				&CScriptGameObject::IsWeaponGL)
+		.def("is_inventory_box",			&CScriptGameObject::IsInventoryBox)
+
+		// KD
+
 	;return	(instance);
 }

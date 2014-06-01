@@ -170,14 +170,19 @@ public:
 	_DECLARE_FUNCTION10	(GetRadiation		,			float);
 	_DECLARE_FUNCTION10	(GetBleeding		,			float);
 	_DECLARE_FUNCTION10	(GetMorale			,			float);
+	_DECLARE_FUNCTION10	(GetMaxPower		,			float);
+	_DECLARE_FUNCTION10	(GetAlcohol			,			float);
+	_DECLARE_FUNCTION10	(GetSatiety			,			float);
 
 	_DECLARE_FUNCTION11	(SetHealth,			void, float);
 	_DECLARE_FUNCTION11	(SetPsyHealth,		void, float);
 	_DECLARE_FUNCTION11	(SetPower,			void, float);
-//	_DECLARE_FUNCTION11	(SetSatiety,		void, float);
+	_DECLARE_FUNCTION11	(SetSatiety,		void, float);
 	_DECLARE_FUNCTION11	(SetRadiation,		void, float);
 	_DECLARE_FUNCTION11	(SetCircumspection,	void, float);
 	_DECLARE_FUNCTION11	(SetMorale,			void, float);
+	_DECLARE_FUNCTION11	(SetMaxPower,		void, float);
+	_DECLARE_FUNCTION11	(SetAlcohol,		void, float);
 
 			void				set_fov				(float new_fov);
 			void				set_range			(float new_range);
@@ -586,6 +591,64 @@ public:
 
 			/**************************************************** added by Cribbledirge END ****************************************************/
 
+			// KD
+			// functions for CInventoryOwner class
+			CScriptGameObject	*ItemOnBelt						(u32 item_id) const;
+			CScriptGameObject	*ItemInRuck						(u32 item_id) const;
+			bool				IsOnBelt						(CScriptGameObject *object) const;
+			bool				IsInRuck						(CScriptGameObject *object) const;
+			bool				IsInSlot						(CScriptGameObject *object) const;
+			void				MoveToSlot						(CScriptGameObject *object, bool bNotActivate = true);
+			void				MoveToBelt						(CScriptGameObject *object);
+			void				MoveToRuck						(CScriptGameObject *object);
+			u32					BeltSize						() const;
+			u32					RuckSize						() const;
+			void				InvalidateInventory				();
+
+			// functions for CInventoryItem class
+			void				SetIIFlags						(Flags16 flag);
+			u16					GetIIFlags						();
+
+			// functions for object testing
+			_DECLARE_FUNCTION10	(IsGameObject			,			bool);
+			_DECLARE_FUNCTION10	(IsCar					,			bool);
+			_DECLARE_FUNCTION10	(IsHeli					,			bool);
+			_DECLARE_FUNCTION10	(IsHolderCustom			,			bool);
+			_DECLARE_FUNCTION10	(IsEntityAlive			,			bool);
+			_DECLARE_FUNCTION10	(IsInventoryItem		,			bool);
+			_DECLARE_FUNCTION10	(IsInventoryOwner		,			bool);
+			_DECLARE_FUNCTION10	(IsActor				,			bool);
+			_DECLARE_FUNCTION10	(IsCustomMonster		,			bool);
+			_DECLARE_FUNCTION10	(IsWeapon				,			bool);
+			_DECLARE_FUNCTION10	(IsMedkit				,			bool);
+			_DECLARE_FUNCTION10	(IsEatableItem			,			bool);
+			_DECLARE_FUNCTION10	(IsAntirad				,			bool);
+			_DECLARE_FUNCTION10	(IsCustomOutfit			,			bool);
+			_DECLARE_FUNCTION10	(IsScope				,			bool);
+			_DECLARE_FUNCTION10	(IsSilencer				,			bool);
+			_DECLARE_FUNCTION10	(IsGrenadeLauncher		,			bool);
+			_DECLARE_FUNCTION10	(IsWeaponMagazined		,			bool);
+			_DECLARE_FUNCTION10	(IsSpaceRestrictor		,			bool);
+			_DECLARE_FUNCTION10	(IsStalker				,			bool);
+			_DECLARE_FUNCTION10	(IsAnomaly				,			bool);
+			_DECLARE_FUNCTION10	(IsMonster				,			bool);
+			_DECLARE_FUNCTION10	(IsExplosive			,			bool);
+			_DECLARE_FUNCTION10	(IsScriptZone			,			bool);
+			_DECLARE_FUNCTION10	(IsProjector			,			bool);
+			_DECLARE_FUNCTION10	(IsTrader				,			bool);
+			_DECLARE_FUNCTION10	(IsHudItem				,			bool);
+			_DECLARE_FUNCTION10	(IsFoodItem				,			bool);
+			_DECLARE_FUNCTION10	(IsArtefact				,			bool);
+			_DECLARE_FUNCTION10	(IsAmmo					,			bool);
+			_DECLARE_FUNCTION10	(IsMissile				,			bool);
+			_DECLARE_FUNCTION10	(IsPhysicsShellHolder	,			bool);
+			_DECLARE_FUNCTION10	(IsGrenade				,			bool);
+			_DECLARE_FUNCTION10	(IsBottleItem			,			bool);
+			_DECLARE_FUNCTION10	(IsTorch				,			bool);
+			_DECLARE_FUNCTION10	(IsWeaponGL				,			bool);
+			_DECLARE_FUNCTION10	(IsInventoryBox			,			bool);
+			// KD
+			
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };
 add_to_type_list(CScriptGameObject)

@@ -8,7 +8,7 @@
 
 #include "pch_script.h"
 
-#if 0//def DEBUG
+#ifdef DEBUG
 
 #ifndef BOOST_NO_STRINGSTREAM
 #	include <sstream>

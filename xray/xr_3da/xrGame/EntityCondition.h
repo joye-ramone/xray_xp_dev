@@ -49,13 +49,16 @@ public:
 
 	virtual bool 			IsLimping				() const;
 
-	virtual void			ChangeSatiety			(float value)		{};
+	virtual float				GetSatiety			()					{return 0.f;};
+	virtual float xr_stdcall	GetAlcohol			()					{return 0.f;};
+
+	virtual void 			ChangeSatiety			(float value)		{};
+	virtual void 			ChangeAlcohol			(float value)		{};
 	void 					ChangeHealth			(float value);
 	void 					ChangePower				(float value);
 	void 					ChangeRadiation			(float value);
 	void 					ChangePsyHealth			(float value);
-	virtual void 			ChangeAlcohol			(float value){};
-
+	
 	IC void					MaxPower				()					{m_fPower = m_fPowerMax;};
 	IC void					SetMaxPower				(float val)			{m_fPowerMax = val; clamp(m_fPowerMax,0.1f,1.0f);};
 	IC float				GetMaxPower				() const			{return m_fPowerMax;};

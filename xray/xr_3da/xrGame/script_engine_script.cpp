@@ -12,6 +12,7 @@
 #include "script_debugger.h"
 //#include <ostream>
 #include "script_additional_libs.h"
+#include "xr_level_controller.h"
 
 using namespace luabind;
 
@@ -180,7 +181,7 @@ ICF	u32	script_time_global	()	{ return Device.dwTimeGlobal; }
 #else
 ICF	u32	script_time_global	()	{ return 0; }
 #endif
-
+extern int get_action_dik(EGameActions _action_id);
 #pragma optimize("s",on)
 void CScriptEngine::script_register(lua_State *L)
 {
@@ -211,6 +212,7 @@ void CScriptEngine::script_register(lua_State *L)
 	function	(L,	"bit_not",						bit_not);
 	function	(L, "user_name",					user_name);
 	function	(L, "time_global",					script_time_global);
+	function	(L, "bind_to_dik",					get_action_dik);
 #ifdef XRGAME_EXPORTS
 	function	(L,	"device",						get_device);
 #endif

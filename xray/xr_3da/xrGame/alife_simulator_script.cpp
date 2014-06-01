@@ -255,7 +255,7 @@ void CALifeSimulator__release					(CALifeSimulator *self, CSE_Abstract *object, 
 	VERIFY								(self);
 //	self->release						(object,true);
 
-	THROW								(object);
+	R_ASSERT							(object);
 	CSE_ALifeObject						*alife_object = smart_cast<CSE_ALifeObject*>(object);
 	THROW								(alife_object);
 	if (!alife_object->m_bOnline) {
@@ -327,7 +327,17 @@ bool dont_has_info								(const CALifeSimulator *self, const ALife::_OBJECT_ID 
 //{
 //	THROW								(self);
 //}
-
+void teleport_object		(CALifeSimulator *alife, ALife::_OBJECT_ID id, GameGraph::_GRAPH_ID game_vertex_id, u32 level_vertex_id, const Fvector &position)
+{
+	alife->teleport_object	(id, game_vertex_id, level_vertex_id, position);
+}
+void assign_story_id		(CALifeSimulator *alife, ALife::_STORY_ID id, CSE_ALifeDynamicObject *object)
+{
+	if (!(alife->story_objects().object(id)))
+		alife->story_objects().add	(id, object, false);
+	else
+		Msg("assign_story_id: specified id is already using");
+}
 #pragma optimize("s",on)
 void CALifeSimulator::script_register			(lua_State *L)
 {
@@ -363,7 +373,8 @@ void CALifeSimulator::script_register			(lua_State *L)
 			.def("dont_has_info",			&dont_has_info)
 			.def("switch_distance",			&CALifeSimulator::switch_distance)
 			.def("switch_distance",			&CALifeSimulator::set_switch_distance)
-
+			.def("teleport_object",			&teleport_object)
+			.def("assign_story_id",			&assign_story_id)
 		,def("alife",						&alife)
 	];
 

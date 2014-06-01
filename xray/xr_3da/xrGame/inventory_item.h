@@ -44,7 +44,7 @@ class CInventoryItem :
 {
 private:
 	typedef CAttachableItem inherited;
-protected:
+public:
 	enum EIIFlags{				FdropManual			=(1<<0),
 								FCanTake			=(1<<1),
 								FCanTrade			=(1<<2),
@@ -57,6 +57,10 @@ protected:
 								FInInterpolation	=(1<<9),
 								FInInterpolate		=(1<<10),
 								FIsQuestItem		=(1<<11),
+								FIAlwaysTradable	=(1<<12),
+								FIAlwaysUntradable	=(1<<13),
+								FIUngroupable		=(1<<14),
+								FIManualHighlighting	=(1<<15),
 	};
 
 	Flags16						m_flags;
