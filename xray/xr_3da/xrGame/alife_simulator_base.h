@@ -50,13 +50,12 @@ protected:
 	bool										m_can_register_objects;
 	// temp
 	ALife::SCHEDULE_P_VECTOR					m_tpaCombatGroups[2];
-public:
-	IC		CALifeStoryRegistry					&story_objects				();
 protected:
 	IC		CALifeSimulatorHeader				&header						();
 	IC		CALifeTimeManager					&time						();
 	IC		CALifeSpawnRegistry					&spawns						();
 	IC		CALifeObjectRegistry				&objects					();
+	IC		CALifeStoryRegistry					&story_objects				();
 	IC		CALifeSmartTerrainRegistry			&smart_terrains				();
 	IC		CALifeGroupRegistry					&groups						();
 	IC		void								can_register_objects		(const bool &value);

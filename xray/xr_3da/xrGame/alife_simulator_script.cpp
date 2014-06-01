@@ -327,17 +327,16 @@ bool dont_has_info								(const CALifeSimulator *self, const ALife::_OBJECT_ID 
 //{
 //	THROW								(self);
 //}
+// KD
 void teleport_object		(CALifeSimulator *alife, ALife::_OBJECT_ID id, GameGraph::_GRAPH_ID game_vertex_id, u32 level_vertex_id, const Fvector &position)
 {
 	alife->teleport_object	(id, game_vertex_id, level_vertex_id, position);
 }
-void assign_story_id		(CALifeSimulator *alife, ALife::_STORY_ID id, CSE_ALifeDynamicObject *object)
+void assign_story_id		(CALifeSimulator *alife, ALife::_OBJECT_ID id, ALife::_STORY_ID sid)
 {
-	if (!(alife->story_objects().object(id)))
-		alife->story_objects().add	(id, object, false);
-	else
-		Msg("assign_story_id: specified id is already using");
+	alife->assign_story_id	(id, sid);
 }
+// KD
 #pragma optimize("s",on)
 void CALifeSimulator::script_register			(lua_State *L)
 {

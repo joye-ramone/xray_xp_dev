@@ -14,6 +14,7 @@
 #include "alife_schedule_registry.h"
 #include "alife_spawn_registry.h"
 #include "alife_object_registry.h"
+#include "alife_story_registry.h"
 #include "ef_storage.h"
 #include "xrserver.h"
 #include "level.h"
@@ -398,6 +399,25 @@ void CALifeUpdateManager::teleport_object	(ALife::_OBJECT_ID id, GameGraph::_GRA
 	CSE_ALifeMonsterAbstract				*monster_abstract = smart_cast<CSE_ALifeMonsterAbstract*>(object);
 	if (monster_abstract)
 		monster_abstract->m_tNextGraphID	= object->m_tGraphID;
+}
+// KD
+void CALifeUpdateManager::assign_story_id	(ALife::_OBJECT_ID id, ALife::_STORY_ID sid)
+{
+	CSE_ALifeDynamicObject					*object = objects().object(id,true);
+	if (!object) {
+		Msg									("! cannot assign story id entity with id %d",id);
+		return;
+	}
+	
+	if (!(story_objects().object(sid)))
+	{
+		if (object->m_bOnline)
+			switch_offline						(object);
+		story_objects().add	(sid, object);
+		object->m_story_id = sid;
+	}
+	else
+		Msg("assign_story_id: specified story id %d is already using", sid);	
 }
 
 void CALifeUpdateManager::add_restriction	(ALife::_OBJECT_ID id, ALife::_OBJECT_ID restriction_id, const RestrictionSpace::ERestrictorTypes &restriction_type)

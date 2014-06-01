@@ -62,6 +62,7 @@ public:
 			void		add_restriction			(ALife::_OBJECT_ID id, ALife::_OBJECT_ID restriction_id, const RestrictionSpace::ERestrictorTypes &restriction_type);
 			void		remove_restriction		(ALife::_OBJECT_ID id, ALife::_OBJECT_ID restriction_id, const RestrictionSpace::ERestrictorTypes &restriction_type);
 			void		remove_all_restrictions	(ALife::_OBJECT_ID id, const RestrictionSpace::ERestrictorTypes &restriction_type);
+			void		assign_story_id			(ALife::_OBJECT_ID id, ALife::_STORY_ID sid);
 };
 
 #include "alife_update_manager_inline.h"
