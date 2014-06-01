@@ -28,6 +28,9 @@
 #include "map_manager.h"
 #include "map_location.h"
 #include "phworld.h"
+#include "raypick.h"
+
+#include "../xr_collide_defs.h"
 
 using namespace luabind;
 
@@ -523,6 +526,26 @@ void g_change_community_goodwill(LPCSTR _community, int _entity_id, int val)
 	RELATION_REGISTRY().ChangeCommunityGoodwill(c.index(), u16(_entity_id), val);
 }
 
+// KD: raypick
+
+
+bool ray_pick (const Fvector &start, const Fvector &dir, float range, collide::rq_target tgt, script_rq_result& script_R, CScriptGameObject* ignore_object)
+{
+	collide::rq_result		R;
+	CObject *ignore = NULL;
+	if (ignore_object)
+		ignore = smart_cast<CObject *>(&(ignore_object->object()));
+
+	if (Level().ObjectSpace.RayPick		(start, dir, range, tgt, R, ignore))
+	{
+		script_R.set(R);
+		return true;
+	}
+	else
+		return false;
+}
+// KD
+
 #pragma optimize("s",on)
 void CLevel::script_register(lua_State *L)
 {
@@ -612,7 +635,10 @@ void CLevel::script_register(lua_State *L)
 		def("add_complex_effector",				&add_complex_effector),
 		def("remove_complex_effector",			&remove_complex_effector),
 		
-		def("game_id",							&GameID)
+		def("game_id",							&GameID),
+
+		// KD
+		def("ray_pick",							&ray_pick)
 	],
 	
 	module(L,"actor_stats")
@@ -636,5 +662,40 @@ void CLevel::script_register(lua_State *L)
 		def("community_goodwill",				&g_community_goodwill),
 		def("set_community_goodwill",			&g_set_community_goodwill),
 		def("change_community_goodwill",		&g_change_community_goodwill)
+	];
+
+	module(L)
+	[
+		class_<CRayPick>("ray_pick")
+			.def(								constructor<>())
+			.def(								constructor<Fvector&, Fvector&, float, collide::rq_target, CScriptGameObject*>())
+			.def("set_position",				&CRayPick::set_position)
+			.def("set_direction",				&CRayPick::set_direction)
+			.def("set_range",					&CRayPick::set_range)
+			.def("set_flags",					&CRayPick::set_flags)
+			.def("set_ignore_object",			&CRayPick::set_ignore_object)
+			.def("query",						&CRayPick::query)
+			.def("get_result",					&CRayPick::get_result)
+			.def("get_object",					&CRayPick::get_object)
+			.def("get_distance",				&CRayPick::get_distance)
+			.def("get_element",					&CRayPick::get_element),
+
+		class_<script_rq_result>("rq_result")
+			.def_readonly("object",			&script_rq_result::O)
+			.def_readonly("range",			&script_rq_result::range)
+			.def_readonly("element",		&script_rq_result::element)
+			.def(								constructor<>()),
+
+		class_<enum_exporter<collide::rq_target> >("rq_target")
+		.enum_("targets")
+		[
+			value("rqtNone",						int(collide::rqtNone)),
+			value("rqtObject",						int(collide::rqtObject)),
+			value("rqtStatic",						int(collide::rqtStatic)),
+			value("rqtShape",						int(collide::rqtShape)),
+			value("rqtObstacle",					int(collide::rqtObstacle)),
+			value("rqtBoth",						int(collide::rqtBoth)),
+			value("rqtDyn",							int(collide::rqtDyn))
+		]
 	];
 }
