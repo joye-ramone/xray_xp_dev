@@ -6558,6 +6558,7 @@
     <ClInclude Include="build_config_defines.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="raypick.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="damage_manager.cpp">
