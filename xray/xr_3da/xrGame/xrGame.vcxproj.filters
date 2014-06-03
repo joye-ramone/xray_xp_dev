@@ -9710,6 +9710,7 @@
     <ClCompile Include="script_additional_libs.cpp">
       <Filter>AI\AScript\ScriptEngine</Filter>
     </ClCompile>
+    <ClCompile Include="raypick.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuildStep Include="graph_abstract.h">
