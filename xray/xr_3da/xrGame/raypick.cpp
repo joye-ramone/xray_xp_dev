@@ -1,7 +1,6 @@
 #include "StdAfx.h"
 #include "raypick.h"
 #include "level.h"
-#include "../xr_collide_defs.h"
 
 CRayPick::CRayPick() 
 {
