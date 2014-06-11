@@ -52,7 +52,6 @@ void CWeaponMagazinedWGrenade::Load	(LPCSTR section)
 	HUD_SOUND::LoadSound(section,"snd_shoot_grenade"	, sndShotG		, m_eSoundShot);
 	HUD_SOUND::LoadSound(section,"snd_reload_grenade"	, sndReloadG	, m_eSoundReload);
 	HUD_SOUND::LoadSound(section,"snd_switch"			, sndSwitch		, m_eSoundReload);
-	HUD_SOUND::LoadSound(section,"snd_irons"			, sndIrons		, m_eSoundIrons);  //daemonion
 	
 
 	m_sFlameParticles2 = pSettings->r_string(section, "grenade_flame_particles");

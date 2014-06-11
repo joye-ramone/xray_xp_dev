@@ -25,7 +25,8 @@ protected:
 	HUD_SOUND		sndShot;
 	HUD_SOUND		sndEmptyClick;
 	HUD_SOUND		sndReload;
-	HUD_SOUND		sndIrons;	//added by Daemonion for iron sight audio parameter
+	HUD_SOUND		sndSightsUp;		//added by Daemonion for iron sight audio parameter - sights being raised
+	HUD_SOUND		sndSightsDown;		//added by Daemonion for iron sight audio parameter - sights being lowered
 	//звук текущего выстрела
 	HUD_SOUND*		m_pSndShotCurrent;
 
@@ -41,7 +42,8 @@ protected:
 	ESoundTypes		m_eSoundShot;
 	ESoundTypes		m_eSoundEmptyClick;
 	ESoundTypes		m_eSoundReload;
-	ESoundTypes		m_eSoundIrons;	//added by Daemonion for iron sight audio parameter
+	ESoundTypes		m_eSoundSightsUp;		//added by Daemonion for iron sight audio parameter - sights being raised
+	ESoundTypes		m_eSoundSightsDown;		//added by Daemonion for iron sight audio parameter - sights being lowered
 	struct SWMmotions{
 		MotionSVec		mhud_idle;
 		MotionSVec		mhud_idle_aim;

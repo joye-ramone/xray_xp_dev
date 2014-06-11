@@ -30,7 +30,8 @@ CWeaponMagazined::CWeaponMagazined(LPCSTR name, ESoundTypes eSoundType) : CWeapo
 	m_eSoundShot = ESoundTypes(SOUND_TYPE_WEAPON_SHOOTING | eSoundType);
 	m_eSoundEmptyClick = ESoundTypes(SOUND_TYPE_WEAPON_EMPTY_CLICKING | eSoundType);
 	m_eSoundReload = ESoundTypes(SOUND_TYPE_WEAPON_RECHARGING | eSoundType);
-	m_eSoundIrons	=	ESoundTypes(SOUND_TYPE_WORLD_AMBIENT | eSoundType);	//added by Daemonion for ironsight audio in weapon parameters
+	m_eSoundSightsUp	=	ESoundTypes(SOUND_TYPE_WORLD_AMBIENT | eSoundType);	//added by Daemonion for iron sight audio in weapon parameters - sights being raised
+	m_eSoundSightsDown	=	ESoundTypes(SOUND_TYPE_WORLD_AMBIENT | eSoundType);	//added by Daemonion for iron sight audio in weapon parameters - sights being lowered
 
 	m_pSndShotCurrent = NULL;
 	m_sSilencerFlameParticles = m_sSilencerSmokeParticles = NULL;
@@ -49,7 +50,8 @@ CWeaponMagazined::~CWeaponMagazined()
 	HUD_SOUND::DestroySound(sndShot);
 	HUD_SOUND::DestroySound(sndEmptyClick);
 	HUD_SOUND::DestroySound(sndReload);
-	HUD_SOUND::DestroySound(sndIrons);	//added by Daemonion for ironsight audio in weapon parameters
+	HUD_SOUND::DestroySound(sndSightsUp);		//added by Daemonion for ironsight audio in weapon parameters - sights being raised
+	HUD_SOUND::DestroySound(sndSightsDown);		//added by Daemonion for ironsight audio in weapon parameters - sights being lowered
 }
 
 void CWeaponMagazined::StopHUDSounds()
@@ -61,7 +63,8 @@ void CWeaponMagazined::StopHUDSounds()
 	HUD_SOUND::StopSound(sndReload);
 
 	HUD_SOUND::StopSound(sndShot);
-	HUD_SOUND::StopSound(sndIrons);	//added by Daemonion for ironsight audio in weapon parameters
+	HUD_SOUND::StopSound(sndSightsUp);			//added by Daemonion for ironsight audio in weapon parameters - sights being raised
+	HUD_SOUND::StopSound(sndSightsDown);		//added by Daemonion for ironsight audio in weapon parameters - sights being lowered
 	//.	if(sndShot.enable && sndShot.snd.feedback)
 	//.		sndShot.snd.feedback->switch_to_3D();
 
@@ -83,7 +86,8 @@ void CWeaponMagazined::Load(LPCSTR section)
 	HUD_SOUND::LoadSound(section, "snd_shoot", sndShot, m_eSoundShot);
 	HUD_SOUND::LoadSound(section, "snd_empty", sndEmptyClick, m_eSoundEmptyClick);
 	HUD_SOUND::LoadSound(section, "snd_reload", sndReload, m_eSoundReload);
-	HUD_SOUND::LoadSound(section, "snd_irons", sndIrons, m_eSoundIrons);	//added by Daemonion for ironsight audio in weapon parameters
+	HUD_SOUND::LoadSound(section, "snd_SightsUp", sndSightsUp, m_eSoundSightsUp);		//added by Daemonion for ironsight audio in weapon parameters - sights being raised
+	HUD_SOUND::LoadSound(section, "snd_SightsDown", sndSightsDown, m_eSoundSightsDown);	//added by Daemonion for ironsight audio in weapon parameters - sights being lowered
 
 
 	m_pSndShotCurrent = &sndShot;
@@ -489,7 +493,8 @@ void CWeaponMagazined::UpdateSounds()
 	if (sndShot.playing()) sndShot.set_position(get_LastFP());
 	if (sndReload.playing()) sndReload.set_position(get_LastFP());
 	if (sndEmptyClick.playing())	sndEmptyClick.set_position(get_LastFP());
-	if (sndIrons.playing())	sndIrons.set_position(get_LastFP());	//added by Daemonion for iron sight audio ltx parameter
+	if (sndSightsUp.playing())	sndSightsUp.set_position(get_LastFP());			//Daemonion - iron sight audio - sights being raised
+	if (sndSightsDown.playing())	sndSightsDown.set_position(get_LastFP());	//Daemonion - iron sight audio - sights being lowered
 }
 
 void CWeaponMagazined::state_Fire(float dt)
@@ -1063,9 +1068,12 @@ void CWeaponMagazined::OnZoomIn()
 	CActor* pActor = smart_cast<CActor*>(H_Parent());
 	if (pActor)
 	{
-		HUD_SOUND::StopSound(sndIrons);	//daemonion
-		bool b_hud_mode = (Level().CurrentEntity() == H_Parent());	//daemonion
-		HUD_SOUND::PlaySound(sndIrons, H_Parent()->Position(), H_Parent(), b_hud_mode);	//daemonion
+																					
+		HUD_SOUND::StopSound(sndSightsUp);													//daemonion - iron sight audio - sights being raised
+		HUD_SOUND::StopSound(sndSightsDown);												//									
+		bool b_hud_mode = (Level().CurrentEntity() == H_Parent());							//
+		HUD_SOUND::PlaySound(sndSightsUp, H_Parent()->Position(), H_Parent(), b_hud_mode);	//--END	
+
 		CEffectorZoomInertion* S = smart_cast<CEffectorZoomInertion*>	(pActor->Cameras().GetCamEffector(eCEZoom));
 		if (!S)
 		{
@@ -1086,10 +1094,13 @@ void CWeaponMagazined::OnZoomOut()
 		PlayAnimIdle();
 
 	CActor* pActor = smart_cast<CActor*>(H_Parent());
-	if (pActor)
-		HUD_SOUND::StopSound(sndIrons);	//daemonion
-		bool b_hud_mode = (Level().CurrentEntity() == H_Parent());	//daemonion
-		HUD_SOUND::PlaySound(sndIrons, H_Parent()->Position(), H_Parent(), b_hud_mode);	//daemonion
+																						
+	HUD_SOUND::StopSound(sndSightsUp);													//daemonion - iron sight audio - sights being lowered
+	HUD_SOUND::StopSound(sndSightsDown);												//									
+	bool b_hud_mode = (Level().CurrentEntity() == H_Parent());							//
+	HUD_SOUND::PlaySound(sndSightsDown, H_Parent()->Position(), H_Parent(), b_hud_mode);//--END
+
+	if(pActor)
 		pActor->Cameras().RemoveCamEffector(eCEZoom);
 }
 
