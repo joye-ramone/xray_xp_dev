@@ -30,6 +30,7 @@ class CSoundRender_CoreA: public CSoundRender_Core
 
 	struct SListener{
 		Fvector				position;
+		Fvector                         velocity;
 		Fvector				orientation[2];
 	};
 	SListener				Listener;
