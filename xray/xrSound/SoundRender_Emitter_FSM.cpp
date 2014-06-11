@@ -180,6 +180,7 @@ BOOL	CSoundRender_Emitter::update_culling	(float dt)
 		occluder_volume		= 1.f;
 		fade_volume			+= dt*10.f*(bStopping?-1.f:1.f);
 	}else{
+
 		// Check range
 		float	dist		= SoundRender->listener_position().distance_to	(p_source.position);
 		if (dist>p_source.max_distance)										{ smooth_volume = 0; return FALSE; }
@@ -213,6 +214,11 @@ float	CSoundRender_Emitter::priority				()
 
 void	CSoundRender_Emitter::update_environment	(float dt)
 {
-	if (bMoved)			e_target	= *SoundRender->get_environment	(p_source.position);
+	if (bMoved)
+	{
+		e_target = *SoundRender->get_environment(p_source.position);
+                // Cribbledirge: updates the velocity of the sound.
+                p_source.update_velocity(dt);
+	}
 	e_current.lerp		(e_current,e_target,dt);
 }
