@@ -236,7 +236,6 @@ public:
 	IC virtual void update_velocity(const float dt)
 	{
 		velocity.set(accVelocity).div(dt);
-		Msg("VELOC: %f", velocity.magnitude());
 	}
 private:
 	float alpha;  // Cribbledirge: Alpha value for moving average.
