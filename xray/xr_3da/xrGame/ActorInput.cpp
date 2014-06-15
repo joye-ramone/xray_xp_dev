@@ -26,6 +26,20 @@
 #include "InventoryBox.h"
 #include "build_config_defines.h"
 
+#ifdef INV_NEW_SLOTS_SYSTEM
+	#include "silencer.h"
+	#include "scope.h"
+	#include "grenadelauncher.h"
+	#include "Artifact.h"
+	#include "eatable_item.h"
+	#include "BottleItem.h"
+	#include "medkit.h"
+	#include "antirad.h"
+	#include "CustomOutfit.h"
+	#include "WeaponMagazined.h"
+#endif
+
+
 bool g_bAutoClearCrouch = true;
 
 void CActor::IR_OnKeyboardPress(int cmd)
@@ -161,61 +175,53 @@ void CActor::IR_OnKeyboardPress(int cmd)
 		}break;
 #ifdef INV_NEW_SLOTS_SYSTEM
 	case kUSE_SLOT_QUICK_ACCESS_0:
-		{
-			if(IsGameTypeSingle())
-			{
-				PIItem itm = inventory().m_slots[SLOT_QUICK_ACCESS_0].m_pIItem;
-				if (itm){
-					PIItem iitm = inventory().Same(itm,true);
-					if(iitm){
-						inventory().Eat(iitm);	
-					}else{
-						inventory().Eat(itm);
-					}
-				}
-			}
-		}break;
 	case kUSE_SLOT_QUICK_ACCESS_1:
-		{
-			if(IsGameTypeSingle())
-			{
-				PIItem itm = inventory().m_slots[SLOT_QUICK_ACCESS_1].m_pIItem;
-				if (itm){
-					PIItem iitm = inventory().Same(itm,true);
-					if(iitm){
-						inventory().Eat(iitm);	
-					}else{
-						inventory().Eat(itm);
-					}
-				}
-			}
-		}break;
 	case kUSE_SLOT_QUICK_ACCESS_2:
-		{
-			if(IsGameTypeSingle())
-			{
-				PIItem itm = inventory().m_slots[SLOT_QUICK_ACCESS_2].m_pIItem;
-				if (itm){
-					PIItem iitm = inventory().Same(itm,true);
-					if(iitm){
-						inventory().Eat(iitm);	
-					}else{
-						inventory().Eat(itm);
-					}
-				}
-			}
-		}break;
 	case kUSE_SLOT_QUICK_ACCESS_3:
 		{
 			if(IsGameTypeSingle())
 			{
-				PIItem itm = inventory().m_slots[SLOT_QUICK_ACCESS_3].m_pIItem;
+				PIItem itm;
+				switch (cmd){
+				case kUSE_SLOT_QUICK_ACCESS_0:
+					itm = inventory().m_slots[SLOT_QUICK_ACCESS_0].m_pIItem;
+					break;
+				case kUSE_SLOT_QUICK_ACCESS_1:	
+					itm = inventory().m_slots[SLOT_QUICK_ACCESS_1].m_pIItem;
+					break;
+				case kUSE_SLOT_QUICK_ACCESS_2:
+					itm = inventory().m_slots[SLOT_QUICK_ACCESS_2].m_pIItem;
+					break;
+				case kUSE_SLOT_QUICK_ACCESS_3:
+					itm = inventory().m_slots[SLOT_QUICK_ACCESS_3].m_pIItem;
+					break;					
+				}
+
 				if (itm){
-					PIItem iitm = inventory().Same(itm,true);
-					if(iitm){
-						inventory().Eat(iitm);	
-					}else{
-						inventory().Eat(itm);
+					CMedkit*			pMedkit				= smart_cast<CMedkit*>			(itm);
+					CAntirad*			pAntirad			= smart_cast<CAntirad*>			(itm);
+					CEatableItem*		pEatableItem		= smart_cast<CEatableItem*>		(itm);
+					CCustomOutfit*		pOutfit				= smart_cast<CCustomOutfit*>	(itm);
+					CWeapon*			pWeapon				= smart_cast<CWeapon*>			(itm);
+					CScope*				pScope				= smart_cast<CScope*>			(itm);
+					CSilencer*			pSilencer			= smart_cast<CSilencer*>		(itm);
+					CGrenadeLauncher*	pGrenadeLauncher	= smart_cast<CGrenadeLauncher*>	(itm);
+					CBottleItem*		pBottleItem			= smart_cast<CBottleItem*>		(itm);				
+					string1024					str;
+					
+					if(pMedkit || pAntirad || pEatableItem || pBottleItem){
+						PIItem iitm = inventory().Same(itm,true);
+						if(iitm){
+							inventory().Eat(iitm);
+							strconcat(sizeof(str),str,*CStringTable().translate("st_item_used"),": ", iitm->Name());
+						}else{
+							inventory().Eat(itm);
+							strconcat(sizeof(str),str,*CStringTable().translate("st_item_used"),": ", itm->Name());
+						}
+						
+						SDrawStaticStruct* _s		= HUD().GetUI()->UIGame()->AddCustomStatic("item_used", true);
+						_s->m_endTime				= Device.fTimeGlobal+3.0f;// 3sec
+						_s->wnd()->SetText			(str);
 					}
 				}
 			}

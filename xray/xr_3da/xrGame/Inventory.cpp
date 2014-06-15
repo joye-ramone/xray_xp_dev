@@ -17,6 +17,7 @@
 #include "game_base_space.h"
 #include "clsid_game.h"
 
+
 using namespace InventoryUtilities;
 
 // what to block
@@ -263,19 +264,22 @@ bool CInventory::Slot(PIItem pIItem, bool bNotActivate)
 				pIItem);
 #endif
 		if(m_slots[pIItem->GetSlot()].m_pIItem == pIItem && !bNotActivate )
-			Activate(pIItem->GetSlot());
+			#ifdef INV_NEW_SLOTS_SYSTEM
+			if ((pIItem->GetSlot() < OUTFIT_SLOT)||(pIItem->GetSlot() == ARTEFACT_SLOT))
+			#endif
+				Activate(pIItem->GetSlot());
 
 		return false;
 	}
 
-#ifdef INV_DOUBLE_WPN_SLOTS
+#if defined(INV_NEW_SLOTS_SYSTEM) || defined(INV_DOUBLE_WPN_SLOTS)
 	/*
 		Вещь была в слоте. Да, такое может быть :).
 		Тут необходимо проверять именно так, потому что
 		GetSlot вернет новый слот, а не старый. Real Wolf.
 
 	*/
-	for (int i = 0; i < m_slots.size(); i++)
+	for (u32 i = 0; i < m_slots.size(); i++)
 		if (m_slots[i].m_pIItem == pIItem)
 		{
 			if(i == m_iActiveSlot) 
@@ -286,17 +290,17 @@ bool CInventory::Slot(PIItem pIItem, bool bNotActivate)
 #endif
 
 	m_slots[pIItem->GetSlot()].m_pIItem = pIItem;
-
 	//удалить из рюкзака или пояса
 	TIItemContainer::iterator it = std::find(m_ruck.begin(), m_ruck.end(), pIItem);
 	if(m_ruck.end() != it) m_ruck.erase(it);
 	it = std::find(m_belt.begin(), m_belt.end(), pIItem);
 	if(m_belt.end() != it) m_belt.erase(it);
-
-
-
+ 
 	if (( (m_iActiveSlot==pIItem->GetSlot())||(m_iActiveSlot==NO_ACTIVE_SLOT) && m_iNextActiveSlot==NO_ACTIVE_SLOT) && (!bNotActivate))
-		Activate				(pIItem->GetSlot());
+		#ifdef INV_NEW_SLOTS_SYSTEM
+		if ((pIItem->GetSlot() < OUTFIT_SLOT)||(pIItem->GetSlot() == ARTEFACT_SLOT))
+		#endif
+			Activate				(pIItem->GetSlot());
 
 	
 	m_pOwner->OnItemSlot		(pIItem, pIItem->m_eItemPlace);

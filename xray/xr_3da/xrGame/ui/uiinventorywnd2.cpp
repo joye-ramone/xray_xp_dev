@@ -222,17 +222,18 @@ bool CUIInventoryWnd::ToSlot(CUICellItem* itm, bool force_place)
 		CUIDragDropListEx* new_owner		= GetSlotList(_slot);
 		
 		if(_slot==GRENADE_SLOT && !new_owner )return true; //fake, sorry (((
-
+		
 		bool result							= GetInventory()->Slot(iitem);
 		VERIFY								(result);
 
 		CUICellItem* i						= old_owner->RemoveItem(itm, (old_owner==new_owner) );
 		
 		new_owner->SetItem					(i);
-	
 		SendEvent_Item2Slot					(iitem);
-
-		SendEvent_ActivateSlot				(iitem);
+		#ifdef INV_NEW_SLOTS_SYSTEM
+		if ((_slot < OUTFIT_SLOT)||(_slot == ARTEFACT_SLOT))
+		#endif
+			SendEvent_ActivateSlot				(iitem);
 
 		/************************************************** added by Ray Twitty (aka Shadows) START **************************************************/
 		// обновляем статик веса в инвентаре
@@ -374,7 +375,7 @@ bool CUIInventoryWnd::OnItemDrop(CUICellItem* itm)
 	EListType t_new		= GetType(new_owner);
 	EListType t_old		= GetType(old_owner);
 
-#ifdef INV_DOUBLE_WPN_SLOTS
+#if defined(INV_NEW_SLOTS_SYSTEM) || defined(INV_DOUBLE_WPN_SLOTS)
 	// Для слотов проверим ниже. Real Wolf.
 	if(t_new == t_old && t_new != iwSlot) return true;
 #else
@@ -383,14 +384,15 @@ bool CUIInventoryWnd::OnItemDrop(CUICellItem* itm)
 	switch(t_new){
 		case iwSlot:
 		{
-#ifdef INV_DOUBLE_WPN_SLOTS
+#if defined(INV_NEW_SLOTS_SYSTEM) || defined(INV_DOUBLE_WPN_SLOTS)
 			uint32 slot = CurrentIItem()->GetSlot();
 			if(GetSlotList(slot)==new_owner && t_new != t_old)
 #else
 			if(GetSlotList(CurrentIItem()->GetSlot())==new_owner)
 #endif
 				ToSlot	(itm, true);
-#ifdef INV_DOUBLE_WPN_SLOTS
+#if defined(INV_NEW_SLOTS_SYSTEM) || defined(INV_DOUBLE_WPN_SLOTS)
+	#if !defined(INV_NEW_SLOTS_SYSTEM) && defined(INV_DOUBLE_WPN_SLOTS)
 			else if (new_owner == m_pUIPistolList && slot == RIFLE_SLOT)
 			{
 				CurrentIItem()->SetSlot(PISTOL_SLOT);
@@ -401,6 +403,60 @@ bool CUIInventoryWnd::OnItemDrop(CUICellItem* itm)
 				CurrentIItem()->SetSlot(RIFLE_SLOT);
 				ToSlot	(itm, true);
 			}
+	#else
+			else{
+				u32 slot_drop;
+					if (new_owner == m_pUIKnifeList){	
+								slot_drop = KNIFE_SLOT;
+					}else if (new_owner == m_pUIPistolList){	
+								slot_drop = PISTOL_SLOT;
+												
+					}else if (new_owner == m_pUIAutomaticList){	
+								slot_drop = RIFLE_SLOT;
+											
+					}else if (new_owner == m_pUIBinocularList){	
+								slot_drop = APPARATUS_SLOT;
+											
+					}else if (new_owner == m_pUIDetectorList){	
+								slot_drop = DETECTOR_SLOT;
+								
+					}else if (new_owner == m_pUIOutfitList){	
+								slot_drop = OUTFIT_SLOT;
+												
+					}else if (new_owner == m_pUITorchList){		
+								slot_drop = TORCH_SLOT;
+										
+					}else if (new_owner == m_pUIPDAList){	
+								slot_drop = PDA_SLOT;
+												
+					}else if (new_owner == m_pUIHelmetList){	
+								slot_drop = HELMET_SLOT;
+									
+					}else if (new_owner == m_pUISlotQuickAccessList_0){	
+								slot_drop = SLOT_QUICK_ACCESS_0;
+								
+					}else if (new_owner == m_pUISlotQuickAccessList_1){	
+								slot_drop = SLOT_QUICK_ACCESS_1;
+								
+					}else if (new_owner == m_pUISlotQuickAccessList_2){	
+								slot_drop = SLOT_QUICK_ACCESS_2;
+									
+					}else if (new_owner == m_pUISlotQuickAccessList_3){	
+								slot_drop = SLOT_QUICK_ACCESS_3;		
+					}
+
+				u32 list_slot_local[SLOTS_TOTAL];
+				CurrentIItem()->GetSlotList(list_slot_local);
+				for(u32 i=0; i<SLOTS_TOTAL; ++i ) 
+				{
+					if (list_slot_local[i]==slot_drop) {
+						CurrentIItem()->SetSlot(slot_drop);
+						ToSlot	(itm, true);
+						break;
+					}
+				}
+			}
+	#endif
 #endif
 		}break;
 		case iwBag:{
@@ -418,8 +474,12 @@ bool CUIInventoryWnd::OnItemDrop(CUICellItem* itm)
 
 bool CUIInventoryWnd::OnItemDbClick(CUICellItem* itm)
 {
-	if(TryUseItem((PIItem)itm->m_pData))		
-		return true;
+	PIItem __item = (PIItem)itm->m_pData;
+	u32 __slot = __item->GetSlot();
+	if 	((__slot != SLOT_QUICK_ACCESS_0)&&(__slot != SLOT_QUICK_ACCESS_1)&&(__slot != SLOT_QUICK_ACCESS_2)&&(__slot != SLOT_QUICK_ACCESS_3)){	
+		if(TryUseItem((PIItem)itm->m_pData))		
+			return true;
+	}
 
 	CUIDragDropListEx*	old_owner		= itm->OwnerList();
 	EListType t_old						= GetType(old_owner);
@@ -431,17 +491,34 @@ bool CUIInventoryWnd::OnItemDbClick(CUICellItem* itm)
 
 		case iwBag:
 		{
-#ifdef INV_DOUBLE_WPN_SLOTS
+#if defined(INV_NEW_SLOTS_SYSTEM) || defined(INV_DOUBLE_WPN_SLOTS)
+		#if !defined(INV_NEW_SLOTS_SYSTEM) && defined(INV_DOUBLE_WPN_SLOTS)
 			// При двойном клике выбираем свободный слот. Real Wolf.
 			PIItem item = (PIItem)itm->m_pData;
-			uint32 slot = item->GetSlot();
+			u32 slot = item->GetSlot();
 			if (slot == PISTOL_SLOT || slot == RIFLE_SLOT)
 			{
-				uint32 double_slot = slot == PISTOL_SLOT? RIFLE_SLOT: PISTOL_SLOT;
+				u32 double_slot = slot == PISTOL_SLOT? RIFLE_SLOT: PISTOL_SLOT;
 				if (GetInventory()->m_slots[slot].m_pIItem)
 					if (!GetInventory()->m_slots[double_slot].m_pIItem)
 						item->SetSlot(double_slot);
 			}
+		#else
+			PIItem item = (PIItem)itm->m_pData;
+			u32 slot = item->GetSlot();
+			u32 list_slot_local[SLOTS_TOTAL];
+			item->GetSlotList(list_slot_local);	
+			for(u32 i=0; i<SLOTS_TOTAL; ++i ) 
+			{
+				if (list_slot_local[i]!=NO_ACTIVE_SLOT){
+					if (GetInventory()->m_slots[slot].m_pIItem)
+						if (!GetInventory()->m_slots[list_slot_local[i]].m_pIItem){
+							item->SetSlot(list_slot_local[i]);
+							break;
+						}
+				}
+			};			
+		#endif
 #endif
 			if(!ToSlot(itm, false))
 			{

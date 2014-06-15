@@ -76,6 +76,9 @@ CInventoryItem::CInventoryItem()
 {
 	m_net_updateData	= NULL;
 	m_slot				= NO_ACTIVE_SLOT;
+#ifdef INV_NEW_SLOTS_SYSTEM
+	for (u32 i = 0; i < (SLOTS_TOTAL); i++) m_slots[i] = NO_ACTIVE_SLOT;
+#endif
 	m_flags.set			(Fbelt,FALSE);
 	m_flags.set			(Fruck,TRUE);
 	m_flags.set			(FRuckDefault,TRUE);
@@ -130,8 +133,76 @@ void CInventoryItem::Load(LPCSTR section)
 	R_ASSERT			(m_weight>=0.f);
 
 	m_cost				= pSettings->r_u32(section, "cost");
-	m_slot				= READ_IF_EXISTS(pSettings,r_u32,section,"slot", NO_ACTIVE_SLOT);
+#ifdef INV_NEW_SLOTS_SYSTEM
+	LPCSTR	m_slot_list = READ_IF_EXISTS(pSettings, r_string,section,"slots",NULL);
+	if (m_slot_list && m_slot_list[0]) 
+	{
+		string32		buffer;
+		int				count		= _GetItemCount	(m_slot_list);
+		if (count>1)
+		{
+			u32 *m_slot_list_index_temp = new u32 [count];
+			u32 temp;	
+			for (int i=0; i<count; i++)	
+			{
+				m_slot_list_index_temp[i]= (int)atoi(_GetItem(m_slot_list,i,buffer));	
+			}
+			for (int i = 0; i < (count); i++)
+				for (int k = 0; k < (count - 1); k++)
+					if (m_slot_list_index_temp[k] > m_slot_list_index_temp[k + 1])
+					{
+						temp = m_slot_list_index_temp[k];
+						m_slot_list_index_temp[k] = m_slot_list_index_temp[k + 1];
+						m_slot_list_index_temp[k + 1] = temp;
+					}				
+			
+			int count_temp = count;
+			int k=(count-1);
+			
+			while (k>0)
+			{
+				if (m_slot_list_index_temp[k-1] == m_slot_list_index_temp[k])
+				{
+					int j=k;
+					while (j<(count_temp-1))
+					{
+						m_slot_list_index_temp[j]=m_slot_list_index_temp[j+1];
+						j++;
+					}
+					count_temp--;
+				}
+				k--;
+			}
 
+			u32 max_element_index = 0;
+			for (int i = 0; i < count_temp; i++)
+				if (m_slot_list_index_temp[i]>max_element_index) max_element_index = m_slot_list_index_temp[i];
+
+			if ((max_element_index < SLOTS_TOTAL) && (count_temp <= SLOTS_TOTAL))
+			{
+				for (int i = 0; i < count_temp; i++){
+					m_slots[i] = m_slot_list_index_temp[i];
+				}
+				m_slot = m_slots[0];
+			}
+			else
+			{
+				m_slot = NO_ACTIVE_SLOT;
+			}
+			delete [] m_slot_list_index_temp;			
+		}else
+		{
+			m_slot	= (int)atoi(_GetItem(m_slot_list,0,buffer));
+			m_slots[0] = m_slot;		
+		}	
+	}
+	else
+	{
+		m_slot = NO_ACTIVE_SLOT;
+	}
+#else
+	m_slot				= READ_IF_EXISTS(pSettings,r_u32,section,"slot", NO_ACTIVE_SLOT);
+#endif
 	// Description
 	if ( pSettings->line_exist(section, "description") )
 		m_Description = CStringTable().translate( pSettings->r_string(section, "description") );

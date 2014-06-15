@@ -50,10 +50,11 @@ void CUIInventoryWnd::ActivatePropertiesBox()
 	bool	b_show			= false;
 
 
-#ifdef INV_DOUBLE_WPN_SLOTS
+#if defined(INV_NEW_SLOTS_SYSTEM) || defined(INV_DOUBLE_WPN_SLOTS)
 	// Добавим в контекстное меню выбор слота. Real Wolf.
+	#if !defined(INV_NEW_SLOTS_SYSTEM) && defined(INV_DOUBLE_WPN_SLOTS)
 	uint32 slot = CurrentIItem()->GetSlot();
-	if (slot == RIFLE_SLOT || slot == PISTOL_SLOT)
+	if (slot == PISTOL_SLOT || slot == RIFLE_SLOT)
 	{
 		if (!m_pInv->m_slots[PISTOL_SLOT].m_pIItem || m_pInv->m_slots[PISTOL_SLOT].m_pIItem != CurrentIItem() )
 		{
@@ -66,12 +67,29 @@ void CUIInventoryWnd::ActivatePropertiesBox()
 			UIPropertiesBox.AddItem("st_move_to_slot2",  NULL, INVENTORY_TO_SLOT2_ACTION);
 			b_show			= true;
 		}
+
 	}
 	else if(!pOutfit && slot!=NO_ACTIVE_SLOT && !m_pInv->m_slots[slot].m_bPersistent && m_pInv->CanPutInSlot(CurrentIItem()))
 	{
 		UIPropertiesBox.AddItem("st_move_to_slot",  NULL, INVENTORY_TO_SLOT_ACTION);
 		b_show			= true;
 	}
+	#else
+
+	u32 list_slot_local[SLOTS_TOTAL];
+	CurrentIItem()->GetSlotList(list_slot_local);
+	string256 temp;
+	for(u32 i=0; i<SLOTS_TOTAL; ++i ) 
+	{
+		if (list_slot_local[i]!=NO_ACTIVE_SLOT){
+			if (!m_pInv->m_slots[list_slot_local[i]].m_pIItem || m_pInv->m_slots[list_slot_local[i]].m_pIItem != CurrentIItem() ){
+				sprintf_s(temp, "st_move_to_slot%d", list_slot_local[i]);
+				UIPropertiesBox.AddItem(temp,  NULL, INVENTORY_TO_SLOT0_ACTION + list_slot_local[i]);
+				b_show			= true;
+			}
+		}
+	};
+	#endif
 #else
 	if(!pOutfit && CurrentIItem()->GetSlot()!=NO_ACTIVE_SLOT && !m_pInv->m_slots[CurrentIItem()->GetSlot()].m_bPersistent && m_pInv->CanPutInSlot(CurrentIItem()))
 	{
@@ -94,11 +112,13 @@ void CUIInventoryWnd::ActivatePropertiesBox()
 		bAlreadyDressed = true;
 		b_show			= true;
 	}
+	#if !defined(INV_NEW_SLOTS_SYSTEM)
 	if(pOutfit  && !bAlreadyDressed )
 	{
 		UIPropertiesBox.AddItem("st_dress_outfit",  NULL, INVENTORY_TO_SLOT_ACTION);
 		b_show			= true;
 	}
+	#endif
 	
 	//отсоединение аддонов от вещи
 	if(pWeapon)
@@ -146,6 +166,7 @@ void CUIInventoryWnd::ActivatePropertiesBox()
 	//присоединение аддонов к активному слоту (2 или 3)
 	if(pScope)
 	{
+	#if !defined(INV_NEW_SLOTS_SYSTEM)
 		if(m_pInv->m_slots[PISTOL_SLOT].m_pIItem != NULL &&
 		   m_pInv->m_slots[PISTOL_SLOT].m_pIItem->CanAttach(pScope))
 		 {
@@ -160,9 +181,24 @@ void CUIInventoryWnd::ActivatePropertiesBox()
 			UIPropertiesBox.AddItem("st_attach_scope_to_rifle",  (void*)tgt, INVENTORY_ATTACH_ADDON);
 			b_show			= true;
 		 }
+	#else
+	string256 temp;
+	for(u32 i=0; i<OUTFIT_SLOT; ++i ) 
+	{
+		 if(m_pInv->m_slots[i].m_pIItem != NULL &&
+			m_pInv->m_slots[i].m_pIItem->CanAttach(pScope))
+		 {
+			PIItem tgt = m_pInv->m_slots[i].m_pIItem;
+			sprintf_s(temp, "st_attach_scope_to_%d", i);
+			UIPropertiesBox.AddItem(temp,  (void*)tgt, INVENTORY_ATTACH_ADDON);
+			b_show			= true;
+		 }
+	};	
+	#endif
 	}
 	else if(pSilencer)
 	{
+	#if !defined(INV_NEW_SLOTS_SYSTEM)
 		 if(m_pInv->m_slots[PISTOL_SLOT].m_pIItem != NULL &&
 		   m_pInv->m_slots[PISTOL_SLOT].m_pIItem->CanAttach(pSilencer))
 		 {
@@ -177,9 +213,24 @@ void CUIInventoryWnd::ActivatePropertiesBox()
 			UIPropertiesBox.AddItem("st_attach_silencer_to_rifle",  (void*)tgt, INVENTORY_ATTACH_ADDON);
 			b_show			= true;
 		 }
+	#else
+	string256 temp;
+	for(u32 i=0; i<OUTFIT_SLOT; ++i ) 
+	{
+		 if(m_pInv->m_slots[i].m_pIItem != NULL &&
+			m_pInv->m_slots[i].m_pIItem->CanAttach(pSilencer))
+		 {
+			PIItem tgt = m_pInv->m_slots[i].m_pIItem;
+			sprintf_s(temp, "st_attach_silencer_to_%d", i);
+			UIPropertiesBox.AddItem(temp,  (void*)tgt, INVENTORY_ATTACH_ADDON);
+			b_show			= true;
+		 }
+	};	
+	#endif
 	}
 	else if(pGrenadeLauncher)
 	{
+	#if !defined(INV_NEW_SLOTS_SYSTEM)
 		 if(m_pInv->m_slots[RIFLE_SLOT].m_pIItem != NULL &&
 			m_pInv->m_slots[RIFLE_SLOT].m_pIItem->CanAttach(pGrenadeLauncher))
 		 {
@@ -187,7 +238,20 @@ void CUIInventoryWnd::ActivatePropertiesBox()
 			UIPropertiesBox.AddItem("st_attach_gl_to_rifle",  (void*)tgt, INVENTORY_ATTACH_ADDON);
 			b_show			= true;
 		 }
-
+	#else
+	string256 temp;
+	for(u32 i=0; i<OUTFIT_SLOT; ++i ) 
+	{
+		 if(m_pInv->m_slots[i].m_pIItem != NULL &&
+			m_pInv->m_slots[i].m_pIItem->CanAttach(pGrenadeLauncher))
+		 {
+			PIItem tgt = m_pInv->m_slots[i].m_pIItem;
+			sprintf_s(temp, "st_attach_gl_to_%d", i);
+			UIPropertiesBox.AddItem(temp,  (void*)tgt, INVENTORY_ATTACH_ADDON);
+			b_show			= true;
+		 }
+	};		
+	#endif
 	}
 	LPCSTR _action = NULL;
 
@@ -242,7 +306,8 @@ void CUIInventoryWnd::ProcessPropertiesBoxClicked	()
 	{
 		switch(UIPropertiesBox.GetClickedItem()->GetTAG())
 		{
-#ifdef INV_DOUBLE_WPN_SLOTS
+#if defined(INV_NEW_SLOTS_SYSTEM) || defined(INV_DOUBLE_WPN_SLOTS)
+		#if !defined(INV_NEW_SLOTS_SYSTEM) && defined(INV_DOUBLE_WPN_SLOTS)
 		// Собственно и само действие по клику из контекстного меню. Real Wolf.
 		case INVENTORY_TO_SLOT1_ACTION:
 			CurrentIItem()->SetSlot(PISTOL_SLOT);
@@ -252,6 +317,77 @@ void CUIInventoryWnd::ProcessPropertiesBoxClicked	()
 			CurrentIItem()->SetSlot(RIFLE_SLOT);
 			ToSlot(CurrentItem(), true);
 			break;
+		#else
+		case INVENTORY_TO_SLOT0_ACTION:
+		case INVENTORY_TO_SLOT1_ACTION:
+		case INVENTORY_TO_SLOT2_ACTION:
+		case INVENTORY_TO_SLOT3_ACTION:
+		case INVENTORY_TO_SLOT4_ACTION:
+		case INVENTORY_TO_SLOT5_ACTION:
+		case INVENTORY_TO_SLOT6_ACTION:
+		case INVENTORY_TO_SLOT7_ACTION:
+		case INVENTORY_TO_SLOT8_ACTION:
+		case INVENTORY_TO_SLOT9_ACTION:
+		case INVENTORY_TO_SLOT10_ACTION:
+		case INVENTORY_TO_SLOT11_ACTION:
+		case INVENTORY_TO_SLOT12_ACTION:
+		case INVENTORY_TO_SLOT13_ACTION:
+		case INVENTORY_TO_SLOT14_ACTION:
+		case INVENTORY_TO_SLOT15_ACTION:
+			switch(UIPropertiesBox.GetClickedItem()->GetTAG())
+			{
+					case INVENTORY_TO_SLOT0_ACTION:
+						CurrentIItem()->SetSlot(KNIFE_SLOT);
+						break;
+					case INVENTORY_TO_SLOT1_ACTION:
+						CurrentIItem()->SetSlot(PISTOL_SLOT);
+						break;
+					case INVENTORY_TO_SLOT2_ACTION:
+						CurrentIItem()->SetSlot(RIFLE_SLOT);
+						break;
+					case INVENTORY_TO_SLOT3_ACTION:
+						CurrentIItem()->SetSlot(GRENADE_SLOT);
+						break;
+					case INVENTORY_TO_SLOT4_ACTION:
+						CurrentIItem()->SetSlot(APPARATUS_SLOT);
+						break;
+					case INVENTORY_TO_SLOT5_ACTION:
+						CurrentIItem()->SetSlot(BOLT_SLOT);
+						break;
+					case INVENTORY_TO_SLOT6_ACTION:
+						CurrentIItem()->SetSlot(OUTFIT_SLOT);
+						break;
+					case INVENTORY_TO_SLOT7_ACTION:
+						CurrentIItem()->SetSlot(PDA_SLOT);
+						break;
+					case INVENTORY_TO_SLOT8_ACTION:
+						CurrentIItem()->SetSlot(DETECTOR_SLOT);
+						break;
+					case INVENTORY_TO_SLOT9_ACTION:
+						CurrentIItem()->SetSlot(TORCH_SLOT);
+						break;
+					case INVENTORY_TO_SLOT10_ACTION:
+						CurrentIItem()->SetSlot(ARTEFACT_SLOT);
+						break;
+					case INVENTORY_TO_SLOT11_ACTION:
+						CurrentIItem()->SetSlot(HELMET_SLOT);
+						break;
+					case INVENTORY_TO_SLOT12_ACTION:
+						CurrentIItem()->SetSlot(SLOT_QUICK_ACCESS_0);
+						break;
+					case INVENTORY_TO_SLOT13_ACTION:
+						CurrentIItem()->SetSlot(SLOT_QUICK_ACCESS_1);
+						break;
+					case INVENTORY_TO_SLOT14_ACTION:
+						CurrentIItem()->SetSlot(SLOT_QUICK_ACCESS_2);
+						break;
+					case INVENTORY_TO_SLOT15_ACTION:
+						CurrentIItem()->SetSlot(SLOT_QUICK_ACCESS_3);
+						break;
+			}
+			ToSlot(CurrentItem(), true);
+			break;
+		#endif
 #endif
 		case INVENTORY_TO_SLOT_ACTION:	
 			ToSlot(CurrentItem(), true);

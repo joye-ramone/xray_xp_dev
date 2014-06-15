@@ -1555,14 +1555,14 @@ float	CActor::HitArtefactsOnBelt		(float hit_power, ALife::EHitType hit_type)
 	}
 
 #ifdef INV_NEW_SLOTS_SYSTEM
-	/*CInventoryItem* helmet = inventory().m_slots[HELMET_SLOT].m_pIItem;
+	PIItem helmet = inventory().m_slots[HELMET_SLOT].m_pIItem;
 	if (helmet){
 		CArtefact* helmet_artefact = smart_cast<CArtefact*>(helmet);
 		if(helmet_artefact){
 			res_hit_power_k	+= helmet_artefact->m_ArtefactHitImmunities.AffectHit(1.0f, hit_type);
 			_af_count		+= 1.0f;
 		}
-	}*/
+	}
 #endif
 	res_hit_power_k			-= _af_count;
 	return					res_hit_power_k * hit_power;
