@@ -222,6 +222,27 @@ bool CUIInventoryWnd::ToSlot(CUICellItem* itm, bool force_place)
 		CUIDragDropListEx* new_owner		= GetSlotList(_slot);
 		
 		if(_slot==GRENADE_SLOT && !new_owner )return true; //fake, sorry (((
+		#ifdef INV_NEW_SLOTS_SYSTEM
+			if ((_slot == SLOT_QUICK_ACCESS_0)||(_slot == SLOT_QUICK_ACCESS_1)||(_slot == SLOT_QUICK_ACCESS_2)||(_slot == SLOT_QUICK_ACCESS_3)){
+				for(u32 i=SLOT_QUICK_ACCESS_0; i <= SLOT_QUICK_ACCESS_3; ++i ) 
+				{	
+					if(i != _slot){
+						 PIItem l_pIItem = GetInventory()->m_slots[i].m_pIItem;
+						 if(l_pIItem){
+							if ((!xr_strcmp(l_pIItem->object().cNameSect(), iitem->object().cNameSect()))&&(l_pIItem != iitem)){
+								PIItem	_iitem						= GetInventory()->m_slots[i].m_pIItem;
+								CUIDragDropListEx* slot_list		= GetSlotList(i);
+								VERIFY								(slot_list->ItemsCount()==1);
+								CUICellItem* slot_cell				= slot_list->GetItemIdx(0);
+								VERIFY								(slot_cell && ((PIItem)slot_cell->m_pData)==_iitem);
+								bool result							= ToBag(slot_cell, false);
+								VERIFY								(result);
+							}
+						 }
+					}
+				}
+			}
+		#endif
 		
 		bool result							= GetInventory()->Slot(iitem);
 		VERIFY								(result);
