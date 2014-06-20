@@ -497,10 +497,11 @@ bool CUIInventoryWnd::OnItemDbClick(CUICellItem* itm)
 {
 	PIItem __item = (PIItem)itm->m_pData;
 	u32 __slot = __item->GetSlot();
-	if 	((__slot != SLOT_QUICK_ACCESS_0)&&(__slot != SLOT_QUICK_ACCESS_1)&&(__slot != SLOT_QUICK_ACCESS_2)&&(__slot != SLOT_QUICK_ACCESS_3)){	
+	#ifdef INV_NEW_SLOTS_SYSTEM
+	if 	((__slot != SLOT_QUICK_ACCESS_0)&&(__slot != SLOT_QUICK_ACCESS_1)&&(__slot != SLOT_QUICK_ACCESS_2)&&(__slot != SLOT_QUICK_ACCESS_3))	
+	#endif
 		if(TryUseItem((PIItem)itm->m_pData))		
 			return true;
-	}
 
 	CUIDragDropListEx*	old_owner		= itm->OwnerList();
 	EListType t_old						= GetType(old_owner);
