@@ -63,6 +63,8 @@ protected:
 public:
 	void				AddQuestion				(const shared_str& text, const shared_str& id);
 	void				AddAnswer				(const shared_str& text, LPCSTR SpeakerName);
+
+	CUITradeWnd*		GetTradeWnd				()	{return UITradeWnd;}
 protected:
 	//для режима торговли
 	CUITradeWnd*			UITradeWnd;

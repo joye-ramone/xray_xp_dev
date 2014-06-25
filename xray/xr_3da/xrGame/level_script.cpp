@@ -546,6 +546,51 @@ bool ray_pick (const Fvector &start, const Fvector &dir, float range, collide::r
 }
 // KD
 
+
+#include "UIGameSP.h"
+CUIWindow* get_inventory_wnd()
+{
+	CUIGameSP* game_sp = smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame());
+	return (CUIWindow*)game_sp->InventoryMenu;
+}
+
+CUIWindow* get_pda_wnd()
+{
+	if (!g_pGameLevel)
+		return 0;
+
+	CUIGameSP* game_sp = smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame());
+	return (CUIWindow*)game_sp->PdaMenu;
+}
+
+CUIWindow* get_talk_wnd()
+{
+	if (!g_pGameLevel)
+		return 0;
+
+	CUIGameSP* game_sp = smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame());
+	return (CUIWindow*)game_sp->TalkMenu;
+}
+
+CUIWindow* get_car_body_wnd()
+{
+	if (!g_pGameLevel)
+		return 0;
+
+	CUIGameSP* game_sp = smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame());
+	return (CUIWindow*)game_sp->UICarBodyMenu;
+}
+
+#include "ui\UITalkWnd.h"
+CUIWindow* get_trade_wnd()
+{
+	if (!g_pGameLevel)
+		return 0;
+
+	CUIGameSP* game_sp = smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame());
+	return (CUIWindow*)game_sp->TalkMenu->GetTradeWnd();
+}
+
 #pragma optimize("s",on)
 void CLevel::script_register(lua_State *L)
 {
@@ -697,5 +742,14 @@ void CLevel::script_register(lua_State *L)
 			value("rqtBoth",						int(collide::rqtBoth)),
 			value("rqtDyn",							int(collide::rqtDyn))
 		]
+	];
+	
+	module(L, "ui")
+	[
+		def("get_inventory_wnd",	&get_inventory_wnd),
+		def("get_pda_wnd",			&get_pda_wnd),
+		def("get_talk_wnd",			&get_talk_wnd),
+		def("get_car_body_wnd",		&get_car_body_wnd),
+		def("get_trade_wnd",		&get_trade_wnd)
 	];
 }

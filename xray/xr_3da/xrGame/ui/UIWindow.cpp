@@ -642,3 +642,11 @@ void CUIWindow::ShowChildren(bool show){
 			(*it)->Show(show);
 //.	m_dbg_flag.set(512,FALSE);
 }
+
+void CUIWindow::DetachFromParent()
+{
+	if (this->m_pParentWnd)
+	{
+		this->m_pParentWnd->DetachChild(this);
+	}
+}
