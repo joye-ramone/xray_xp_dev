@@ -27,7 +27,8 @@ void CUIStatic::script_register(lua_State *L)
 		.def("Init",				(void(CUIStatic::*)(LPCSTR,float,float,float,float))&CUIStatic::Init )
 		.def("InitTexture",			&CUIStatic::InitTexture )
 		.def("SetTextureOffset",	&CUIStatic::SetTextureOffset )
-
+		.def("AdjustHeightToText",	&CUIStatic::AdjustHeightToText)
+		.def("AdjustWidthToText",	&CUIStatic::AdjustWidthToText)
 
 		.def("SetOriginalRect",		(void(CUIStatic::*)(float,float,float,float))&CUIStatic::SetOriginalRect)
 		.def("SetStretchTexture",	&CUIStatic::SetStretchTexture)

@@ -247,6 +247,9 @@ protected:
 #endif
 
 public:
+	inline float			GetMousePosX		() const					{ return cursor_pos.x;}
+	inline float			GetMousePosY		() const					{ return cursor_pos.y;}
+
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };
 
