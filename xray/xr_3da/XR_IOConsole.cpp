@@ -23,6 +23,34 @@
 ENGINE_API CConsole*	Console		=	NULL;
 const char *			ioc_prompt	=	">>> ";
 
+int str_insert(LPSTR dest, LPSTR src, int n_char)
+{
+	int len = xr_strlen(dest);
+	int lna = xr_strlen(src);
+	if (len > n_char)
+	{
+		
+		for (int i = len - 1; i >= n_char; i--)
+		if (i + lna < CConsole::MAX_LEN)
+			dest[i + lna] = dest[i]; // смещение строки вправо, для освобождения место под символ
+
+		for (int i = 0; i < lna; i++)
+		if (i + n_char < CConsole::MAX_LEN)
+			dest[i + n_char] = src[i]; // вставка новых символов
+
+		dest[len + lna] = 0;
+	}
+	else
+	{
+		strcat_s (dest, CConsole::MAX_LEN, src);		
+	}
+
+	n_char += lna;
+	return n_char;
+
+}
+
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -78,8 +106,8 @@ void CConsole::OnFrame	()
 
 	cur_time+=fDelta;
 	rep_time+=fDelta*fAccel;
-	if (cur_time>0.1f) { cur_time-=0.1f; bCursor=!bCursor;	}
-	if (rep_time>0.2f) { rep_time-=0.2f; bRepeat=true;	fAccel+=0.2f;	}
+	if (cur_time > 0.5f) { cur_time -= 0.5f; bCursor =! bCursor;	}
+	if (rep_time > 0.9f) { rep_time -= 0.9f; bRepeat = true;	fAccel+=0.2f;	}
 /*
 	cur_time+=Device.fTimeDelta;
 	rep_time+=Device.fTimeDelta*fAccel;
@@ -150,7 +178,11 @@ void CConsole::OnRender	()
 	char		buf	[MAX_LEN+5];
 	strcpy_s		(buf,ioc_prompt);
 	strcat		(buf,editor);
-	if (bCursor) strcat(buf,"|");
+
+	if (bCursor) 
+		str_insert (buf,"|", n_char + xr_strlen(ioc_prompt));
+	else
+		str_insert(buf, ".", n_char + xr_strlen(ioc_prompt));
 
 	pFont->SetColor( color_rgba(128  ,128  ,255, 255) );
 	pFont->SetHeightI(0.025f);
@@ -203,9 +235,15 @@ void CConsole::OnPressKey(int dik, BOOL bHold)
 {
 	if (!bHold)	fAccel			= 1.0f;
 
+	char append[MAX_LEN];
+	ZeroMemory (&append, MAX_LEN);
+	
+
 	switch (dik) {
 	case DIK_GRAVE:
-		if (bShift) { strcat(editor,"~"); break; }
+		if (bShift) strcpy_s(append,"~"); 
+		else		Hide();
+		break;
 	case DIK_ESCAPE:
 		if (!bHold) {
 			if  ( g_pGameLevel || 
@@ -215,11 +253,23 @@ void CConsole::OnPressKey(int dik, BOOL bHold)
 		break;
 	case DIK_PRIOR:
 		scroll_delta++;
-		if (scroll_delta>int(LogFile->size())-1) scroll_delta=LogFile->size()-1;
+		if (scroll_delta > int(LogFile->size()) - 1) scroll_delta=LogFile->size()-1;
 		break;
 	case DIK_NEXT:
 		scroll_delta--;
 		if (scroll_delta<0) scroll_delta=0;
+		break;
+	case DIK_LEFT:
+		if (n_char > 0) n_char--;
+		break;
+	case DIK_RIGHT:
+		if (n_char < xr_strlen(editor)) n_char++;
+		break;
+	case DIK_HOME:
+		n_char = 0;
+		break;
+	case DIK_END:
+		n_char = xr_strlen(editor);
 		break;
 	case DIK_TAB:
 		{
@@ -242,119 +292,132 @@ void CConsole::OnPressKey(int dik, BOOL bHold)
 		cmd_delta++;
 		SelectCommand();
 		break;
+	case DIK_DELETE:
+		if (n_char < xr_strlen(editor))
+		{
+			memcpy(&editor[n_char], &editor[n_char + 1], xr_strlen(editor) - n_char);			
+		}
+	break;
+
 	case DIK_BACK:
-		if (xr_strlen(editor)>0) editor[xr_strlen(editor)-1]=0;
+		if (xr_strlen(editor) > 0 && n_char > 0)
+		{
+			memcpy(&editor[n_char - 1], &editor[n_char], xr_strlen(editor) - n_char + 1);
+			n_char--;
+		}
+			
 		break;
 	case DIK_LSHIFT:
 	case DIK_RSHIFT:
 		bShift = true;
 		break;
 	case DIK_1:
-		if (bShift) strcat(editor,"!");
-		else		strcat(editor,"1");
+		if (bShift) strcpy_s(append,"!");
+		else		strcpy_s(append,"1");
 		break;
 	case DIK_2:
-		if (bShift) strcat(editor,"@");
-		else		strcat(editor,"2");
+		if (bShift) strcpy_s(append,"@");
+		else		strcpy_s(append,"2");
 		break;
 	case DIK_3:
-		if (bShift) strcat(editor,"#");
-		else		strcat(editor,"3");
+		if (bShift) strcpy_s(append,"#");
+		else		strcpy_s(append,"3");
 		break;
 	case DIK_4:
-		if (bShift) strcat(editor,"$");
-		else		strcat(editor,"4");
+		if (bShift) strcpy_s(append,"$");
+		else		strcpy_s(append,"4");
 		break;
 	case DIK_5:
-		if (bShift) strcat(editor,"%");
-		else		strcat(editor,"5");
+		if (bShift) strcpy_s(append,"%");
+		else		strcpy_s(append,"5");
 		break;
 	case DIK_6:
-		if (bShift) strcat(editor,"^");
-		else		strcat(editor,"6");
+		if (bShift) strcpy_s(append,"^");
+		else		strcpy_s(append,"6");
 		break;
 	case DIK_7:
-		if (bShift) strcat(editor,"&");
-		else		strcat(editor,"7");
+		if (bShift) strcpy_s(append,"&");
+		else		strcpy_s(append,"7");
 		break;
 	case DIK_8:
-		if (bShift) strcat(editor,"*");
-		else		strcat(editor,"8");
+		if (bShift) strcpy_s(append,"*");
+		else		strcpy_s(append,"8");
 		break;
 	case DIK_9:
-		if (bShift) strcat(editor,"(");
-		else		strcat(editor,"9");
+		if (bShift) strcpy_s(append,"(");
+		else		strcpy_s(append,"9");
 		break;
 	case DIK_0:
-		if (bShift) strcat(editor,")");
-		else		strcat(editor,"0");
+		if (bShift) strcpy_s(append,")");
+		else		strcpy_s(append,"0");
 		break;
-	case DIK_A:	strcat(editor,"a");	break;
-	case DIK_B:	strcat(editor,"b");	break;
-	case DIK_C:	strcat(editor,"c");	break;
-	case DIK_D:	strcat(editor,"d");	break;
-	case DIK_E:	strcat(editor,"e");	break;
-	case DIK_F:	strcat(editor,"f");	break;
-	case DIK_G:	strcat(editor,"g");	break;
-	case DIK_H:	strcat(editor,"h");	break;
-	case DIK_I:	strcat(editor,"i");	break;
-	case DIK_J:	strcat(editor,"j");	break;
-	case DIK_K:	strcat(editor,"k");	break;
-	case DIK_L:	strcat(editor,"l");	break;
-	case DIK_M:	strcat(editor,"m");	break;
-	case DIK_N:	strcat(editor,"n");	break;
-	case DIK_O:	strcat(editor,"o");	break;
-	case DIK_P:	strcat(editor,"p");	break;
-	case DIK_Q:	strcat(editor,"q");	break;
-	case DIK_R:	strcat(editor,"r");	break;
-	case DIK_S:	strcat(editor,"s");	break;
-	case DIK_T:	strcat(editor,"t");	break;
-	case DIK_U:	strcat(editor,"u");	break;
-	case DIK_V:	strcat(editor,"v");	break;
-	case DIK_W:	strcat(editor,"w");	break;
-	case DIK_X:	strcat(editor,"x");	break;
-	case DIK_Y:	strcat(editor,"y");	break;
-	case DIK_Z:	strcat(editor,"z");	break;
-	case DIK_SPACE:		strcat(editor," "); break;
+	case DIK_A:	strcpy_s(append, "a");	break;
+	case DIK_B:	strcpy_s(append, "b");	break;
+	case DIK_C:	strcpy_s(append, "c");	break;
+	case DIK_D:	strcpy_s(append, "d");	break;
+	case DIK_E:	strcpy_s(append, "e");	break;
+	case DIK_F:	strcpy_s(append, "f");	break;
+	case DIK_G:	strcpy_s(append, "g");	break;
+	case DIK_H:	strcpy_s(append, "h");	break;
+	case DIK_I:	strcpy_s(append, "i");	break;
+	case DIK_J:	strcpy_s(append, "j");	break;
+	case DIK_K:	strcpy_s(append, "k");	break;
+	case DIK_L:	strcpy_s(append, "l");	break;
+	case DIK_M:	strcpy_s(append, "m");	break;
+	case DIK_N:	strcpy_s(append, "n");	break;
+	case DIK_O:	strcpy_s(append, "o");	break;
+	case DIK_P:	strcpy_s(append, "p");	break;
+	case DIK_Q:	strcpy_s(append, "q");	break;
+	case DIK_R:	strcpy_s(append, "r");	break;
+	case DIK_S:	strcpy_s(append, "s");	break;
+	case DIK_T:	strcpy_s(append, "t");	break;
+	case DIK_U:	strcpy_s(append, "u");	break;
+	case DIK_V:	strcpy_s(append, "v");	break;
+	case DIK_W:	strcpy_s(append, "w");	break;
+	case DIK_X:	strcpy_s(append, "x");	break;
+	case DIK_Y:	strcpy_s(append, "y");	break;
+	case DIK_Z:	strcpy_s(append, "z");	break;
+
+	case DIK_SPACE:	strcpy_s(append, " "); break;
 	case DIK_BACKSLASH:
-		if (bShift) strcat(editor,"|");  
-		else		strcat(editor,"\\");
+		if (bShift) strcpy_s(append,"|");  
+		else		strcpy_s(append,"\\");
 		break;
 	case DIK_LBRACKET:
-		if (bShift) strcat(editor,"{");  
-		else		strcat(editor,"[");
+		if (bShift) strcpy_s(append,"{");  
+		else		strcpy_s(append,"[");
 		break;
 	case DIK_RBRACKET:
-		if (bShift) strcat(editor,"}");
-		else		strcat(editor,"]");
+		if (bShift) strcpy_s(append,"}");
+		else		strcpy_s(append,"]");
 		break;
 	case DIK_APOSTROPHE:
-		if (bShift) strcat(editor,"\"");
-		else		strcat(editor,"'");
+		if (bShift) strcpy_s(append,"\"");
+		else		strcpy_s(append,"'");
 		break;
 	case DIK_COMMA:
-		if (bShift) strcat(editor,"<");
-		else		strcat(editor,",");
+		if (bShift) strcpy_s(append,"<");
+		else		strcpy_s(append,",");
 		break;
 	case DIK_PERIOD:
-		if (bShift) strcat(editor,">");
-		else		strcat(editor,".");
+		if (bShift) strcpy_s(append,">");
+		else		strcpy_s(append,".");
 		break;
 	case DIK_EQUALS:
-		if (bShift) strcat(editor,"+");
-		else		strcat(editor,"=");
+		if (bShift) strcpy_s(append,"+");
+		else		strcpy_s(append,"=");
 		break;
 	case DIK_MINUS:
-		if (bShift) strcat(editor,"_");
-		else		strcat(editor,"-");
+		if (bShift) strcpy_s(append,"_");
+		else		strcpy_s(append,"-");
 		break;
 	case 0x27:
-		if (bShift) strcat(editor,":");
-		else		strcat(editor,";");
+		if (bShift) strcpy_s(append,":");
+		else		strcpy_s(append,";");
 		break;
 	case 0x35:
-		if (bShift) strcat(editor,"?");
-		else		strcat(editor,"/");
+		if (bShift) strcpy_s(append,"?");
+		else		strcpy_s(append,"/");
 		break;
 	case DIK_RETURN:
 		ExecuteCommand();
@@ -365,14 +428,14 @@ void CConsole::OnPressKey(int dik, BOOL bHold)
 			HGLOBAL hmem = GetClipboardData(CF_TEXT);
 			if( hmem ){
 				LPCSTR	clipdata = (LPCSTR)GlobalLock(hmem);
-				strncpy (editor,clipdata,MAX_LEN-1); editor[MAX_LEN-1]=0;
+				strncpy_s (append, clipdata, MAX_LEN-1); 
 //				std::locale loc ("English");
-				for (u32 i=0; i<xr_strlen(editor); i++)
-					if (isprint(editor[i]))	{
-//						editor[i]=char(tolower(editor[i],loc));
-						editor[i]=char(tolower(editor[i]));
+				for (u32 i=0; i < xr_strlen(append); i++)
+					if (isprint(append[i]))	{
+//						append[i]=char(tolower(append[i],loc));
+//						append[i]=char(tolower(append[i]));
 					}else{
-						editor[i]=' ';
+						append[i]=' ';
 					}
 				
 				GlobalUnlock( hmem );
@@ -383,8 +446,20 @@ void CConsole::OnPressKey(int dik, BOOL bHold)
 	default:
 		break;
 	}
+
+	char ch = append[0];
+	if (ch)
+	{
+		if (bShift && ch >= 0x61 && ch <= 0x7A ) append[0] -= 0x20; // UpperCase for single char
+		n_char = str_insert(editor, append, n_char);
+		editor[MAX_LEN - 1] = 0;
+	}
+
+
 	u32	clip	= MAX_LEN-8;
-	if	(xr_strlen(editor)>=clip) editor[clip-1]=0;
+	if	(xr_strlen(editor) >= clip) editor[clip-1]=0;
+
+	if (n_char > xr_strlen(editor)) n_char = xr_strlen(editor);
 	bRepeat		= false;
 	rep_time	= 0;
 }
@@ -488,7 +563,7 @@ void CConsole::Show			()
 {
 	if (bVisible)			return;
 	bVisible				= true;
-
+	n_char = 0;
 	editor[0]				= 0;
 	rep_time				= 0;
 	fAccel					= 1.0f;
@@ -530,6 +605,7 @@ void CConsole::SelectCommand()
 	} else {
 		old_cmd_delta=cmd_delta;
 	}
+	n_char = xr_strlen(editor);
 }
 
 void CConsole::Execute		(LPCSTR cmd)

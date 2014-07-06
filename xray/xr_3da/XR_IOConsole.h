@@ -36,6 +36,7 @@ private:
 	int				old_cmd_delta;
 	
 	char			*editor_last;
+	int				n_char;
 	BOOL			bShift;
 	
 	BOOL			bRepeat;
