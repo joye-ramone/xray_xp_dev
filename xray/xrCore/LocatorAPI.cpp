@@ -297,6 +297,13 @@ IReader* open_chunk(void* ptr, u32 ID)
 void CLocatorAPI::ProcessArchive(LPCSTR _path, LPCSTR base_path)
 {
 	// find existing archive
+	if (strstr(_path, "gamedata\\")) 
+	{
+		Msg("CLocatorAPI::ProcessArchive ignoring file %s", _path); // добавлено alpet: предотвращает exception при распакованной gamedata
+		return;
+	}
+	
+
 	shared_str path				= _path;
 
 	for (archives_it it=archives.begin(); it!=archives.end(); ++it)
@@ -320,7 +327,7 @@ void CLocatorAPI::ProcessArchive(LPCSTR _path, LPCSTR base_path)
 	R_ASSERT							(A.hSrcMap!=INVALID_HANDLE_VALUE);
 	A.size			= GetFileSize		(A.hSrcFile,0);
 	R_ASSERT							(A.size>0);
-
+	Msg("CLocatorAPI::ProcessArchive, path = %s ", *path);
 	// Create base path
 	string_path			base;
 	if(!base_path)
