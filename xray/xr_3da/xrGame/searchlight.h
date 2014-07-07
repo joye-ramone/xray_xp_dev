@@ -43,11 +43,14 @@ public:
 	virtual	bool	bfAssignWatch(CScriptEntityAction	*tpEntityAction);
 	virtual	bool	bfAssignObject(CScriptEntityAction *tpEntityAction);
 
-			Fvector GetCurrentDirection	();
-private:
+	Fvector GetCurrentDirection	();
+
+	// For script game object registration. Real Wolf 07.07.2014.
 			void	TurnOn			();
 			void	TurnOff			();
-	
+	IC		bool	IsEnabled		()		const		{return light_render->get_active();}
+
+private:
 	// Rotation routines
 	static void		BoneCallbackX(CBoneInstance *B);
 	static void		BoneCallbackY(CBoneInstance *B);

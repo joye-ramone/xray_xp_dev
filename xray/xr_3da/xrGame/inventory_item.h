@@ -161,17 +161,15 @@ public:
 			bool				CanTrade			() const;
 	virtual bool 				IsNecessaryItem	    (CInventoryItem* item);
 	virtual bool				IsNecessaryItem	    (const shared_str& item_sect){return false;};
-#if defined(INV_NEW_SLOTS_SYSTEM) || defined(INV_DOUBLE_WPN_SLOTS)
+	#if defined(INV_NEW_SLOTS_SYSTEM)
 			void				SetSlot				(u32 slot)					{m_slot = slot;};
-	#ifdef INV_NEW_SLOTS_SYSTEM
-	virtual void				GetSlotList			(u32 *array) const	{for (int i = 0; i < (SLOTS_TOTAL); i++) array[i] = m_slots[i];}
+	const	xr_vector<u8>&		GetSlots			()							{return m_slots;}
 	#endif
-#endif
 protected:
 	
 	u32							m_slot;
 #ifdef INV_NEW_SLOTS_SYSTEM
-	u32							m_slots[SLOTS_TOTAL];
+	xr_vector<u8>				m_slots;
 #endif
 	u32							m_cost;
 	float						m_weight;

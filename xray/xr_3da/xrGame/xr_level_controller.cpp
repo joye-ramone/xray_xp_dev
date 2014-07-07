@@ -92,18 +92,17 @@ _action  actions[]		= {
 	{ "speech_menu_6",		kSPEECH_MENU_6			,_mp},		
 	{ "speech_menu_7",		kSPEECH_MENU_7			,_mp},		
 	{ "speech_menu_8",		kSPEECH_MENU_8			,_mp},		
-	{ "speech_menu_9",		kSPEECH_MENU_9			,_mp},		
+	{ "speech_menu_9",		kSPEECH_MENU_9			,_mp},																	
+	{ "use_bandage",		kUSE_BANDAGE			,_sp},		
+	{ "use_medkit",			kUSE_MEDKIT				,_sp},		
+	{ "quick_save",			kQUICK_SAVE				,_sp},		
+	{ "quick_load",			kQUICK_LOAD				,_sp},		
 #ifdef INV_NEW_SLOTS_SYSTEM
 	{ "use_slot_quick_access_0",			kUSE_SLOT_QUICK_ACCESS_0				,_sp},
 	{ "use_slot_quick_access_1",			kUSE_SLOT_QUICK_ACCESS_1				,_sp},
 	{ "use_slot_quick_access_2",			kUSE_SLOT_QUICK_ACCESS_2				,_sp},
 	{ "use_slot_quick_access_3",			kUSE_SLOT_QUICK_ACCESS_3				,_sp},
-#endif																
-	{ "use_bandage",		kUSE_BANDAGE			,_sp},		
-	{ "use_medkit",			kUSE_MEDKIT				,_sp},		
-	{ "quick_save",			kQUICK_SAVE				,_sp},		
-	{ "quick_load",			kQUICK_LOAD				,_sp},		
-																
+#endif																	
 	{ NULL, 				kLASTACTION				,_both}		
 };															
 
@@ -231,7 +230,7 @@ LPCSTR id_to_action_name(int _id)
 			return actions[idx].action_name;
 		++idx;
 	}
-	Msg				("! cant find corresponding [action_name] for id");
+	Msg				("! cant find corresponding [action_name] for id[%d]", _id);
 	return			NULL;
 }
 
@@ -253,7 +252,7 @@ _action* action_name_to_ptr(LPCSTR _name)
 			return &actions[idx];
 		++idx;
 	}
-	Msg				("! cant find corresponding [id] for action_name", _name);
+	Msg				("! cant find corresponding [id] for action_name %s", _name);
 	return			NULL;
 }
 

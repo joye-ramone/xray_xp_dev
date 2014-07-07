@@ -648,6 +648,20 @@ public:
 			_DECLARE_FUNCTION10	(IsWeaponGL				,			bool);
 			_DECLARE_FUNCTION10	(IsInventoryBox			,			bool);
 			// KD
+
+			// Real Wolf 07.07.2014.
+			void SwitchProjector(bool);
+			bool ProjectorIsOn() const;
+
+			float GetShapeRadius() const;
+
+			u16 GetAmmoBoxCurr() const;
+			u16 GetAmmoBoxSize() const;
+			void SetAmmoBoxCurr(u16);
+			void SetAmmoBoxSize(u16);
+
+			LPCSTR GetVisualName();
+			void SetVisualName(LPCSTR);
 			
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };

@@ -561,3 +561,176 @@ bool CScriptGameObject::IsActorOutdoors() const
 	// I don't know what the proper limit for this is supposed to be, but this seems good enough.
 	return e->renderable_ROS()->get_luminocity_hemi() > 0.05f;
 }
+
+// Real Wolf 07.07.2014
+
+#include "searchlight.h"
+void CScriptGameObject::SwitchProjector(bool state)
+{
+	if (!g_pGameLevel)
+		return Msg("Error! CScriptGameObject::SwitchProjector : game level doesn't exist.");
+
+	CProjector *obj = smart_cast<CProjector*>(&object());
+	if (!obj) 
+		return Msg("Error! CScriptGameObject::SwitchProjector : incorrect object type.");
+
+	state? obj->TurnOn(): obj->TurnOff();
+}
+
+bool CScriptGameObject::ProjectorIsOn() const
+{
+	if (!g_pGameLevel)
+	{
+		Msg("Error! CScriptGameObject::ProjectorIsOn : game level doesn't exist.");
+		return false;
+	}
+
+	CProjector *obj = smart_cast<CProjector*>(&object());
+	if (!obj) 
+	{
+		Msg("Error! CScriptGameObject::ProjectorIsOn : incorrect object type.");
+		return false;
+	}
+
+	return obj->IsEnabled();
+}
+
+float CScriptGameObject::GetShapeRadius() const
+{
+	if (!g_pGameLevel)
+	{
+		Msg("Error! CScriptGameObject::GetShapeRadius : game level doesn't exist.");
+		return 0.0;
+	}
+
+	CSpaceRestrictor *obj = smart_cast<CSpaceRestrictor*>(&object());
+	if (!obj) 
+	{
+		Msg("Error! CScriptGameObject::GetShapeRadius : incorrect object type.");
+		return 0.0;
+	}
+
+	return obj->Radius();
+}
+
+u16 CScriptGameObject::GetAmmoBoxCurr() const
+{
+	if (!g_pGameLevel)
+	{
+		Msg("Error! CScriptGameObject::GetAmmoBoxCurr : game level doesn't exist.");
+		return 0;
+	}
+
+	CWeaponAmmo *obj = smart_cast<CWeaponAmmo*>(&object());
+	if (!obj) 
+	{
+		Msg("Error! CScriptGameObject::GetAmmoBoxCurr : incorrect object type.");
+		return 0;
+	}
+
+	return obj->m_boxCurr;
+}
+
+u16 CScriptGameObject::GetAmmoBoxSize() const
+{
+	if (!g_pGameLevel)
+	{
+		Msg("Error! CScriptGameObject::GetAmmoBoxSize : game level doesn't exist.");
+		return 0;
+	}
+
+	CWeaponAmmo *obj = smart_cast<CWeaponAmmo*>(&object());
+	if (!obj) 
+	{
+		Msg("Error! CScriptGameObject::GetAmmoBoxSize : incorrect object type.");
+		return 0;
+	}
+
+	return obj->m_boxSize;
+}
+
+void CScriptGameObject::SetAmmoBoxSize(u16 size)
+{
+	if (!g_pGameLevel)
+	{
+		Msg("Error! CScriptGameObject::SetAmmoBoxSize : game level doesn't exist.");
+		return;
+	}
+
+	CWeaponAmmo *obj = smart_cast<CWeaponAmmo*>(&object());
+	if (!obj) 
+	{
+		Msg("Error! CScriptGameObject::SetAmmoBoxSize : incorrect object type.");
+		return;
+	}
+
+	obj->m_boxSize = size;
+}
+
+void CScriptGameObject::SetAmmoBoxCurr(u16 curr)
+{
+	if (!g_pGameLevel)
+	{
+		Msg("Error! CScriptGameObject::SetAmmoBoxCurr : game level doesn't exist.");
+		return;
+	}
+
+	CWeaponAmmo *obj = smart_cast<CWeaponAmmo*>(&object());
+	if (!obj) 
+	{
+		Msg("Error! CScriptGameObject::SetAmmoBoxCurr : incorrect object type.");
+		return;
+	}
+
+	obj->m_boxCurr = curr;
+}
+
+LPCSTR CScriptGameObject::GetVisualName()
+{
+	if (!g_pGameLevel)
+	{
+		Msg("Error! CScriptGameObject::GetVisualName : game level doesn't exist.");
+		return "";
+	}
+
+	return *object().cNameVisual();
+}
+
+
+// TODO: Функцию необходимо определить для разных классов,
+// потому что стандартное изменение работает не совсем корректно.
+#include "../skeletonanimated.h"
+void CScriptGameObject::SetVisualName(LPCSTR str)
+{
+	if (!g_pGameLevel)
+	{
+		Msg("Error! CScriptGameObject::SetVisualName : game level doesn't exist.");
+		return;
+	}
+
+	shared_str visual_name = str;
+	if (!visual_name.size() || object().cNameVisual() == visual_name)
+		return;
+
+	CActor *actor = smart_cast<CActor*>(&object());
+	if (actor)
+		return actor->ChangeVisual(visual_name);
+	
+	object().cNameVisual_set(visual_name);
+
+	CWeapon *wpn = smart_cast<CWeapon*>(&object());
+	if (wpn)
+		return wpn->UpdateAddonsVisibility();
+
+	// Обновление костей.
+	IRender_Visual *visual = object().Visual();
+	if (visual)
+	{
+		CKinematics *kinematics = visual->dcast_PKinematics();
+		if (kinematics)
+		{
+			kinematics->CalculateBones_Invalidate();
+			kinematics->CalculateBones();
+		}
+	}
+}

@@ -181,9 +181,10 @@ void CActor::IR_OnKeyboardPress(int cmd)
 		{
 			if(IsGameTypeSingle())
 			{
-				PIItem itm;
+				PIItem itm = 0;
 				switch (cmd){
 				case kUSE_SLOT_QUICK_ACCESS_0:
+					
 					itm = inventory().m_slots[SLOT_QUICK_ACCESS_0].m_pIItem;
 					break;
 				case kUSE_SLOT_QUICK_ACCESS_1:	
@@ -201,11 +202,6 @@ void CActor::IR_OnKeyboardPress(int cmd)
 					CMedkit*			pMedkit				= smart_cast<CMedkit*>			(itm);
 					CAntirad*			pAntirad			= smart_cast<CAntirad*>			(itm);
 					CEatableItem*		pEatableItem		= smart_cast<CEatableItem*>		(itm);
-					CCustomOutfit*		pOutfit				= smart_cast<CCustomOutfit*>	(itm);
-					CWeapon*			pWeapon				= smart_cast<CWeapon*>			(itm);
-					CScope*				pScope				= smart_cast<CScope*>			(itm);
-					CSilencer*			pSilencer			= smart_cast<CSilencer*>		(itm);
-					CGrenadeLauncher*	pGrenadeLauncher	= smart_cast<CGrenadeLauncher*>	(itm);
 					CBottleItem*		pBottleItem			= smart_cast<CBottleItem*>		(itm);				
 					string1024					str;
 					
@@ -233,7 +229,6 @@ void CActor::IR_OnKeyboardPress(int cmd)
 void CActor::IR_OnMouseWheel(int direction)
 {
 	if(inventory().Action( (direction>0)? kWPN_ZOOM_DEC:kWPN_ZOOM_INC , CMD_START)) return;
-
 
 	if (direction>0)
 		OnNextWeaponSlot				();

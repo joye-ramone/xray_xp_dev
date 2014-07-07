@@ -23,6 +23,8 @@
 #include "D3DUtils.h"
 #include "xrCore.h"
 
+#include "build_config_defines.h"
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -327,6 +329,7 @@ void CEnvironment::OnFrame()
 
 	// final lerp
 	CurrentEnv.lerp				(this,*Current[0],*Current[1],current_weight,EM,mpower);
+#ifndef SUN_DIR_NOT_DEBUG
 	if(CurrentEnv.sun_dir.y>0)
 	{
 		Log("CurrentEnv.sun_dir", CurrentEnv.sun_dir);
@@ -337,6 +340,7 @@ void CEnvironment::OnFrame()
 		Log("Current[1]->sun_dir", Current[1]->sun_dir);
 
 	}
+#endif
 	VERIFY2						(CurrentEnv.sun_dir.y<0,"Invalid sun direction settings in lerp");
 
 	if (::Render->get_generation()==IRender_interface::GENERATION_R2){

@@ -350,5 +350,19 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 
 		// KD
 
+		// Real Wolf 07.07.2014
+		.def("switch_projector",			&CScriptGameObject::SwitchProjector)
+		.def("projector_is_on",				&CScriptGameObject::ProjectorIsOn)
+
+		.def("get_shape_radius",			&CScriptGameObject::GetShapeRadius)
+
+		.def("get_ammo_box_curr",			&CScriptGameObject::GetAmmoBoxCurr)
+		.def("get_ammo_box_size",			&CScriptGameObject::GetAmmoBoxSize)
+		.def("set_ammo_box_curr",			&CScriptGameObject::SetAmmoBoxCurr)
+		.def("set_ammo_box_size",			&CScriptGameObject::SetAmmoBoxSize)
+
+		.def("get_visual_name",				&CScriptGameObject::GetVisualName)
+		.def("set_visual_name",				&CScriptGameObject::SetVisualName)
+
 	;return	(instance);
 }

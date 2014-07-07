@@ -219,6 +219,7 @@ bool CInventory::DropItem(CGameObject *pObj)
 			m_ruck.erase(std::find(m_ruck.begin(), m_ruck.end(), pIItem));
 		}break;
 	case eItemPlaceSlot:{
+			Msg("Drop item from slot %d", pIItem->GetSlot() );
 			R_ASSERT			(InSlot(pIItem));
 			if(m_iActiveSlot == pIItem->GetSlot()) 
 				Activate	(NO_ACTIVE_SLOT);
@@ -264,15 +265,12 @@ bool CInventory::Slot(PIItem pIItem, bool bNotActivate)
 				pIItem);
 #endif
 		if(m_slots[pIItem->GetSlot()].m_pIItem == pIItem && !bNotActivate )
-			#ifdef INV_NEW_SLOTS_SYSTEM
-			if ((pIItem->GetSlot() < OUTFIT_SLOT)||(pIItem->GetSlot() == ARTEFACT_SLOT))
-			#endif
-				Activate(pIItem->GetSlot());
+			Activate(pIItem->GetSlot());
 
 		return false;
 	}
 
-#if defined(INV_NEW_SLOTS_SYSTEM) || defined(INV_DOUBLE_WPN_SLOTS)
+	#if defined(INV_NEW_SLOTS_SYSTEM)
 	/*
 		Вещь была в слоте. Да, такое может быть :).
 		Тут необходимо проверять именно так, потому что
@@ -287,7 +285,7 @@ bool CInventory::Slot(PIItem pIItem, bool bNotActivate)
 			m_slots[i].m_pIItem = NULL;
 			break;
 		}
-#endif
+	#endif
 
 	m_slots[pIItem->GetSlot()].m_pIItem = pIItem;
 	//удалить из рюкзака или пояса
@@ -297,10 +295,7 @@ bool CInventory::Slot(PIItem pIItem, bool bNotActivate)
 	if(m_belt.end() != it) m_belt.erase(it);
  
 	if (( (m_iActiveSlot==pIItem->GetSlot())||(m_iActiveSlot==NO_ACTIVE_SLOT) && m_iNextActiveSlot==NO_ACTIVE_SLOT) && (!bNotActivate))
-		#ifdef INV_NEW_SLOTS_SYSTEM
-		if ((pIItem->GetSlot() < OUTFIT_SLOT)||(pIItem->GetSlot() == ARTEFACT_SLOT))
-		#endif
-			Activate				(pIItem->GetSlot());
+		Activate				(pIItem->GetSlot());
 
 	
 	m_pOwner->OnItemSlot		(pIItem, pIItem->m_eItemPlace);
@@ -373,6 +368,9 @@ bool CInventory::Ruck(PIItem pIItem)
 
 	m_pOwner->OnItemRuck							(pIItem, pIItem->m_eItemPlace);
 	pIItem->m_eItemPlace							= eItemPlaceRuck;
+
+	
+
 	pIItem->OnMoveToRuck							();
 
 	if(in_slot)

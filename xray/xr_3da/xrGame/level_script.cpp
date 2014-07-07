@@ -591,6 +591,13 @@ CUIWindow* get_trade_wnd()
 	return (CUIWindow*)game_sp->TalkMenu->GetTradeWnd();
 }
 
+// Real Wolf 07.07.2014
+u32 vertex_id(const Fvector &vec)
+{
+	return ai().level_graph().vertex_id(vec);
+}
+
+
 #pragma optimize("s",on)
 void CLevel::script_register(lua_State *L)
 {
@@ -683,7 +690,10 @@ void CLevel::script_register(lua_State *L)
 		def("game_id",							&GameID),
 
 		// KD
-		def("ray_pick",							&ray_pick)
+		def("ray_pick",							&ray_pick),
+
+		// Real Wolf 07.07.2014
+		def("vertex_id",						&vertex_id)
 	],
 	
 	module(L,"actor_stats")

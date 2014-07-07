@@ -54,12 +54,6 @@
 	<string id="st_move_to_slot">
 		<text>переместить в слот</text>
 	</string>
-	<string id="st_move_to_slot1">
-		<text>переместить в слот 1</text>
-	</string>
-	<string id="st_move_to_slot1">
-		<text>переместить в слот 2</text>
-	</string>
 	<string id="st_sell_item">
 		<text>продать предмет</text>
 	</string>
