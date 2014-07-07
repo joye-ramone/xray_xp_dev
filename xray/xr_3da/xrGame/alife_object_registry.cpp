@@ -13,6 +13,7 @@
 
 CALifeObjectRegistry::CALifeObjectRegistry	(LPCSTR section)
 {
+	LogXrayOffset("CALifeObjectRegistry.list", this, &this->m_objects);
 }
 
 CALifeObjectRegistry::~CALifeObjectRegistry	()

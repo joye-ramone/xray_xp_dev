@@ -10,6 +10,8 @@
 #include "blender_bloom_build.h"
 #include "blender_luminance.h"
 
+const u32 extra_textures = 1;
+
 void	CRenderTarget::u_setrt			(const ref_rt& _1, const ref_rt& _2, const ref_rt& _3, IDirect3DSurface9* zb)
 {
 	VERIFY									(_1);
@@ -415,55 +417,46 @@ CRenderTarget::CRenderTarget		()
 		// Build noise table
 		if (1)
 		{
-			// Surfaces
-			D3DLOCKED_RECT				R[TEX_jitter_count + 1];
-			for (int it=0; it<TEX_jitter_count; it++)
+			// Surfaces			
+			D3DLOCKED_RECT				R[TEX_jitter_count + extra_textures];
+
+			// HD noise
+			int hd_width = dwWidth  < 1920 ? dwWidth : 1920;
+			int hd_height = dwHeight < 1080 ? dwHeight : 1080;
+
+			for (int it=0; it < (TEX_jitter_count + extra_textures); it++)
 			{
+				int w = TEX_jitter, h = TEX_jitter;
+				if (it >= TEX_jitter_count)
+				{
+					w = hd_width;
+					h = hd_height;
+				}
+
 				string_path					name;
 				sprintf						(name,"%s%d",r2_jitter,it);
-				R_CHK	(D3DXCreateTexture	(HW.pDevice,TEX_jitter,TEX_jitter,1,0,D3DFMT_Q8W8V8U8,D3DPOOL_MANAGED,&t_noise_surf[it]));
+				R_CHK	(D3DXCreateTexture	(HW.pDevice,w,h,1,0,D3DFMT_Q8W8V8U8,D3DPOOL_MANAGED,&t_noise_surf[it]));
 				t_noise[it]					= Device.Resources->_CreateTexture	(name);
 				t_noise[it]->surface_set	(t_noise_surf[it]);
 				R_CHK						(t_noise_surf[it]->LockRect	(0,&R[it],0,0));
-			}
-			// HD noise
-			{
-				string_path					name;
-				sprintf						(name,"%s5",r2_jitter);
-				R_CHK	(D3DXCreateTexture	(HW.pDevice,dwWidth,dwHeight,1,0,D3DFMT_Q8W8V8U8,D3DPOOL_MANAGED,&t_noise_surf[4]));
-				t_noise[4]					= Device.Resources->_CreateTexture	(name);
-				t_noise[4]->surface_set	(t_noise_surf[4]);
-				R_CHK						(t_noise_surf[4]->LockRect	(0,&R[4],0,0));
-			}
 
-			// Fill it,
-			for (u32 y=0; y<TEX_jitter; y++)
-			{
-				for (u32 x=0; x<TEX_jitter; x++)
+				// Fill it,
+				for (int y = 0; y < h; y++)
 				{
-					DWORD	data	[TEX_jitter_count];
-					generate_jitter	(data,TEX_jitter_count);
-					for (u32 it=0; it<TEX_jitter_count; it++)
+					for (int x = 0; x < w; x++)					
 					{
-						u32*	p	=	(u32*)	(LPBYTE (R[it].pBits) + y*R[it].Pitch + x*4);
-								*p	=	data	[it];
+						DWORD	data;						
+						generate_jitter(&data, 1);
+						u32*	p = (u32*)(LPBYTE(R[it].pBits) + y*R[it].Pitch + x * 4);
+						*p = data;						
 					}
 				}
+
+				Msg("RENDER: unlocking texture %d, size = %d x %d ", it, w, h);
+				R_CHK(t_noise_surf[it]->UnlockRect(0));
 			}
-			// Fill HD noise texture
-			for (u32 y=0; y<dwHeight; y++)
-			{
-				for (u32 x=0; x<dwWidth; x++)
-				{
-					DWORD	data;
-					generate_jitter	(&data,4);
-					u32*	p	=	(u32*)	(LPBYTE (R[4].pBits) + y*R[4].Pitch + x*4);
-							*p	=	data;
-				}
-			}
-			for (int it=0; it<(TEX_jitter_count + 1); it++)	{
-				R_CHK						(t_noise_surf[it]->UnlockRect(0));
-			}
+
+
 		}
 	}
 
@@ -505,7 +498,7 @@ CRenderTarget::~CRenderTarget	()
 	_RELEASE					(rt_smap_ZB);
 
 	// Jitter
-	for (int it=0; it<(TEX_jitter_count + 1); it++)	{
+	for (int it = 0; it<(TEX_jitter_count + extra_textures); it++)	{
 		t_noise	[it]->surface_set	(NULL);
 #ifdef DEBUG
 		_SHOW_REF("t_noise_surf[it]",t_noise_surf[it]);

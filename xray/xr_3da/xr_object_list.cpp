@@ -22,7 +22,7 @@ CObjectList::CObjectList	( )
 {
 	objects_dup_memsz		= 512;
 	objects_dup				= xr_alloc	<CObject*>	(objects_dup_memsz);
-	crows					= &crows_0	;
+	crows					= &crows_0	;	
 }
 
 CObjectList::~CObjectList	( )
@@ -301,6 +301,19 @@ CObject* CObjectList::net_Find			(u32 ID)
 void CObjectList::Load		()
 {
 	R_ASSERT				(map_NETID.empty() && objects_active.empty() && destroy_queue.empty() && objects_sleeping.empty());
+	// здесь переменная g_pGameLevel уже не должна быть NULL
+	LogXrayOffset("GameLevel.ObjectList",		g_pGameLevel, this);
+	LogXrayOffset("GameLevel.map_NETID",		g_pGameLevel, &this->map_NETID);
+	LogXrayOffset("GameLevel.destroy_queue",	g_pGameLevel, &this->destroy_queue);
+	LogXrayOffset("GameLevel.objects_active",	g_pGameLevel, &this->objects_active);
+	LogXrayOffset("GameLevel.objects_sleeping", g_pGameLevel, &this->objects_sleeping);
+	LogXrayOffset("GameLevel.crows_0",			g_pGameLevel, &this->crows_0);
+	LogXrayOffset("GameLevel.crows_1",			g_pGameLevel, &this->crows_1);
+	LogXrayOffset("GameLevel.crows",			g_pGameLevel, &this->crows);
+
+	LogXrayOffset("xr_vector.first",			&this->objects_active, &objects_active._Myfirst);
+	LogXrayOffset("xr_vector.last",				&this->objects_active, &objects_active._Mylast);
+
 }
 
 void CObjectList::Unload	( )

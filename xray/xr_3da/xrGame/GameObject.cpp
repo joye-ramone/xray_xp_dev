@@ -48,6 +48,18 @@ CGameObject::CGameObject()
 
 	m_callbacks = xr_new<CALLBACK_MAP>();
 	m_anim_mov_ctrl = 0;
+
+	static bool _saved = true;
+	if (!_saved)
+	{
+		_saved = true;
+
+		LogXrayOffset("GameObject.b_spawned", this, &this->m_spawned);
+		LogXrayOffset("GameObject.clsid", this, &this->m_script_clsid);
+		LogXrayOffset("GameObject.story_id", this, &this->m_story_id);
+		LogXrayOffset("GameObject.ai_location", this, &this->m_ai_location);		
+	}
+
 }
 
 CGameObject::~CGameObject()

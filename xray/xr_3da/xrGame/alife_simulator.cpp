@@ -35,7 +35,9 @@ CALifeSimulator::CALifeSimulator		(xrServer *server, shared_str *command_line) :
 	CALifeInteractionManager	(server,alife_section),
 	CALifeSimulatorBase			(server,alife_section)
 {
-	restart_all					();
+	restart_all					();	
+	LogXrayOffset("CALifeSimulatorBase", this, this->get_base());
+
 
 	ai().set_alife				(this);
 

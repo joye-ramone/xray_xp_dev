@@ -254,6 +254,15 @@ CSE_ALifeObject::CSE_ALifeObject			(LPCSTR caSection) : CSE_Abstract(caSection)
 	m_flags.one					();
 	m_story_id					= INVALID_STORY_ID;
 	m_spawn_story_id			= INVALID_SPAWN_STORY_ID;
+
+	static bool _saved = false;
+	if (!_saved)
+	{
+		_saved = true;
+		LogXrayOffset("CSE_AlifeObject.story_id",	this, &this->m_story_id);
+		LogXrayOffset("CSE_AlifeObject.spawn_sid",  this, &this->m_spawn_story_id);
+	}
+
 #ifdef XRGAME_EXPORTS
 	m_alife_simulator			= 0;
 #endif
