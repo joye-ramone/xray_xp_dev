@@ -36,7 +36,9 @@ CAI_Space::CAI_Space				()
 	m_alife_simulator		= 0;
 	m_patrol_path_storage	= 0;
 	m_script_engine			= 0;
+#ifdef LUAICP_COMPAT
 	LogXrayOffset("CALifeSimulatorBase.rel_ai_space", this, &this->m_alife_simulator);
+#endif
 }
 
 void CAI_Space::init				()

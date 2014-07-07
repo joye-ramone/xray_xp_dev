@@ -108,7 +108,7 @@ CSE_Abstract::CSE_Abstract					(LPCSTR caSection)
 //	m_min_spawn_interval		= 0;
 //	m_max_spawn_interval		= 0;
 	m_ini_file					= 0;
-
+#ifdef LUAICP_COMPAT
 	static bool _saved = false;
 	if (!_saved)
 	{
@@ -119,7 +119,7 @@ CSE_Abstract::CSE_Abstract					(LPCSTR caSection)
 		LogXrayOffset("CSE_AlifeObject.section",	this, &this->s_name);
 		LogXrayOffset("CSE_AlifeObject.clsid",		this, &this->m_script_clsid);
 	}
-
+#endif
 	if (pSettings->line_exist(caSection,"custom_data")) {
 		string_path				file_name;
 		FS.update_path			(file_name,"$game_config$",pSettings->r_string(caSection,"custom_data"));

@@ -123,8 +123,9 @@ void CScriptStorage::reinit	()
 	
 	luaL_openlibs(m_virtual_machine);	//RvP
 
-
-#include "luaicp_attach.inc" // added by alpet 05.07.14
+#ifdef LUAICP_COMPAT
+ #include "luaicp_attach.inc" // added by alpet 05.07.14
+#endif
 	
 	if (strstr(Core.Params,"-_g"))
 		file_header			= file_header_new;

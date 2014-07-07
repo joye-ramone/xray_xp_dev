@@ -146,6 +146,7 @@ void LogWinErr			(const char *msg, long err_code)	{
 
 typedef void (WINAPI *OFFSET_UPDATER)(LPCSTR key, u32 ofs);
 
+#ifdef LUAICP_COMPAT
 void	LogXrayOffset(LPCSTR key, LPVOID base, LPVOID pval)
 {
 	u32 ofs = (u32)pval - (u32)base;
@@ -159,6 +160,7 @@ void	LogXrayOffset(LPCSTR key, LPVOID base, LPVOID pval)
 		cbUpdater(key, ofs);
 
 }
+#endif
 
 void SetLogCB			(LogCallback cb)
 {

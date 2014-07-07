@@ -300,7 +300,8 @@ CObject* CObjectList::net_Find			(u32 ID)
 
 void CObjectList::Load		()
 {
-	R_ASSERT				(map_NETID.empty() && objects_active.empty() && destroy_queue.empty() && objects_sleeping.empty());
+	R_ASSERT				(map_NETID.empty() && objects_active.empty() && destroy_queue.empty() && objects_sleeping.empty());	
+#ifdef LUAICP_COMPAT
 	// здесь переменная g_pGameLevel уже не должна быть NULL
 	LogXrayOffset("GameLevel.ObjectList",		g_pGameLevel, this);
 	LogXrayOffset("GameLevel.map_NETID",		g_pGameLevel, &this->map_NETID);
@@ -313,7 +314,7 @@ void CObjectList::Load		()
 
 	LogXrayOffset("xr_vector.first",			&this->objects_active, &objects_active._Myfirst);
 	LogXrayOffset("xr_vector.last",				&this->objects_active, &objects_active._Mylast);
-
+#endif 
 }
 
 void CObjectList::Unload	( )

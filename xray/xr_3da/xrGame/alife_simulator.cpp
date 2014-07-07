@@ -36,8 +36,9 @@ CALifeSimulator::CALifeSimulator		(xrServer *server, shared_str *command_line) :
 	CALifeSimulatorBase			(server,alife_section)
 {
 	restart_all					();	
+#ifdef LUAICP_COMPAT
 	LogXrayOffset("CALifeSimulatorBase", this, this->get_base());
-
+#endif
 
 	ai().set_alife				(this);
 

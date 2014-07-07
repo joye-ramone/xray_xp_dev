@@ -48,7 +48,7 @@ CGameObject::CGameObject()
 
 	m_callbacks = xr_new<CALLBACK_MAP>();
 	m_anim_mov_ctrl = 0;
-
+#ifdef LUAICP_COMPAT
 	static bool _saved = true;
 	if (!_saved)
 	{
@@ -59,7 +59,7 @@ CGameObject::CGameObject()
 		LogXrayOffset("GameObject.story_id", this, &this->m_story_id);
 		LogXrayOffset("GameObject.ai_location", this, &this->m_ai_location);		
 	}
-
+#endif
 }
 
 CGameObject::~CGameObject()

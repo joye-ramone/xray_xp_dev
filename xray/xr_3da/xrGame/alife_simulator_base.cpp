@@ -44,8 +44,10 @@ CALifeSimulatorBase::CALifeSimulatorBase	(xrServer *server, LPCSTR section)
 	m_registry_container		= 0;
 	random().seed				(u32(CPU::QPC() & 0xffffffff));
 	m_can_register_objects		= true;	
+#ifdef LUAICP_COMPAT
 	LogXrayOffset("CALifeSpawnRegistry", this, &this->m_spawns);
 	LogXrayOffset("CALifeObjectRegistry", this, &this->m_objects);
+#endif
 }
 
 CALifeSimulatorBase::~CALifeSimulatorBase	()

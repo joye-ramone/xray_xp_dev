@@ -38,6 +38,7 @@
 #include "../string_table.h"
 #include "../clsid_game.h"
 #include "UIArtefactPanel.h"
+#include <functional>  // добавлено alpet для успешной сборки в VS 2013
 
 #ifdef DEBUG
 #	include "../attachable_item.h"
@@ -63,6 +64,11 @@ using namespace InventoryUtilities;
 //	hud adjust mode
 int			g_bHudAdjustMode			= 0;
 float		g_fHudAdjustValue			= 0.0f;
+#ifdef LUAICP_COMPAT
+	bool __declspec(dllexport) allow_hide_icons = true; // alpet: для возможности внешней блокировки скрытия иконок (используется в NLC6). Никак не влияет на игру для остальных модов.
+#else
+#define allow_hide_icons				1
+#endif
 
 const u32	g_clWhite					= 0xffffffff;
 
@@ -392,21 +398,23 @@ void CUIMainIngameWnd::Update()
 
 	if( !(Device.dwFrame%5) )
 	{
-
+		
 		if(!(Device.dwFrame%30))
 		{
 			bool b_God = (GodMode()||(!Game().local_player)) ? true : Game().local_player->testFlag(GAME_PLAYER_FLAG_INVINCIBLE);
 			if(b_God)
 				SetWarningIconColor	(ewiInvincible,0xffffffff);
 			else
+			if (allow_hide_icons)
 				SetWarningIconColor	(ewiInvincible,0x00ffffff);
 		}
 		// ewiArtefact
 		if( (GameID() == GAME_ARTEFACTHUNT) && !(Device.dwFrame%30) ){
 			bool b_Artefact = (NULL != m_pActor->inventory().ItemFromSlot(ARTEFACT_SLOT));
 			if(b_Artefact)
-				SetWarningIconColor	(ewiArtefact,0xffffffff);
+				SetWarningIconColor	(ewiArtefact,0xffffffff);			
 			else
+			if (allow_hide_icons)
 				SetWarningIconColor	(ewiArtefact,0x00ffffff);
 		}
 

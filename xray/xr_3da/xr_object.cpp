@@ -10,6 +10,7 @@
 #include "x_ray.h"
 #include "GameFont.h"
 
+
 void CObject::MakeMeCrow_internal	()
 {
 	g_pGameLevel->Objects.o_crow	(this);
@@ -106,7 +107,7 @@ CObject::CObject		( )		: ISpatial(g_SpatialSpace)
 	NameObject					= NULL;
 	NameSection					= NULL;
 	NameVisual					= NULL;
-
+#ifdef LUAICP_COMPAT
 	static bool _saved = false;
 	if (!_saved)
 	{
@@ -116,7 +117,7 @@ CObject::CObject		( )		: ISpatial(g_SpatialSpace)
 		LogXrayOffset("GameObject.section", this, &this->NameSection);
 		LogXrayOffset("GameObject.visual",  this, &this->NameVisual);
 	}
-
+#endif
 #ifdef DEBUG
 	dbg_update_shedule			= u32(-1)/2;
 	dbg_update_cl				= u32(-1)/2;
