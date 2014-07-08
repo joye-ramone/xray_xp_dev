@@ -8,6 +8,13 @@
 
 #define EFFECTOR_ZOOM_SECTION "zoom_inertion_effector"
 
+
+#ifdef LUAICP_COMPAT
+ bool __declspec(dllexport)		external_zoom_osc = false; // alpet: флажок внешнего рассчета колебаний прицела (из скриптов).
+#else
+ #define external_zoom_osc 0
+#endif
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -81,6 +88,8 @@ void CEffectorZoomInertion::SetParams	(float disp)
 
 void			CEffectorZoomInertion::CalcNextPoint		()
 {
+	if (external_zoom_osc)
+		return;
 	m_fEpsilon = 2*m_fFloatSpeed;
 
 	float half_disp_radius = m_fDispRadius/2.f;

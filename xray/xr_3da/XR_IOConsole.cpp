@@ -241,13 +241,15 @@ void CConsole::OnPressKey(int dik, BOOL bHold)
 
 	switch (dik) {
 	case DIK_GRAVE:
-		if (bShift) strcpy_s(append,"~"); 
-		else		Hide();
+		if   (bShift) strcpy_s(append,"~"); 
+		else
+			if (!bHold && ( g_pGameLevel ||	(g_pGamePersistent && g_pGamePersistent->m_pMainMenu && g_pGamePersistent->m_pMainMenu->IsActive()) ) )
+					Hide();
+				
 		break;
 	case DIK_ESCAPE:
 		if (!bHold) {
-			if  ( g_pGameLevel || 
-				( g_pGamePersistent && g_pGamePersistent->m_pMainMenu && g_pGamePersistent->m_pMainMenu->IsActive() ))
+			if  ( g_pGameLevel || ( g_pGamePersistent && g_pGamePersistent->m_pMainMenu && g_pGamePersistent->m_pMainMenu->IsActive() ))
 				Hide();
 		}
 		break;
@@ -263,7 +265,7 @@ void CConsole::OnPressKey(int dik, BOOL bHold)
 		if (n_char > 0) n_char--;
 		break;
 	case DIK_RIGHT:
-		if (n_char < xr_strlen(editor)) n_char++;
+		if (n_char < (int) xr_strlen(editor)) n_char++;
 		break;
 	case DIK_HOME:
 		n_char = 0;
@@ -293,7 +295,7 @@ void CConsole::OnPressKey(int dik, BOOL bHold)
 		SelectCommand();
 		break;
 	case DIK_DELETE:
-		if (n_char < xr_strlen(editor))
+		if (n_char < (int) xr_strlen(editor))
 		{
 			memcpy(&editor[n_char], &editor[n_char + 1], xr_strlen(editor) - n_char);			
 		}
@@ -430,6 +432,7 @@ void CConsole::OnPressKey(int dik, BOOL bHold)
 				LPCSTR	clipdata = (LPCSTR)GlobalLock(hmem);
 				strncpy_s (append, clipdata, MAX_LEN-1); 
 //				std::locale loc ("English");
+				bShift = false;
 				for (u32 i=0; i < xr_strlen(append); i++)
 					if (isprint(append[i]))	{
 //						append[i]=char(tolower(append[i],loc));
@@ -459,7 +462,7 @@ void CConsole::OnPressKey(int dik, BOOL bHold)
 	u32	clip	= MAX_LEN-8;
 	if	(xr_strlen(editor) >= clip) editor[clip-1]=0;
 
-	if (n_char > xr_strlen(editor)) n_char = xr_strlen(editor);
+	if (n_char > (int) xr_strlen(editor)) n_char = xr_strlen(editor);
 	bRepeat		= false;
 	rep_time	= 0;
 }

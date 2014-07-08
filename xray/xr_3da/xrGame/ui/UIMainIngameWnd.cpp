@@ -65,9 +65,49 @@ using namespace InventoryUtilities;
 int			g_bHudAdjustMode			= 0;
 float		g_fHudAdjustValue			= 0.0f;
 #ifdef LUAICP_COMPAT
-	bool __declspec(dllexport) allow_hide_icons = true; // alpet: дл€ возможности внешней блокировки скрыти€ иконок (используетс€ в NLC6). Ќикак не вли€ет на игру дл€ остальных модов.
+	CUIStatic * warn_icon_list[8] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
+	
+	bool __declspec(dllexport) external_icon_ctrl = false;			// alpet: дл€ возможности внешнего контрол€ иконок (используетс€ в NLC6 вместо типичных индикаторов). Ќикак не вли€ет на игру дл€ остальных модов.	
+
+	DLL_API CUIMainIngameWnd* WINAPI GetMainIngameWindow()
+	{
+		if (g_hud)
+		{
+			CUI *pUI = g_hud->GetUI();
+			if (pUI)
+				return pUI->UIMainIngameWnd;
+		}
+		return NULL;
+	}
+
+
+	bool __declspec(dllexport) WINAPI SetupGameIcon(u32 icon, u32 cl, float width, float height) // позвол€ет расцветить иконку или изменить еЄ размер
+	{
+		CUIMainIngameWnd *window = GetMainIngameWindow();
+		if (!window)
+			return false;
+
+
+		CUIStatic *sIcon = warn_icon_list[icon];
+		
+		if (sIcon)
+		{			
+			if (width > 0 && height > 0)
+			{
+				sIcon->SetWidth (width);
+				sIcon->SetHeight (height);
+				sIcon->SetStretchTexture(cl > 0);
+			}
+			else 
+				window->SetWarningIconColor((CUIMainIngameWnd::EWarningIcons)icon, cl);
+
+			return true;
+		}
+		return false;
+	}
+
 #else
-#define allow_hide_icons				1
+#define external_icon_ctrl				0
 #endif
 
 const u32	g_clWhite					= 0xffffffff;
@@ -95,6 +135,15 @@ CUIMainIngameWnd::CUIMainIngameWnd()
 	m_artefactPanel				= xr_new<CUIArtefactPanel>();
 	m_pMPChatWnd				= NULL;
 	m_pMPLogWnd					= NULL;	
+#ifdef LUAICP_COMPAT
+	warn_icon_list[ewiWeaponJammed]	= &UIWeaponJammedIcon;	
+	warn_icon_list[ewiRadiation]	= &UIRadiaitionIcon;
+	warn_icon_list[ewiWound]		= &UIWoundIcon;
+	warn_icon_list[ewiStarvation]	= &UIStarvationIcon;
+	warn_icon_list[ewiPsyHealth]	= &UIPsyHealthIcon;
+	warn_icon_list[ewiInvincible]	= &UIInvincibleIcon;	
+	warn_icon_list[ewiArtefact]		= &UIArtefactIcon;
+#endif
 }
 
 #include "UIProgressShape.h"
@@ -405,8 +454,8 @@ void CUIMainIngameWnd::Update()
 			if(b_God)
 				SetWarningIconColor	(ewiInvincible,0xffffffff);
 			else
-			if (allow_hide_icons)
-				SetWarningIconColor	(ewiInvincible,0x00ffffff);
+			if (!external_icon_ctrl)
+				TurnOffWarningIcon (ewiInvincible);
 		}
 		// ewiArtefact
 		if( (GameID() == GAME_ARTEFACTHUNT) && !(Device.dwFrame%30) ){
@@ -414,8 +463,8 @@ void CUIMainIngameWnd::Update()
 			if(b_Artefact)
 				SetWarningIconColor	(ewiArtefact,0xffffffff);			
 			else
-			if (allow_hide_icons)
-				SetWarningIconColor	(ewiArtefact,0x00ffffff);
+			if (!external_icon_ctrl)
+				TurnOffWarningIcon (ewiArtefact);
 		}
 
 		// Armor indicator stuff
@@ -435,9 +484,8 @@ void CUIMainIngameWnd::Update()
 		UpdateActiveItemInfo				();
 
 
-		EWarningIcons i					= ewiWeaponJammed;
-
-		while (i < ewiInvincible)
+		EWarningIcons i					= ewiWeaponJammed;		
+		while (!external_icon_ctrl && i < ewiInvincible)
 		{
 			float value = 0;
 			switch (i)
@@ -898,7 +946,11 @@ bool CUIMainIngameWnd::OnKeyboardPress(int dik)
 		{
 		case DIK_NUMPADMINUS:
 			//.HideAll();
-			HUD().GetUI()->HideGameIndicators();
+			if (!external_icon_ctrl)
+				HUD().GetUI()->HideGameIndicators();
+			else
+				HUD().GetUI()->ShowGameIndicators();
+
 			return true;
 			break;
 		case DIK_NUMPADPLUS:
@@ -966,36 +1018,37 @@ void CUIMainIngameWnd::SetWarningIconColor(EWarningIcons icon, const u32 cl)
 	bool bMagicFlag = true;
 
 	// «адаем цвет требуемой иконки
-	switch(icon)
+	switch (icon)
 	{
 	case ewiAll:
 		bMagicFlag = false;
 	case ewiWeaponJammed:
-		SetWarningIconColor		(&UIWeaponJammedIcon, cl);
+		SetWarningIconColor(&UIWeaponJammedIcon, cl);
 		if (bMagicFlag) break;
 	case ewiRadiation:
-		SetWarningIconColor		(&UIRadiaitionIcon, cl);
+		SetWarningIconColor(&UIRadiaitionIcon, cl);
 		if (bMagicFlag) break;
 	case ewiWound:
-		SetWarningIconColor		(&UIWoundIcon, cl);
+		SetWarningIconColor(&UIWoundIcon, cl);
 		if (bMagicFlag) break;
 	case ewiStarvation:
-		SetWarningIconColor		(&UIStarvationIcon, cl);
-		if (bMagicFlag) break;	
+		SetWarningIconColor(&UIStarvationIcon, cl);
+		if (bMagicFlag) break;
 	case ewiPsyHealth:
-		SetWarningIconColor		(&UIPsyHealthIcon, cl);
+		SetWarningIconColor(&UIPsyHealthIcon, cl);
 		if (bMagicFlag) break;
 	case ewiInvincible:
-		SetWarningIconColor		(&UIInvincibleIcon, cl);
+		SetWarningIconColor(&UIInvincibleIcon, cl);
 		if (bMagicFlag) break;
 		break;
 	case ewiArtefact:
-		SetWarningIconColor		(&UIArtefactIcon, cl);
+		SetWarningIconColor(&UIArtefactIcon, cl);
 		break;
 
 	default:
 		R_ASSERT(!"Unknown warning icon type");
 	}
+
 }
 
 void CUIMainIngameWnd::TurnOffWarningIcon(EWarningIcons icon)
