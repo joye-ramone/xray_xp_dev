@@ -49,6 +49,7 @@
 #include "map_hint.h"
 #include "UIColorAnimatorWrapper.h"
 #include "../game_news.h"
+#include "../pch_script.h"
 
 #ifdef DEBUG
 #	include "../debug_renderer.h"
@@ -60,17 +61,19 @@ void test_update();
 
 
 using namespace InventoryUtilities;
+using namespace luabind;
 
 //	hud adjust mode
 int			g_bHudAdjustMode			= 0;
 float		g_fHudAdjustValue			= 0.0f;
-#ifdef LUAICP_COMPAT
+#ifdef SCRIPT_ICONS_CONTROL
 	CUIStatic * warn_icon_list[8] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 	
 	bool __declspec(dllexport) external_icon_ctrl = false;			// alpet: для возможности внешнего контроля иконок (используется в NLC6 вместо типичных индикаторов). Никак не влияет на игру для остальных модов.	
 
-	DLL_API CUIMainIngameWnd* WINAPI GetMainIngameWindow()
+	__declspec(dllexport) CUIMainIngameWnd* WINAPI GetMainIngameWindow()
 	{
+
 		if (g_hud)
 		{
 			CUI *pUI = g_hud->GetUI();
@@ -81,7 +84,7 @@ float		g_fHudAdjustValue			= 0.0f;
 	}
 
 
-	bool __declspec(dllexport) WINAPI SetupGameIcon(u32 icon, u32 cl, float width, float height) // позволяет расцветить иконку или изменить её размер
+	bool __declspec(dllexport) SetupGameIcon(u32 icon, u32 cl, float width, float height) // позволяет расцветить иконку или изменить её размер
 	{
 		CUIMainIngameWnd *window = GetMainIngameWindow();
 		if (!window)
@@ -101,6 +104,7 @@ float		g_fHudAdjustValue			= 0.0f;
 			else 
 				window->SetWarningIconColor((CUIMainIngameWnd::EWarningIcons)icon, cl);
 
+			external_icon_ctrl = true;
 			return true;
 		}
 		return false;
@@ -993,6 +997,20 @@ void CUIMainIngameWnd::ReceiveNews(GAME_NEWS_DATA* news)
 
 	HUD().GetUI()->m_pMessagesWnd->AddIconedPdaMessage(*(news->texture_name), news->tex_rect, news->SingleLineText(), news->show_time);
 }
+
+#pragma optimize("s",on)
+void CUIMainIngameWnd::script_register(lua_State *L)
+{
+#ifdef SCRIPT_ICONS_CONTROL
+	module(L)
+		[
+			// class_< CUIMainIngameWnd >("CUIMainIngameWnd")
+			// .def("turn_off_icon", &TurnOffWarningIcon),
+			def("setup_game_icon", &SetupGameIcon)
+		];
+#endif
+}
+#pragma optimize("",on)
 
 void CUIMainIngameWnd::SetWarningIconColor(CUIStatic* s, const u32 cl)
 {

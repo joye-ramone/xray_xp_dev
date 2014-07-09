@@ -1,7 +1,6 @@
 #pragma once
 
 class CInventory;
-#include "../build_config_defines.h"
 #include "UIDialogWnd.h"
 #include "UIStatic.h"
 

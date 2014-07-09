@@ -1,5 +1,5 @@
 #pragma once
-#include "build_config_defines.h"
+#include "../../build_config_defines.h"
 
 #define CMD_START	(1<<0)
 #define CMD_STOP	(1<<1)

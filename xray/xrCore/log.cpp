@@ -4,6 +4,7 @@
 #include <time.h>
 #include "resource.h"
 #include "log.h"
+#include "../../build_config_defines.h"
 
 extern BOOL					LogExecCB		= TRUE;
 static string_path			logFName		= "engine.log";

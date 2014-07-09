@@ -24,7 +24,7 @@
 #include "UI/UIStatic.h"
 #include "CharacterPhysicsSupport.h"
 #include "InventoryBox.h"
-#include "build_config_defines.h"
+#include "../../build_config_defines.h"
 
 #ifdef INV_NEW_SLOTS_SYSTEM
 	#include "silencer.h"

@@ -32,7 +32,7 @@ using namespace InventoryUtilities;
 #include "UIDragDropListEx.h"
 #include "UIOutfitSlot.h"
 #include "UI3tButton.h"
-#include "../build_config_defines.h"
+#include "../../../build_config_defines.h"
 
 #define				INVENTORY_ITEM_XML		"inventory_item.xml"
 #define				INVENTORY_XML			"inventory_new.xml"

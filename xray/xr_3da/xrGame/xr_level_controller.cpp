@@ -5,7 +5,7 @@
 #include "../xr_ioc_cmd.h"
 #include "xr_level_controller.h"
 #include "string_table.h"
-#include "build_config_defines.h"
+#include "../../build_config_defines.h"
 
 _binding	g_key_bindings		[bindings_count]; 
 _key_group	g_current_keygroup	= _sp;

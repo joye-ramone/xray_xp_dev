@@ -7,7 +7,6 @@
 #include <ctime>
 //-RvP
 
-#include "../xr_3da/xrGame/build_config_defines.h"
 
 #define VPUSH(a)	a.x,a.y,a.z
 
@@ -22,9 +21,8 @@ void 	XRCORE_API		Log			(LPCSTR msg, const Fvector& dop);
 void 	XRCORE_API		Log			(LPCSTR msg, const Fmatrix& dop);
 void 	XRCORE_API		LogWinErr	(LPCSTR msg, long 			err_code);
 
-#ifdef LUAICP_COMPAT
 void	XRCORE_API		LogXrayOffset(LPCSTR key, LPVOID base, LPVOID pval);
-#endif
+
 
 typedef void	( * LogCallback)	(LPCSTR string);
 void	XRCORE_API				SetLogCB	(LogCallback cb);

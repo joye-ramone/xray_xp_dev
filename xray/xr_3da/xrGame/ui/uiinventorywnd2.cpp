@@ -13,7 +13,7 @@
 #include "UIDragDropListEx.h"
 #include "UI3tButton.h"
 
-#include "../build_config_defines.h"
+#include "../../../build_config_defines.h"
 
 CUICellItem* CUIInventoryWnd::CurrentItem()
 {

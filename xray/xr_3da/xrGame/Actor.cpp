@@ -63,7 +63,7 @@
 #include "script_callback_ex.h"
 #include "InventoryBox.h"
 #include "location_manager.h"
-#include "build_config_defines.h"
+#include "../../build_config_defines.h"
 
 const u32		patch_frames	= 50;
 const float		respawn_delay	= 1.f;
@@ -1678,11 +1678,19 @@ bool CActor::use_center_to_aim			() const
 
 
 
-bool CActor::can_attach			(const CInventoryItem *inventory_item) const
+bool CActor::can_attach(const CInventoryItem *inventory_item) const
 {
 	const CAttachableItem	*item = smart_cast<const CAttachableItem*>(inventory_item);
-	if (!item || /*!item->enabled() ||*/ !item->can_be_attached())
-		return			(false);
+	__try
+	{
+
+		if (!item || /*!item->enabled() ||*/ !item->can_be_attached())
+			return			(false);
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER)
+	{
+		return false;
+	}
 
 	//можно ли присоединять объекты такого типа
 	if( m_attach_item_sections.end() == std::find(m_attach_item_sections.begin(),m_attach_item_sections.end(),inventory_item->object().cNameSect()) )

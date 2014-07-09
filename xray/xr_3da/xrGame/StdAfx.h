@@ -1,6 +1,7 @@
 #pragma once
 
 #pragma warning(disable:4995)
+
 #include "../stdafx.h"
 #include <dplay8.h>
 #pragma warning(default:4995)
