@@ -4,13 +4,34 @@
 
 #include "stdafx.h"
 #include "EffectorZoomInertion.h"
+#include "pch_script.h"
 
 
 #define EFFECTOR_ZOOM_SECTION "zoom_inertion_effector"
 
 
-#ifdef LUAICP_COMPAT
+#ifdef SCRIPT_EZI_CONTROL
+#include "Actor.h"
+
  bool __declspec(dllexport)		external_zoom_osc = false; // alpet: флажок внешнего рассчета колебаний прицела (из скриптов).
+
+ void switch_zoom_osc (bool bExternal) 
+ {
+	 external_zoom_osc = bExternal;
+ }
+
+ CEffectorZoomInertion*	FindEffectorZoomInertion()
+ {
+	 
+	 CActor *actor = Actor();
+	 if (!actor)
+		 return  NULL;	 
+	 const CEffectorCam* eff = actor->Cameras().GetCamEffector(eCEZoom);
+	 if (eff)
+		 return (CEffectorZoomInertion*)(eff);
+	 return NULL;
+ }
+
 #else
  #define external_zoom_osc 0
 #endif
@@ -28,7 +49,7 @@ CEffectorZoomInertion::CEffectorZoomInertion	() : CEffectorCam(eCEZoom,100000.f)
 
 CEffectorZoomInertion::~CEffectorZoomInertion	()
 {
-
+	// Msg("[~T]. #DBG: CEffectorZoomInertion in destructor, this = %p", this);
 }
 
 void CEffectorZoomInertion::LoadParams			(LPCSTR Section, LPCSTR Prefix)
@@ -141,4 +162,38 @@ BOOL CEffectorZoomInertion::Process		(Fvector &p, Fvector &d, Fvector &n,
 	m_dwTimePassed += Device.dwTimeDelta;
 
 	return TRUE;
+}
+
+using namespace luabind;
+
+#pragma optimize("s",on)
+void CEffectorZoomInertion::script_register(lua_State *L)
+{
+#ifdef  SCRIPT_EZI_CONTROL
+
+	module(L)
+		[
+			
+			class_ < CEffectorZoomInertion >("CEffectorZoomInertion")
+			.def_readwrite ("float_speed",		&CEffectorZoomInertion::m_fFloatSpeed)
+			.def_readwrite ("disp_radius",		&CEffectorZoomInertion::m_fDispRadius)
+			.def_readwrite ("epsilon",			&CEffectorZoomInertion::m_fEpsilon)
+			.def_readwrite ("current_point",	&CEffectorZoomInertion::m_vCurrentPoint)
+			.def_readwrite ("last_point",		&CEffectorZoomInertion::m_vLastPoint)
+			.def_readwrite ("target_point",		&CEffectorZoomInertion::m_vTargetPoint)
+			.def_readwrite ("target_vel",		&CEffectorZoomInertion::m_vTargetVel)
+			// settings for real-time modify
+			.def_readwrite ("camera_move_epsilon",	&CEffectorZoomInertion::m_fCameraMoveEpsilon)
+			.def_readwrite ("disp_min",				&CEffectorZoomInertion::m_fDispMin)
+			.def_readwrite ("speed_min",  			&CEffectorZoomInertion::m_fSpeedMin)
+			.def_readwrite ("zoom_aim_disp_k",		&CEffectorZoomInertion::m_fZoomAimingDispK)
+			.def_readwrite ("zoom_aim_speed_k",		&CEffectorZoomInertion::m_fZoomAimingSpeedK)
+			.def_readwrite ("delta_time",			&CEffectorZoomInertion::m_dwDeltaTime)			
+
+			// */
+			,
+			def("find_effector_zi", &FindEffectorZoomInertion),
+			def("switch_zoom_osc", &switch_zoom_osc)			
+		];
+#endif
 }
