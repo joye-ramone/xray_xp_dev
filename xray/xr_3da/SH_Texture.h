@@ -48,6 +48,7 @@ public:
 
 	void								Preload			();
 	void								Load			();
+	void								LoadImpl		();
 	void								PostLoad		();
 	void								Unload			(void);
 //	void								Apply			(u32 dwStage);

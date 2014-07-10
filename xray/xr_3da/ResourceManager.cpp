@@ -61,6 +61,33 @@ IBlender* CResourceManager::_FindBlender		(LPCSTR Name)
 	else						return I->second;
 }
 
+CTexture*	CResourceManager::_FindTexture(LPCSTR Name)
+{
+	// copypaste from _CreateTexture
+	if (0 == xr_strcmp(Name, "null"))	return 0;
+	R_ASSERT(Name && Name[0]);
+	string_path		filename;
+	strcpy_s(filename, Name); //. andy if (strext(Name)) *strext(Name)=0;
+	fix_texture_name(filename);
+
+	LPSTR N = LPSTR(filename);
+	char *ch = strchr(N, (char)"*");
+	if (NULL == ch) // no wildcard?
+	{
+		map_TextureIt I = m_textures.find(N);
+		if (I != m_textures.end())	
+			return	I->second;
+	}
+	else
+	// alpet: test for wildcard matching
+	for (map_TextureIt t = m_textures.begin(); t != m_textures.end(); t++ )
+		if (strstr(t->second->cName.c_str(), N))
+			return t->second;
+
+	return NULL;
+}
+
+
 void	CResourceManager::ED_UpdateBlender	(LPCSTR Name, IBlender* data)
 {
 	LPSTR N = LPSTR(Name);

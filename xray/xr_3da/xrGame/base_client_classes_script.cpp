@@ -14,6 +14,8 @@
 #include "../skeletonanimated.h"
 #include "ai/stalker/ai_stalker.h"
 #include "../../xrNetServer/net_utils.h"
+#include "../ResourceManager.h"
+#include "../device.h"
 
 using namespace luabind;
 
@@ -105,7 +107,7 @@ void CObjectScript::script_register		(lua_State *L)
 		class_<CGameObject,bases<DLL_Pure,ISheduled,ICollidable,IRenderable>,CGameObjectWrapper>("CGameObject")
 			.def(constructor<>())
 			.def("_construct",			&CGameObject::_construct,&CGameObjectWrapper::_construct_static)
-			.def("Visual",				&CGameObject::Visual)
+			.def("Visual",				&CGameObject::Visual)			
 /*
 			.def("spatial_register",	&CGameObject::spatial_register,	&CGameObjectWrapper::spatial_register_static)
 			.def("spatial_unregister",	&CGameObject::spatial_unregister,	&CGameObjectWrapper::spatial_unregister_static)
@@ -165,6 +167,8 @@ void CKinematicsAnimated_PlayCycle(CKinematicsAnimated* sa, LPCSTR anim)
 	sa->PlayCycle(anim);
 }
 
+
+
 void CKinematicsAnimatedScript::script_register		(lua_State *L)
 {
 	module(L)
@@ -182,6 +186,67 @@ void CBlendScript::script_register		(lua_State *L)
 			//			.def(constructor<>())
 		];
 }
+
+// alpet ======================== SCRIPT_TEXTURE_CONTROL BEGIN =========== 
+
+CTexture* script_texture_create(LPCSTR name)
+{
+	return Device.Resources->_CreateTexture(name);
+}
+
+CTexture* script_texture_find(LPCSTR name)
+{
+	return Device.Resources->_FindTexture(name);
+}
+
+void script_texture_delete(CTexture *t)
+{
+	xr_delete(t);	
+}
+
+void script_texture_setname (CTexture *t, LPCSTR name)
+{
+	t->set_name(name);
+}
+
+
+void script_texture_load(CTexture *t)
+{
+	t->Load();
+}
+
+void script_texture_unload(CTexture *t)
+{
+	t->Unload();
+}
+
+
+
+void CTextureScript::script_register(lua_State *L)
+{
+	// added by alpet 10.07.14
+	module(L)
+		[
+			class_<CTexture>("CTexture")			
+		];
+}
+
+
+void CResourceManagerScript::script_register(lua_State *L)
+{
+	// added by alpet 10.07.14
+	module(L) [ 
+		// added by alpet
+		def("texture_create",	&script_texture_create),
+		def("texture_delete",	&script_texture_delete),
+		def("texture_find",		&script_texture_find),
+		def("texture_load",		&script_texture_load),
+		def("texture_unload",	&script_texture_unload),
+		def("texture_set_name",	&script_texture_setname)
+	];
+}
+
+// alpet ======================== SCRIPT_TEXTURE_CONTROL END =========== 
 
 /*
 void CKinematicsScript::script_register		(lua_State *L)

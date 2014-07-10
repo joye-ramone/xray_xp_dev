@@ -14,6 +14,12 @@
 #define		PRIORITY_NORMAL	8
 #define		PRIORITY_LOW	4
 
+typedef int (WINAPI *OBJECT_METHOD) (PVOID pThis);
+
+OBJECT_METHOD ENGINE_API TextureLoadCapture = NULL;
+OBJECT_METHOD ENGINE_API TextureUnloadCapture = NULL;
+
+
 void resptrcode_texture::create(LPCSTR _name)
 {
 	_set(Device.Resources->_CreateTexture(_name));
@@ -153,7 +159,17 @@ void CTexture::Preload	()
 	m_material = Device.Resources->m_textures_description.GetMaterial(cName);
 }
 
-void CTexture::Load		()
+void CTexture::Load()
+{
+	int result = 0;
+	if (TextureLoadCapture)
+		result = TextureLoadCapture ((PVOID)this);
+
+	if (result <= 0)
+		LoadImpl();
+}
+
+void CTexture::LoadImpl		()
 {
 	flags.bLoaded					= true;
 	desc_cache						= 0;
@@ -286,6 +302,9 @@ void CTexture::Unload	()
 	string_path				msg_buff;
 	sprintf_s				(msg_buff,sizeof(msg_buff),"* Unloading texture [%s] pSurface RefCount=",cName.c_str());
 #endif // DEBUG
+	if (TextureUnloadCapture)
+		TextureUnloadCapture((PVOID)this);
+
 
 //.	if (flags.bLoaded)		Msg		("* Unloaded: %s",cName.c_str());
 	
@@ -307,7 +326,8 @@ void CTexture::Unload	()
 	xr_delete		(pAVI);
 	xr_delete		(pTheora);
 
-	bind			= fastdelegate::FastDelegate1<u32>(this,&CTexture::apply_load);
+	bind			= fastdelegate::FastDelegate1<u32>(this,&CTexture::
+		apply_load);
 }
 
 void CTexture::desc_update	()
