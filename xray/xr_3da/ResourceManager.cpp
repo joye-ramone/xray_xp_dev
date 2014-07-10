@@ -71,18 +71,21 @@ CTexture*	CResourceManager::_FindTexture(LPCSTR Name)
 	fix_texture_name(filename);
 
 	LPSTR N = LPSTR(filename);
-	char *ch = strchr(N, (char)"*");
+	char *ch = strstr(N, "*");
 	if (NULL == ch) // no wildcard?
 	{
 		map_TextureIt I = m_textures.find(N);
-		if (I != m_textures.end())	
-			return	I->second;
+		if (I != m_textures.end())	return	I->second;
 	}
 	else
-	// alpet: test for wildcard matching
-	for (map_TextureIt t = m_textures.begin(); t != m_textures.end(); t++ )
+	{
+		// alpet: test for wildcard matching
+		ch[0] = 0; // remove *
+
+		for (map_TextureIt t = m_textures.begin(); t != m_textures.end(); t++)
 		if (strstr(t->second->cName.c_str(), N))
 			return t->second;
+	}
 
 	return NULL;
 }
