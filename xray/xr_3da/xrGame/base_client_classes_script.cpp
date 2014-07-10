@@ -16,6 +16,7 @@
 #include "../../xrNetServer/net_utils.h"
 #include "../ResourceManager.h"
 #include "../device.h"
+#include "script_game_object.h"
 
 using namespace luabind;
 
@@ -152,6 +153,50 @@ void CObjectScript::script_register		(lua_State *L)
 	];
 }
 
+// alpet: выборка текстуры из визуала по индексу
+CTexture* script_visual_get_texture(CScriptGameObject *script_obj, int n)
+{	
+	IRender_Visual* v = script_obj->object().Visual();
+	if (!v)
+		return NULL; // not have visual
+	
+	CKinematics *k = smart_cast<CKinematics*> (v);
+	if (!k)
+		return NULL;
+
+
+	CTexture* list[256] = { 0 };
+	int tex_count = 0;
+
+	list[n] = NULL;		
+
+	n = ( n > 255 ) ? 255 : n;
+
+	// у визуала есть какие-то дети )
+	for (u32 cn = 0; cn < k->children.size(); cn++)
+	{
+		v = k->children.at(cn);
+
+		Shader* s = v->shader._get();
+		if (s->E[0])
+		{
+			ShaderElement* E = s->E[0]._get();
+			for (int p = 0; p < 2; p++)
+			if (E->passes[p]._get())
+			{
+				SPass* pass = E->passes[p]._get();
+				STextureList* tlist = pass->T._get();
+				if (tlist)
+				for (u32 t = 0; t < tlist->size() && tex_count <= n; t++)
+					list[tex_count++] = tlist->at(t).second._get();
+			}
+		}
+
+	}
+
+	return list[n];
+}
+
 void IRender_VisualScript::script_register		(lua_State *L)
 {
 	module(L)
@@ -204,6 +249,11 @@ void script_texture_delete(CTexture *t)
 	xr_delete(t);	
 }
 
+LPCSTR script_texture_getname(CTexture *t)
+{
+	return t->cName.c_str();
+}
+
 void script_texture_setname (CTexture *t, LPCSTR name)
 {
 	t->set_name(name);
@@ -237,12 +287,14 @@ void CResourceManagerScript::script_register(lua_State *L)
 	// added by alpet 10.07.14
 	module(L) [ 
 		// added by alpet
-		def("texture_create",	&script_texture_create),
-		def("texture_delete",	&script_texture_delete),
-		def("texture_find",		&script_texture_find),
-		def("texture_load",		&script_texture_load),
-		def("texture_unload",	&script_texture_unload),
-		def("texture_set_name",	&script_texture_setname)
+		def("texture_create",		&script_texture_create),
+		def("texture_delete",		&script_texture_delete),
+		def("texture_find",			&script_texture_find),
+		def("texture_from_visual",  &script_visual_get_texture),
+		def("texture_load",			&script_texture_load),
+		def("texture_unload",		&script_texture_unload),
+		def("texture_get_name",		&script_texture_getname),
+		def("texture_set_name",		&script_texture_setname)
 	];
 }
 
