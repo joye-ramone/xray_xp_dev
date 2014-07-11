@@ -6555,9 +6555,6 @@
     <ClInclude Include="script_additional_libs.h">
       <Filter>AI\AScript\ScriptEngine</Filter>
     </ClInclude>
-    <ClInclude Include="build_config_defines.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="raypick.h" />
   </ItemGroup>
   <ItemGroup>

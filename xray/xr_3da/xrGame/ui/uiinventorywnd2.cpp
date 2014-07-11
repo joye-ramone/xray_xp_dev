@@ -284,7 +284,7 @@ bool CUIInventoryWnd::ToBag(CUICellItem* itm, bool b_use_cursor_pos)
 		/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
 
 #ifdef INV_RUCK_UNLIMITED_FIX		
-		if (result = new_owner->CanSetItem(i) )
+		if (result = new_owner->CanSetItem(i) || new_owner->IsAutoGrow() )
 		{
 #endif
 			if(b_use_cursor_pos)

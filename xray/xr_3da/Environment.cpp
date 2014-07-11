@@ -23,7 +23,7 @@
 #include "D3DUtils.h"
 #include "xrCore.h"
 
-#include "build_config_defines.h"
+#include "../../build_config_defines.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction

@@ -831,13 +831,8 @@ void CCar::CreateSkeleton(CSE_Abstract	*po)
 		K->CalculateBones	();
 	}
 
-#pragma todo(" replace below by P_build_Shell or call inherited")
-	m_pPhysicsShell		= P_create_Shell();
-	m_pPhysicsShell->build_FromKinematics(smart_cast<CKinematics*>(Visual()),&bone_map);
-	m_pPhysicsShell->set_PhysicsRefObject(this);
-	m_pPhysicsShell->mXFORM.set(XFORM());
-	m_pPhysicsShell->Activate(true);
-	m_pPhysicsShell->SetAirResistance(0.f,0.f);
+	// by Real Wolf 11.07.2014.
+	m_pPhysicsShell = P_build_Shell(this, true, &bone_map);
 	m_pPhysicsShell->SetPrefereExactIntegration();
 
 	ApplySpawnIniToPhysicShell(&po->spawn_ini(),m_pPhysicsShell,false);

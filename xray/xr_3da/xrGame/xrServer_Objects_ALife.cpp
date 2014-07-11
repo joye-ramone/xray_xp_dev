@@ -13,6 +13,7 @@
 #include "game_base_space.h"
 #include "object_broker.h"
 #include "restriction_space.h"
+#include "../../build_config_defines.h"
 
 #ifndef AI_COMPILER
 #	include "character_info.h"
@@ -255,6 +256,7 @@ CSE_ALifeObject::CSE_ALifeObject			(LPCSTR caSection) : CSE_Abstract(caSection)
 	m_story_id					= INVALID_STORY_ID;
 	m_spawn_story_id			= INVALID_SPAWN_STORY_ID;
 
+#ifdef LUAICP_COMPAT
 	static bool _saved = false;
 	if (!_saved)
 	{
@@ -262,6 +264,7 @@ CSE_ALifeObject::CSE_ALifeObject			(LPCSTR caSection) : CSE_Abstract(caSection)
 		LogXrayOffset("CSE_AlifeObject.story_id",	this, &this->m_story_id);
 		LogXrayOffset("CSE_AlifeObject.spawn_sid",  this, &this->m_spawn_story_id);
 	}
+#endif
 
 #ifdef XRGAME_EXPORTS
 	m_alife_simulator			= 0;
