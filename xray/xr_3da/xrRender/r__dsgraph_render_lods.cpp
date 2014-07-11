@@ -24,7 +24,7 @@ void R_dsgraph_structure::r_dsgraph_render_lods	(bool _setup_zb, bool _clear)
 	FLOD*						firstV		= (FLOD*)lstLODs[0].pVisual;
 	//Msg						("dbg_lods: shid[%d],firstV[%X]",shid,u32((void*)firstV));
 	//Msg						("dbg_lods: shader[%X]",u32((void*)firstV->shader._get()));
-	ref_selement				cur_S		= firstV->shader->E[shid];
+	ref_selement				cur_S		= firstV->shader_ref->E[shid];
 	//Msg						("dbg_lods: shader_E[%X]",u32((void*)cur_S._get()));
 	int							cur_count	= 0;
 	u32							vOffset		;
@@ -35,10 +35,10 @@ void R_dsgraph_structure::r_dsgraph_render_lods	(bool _setup_zb, bool _clear)
 	{
 		// sort out redundancy
 		R_dsgraph::_LodItem		&P		= lstLODs[i];
-		if (P.pVisual->shader->E[shid]==cur_S)	cur_count++	;
+		if (P.pVisual->shader_ref->E[shid]==cur_S)	cur_count++	;
 		else {
 			lstLODgroups.push_back	(cur_count);
-			cur_S				= P.pVisual->shader->E[shid];
+			cur_S				= P.pVisual->shader_ref->E[shid];
 			cur_count			= 1;
 		}
 
@@ -98,7 +98,7 @@ void R_dsgraph_structure::r_dsgraph_render_lods	(bool _setup_zb, bool _clear)
 	RCache.set_xform_world		(Fidentity);
 	for (u32 g=0; g<lstLODgroups.size(); g++)	{
 		int p_count				= lstLODgroups[g];
-		RCache.set_Element		(lstLODs[current].pVisual->shader->E[shid]);
+		RCache.set_Element		(lstLODs[current].pVisual->shader_ref->E[shid]);
 		RCache.set_Geometry		(firstV->geom);
 		RCache.Render			(D3DPT_TRIANGLELIST,vOffset,0,4*p_count,0,2*p_count);
 		RCache.stat.r.s_flora_lods.add	(4*p_count);

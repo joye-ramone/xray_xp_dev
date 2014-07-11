@@ -637,7 +637,7 @@ void	R_dsgraph_structure::r_dsgraph_render_R1_box	(IRender_Sector* _S, Fbox& BB,
 		default:
 			{
 				// Renderable visual
-				ShaderElement* E	= V->shader->E[sh]._get();
+				ShaderElement* E	= V->shader_ref->E[sh]._get();
 				if (E) {
 					for (u32 pass=0; pass<E->passes.size(); pass++)
 					{

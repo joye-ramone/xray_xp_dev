@@ -27,6 +27,7 @@ void CUIInventoryWnd::EatItem(PIItem itm)
 	PlaySnd									(eInvItemUse);
 }
 
+#if defined(INV_NEW_SLOTS_SYSTEM)
 bool is_quick_slot(u8 slot)
 {
 	switch (slot)
@@ -43,6 +44,7 @@ bool is_quick_slot(u8 slot)
 
 	return false;
 }
+#endif
 
 #include "../Medkit.h"
 #include "../Antirad.h"

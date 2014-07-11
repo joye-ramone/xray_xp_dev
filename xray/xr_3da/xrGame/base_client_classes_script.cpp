@@ -16,7 +16,9 @@
 #include "../../xrNetServer/net_utils.h"
 #include "../ResourceManager.h"
 #include "../device.h"
+#include "../Render.h"
 #include "script_game_object.h"
+
 
 using namespace luabind;
 
@@ -153,49 +155,7 @@ void CObjectScript::script_register		(lua_State *L)
 	];
 }
 
-// alpet: выборка текстуры из визуала по индексу
-CTexture* script_visual_get_texture(CScriptGameObject *script_obj, int n)
-{	
-	IRender_Visual* v = script_obj->object().Visual();
-	if (!v)
-		return NULL; // not have visual
-	
-	CKinematics *k = smart_cast<CKinematics*> (v);
-	if (!k)
-		return NULL;
 
-
-	CTexture* list[256] = { 0 };
-	int tex_count = 0;
-
-	list[n] = NULL;		
-
-	n = ( n > 255 ) ? 255 : n;
-
-	// у визуала есть какие-то дети )
-	for (u32 cn = 0; cn < k->children.size(); cn++)
-	{
-		v = k->children.at(cn);
-
-		Shader* s = v->shader._get();
-		if (s->E[0])
-		{
-			ShaderElement* E = s->E[0]._get();
-			for (int p = 0; p < 2; p++)
-			if (E->passes[p]._get())
-			{
-				SPass* pass = E->passes[p]._get();
-				STextureList* tlist = pass->T._get();
-				if (tlist)
-				for (u32 t = 0; t < tlist->size() && tex_count <= n; t++)
-					list[tex_count++] = tlist->at(t).second._get();
-			}
-		}
-
-	}
-
-	return list[n];
-}
 
 void IRender_VisualScript::script_register		(lua_State *L)
 {
@@ -203,7 +163,7 @@ void IRender_VisualScript::script_register		(lua_State *L)
 	[
 		class_<IRender_Visual>("IRender_Visual")
 			.def(constructor<>())
-			.def("dcast_PKinematicsAnimated",&IRender_Visual::dcast_PKinematicsAnimated)
+			.def("dcast_PKinematicsAnimated", &IRender_Visual::dcast_PKinematicsAnimated)			
 	];
 }
 
@@ -233,6 +193,75 @@ void CBlendScript::script_register		(lua_State *L)
 }
 
 // alpet ======================== SCRIPT_TEXTURE_CONTROL BEGIN =========== 
+
+// alpet: выборка текстуры из визуала по индексу
+CTexture* script_visual_getset_texture(CScriptGameObject *script_obj, int n, LPCSTR replace)
+{
+	IRender_Visual* parent_v = script_obj->object().Visual();
+	if (!parent_v)
+		return NULL; // not have visual
+
+	CKinematics *k = dynamic_cast<CKinematics*> (parent_v);
+	if (!k)
+		return NULL;
+
+
+	CTexture* list[256] = { 0 };
+	int tex_count = 0;
+
+	list[n] = NULL;
+
+	n = (n > 255) ? 255 : n;
+
+	u32 verbose = 1;
+
+	// визуал выстраивается иерархически - есть потомки и предки
+	for (u32 cn = 0; cn < k->children.size(); cn++)
+	{
+		IRender_Visual*  child_v = k->children.at(cn);
+
+		Shader* s = child_v->shader_ref._get();
+		if (verbose > 5) Msg("# Shader *S = 0x%p name = <%s>, child_num = %d ", s, child_v->shader_name, cn); // shader расшарен для всех визуалов с одинаковыми текстурами и моделью
+
+		if (s->E[0]._get()) // обычно в первом элементе находится исчерпывающий список текстур 
+		{
+			ShaderElement* E = s->E[0]._get();
+			if (verbose > 5) Msg("#  ShaderElement *E = 0x%p", E);
+			for (u32 p = 0; p < E->passes.size(); p++)
+			if (E->passes[p]._get())
+			{
+				SPass* pass = E->passes[p]._get();
+				if (verbose > 5) Msg("#   SPass *pass = 0x%p", pass);
+				STextureList* tlist = pass->T._get();
+				if (!tlist) continue;
+				if (verbose > 5) Msg("#   STextureList *tlist = 0x%p, size = %d ", tlist, tlist->size());
+
+				for (u32 t = 0; t < tlist->size() && tex_count <= n; t++)
+					list[tex_count++] = tlist->at(t).second._get();
+			}
+		}
+
+		if (tex_count && replace && strlen(child_v->shader_name))
+		{
+			// здесь производится замена текстуры визуала, через фактическое пересоздание шейдера 
+			s32 last_skinning = Render->m_skinning;
+
+			Render->shader_option_skinning(1); // черт значит зачем нужно заменять флаг, но при дефолтном -1 вместо наложения текстуры будет покраска визуала  серым 
+			child_v->shader_ref.destroy();
+			child_v->shader_ref.create(child_v->shader_name, replace);
+
+			Render->shader_option_skinning(last_skinning);
+		}
+
+	}
+
+	return list[n];
+}
+
+CTexture* script_visual_get_texture(CScriptGameObject *script_obj, int n)
+{
+	return script_visual_getset_texture(script_obj, n, NULL);
+}
 
 CTexture* script_texture_create(LPCSTR name)
 {
@@ -278,6 +307,15 @@ void CTextureScript::script_register(lua_State *L)
 	module(L)
 		[
 			class_<CTexture>("CTexture")			
+			.def("delete",				&script_texture_delete)
+			.def("find",				&script_texture_find)
+			.def("load",				&script_texture_load)
+			.def("unload",				&script_texture_unload)
+			.def("get_name",			&script_texture_getname)
+			.def("set_name",			&script_texture_setname)
+			.def("get_surface",			&CTexture::surface_get)
+			.def_readonly("ref_count",  &CTexture::dwReference)
+			
 		];
 }
 
@@ -291,6 +329,7 @@ void CResourceManagerScript::script_register(lua_State *L)
 		def("texture_delete",		&script_texture_delete),
 		def("texture_find",			&script_texture_find),
 		def("texture_from_visual",  &script_visual_get_texture),
+		def("texture_to_visual",	&script_visual_getset_texture),
 		def("texture_load",			&script_texture_load),
 		def("texture_unload",		&script_texture_unload),
 		def("texture_get_name",		&script_texture_getname),

@@ -50,7 +50,7 @@ r_aabb_ssa		r_pixel_calculator::calculate	(IRender_Visual* V)	{
 
 		// render-0
 		Device.Clear				();	// clear-ZB
-		RCache.set_Shader			(V->shader);
+		RCache.set_Shader			(V->shader_ref);
 		V->Render					(1.f);
 
 		// render-1

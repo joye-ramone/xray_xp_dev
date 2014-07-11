@@ -252,5 +252,8 @@ class_<CScriptGameObject> &script_register_game_object1(class_<CScriptGameObject
 		.def("invulnerable",				(bool (CScriptGameObject::*)() const)&CScriptGameObject::invulnerable)
 		.def("invulnerable",				(void (CScriptGameObject::*)(bool))&CScriptGameObject::invulnerable)
 
+		// alpet: export object cast
+		.def("get_game_object",				&CScriptGameObject::object)
+
 	;return	(instance);
 }

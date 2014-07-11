@@ -52,7 +52,7 @@ void R_dsgraph_structure::r_dsgraph_insert_dynamic	(IRender_Visual *pVisual, Fve
 	// a) Allow to optimize RT order
 	// b) Should be rendered to special distort buffer in another pass
 	VERIFY						(pVisual->shader._get());
-	ShaderElement*		sh_d	= &*pVisual->shader->E[4];
+	ShaderElement*		sh_d	= &*pVisual->shader_ref->E[4];
 	if (RImplementation.o.distortion && sh_d && sh_d->flags.bDistort && pmask[sh_d->flags.iPriority/2]) {
 		mapSorted_Node* N		= mapDistort.insertInAnyWay	(distSQ);
 		N->val.ssa				= SSA;
@@ -88,7 +88,7 @@ void R_dsgraph_structure::r_dsgraph_insert_dynamic	(IRender_Visual *pVisual, Fve
 				N->val.pObject			= RI.val_pObject;
 				N->val.pVisual			= pVisual;
 				N->val.Matrix			= *RI.val_pTransform;
-				N->val.se				= &*pVisual->shader->E[4];		// 4=L_special
+				N->val.se				= &*pVisual->shader_ref->E[4];		// 4=L_special
 			}
 			mapSorted_Node* N		= mapHUDSorted.insertInAnyWay	(distSQ);
 			N->val.ssa				= SSA;
@@ -112,7 +112,7 @@ void R_dsgraph_structure::r_dsgraph_insert_dynamic	(IRender_Visual *pVisual, Fve
 				N->val.pObject			= RI.val_pObject;
 				N->val.pVisual			= pVisual;
 				N->val.Matrix			= *RI.val_pTransform;
-				N->val.se				= &*pVisual->shader->E[4];		// 4=L_special
+				N->val.se				= &*pVisual->shader_ref->E[4];		// 4=L_special
 			}
 #endif
 			return;
@@ -148,7 +148,7 @@ void R_dsgraph_structure::r_dsgraph_insert_dynamic	(IRender_Visual *pVisual, Fve
 		N->val.pObject			= RI.val_pObject;
 		N->val.pVisual			= pVisual;
 		N->val.Matrix			= *RI.val_pTransform;
-		N->val.se				= &*pVisual->shader->E[4];		// 4=L_special
+		N->val.se				= &*pVisual->shader_ref->E[4];		// 4=L_special
 	}
 	if (sh->flags.bWmark	&& pmask_wmark)	{
 		mapSorted_Node* N		= mapWmark.insertInAnyWay		(distSQ);
@@ -214,15 +214,15 @@ void R_dsgraph_structure::r_dsgraph_insert_static	(IRender_Visual *pVisual)
 	// Distortive geometry should be marked and R2 special-cases it
 	// a) Allow to optimize RT order
 	// b) Should be rendered to special distort buffer in another pass
-	VERIFY						(pVisual->shader._get());
-	ShaderElement*		sh_d	= &*pVisual->shader->E[4];
+	VERIFY						(pVisual->shader_ref._get());
+	ShaderElement*		sh_d	= &*pVisual->shader_ref->E[4];
 	if (RImplementation.o.distortion && sh_d && sh_d->flags.bDistort && pmask[sh_d->flags.iPriority/2]) {
 		mapSorted_Node* N		= mapDistort.insertInAnyWay		(distSQ);
 		N->val.ssa				= SSA;
 		N->val.pObject			= NULL;
 		N->val.pVisual			= pVisual;
 		N->val.Matrix			= Fidentity;
-		N->val.se				= &*pVisual->shader->E[4];		// 4=L_special
+		N->val.se				= &*pVisual->shader_ref->E[4];		// 4=L_special
 	}
 
 	// Select shader
@@ -252,7 +252,7 @@ void R_dsgraph_structure::r_dsgraph_insert_static	(IRender_Visual *pVisual)
 		N->val.pObject			= NULL;
 		N->val.pVisual			= pVisual;
 		N->val.Matrix			= Fidentity;
-		N->val.se				= &*pVisual->shader->E[4];		// 4=L_special
+		N->val.se				= &*pVisual->shader_ref->E[4];		// 4=L_special
 	}
 	if (sh->flags.bWmark	&& pmask_wmark)	{
 		mapSorted_Node* N		= mapWmark.insertInAnyWay		(distSQ);

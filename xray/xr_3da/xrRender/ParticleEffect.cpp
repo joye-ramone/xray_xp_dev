@@ -157,7 +157,7 @@ BOOL CParticleEffect::Compile(CPEDef* def)
 		if (m_Def->m_Flags.is(CPEDef::dfTimeLimit))
 			m_fElapsedLimit 	= m_Def->m_fTimeLimit;
 	}
-	if (def)	shader			= def->m_CachedShader;
+	if (def)	shader_ref			= def->m_CachedShader;
 	return TRUE;
 }
 
@@ -184,7 +184,7 @@ void CParticleEffect::OnDeviceCreate()
 	if (m_Def){
 		if (m_Def->m_Flags.is(CPEDef::dfSprite)){
 			geom.create			(FVF::F_LIT, RCache.Vertex.Buffer(), RCache.QuadIB);
-			if (m_Def) shader	= m_Def->m_CachedShader;
+			if (m_Def) shader_ref	= m_Def->m_CachedShader;
 		}
 	}
 }
@@ -194,7 +194,7 @@ void CParticleEffect::OnDeviceDestroy()
 	if (m_Def){
 		if (m_Def->m_Flags.is(CPEDef::dfSprite)){
 			geom.destroy		();
-			shader.destroy		();
+			shader_ref.destroy		();
 		}    
 	}
 }

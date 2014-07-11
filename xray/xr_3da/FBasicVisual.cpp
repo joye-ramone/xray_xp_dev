@@ -24,8 +24,9 @@ IRender_Mesh::~IRender_Mesh()
 IRender_Visual::IRender_Visual		()
 {
 	Type				= 0;
-	shader				= 0;
+	shader_ref			= 0;
 	vis.clear			();
+	ZeroMemory (shader_name, sizeof(shader_name));
 }
 
 IRender_Visual::~IRender_Visual		()
@@ -51,7 +52,7 @@ void IRender_Visual::Load		(const char* N, IReader *data, u32 )
 	{
 		R_ASSERT2			(hdr.format_version==xrOGF_FormatVersion, "Invalid visual version");
 		Type				= hdr.type;
-		if (hdr.shader_id)	shader	= ::Render->getShader	(hdr.shader_id);
+		if (hdr.shader_id)	shader_ref	= ::Render->getShader	(hdr.shader_id);
 		vis.box.set			(hdr.bb.min,hdr.bb.max	);
 		vis.sphere.set		(hdr.bs.c,	hdr.bs.r	);
 	} else {
@@ -63,7 +64,8 @@ void IRender_Visual::Load		(const char* N, IReader *data, u32 )
 		string256		fnT,fnS;
 		data->r_stringZ	(fnT,sizeof(fnT));
 		data->r_stringZ	(fnS,sizeof(fnS));
-		shader.create	(fnS,fnT);
+		shader_ref.create	(fnS,fnT);
+		strcpy_s (shader_name, sizeof(shader_name), fnS);
 	}
 
     // desc
@@ -77,8 +79,9 @@ void IRender_Visual::Load		(const char* N, IReader *data, u32 )
 void	IRender_Visual::Copy(IRender_Visual *pFrom)
 {
 	PCOPY(Type);
-	PCOPY(shader);
+	PCOPY(shader_ref);
 	PCOPY(vis);
+	strcpy_s(shader_name, pFrom->shader_name);
 #ifdef _EDITOR
 	PCOPY(desc);
 #endif
