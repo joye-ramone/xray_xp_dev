@@ -662,6 +662,10 @@ public:
 
 			LPCSTR GetVisualName();
 			void SetVisualName(LPCSTR);
+
+			void AttachVehicle(CScriptGameObject*);
+			void DetachVehicle();
+			void SetPosition(Fvector);
 			
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };

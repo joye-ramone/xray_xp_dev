@@ -734,3 +734,66 @@ void CScriptGameObject::SetVisualName(LPCSTR str)
 		}
 	}
 }
+
+#include "Car.h"
+void CScriptGameObject::AttachVehicle(CScriptGameObject *obj)
+{
+	if (!g_pGameLevel)
+	{
+		Msg("Error! CScriptGameObject::AttachVehicle : game level doesn't exist.");
+		return;
+	}
+
+	CHolderCustom* car = smart_cast<CHolderCustom*>(&obj->object() );
+	if (!car)
+	{
+		Msg("Error! CScriptGameObject::AttachVehicle : car isn't a holder custom.");
+		return;
+	}
+
+	CActor *actor = smart_cast<CActor*>(&object() );
+	if (!actor)
+	{
+		Msg("Error! CScriptGameObject::AttachVehicle : object isn't actor.");
+		return;
+	}
+
+	actor->attach_Vehicle(car);
+}
+
+void CScriptGameObject::DetachVehicle()
+{
+	if (!g_pGameLevel)
+	{
+		Msg("Error! CScriptGameObject::DetachVehicle : game level doesn't exist.");
+		return;
+	}
+
+	CActor *actor = smart_cast<CActor*>(&object() );
+	if (!actor)
+	{
+		Msg("Error! CScriptGameObject::DetachVehicle : object isn't actor.");
+		return;
+	}
+
+	actor->detach_Vehicle();
+}
+
+void CScriptGameObject::SetPosition(Fvector pos)
+{
+	if (!g_pGameLevel)
+	{
+		Msg("Error! CScriptGameObject::SetPosition : game level doesn't exist.");
+		return;
+	}
+
+	if (this->IsActor() )
+		this->SetActorPosition(pos);
+	else
+	{
+		NET_Packet						PP;
+		CGameObject::u_EventGen			(PP, GE_CHANGE_POS, object().ID() );
+		PP.w_vec3						(pos);
+		CGameObject::u_EventSend		(PP);
+	}
+}
