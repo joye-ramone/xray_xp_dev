@@ -13,32 +13,49 @@ weapon_hud_container* g_pWeaponHUDContainer=0;
 
 BOOL weapon_hud_value::load(const shared_str& section, CHudItem* owner)
 {	
-	// Geometry and transform
+	// alpet: механизм создания уникальных копий визуала - часть имени секции трактуется как суффикс для визуала
+	char	  *sec_name;
+	char	  *suffix;
+	
+	string256 tmp;
+	strcpy_s(tmp, 256, *section);
+	sec_name = strtok (tmp, "|"); // strtok needs non-constant 1st param
+	suffix = strtok(NULL, "|");
+	string256  visual_name;
+
+	// Geometry and transform	
 	Fvector						pos,ypr;
-	pos							= pSettings->r_fvector3(section,"position");
-	ypr							= pSettings->r_fvector3(section,"orientation");
+	pos =						pSettings->r_fvector3(sec_name, "position");
+	ypr =						pSettings->r_fvector3(sec_name, "orientation");
 	ypr.mul						(PI/180.f);
 
 	m_offset.setHPB				(ypr.x,ypr.y,ypr.z);
 	m_offset.translate_over		(pos);
 
 	// Visual
-	LPCSTR visual_name			= pSettings->r_string(section, "visual");
+	LPCSTR visual_name_base		= pSettings->r_string(sec_name, "visual");
+	strcpy_s (visual_name, 256, visual_name_base);
+	if (suffix && xr_strlen(suffix))
+		strconcat(256, visual_name, visual_name_base, "|", suffix);
+	
+	if (strstr(visual_name, "fn2000"))
+		Msg("#  creating HUD visual %s for %s", visual_name, sec_name);
+
 	m_animations				= smart_cast<CKinematicsAnimated*>(::Render->model_Create(visual_name));
 
 	// fire bone	
 	if(smart_cast<CWeapon*>(owner)){
-		LPCSTR fire_bone		= pSettings->r_string					(section,"fire_bone");
+		LPCSTR fire_bone		= pSettings->r_string					(sec_name,"fire_bone");
 		m_fire_bone				= m_animations->LL_BoneID	(fire_bone);
 		if (m_fire_bone>=m_animations->LL_BoneCount())	
-			Debug.fatal	(DEBUG_INFO,"There is no '%s' bone for weapon '%s'.",fire_bone, *section);
-		m_fp_offset				= pSettings->r_fvector3					(section,"fire_point");
-		if(pSettings->line_exist(section,"fire_point2")) 
-			m_fp2_offset		= pSettings->r_fvector3					(section,"fire_point2");
+			Debug.fatal	(DEBUG_INFO,"There is no '%s' bone for weapon '%s'.",fire_bone, *sec_name);
+		m_fp_offset				= pSettings->r_fvector3					(sec_name,"fire_point");
+		if(pSettings->line_exist(sec_name,"fire_point2")) 
+			m_fp2_offset		= pSettings->r_fvector3					(sec_name,"fire_point2");
 		else 
 			m_fp2_offset		= m_fp_offset;
 		if(pSettings->line_exist(owner->object().cNameSect(), "shell_particles")) 
-			m_sp_offset			= pSettings->r_fvector3	(section,"shell_point");
+			m_sp_offset			= pSettings->r_fvector3	(sec_name,"shell_point");
 		else 
 			m_sp_offset.set		(0,0,0);
 	}else{

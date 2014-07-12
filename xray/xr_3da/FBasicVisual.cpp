@@ -26,7 +26,8 @@ IRender_Visual::IRender_Visual		()
 	Type				= 0;
 	shader_ref			= 0;
 	vis.clear			();
-	ZeroMemory (shader_name, sizeof(shader_name));
+	shader_name			= 0;
+	textures			= 0;
 }
 
 IRender_Visual::~IRender_Visual		()
@@ -43,7 +44,7 @@ void IRender_Visual::Load		(const char* N, IReader *data, u32 )
 {
 #ifdef DEBUG
 	dbg_name	= N;
-#endif
+#endif	
 
 	// header
 	VERIFY		(data);
@@ -65,7 +66,8 @@ void IRender_Visual::Load		(const char* N, IReader *data, u32 )
 		data->r_stringZ	(fnT,sizeof(fnT));
 		data->r_stringZ	(fnS,sizeof(fnS));
 		shader_ref.create	(fnS,fnT);
-		strcpy_s (shader_name, sizeof(shader_name), fnS);
+		shader_name = fnS;
+		textures = fnT;
 	}
 
     // desc
@@ -81,7 +83,9 @@ void	IRender_Visual::Copy(IRender_Visual *pFrom)
 	PCOPY(Type);
 	PCOPY(shader_ref);
 	PCOPY(vis);
-	strcpy_s(shader_name, pFrom->shader_name);
+	PCOPY(shader_name);
+	PCOPY(textures);	
+
 #ifdef _EDITOR
 	PCOPY(desc);
 #endif

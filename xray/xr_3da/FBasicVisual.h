@@ -51,7 +51,11 @@ public:
 	u32							Type		;				// visual's type
 	vis_data					vis			;				// visibility-data
 	ref_shader					shader_ref;					// pipe state, shared
-	char						shader_name[64];			// added by alpet, for unique texture loading
+	shared_str					shader_name;				// added by alpet, for unique texture/shader loading
+	shared_str					textures;				    // added by alpet, for unique texture/shader loading	
+	LPCSTR						get_shader_name()		   { return *shader_name; }  // alpet: export to scripts
+	LPCSTR						get_texture_name()		   { return *textures; }     // alpet: export to scripts
+
 
 	virtual void				Render						(float LOD)		{};		// LOD - Level Of Detail  [0..1], Ignored
 	virtual void				Load						(const char* N, IReader *data, u32 dwFlags);
@@ -63,6 +67,8 @@ public:
 	virtual	CKinematics*		dcast_PKinematics			()				{ return 0;	}
 	virtual	CKinematicsAnimated*dcast_PKinematicsAnimated	()				{ return 0;	}
 	virtual IParticleCustom*	dcast_ParticleCustom		()				{ return 0;	}
+
+
 
 	IRender_Visual				();
 	virtual ~IRender_Visual		();

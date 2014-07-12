@@ -26,10 +26,32 @@
 #include "script_zone.h"
 #include "relation_registry.h"
 #include "danger_object.h"
+#include "Weapon.h"
 
 using namespace luabind;
 
 extern CScriptActionPlanner *script_action_planner(CScriptGameObject *obj);
+
+
+// alpet: получение визуала для худа оружия
+IRender_Visual* CScriptGameObject::GetWeaponHUD_Visual() const
+{
+	CGameObject *obj = &this->object();	
+	CWeapon *wpn = dynamic_cast<CWeapon*> (obj);
+	if (!wpn) return NULL;
+
+	return wpn->GetHUD()->Visual();
+}
+
+void CScriptGameObject::LoadWeaponHUD_Visual(LPCSTR wpn_hud_section)
+{
+	CGameObject *obj = &this->object();
+	CWeapon *wpn = dynamic_cast<CWeapon*> (obj);
+	if (!wpn) return;
+
+	wpn->GetHUD()->Load(wpn_hud_section);
+}
+
 
 class_<CScriptGameObject> &script_register_game_object1(class_<CScriptGameObject> &instance)
 {
@@ -254,6 +276,8 @@ class_<CScriptGameObject> &script_register_game_object1(class_<CScriptGameObject
 
 		// alpet: export object cast
 		.def("get_game_object",				&CScriptGameObject::object)
+		.def("get_hud_visual",			    &CScriptGameObject::GetWeaponHUD_Visual)
+		.def("load_hud_visual",			    &CScriptGameObject::LoadWeaponHUD_Visual)
 
 	;return	(instance);
 }
