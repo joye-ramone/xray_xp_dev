@@ -266,8 +266,17 @@ void CHangingLamp::TurnOff	()
 	if (Visual())		smart_cast<CKinematics*>(Visual())->LL_SetBoneVisible(light_bone, FALSE, TRUE);
 	if(!PPhysicsShell())//if we have physiccs_shell it will call processing deactivate when disable
 		processing_deactivate	();
-		
 }
+
+#define  CLASS_IMPL		CHangingLamp
+#define  target_0		light_render
+#define  target_1		light_ambient
+#define	 target_2		glow_render
+#include "light_ext.inc"
+#undef   target_0
+#undef	 target_1
+#undef	 target_2 
+#undef CLASS_IMPL
 
 //void CHangingLamp::Hit(float P,Fvector &dir, CObject* who,s16 element,
 //					   Fvector p_in_object_space, float impulse, ALife::EHitType hit_type)
@@ -365,5 +374,11 @@ void CHangingLamp::script_register(lua_State *L)
 			.def(luabind::constructor<>())
 			.def("turn_on",		&CHangingLamp::TurnOn)
 			.def("turn_off",	&CHangingLamp::TurnOff)
+			// alpet: управление параметрами света
+			.def("set_angle",	&CHangingLamp::SetAngle)
+			.def("set_color",	&CHangingLamp::SetColor)
+			.def("set_rgb",		&CHangingLamp::SetRGB)
+			.def("set_range",	&CHangingLamp::SetRange)
+			.def("set_texture", &CHangingLamp::SetTexture)
 	];
 }

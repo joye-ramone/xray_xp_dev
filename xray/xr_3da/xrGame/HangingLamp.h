@@ -44,6 +44,12 @@ public:
 	virtual			~CHangingLamp	();
 	void			TurnOn			();
 	void			TurnOff			();
+	void			SetColor		(u32 color, int target = 0);
+	void			SetRGB			(float r, float g, float b, int target = 0);
+	void			SetAngle		(float angle, int target = 0);
+	void			SetRange	    (float range, int target = 0);
+	void			SetTexture		(LPCSTR texture, int target = 0);
+	
 	virtual void	Load			( LPCSTR section);
 	virtual BOOL	net_Spawn		( CSE_Abstract* DC);
 	virtual void	net_Destroy		();

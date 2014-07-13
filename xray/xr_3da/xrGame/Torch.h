@@ -92,6 +92,14 @@ public:
 	virtual void	afterDetach				();
 	virtual void	renderable_Render		();
 
+	// alpet: управление светом фонаря
+	void			SetColor(u32 color, int target = 0);
+	void			SetRGB(float r, float g, float b, int target = 0);
+	void			SetAngle(float angle, int target = 0);
+	void			SetRange(float range, int target = 0);
+	void			SetTexture(LPCSTR texture, int target = 0);
+
+
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };
 add_to_type_list(CTorch)
