@@ -221,14 +221,18 @@ void vfCopyGlobals(CLuaVirtualMachine *tpLuaVM)
 bool Script::bfLoadBuffer(CLuaVirtualMachine *tpLuaVM, LPCSTR caBuffer, size_t tSize, LPCSTR caScriptName, LPCSTR caNameSpaceName)
 {
 	int				l_iErrorCode;
+	if (!tSize)
+		Msg("#WARN: Script::bfLoadBuffer script_name = %s, namespace = %s, tSize == 0 ", caScriptName, caNameSpaceName);
+
 	if (caNameSpaceName) {
 		string256		insert;
+		
 		sprintf_s		(insert,sizeof(insert),"local this = %s\n",caNameSpaceName);
-		size_t			str_len = xr_strlen(insert);
-		LPSTR			script = xr_alloc<char>(u32(str_len + tSize));
-		strcpy_s		(script, str_len+tSize, insert);
-		CopyMemory		(script+str_len, caBuffer, u32(tSize));
-		l_iErrorCode	= luaL_loadbuffer(tpLuaVM,script,tSize + str_len,caScriptName);
+		size_t			str_len = xr_strlen(insert);		
+		LPSTR			script = xr_alloc<char>( (u32)str_len + (u32)tSize + 1 ); // alpet: одного байта не хватает, если tSize == 0
+		strcpy_s		(script, str_len + tSize + 1, insert);
+		CopyMemory		(script + str_len, caBuffer, u32(tSize));
+		l_iErrorCode	= luaL_loadbuffer(tpLuaVM, script, tSize + str_len, caScriptName);
 		xr_free			(script);
 	}
 	else
