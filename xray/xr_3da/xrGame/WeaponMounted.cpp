@@ -99,6 +99,8 @@ BOOL	CWeaponMounted::net_Spawn(CSE_Abstract* DC)
 	U16Vec fixed_bones;
 	fixed_bones.push_back	(K->LL_GetBoneRoot());
 	PPhysicsShell()			= P_build_Shell(this,false,fixed_bones);
+	m_pPhysicsShell->mXFORM.c.set(0, 0, 0);
+		
 	K						->CalculateBones_Invalidate();
 	K						->CalculateBones();
 

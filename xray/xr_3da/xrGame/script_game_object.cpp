@@ -795,5 +795,16 @@ void CScriptGameObject::SetPosition(Fvector pos)
 		CGameObject::u_EventGen			(PP, GE_CHANGE_POS, object().ID() );
 		PP.w_vec3						(pos);
 		CGameObject::u_EventSend		(PP);
+		// alpet: €вное перемещение визуалов объектов
+		object().XFORM().c = pos;
+		IRender_Visual *pV = object().Visual();
+		if (pV)
+		{
+			pV->vis.sphere.P = pos;
+			CKinematics *pK = smart_cast<CKinematics*> (pV);
+			if (pK)					
+				pK->CalculateBones_Invalidate();	 // позволит объекту быстрее объ€витьс€ в новой точке			
+		}
+		
 	}
 }
