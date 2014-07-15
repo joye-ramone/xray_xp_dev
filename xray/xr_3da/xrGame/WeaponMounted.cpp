@@ -99,8 +99,8 @@ BOOL	CWeaponMounted::net_Spawn(CSE_Abstract* DC)
 	U16Vec fixed_bones;
 	fixed_bones.push_back	(K->LL_GetBoneRoot());
 	PPhysicsShell()			= P_build_Shell(this,false,fixed_bones);
-	m_pPhysicsShell->mXFORM.c.set(0, 0, 0);
-		
+	K						->LL_GetBoneInstance(0).Callback = NULL;
+	K						->LL_GetBoneInstance(1).Callback = NULL;
 	K						->CalculateBones_Invalidate();
 	K						->CalculateBones();
 
@@ -264,15 +264,20 @@ bool	CWeaponMounted::attach_Actor		(CGameObject* actor)
 }
 void	CWeaponMounted::detach_Actor		()
 {
+	CKinematics *K = PKinematics(Visual());
 	CHolderCustom::detach_Actor();
 	// disable actor rotate callback
-	CBoneInstance& biX		= smart_cast<CKinematics*>(Visual())->LL_GetBoneInstance(rotate_x_bone);	
+	CBoneInstance& biX		= K->LL_GetBoneInstance(rotate_x_bone);	
 	biX.reset_callback		();
-	CBoneInstance& biY		= smart_cast<CKinematics*>(Visual())->LL_GetBoneInstance(rotate_y_bone);	
+	CBoneInstance& biY		= K->LL_GetBoneInstance(rotate_y_bone);	
 	biY.reset_callback		();
 	// enable shell callback
 	m_pPhysicsShell->EnabledCallbacks(TRUE);
-	
+	// alpet: вот не надо шеллу этих колбеков отдавать
+	K->LL_GetBoneInstance(0).Callback = NULL;
+	K->LL_GetBoneInstance(1).Callback = NULL;
+
+
 	//закончить стрельбу
 	FireEnd();
 
