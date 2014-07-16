@@ -15,6 +15,7 @@ class CLAItem;
 class CPhysicsElement;
 class CSE_ALifeObjectHangingLamp;
 class CPHElement;
+
 class CHangingLamp: 
 public CPhysicsShellHolder,
 public CPHSkeleton
@@ -26,6 +27,8 @@ private:
 
 	ref_light		light_render;
 	ref_light		light_ambient;
+		
+
 	CLAItem*		lanim;
 	float			ambient_power;
 	
@@ -44,12 +47,22 @@ public:
 	virtual			~CHangingLamp	();
 	void			TurnOn			();
 	void			TurnOff			();
-	void			SetColor		(u32 color, int target = 0);
-	void			SetRGB			(float r, float g, float b, int target = 0);
+
+	IRender_Light  *GetLight(int target = 0);
+
 	void			SetAngle		(float angle, int target = 0);
+	void			SetAnimation	(LPCSTR name);
+	void			SetBrightness	(float brightness);
+	void			SetDirection	(const Fvector &v);
+	void			SetColor		(const Fcolor &color, int target = 0);
+	void			SetRGB			(float r, float g, float b, int target = 0);
+		
+	void			SetPosition		(const Fvector &v);
 	void			SetRange	    (float range, int target = 0);
 	void			SetTexture		(LPCSTR texture, int target = 0);
-	
+	void			SetVirtualSize	(float size, int target = 0);
+	void			Synchronize		(); // alpet: сохранение данных в серверный объект
+
 	virtual void	Load			( LPCSTR section);
 	virtual BOOL	net_Spawn		( CSE_Abstract* DC);
 	virtual void	net_Destroy		();
@@ -75,8 +88,11 @@ public:
 	virtual float	Radius			()				const;
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };
+
 add_to_type_list(CHangingLamp)
 #undef script_type_list
 #define script_type_list save_type_list(CHangingLamp)
+
+
 
 #endif //HangingLampH

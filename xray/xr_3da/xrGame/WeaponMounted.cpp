@@ -99,10 +99,9 @@ BOOL	CWeaponMounted::net_Spawn(CSE_Abstract* DC)
 	U16Vec fixed_bones;
 	fixed_bones.push_back	(K->LL_GetBoneRoot());
 	PPhysicsShell()			= P_build_Shell(this,false,fixed_bones);
-	K						->LL_GetBoneInstance(0).Callback = NULL;
-	K						->LL_GetBoneInstance(1).Callback = NULL;
 	K						->CalculateBones_Invalidate();
 	K						->CalculateBones();
+	m_pPhysicsShell->GetGlobalTransformDynamic(&XFORM());
 
 	CShootingObject::Light_Create();
 
@@ -166,7 +165,6 @@ void	CWeaponMounted::renderable_Render()
 {
 	//нарисовать подсветку
 	RenderLight();
-
 	inherited::renderable_Render	();
 }
 
@@ -227,10 +225,22 @@ void	CWeaponMounted::cam_Update			(float dt, float fov)
 	const Fmatrix& C				= K->LL_GetTransform(camera_bone);
 	XFORM().transform_tiny			(P,C.c);
 
-	if(OwnerActor()){
+	CActor *A = OwnerActor();
+	if(A){
 		// rotate head
-		OwnerActor()->Orientation().yaw			= -Camera()->yaw;
-		OwnerActor()->Orientation().pitch		= -Camera()->pitch;
+		CCameraBase *cam = Camera();
+		A->Orientation().yaw			= -cam->yaw;
+		A->Orientation().pitch		= cam->pitch; // alpet: попытка исправить вертикальную инверсию, заметную при игре от 3-го лица
+		CCameraBase *fe = A->cam_FirstEye();
+		if (fe)
+		{   // alpet: поворот камеры актора, направл€ющий заодно и свет от фонар€
+			fe->yaw = cam->yaw;
+			fe->pitch = cam->pitch;
+			Fvector p = P;
+			p.y -= A->Radius() *2.f / 3.f;
+			A->XFORM().c = p;
+		}
+		
 	}
 	Camera()->Update							(P,Da);
 	Level().Cameras().Update					(Camera());
@@ -273,10 +283,6 @@ void	CWeaponMounted::detach_Actor		()
 	biY.reset_callback		();
 	// enable shell callback
 	m_pPhysicsShell->EnabledCallbacks(TRUE);
-	// alpet: вот не надо шеллу этих колбеков отдавать
-	K->LL_GetBoneInstance(0).Callback = NULL;
-	K->LL_GetBoneInstance(1).Callback = NULL;
-
 
 	//закончить стрельбу
 	FireEnd();

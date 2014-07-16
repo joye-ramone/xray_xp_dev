@@ -294,6 +294,8 @@ SPS*	CResourceManager::_CreatePS			(LPCSTR name)
 		_hr = ::Render->shader_compile	(name,data,size, NULL, &Includer, c_entry, c_target, D3DXSHADER_DEBUG | D3DXSHADER_PACKMATRIX_ROWMAJOR /*| D3DXSHADER_PREFER_FLOW_CONTROL*/, &pShaderBuf, &pErrorBuf, NULL);
 		//_hr = D3DXCompileShader		(text,text_size, NULL, &Includer, c_entry, c_target, D3DXSHADER_DEBUG | D3DXSHADER_PACKMATRIX_ROWMAJOR, &pShaderBuf, &pErrorBuf, NULL);
 		xr_free						(data);
+		
+		LPCSTR last_error = "";
 
 		if (SUCCEEDED(_hr))
 		{
@@ -313,18 +315,28 @@ SPS*	CResourceManager::_CreatePS			(LPCSTR name)
 			else	_hr = E_FAIL;
 		}else
 		{
-			Msg("error is %s", (LPCSTR)pErrorBuf->GetBufferPointer());
+			last_error = (LPCSTR)pErrorBuf->GetBufferPointer();
+			Msg("error is %s", last_error);
 		}
-		_RELEASE		(pShaderBuf);
-		_RELEASE		(pErrorBuf);
-		pConstants		= NULL;
+
 
 		if (FAILED(_hr))
 			Msg			("Can't compile shader %s",name);
+		
+		string1024 buff;
+
+		if (xr_strlen(last_error))
+			sprintf_s(buff, 1023, "ќшибка компил€ции шейдера %s:\n %s ", name, last_error);
+		else
+			sprintf_s(buff, 1023, "ќшибка компил€ции шейдера %s. ¬озможна ошибка в скрипте, или\n видеокарта не поддерживает пиксельные шейдеры 1.1", name);
+		
+		pConstants = NULL;
+		_RELEASE(pShaderBuf);
+		_RELEASE(pErrorBuf);
 
 		CHECK_OR_EXIT		(
 			!FAILED(_hr),
-			make_string("Your video card doesn't meet game requirements\n\nPixel Shaders v1.1 or higher required")
+			make_string(buff)
 		);
 		return			_ps;
 	}

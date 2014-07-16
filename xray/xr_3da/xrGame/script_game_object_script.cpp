@@ -102,8 +102,7 @@ void CScriptGameObject::script_register(lua_State *L)
 					value("on_item_ruck", int(GameObject::eOnItemRuck)),
 					// фонарь
 					value("switch_torch", int(GameObject::eSwitchTorch)),
-					/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
-
+					/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/				
 					// Added by Cribbledirge Start
 					value("on_mouse_press", int(GameObject::eOnMousePress)),
 					value("on_mouse_release", int(GameObject::eOnMouseRelease)),

@@ -668,6 +668,7 @@ public:
 			void SetPosition(Fvector);
 			
 			// alpet: visual functions for CWeapon descedants 
+			_DECLARE_FUNCTION10 (alife_object			,			CSE_ALifeDynamicObject*);
 			_DECLARE_FUNCTION10 (GetWeaponHUD_Visual	,			IRender_Visual*);
 			void				LoadWeaponHUD_Visual	(LPCSTR wpn_hud_section);
 

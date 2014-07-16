@@ -505,7 +505,8 @@ Ivector2 CUICellContainer::FindFreeCell	(const Ivector2& size)
 				if(IsRoomFree(tmp,size))
 					return  tmp;
 
-		R_ASSERT2		(0,"there are no free room to place item");
+		Msg("FindFreeCell for window %s: item size = %d x %d, m_cellsCapacity = %d x %d ", m_windowName.c_str(), size.x, size.y, m_cellsCapacity.x, m_cellsCapacity.y);
+		R_ASSERT2(0, "there are no free room to place item ");
 	}
 	return			tmp;
 }

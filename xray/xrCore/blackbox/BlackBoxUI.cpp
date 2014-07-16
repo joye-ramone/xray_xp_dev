@@ -3,13 +3,15 @@
 #include <stdio.h>
 
 #define MAX_STACK_TRACE	100
+#define LINE_STACK_TRACE 4096
 
-char g_stackTrace[MAX_STACK_TRACE][4096];
+char g_stackTrace[MAX_STACK_TRACE][LINE_STACK_TRACE]; 
 int g_stackTraceCount = 0;
 
-void BuildStackTrace	(struct _EXCEPTION_POINTERS *g_BlackBoxUIExPtrs)
+
+void BuildStackTrace(struct _EXCEPTION_POINTERS *g_BlackBoxUIExPtrs)
 {
-	FillMemory			(g_stackTrace[0],MAX_STACK_TRACE*256, 0 );
+	FillMemory(g_stackTrace[0], MAX_STACK_TRACE * LINE_STACK_TRACE, 0);
 
 	const TCHAR* traceDump = 
 		GetFirstStackTraceString( GSTSO_MODULE | GSTSO_SYMBOL | GSTSO_SRCLINE,
@@ -36,6 +38,7 @@ void BuildStackTrace	(struct _EXCEPTION_POINTERS *g_BlackBoxUIExPtrs)
 		traceDump = GetNextStackTraceString( GSTSO_MODULE | GSTSO_SYMBOL | GSTSO_SRCLINE,
 			g_BlackBoxUIExPtrs );
 	}
+		
 }
 
 #ifdef _EDITOR
@@ -65,7 +68,8 @@ void BuildStackTrace	(struct _EXCEPTION_POINTERS *g_BlackBoxUIExPtrs)
 #	pragma auto_inline(on)
 #endif // _EDITOR
 
-void BuildStackTrace	()
+// alpet: экспорт не влияет на работу движка, но позволит копировать трейс подключаемым dll
+LPCSTR __declspec(dllexport) BuildStackTrace()
 {
     CONTEXT					context;
 	context.ContextFlags	= CONTEXT_FULL;
@@ -76,7 +80,7 @@ void BuildStackTrace	()
 #endif // _EDITOR
 
 	if (!GetThreadContext(GetCurrentThread(),&context))
-		return;
+		return NULL;
 
 #ifdef _WIN64
 	context.Rip				= program_counter();
@@ -101,6 +105,8 @@ void BuildStackTrace	()
 	ex_ptrs.ExceptionRecord	= 0;
 
 	BuildStackTrace			(&ex_ptrs);
+
+	return g_stackTrace[0];
 }
 
 #ifndef _EDITOR

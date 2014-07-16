@@ -349,7 +349,7 @@ LPCSTR	CInifile::r_string(LPCSTR S, LPCSTR L)
 	SectCIt	A = std::lower_bound(I.Data.begin(),I.Data.end(),L,item_pred);
 	if (A!=I.Data.end() && xr_strcmp(*A->first,L)==0)	return *A->second;
 	else
-		Debug.fatal(DEBUG_INFO,"Can't find variable %s in [%s]",L,S);
+		Debug.fatal(DEBUG_INFO,"Can't find variable %s in [%s], file %s",L,S, this->fName);
 	return 0;
 }
 

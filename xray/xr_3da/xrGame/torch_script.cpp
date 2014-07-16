@@ -1,6 +1,7 @@
 #include "pch_script.h"
 #include "torch.h"
 #include "script_game_object.h"
+#include "../LightAnimLibrary.h"
 
 using namespace luabind;
 
@@ -19,7 +20,12 @@ using namespace luabind;
 CTorch *get_torch(CScriptGameObject *script_obj)
 {
 	CGameObject *obj = &script_obj->object();
-	return smart_cast<CTorch*> (obj);
+	CTorch* t = smart_cast<CTorch*> (obj);
+	if (t) return t;
+	script_obj = script_obj->GetObjectByName("device_torch");
+	if (script_obj) return 
+		get_torch (script_obj); // рекурсия
+	return NULL;
 }
 
 #pragma optimize("s",on)
@@ -30,11 +36,17 @@ void CTorch::script_register	(lua_State *L)
 		class_<CTorch,CGameObject>("CTorch")
 			.def(constructor<>())
 			// alpet: управление параметрами света
-			.def("set_angle",	&CTorch::SetAngle)
-			.def("set_color",	&CTorch::SetColor)
-			.def("set_rgb",		&CTorch::SetRGB)
-			.def("set_range",	&CTorch::SetRange)
-			.def("set_texture", &CTorch::SetTexture),
-			def("get_torch_obj", &get_torch) 
+			.def("get_light",				&CTorch::GetLight)
+			.def("set_animation"	,		&CTorch::SetAnimation)
+			.def("set_angle"		,		&CTorch::SetAngle)
+			.def("set_brightness"	,		&CTorch::SetBrightness)
+			.def("set_color"		,		&CTorch::SetColor)
+			.def("set_rgb"			,		&CTorch::SetRGB)
+			.def("set_range"		,		&CTorch::SetRange)			
+			.def("set_texture"		,		&CTorch::SetTexture)
+			.def("set_virtual_size" ,		&CTorch::SetVirtualSize)
+			
+			,			
+			def("get_torch_obj"		,		&get_torch) 
 	];
 }

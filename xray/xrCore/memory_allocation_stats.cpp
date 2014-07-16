@@ -8,7 +8,7 @@
 
 #	include <boost/crc.hpp>
 
-	extern void BuildStackTrace		();
+	extern LPCSTR BuildStackTrace		();
 
 	extern char			g_stackTrace[100][4096];
 	extern int			g_stackTraceCount;

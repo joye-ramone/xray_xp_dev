@@ -10,6 +10,8 @@
 #include "game_object_space.h"
 #include "script_callback_ex.h"
 #include "script_game_object.h"
+#include "alife_simulator.h"
+#include "alife_object_registry.h"
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -268,10 +270,55 @@ void CHangingLamp::TurnOff	()
 		processing_deactivate	();
 }
 
+
+
 #define  CLASS_IMPL		CHangingLamp
+
+CSE_ALifeObjectHangingLamp *get_se_lamp(CHangingLamp *lobj)
+{
+	CSE_ALifeDynamicObject *e = lobj->lua_game_object()->alife_object();
+	if (!e) return NULL;
+	return smart_cast<CSE_ALifeObjectHangingLamp*>(e);
+}
+
+void		CHangingLamp::SetDirection(const Fvector &v)
+{
+	Fmatrix &m = XFORM();	
+	Fvector pos = m.c; // save position
+	m.setHPB ( v.getH(), v.getP(), 0 );		
+	m.c = pos;		   // restore position	
+}
+void		CHangingLamp::SetPosition(const Fvector &v) 
+{
+	XFORM().c = v;	   // чтобы переместить немедля		
+}
+
+void		CHangingLamp::Synchronize() // alpet: сохранение данных в серверный объект
+{
+	CSE_ALifeObjectHangingLamp *lamp = get_se_lamp(this);
+	if (!lamp) return;
+	lamp->position() = XFORM().c;	
+	XFORM().getXYZ(lamp->angle());	 
+	lamp->brightness = fBrightness;
+	lamp->spot_cone_angle = light_render->get_cone();
+	lamp->range = light_render->get_range();
+	Fcolor clr = light_render->get_color();
+	if (fBrightness > 0)
+		clr.mul_rgb( 255.f / fBrightness);
+	lamp->color = clr.get();
+
+	if (light_ambient)
+	{
+		lamp->m_ambient_radius = light_ambient->get_range();		
+	}	
+
+	if (lanim)
+		lamp->color_animator = lanim->cName;
+}
+
 #define  target_0		light_render
 #define  target_1		light_ambient
-#define	 target_2		glow_render
+#define	 target_2		glow_render		
 #include "light_ext.inc"
 #undef   target_0
 #undef	 target_1
@@ -374,11 +421,33 @@ void CHangingLamp::script_register(lua_State *L)
 			.def(luabind::constructor<>())
 			.def("turn_on",		&CHangingLamp::TurnOn)
 			.def("turn_off",	&CHangingLamp::TurnOff)
-			// alpet: управление параметрами света
+			// alpet: управление параметрами света			
+			.def("get_light",		&CHangingLamp::GetLight) 
+			.def("set_animation",	&CHangingLamp::SetAnimation)
+			.def("set_brightness",	&CHangingLamp::SetBrightness)
+			.def("set_direction",   &CHangingLamp::SetDirection)   
+			.def("set_position",    &CHangingLamp::SetPosition)  
 			.def("set_angle",	&CHangingLamp::SetAngle)
 			.def("set_color",	&CHangingLamp::SetColor)
 			.def("set_rgb",		&CHangingLamp::SetRGB)
 			.def("set_range",	&CHangingLamp::SetRange)
 			.def("set_texture", &CHangingLamp::SetTexture)
+			.def("set_virtual_size", &CHangingLamp::SetVirtualSize)
+			.def("synchronize", &CHangingLamp::Synchronize)		
+			,
+		luabind::class_<IRender_Light>("IRender_Light")
+			.def("get_active", &IRender_Light::get_active)
+			.def("get_angle",  &IRender_Light::get_cone)			
+			.def("get_color",  &IRender_Light::get_color)
+			.def("get_range",  &IRender_Light::get_range)
+			.def("get_virtual_size", &IRender_Light::get_virtual_size)
+
+			.def("set_active", &IRender_Light::set_active)
+			.def("set_angle",  &IRender_Light::set_cone)
+			.def("set_color", (void (IRender_Light::*)(const Fcolor&)) (&IRender_Light::set_color) )
+			.def("set_range",  &IRender_Light::set_range)
+			.def("set_texture", &IRender_Light::set_texture)
+			.def("set_virtual_size", &IRender_Light::set_virtual_size)
+
 	];
 }

@@ -27,13 +27,25 @@
 #include "relation_registry.h"
 #include "danger_object.h"
 #include "Weapon.h"
+#include "Torch.h"
+#include "alife_simulator.h"
+#include "alife_object_registry.h"
 
 using namespace luabind;
 
 extern CScriptActionPlanner *script_action_planner(CScriptGameObject *obj);
 
 
+
 // alpet: получение визуала для худа оружия
+
+CSE_ALifeDynamicObject* CScriptGameObject::alife_object() const
+{
+	const CALifeSimulator *sim = ai().get_alife();
+	if (sim)
+		return sim->objects().object(object().ID(), true);
+	return NULL;}
+
 IRender_Visual* CScriptGameObject::GetWeaponHUD_Visual() const
 {
 	CGameObject *obj = &this->object();	
@@ -274,8 +286,10 @@ class_<CScriptGameObject> &script_register_game_object1(class_<CScriptGameObject
 		.def("invulnerable",				(bool (CScriptGameObject::*)() const)&CScriptGameObject::invulnerable)
 		.def("invulnerable",				(void (CScriptGameObject::*)(bool))&CScriptGameObject::invulnerable)
 
-		// alpet: export object cast
+		// alpet: export object cast		 
 		.def("get_game_object",				&CScriptGameObject::object)
+		.def("get_alife_object",			&CScriptGameObject::alife_object)		
+		.def("get_torch",					&get_torch)			
 		.def("get_hud_visual",			    &CScriptGameObject::GetWeaponHUD_Visual)
 		.def("load_hud_visual",			    &CScriptGameObject::LoadWeaponHUD_Visual)
 

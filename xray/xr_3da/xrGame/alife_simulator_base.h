@@ -66,7 +66,7 @@ public:
 	IC		CALifeScheduleRegistry				&scheduled					();
 	IC		CALifeTimeManager					&time_manager				();
 	IC		CALifeRegistryContainer				&registry					() const;
-
+	IC		CALifeSimulatorBase					*get_base					() { return this; };
 public:
 												CALifeSimulatorBase			(xrServer *server, LPCSTR section);
 	virtual										~CALifeSimulatorBase		();

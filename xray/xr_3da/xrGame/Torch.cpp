@@ -35,6 +35,7 @@ CTorch::CTorch(void)
 {
 	light_render				= ::Render->light_create();
 	light_render->set_type		(IRender_Light::SPOT);
+	light_render->set_virtual_size (0.1);
 	light_render->set_shadow	(true);
 	light_omni					= ::Render->light_create();
 	light_omni->set_type		(IRender_Light::POINT);

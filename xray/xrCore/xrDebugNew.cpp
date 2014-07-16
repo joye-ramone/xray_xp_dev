@@ -11,7 +11,57 @@
 #include <direct.h>
 #pragma warning(pop)
 
+
+
+
+
+// alpet: user-friendly crashes )
+#define ERROR_MESSAGES_RU
+
+#ifdef ERROR_MESSAGES_RU
+
+#define  MSG_SEE_LOG			"Смотрите лог файл и минидамп с подробной информацией\r\n"
+#define  MSG_PRESS_CANCEL		"%sНажмите \"Отмена\" для прерывания выполнения%s"
+#define  MSG_PRESS_RETRY		"Нажмите \"Повторить\" для дальнейшего выполнения%s"
+#define  MSG_PRESS_CONTINUE		"Нажмите \"Продолжить\" для дальнейшего выполнения и\r\n игнорирования похожих ошибок %s%s"
+#define  MSG_FATAL_ERROR_OK		"Неисправимая ошибка\n\nНажмите OK для завершения программы"
+#define  MSG_OK_TO_ABORT		"Нажмите OK для завершения программы\r\n"
+#define  ERR_HANDLER_BASE		"вызван базовый обработчик ошибки"
+#define  ERR_HANDLER_INVP		"вызван обработчик ошибки 'неверный параметр' "
+#define  ERR_OUT_OF_MEMORY		"закончилась свободная оперативная память"
+#define  ERR_PURE_VFUNC			"вызов виртуальной функции не определенной для класса объекта"
+#define	 ERR_UNEXP_TERM			"неожиданное завершение программы"
+// #define  ERR_APP_ABORTING	"программа скоропостижно прервалась"
+#define  ERR_APP_ABORTING		"приложение прервано"
+#define  ERR_FLOAT_POINT		"ошибка вычисления с плавающей точкой"
+#define  ERR_ILLEGAL_INSTR		"неверная инструкция ЦП"
+#define  ERR_TERMINATION_3		"завершение с кодом 3"
+
+#else
+
+#define  MSG_SEE_LOG			"See log file and minidump for detailed information\r\n"
+#define  MSG_PRESS_CANCEL		"%sPress CANCEL to abort execution%s"
+#define  MSG_PRESS_RETRY		"Press TRY AGAIN to continue execution%s"
+#define  MSG_PRESS_CONTINUE		"Press CONTINUE to continue execution and ignore all the errors of this type%s%s"
+#define  MSG_FATAL_ERROR_OK		"Fatal error occured\n\nPress OK to abort program execution"
+#define  MSG_OK_TO_ABORT		"Press OK to abort execution\r\n"
+#define  ERR_HANDLER_BASE		"base error handler is invoked!"
+#define  ERR_HANDLER_INPV		"invalid parameter error handler is invoked!"
+#define  ERR_OUT_OF_MEMORY		"std: out of memory"
+#define  ERR_PURE_VFUNC			"pure virtual function call"
+#define	 ERR_UNEXP_TERM			"unexpected program termination"
+#define  ERR_APP_ABORTING		"application is aborting"
+#define  ERR_FLOAT_POINT		"floating point error"
+#define  ERR_ILLEGAL_INSTR		"illegal instruction"
+#define  ERR_TERMINATION_3		"termination with exit code 3"
+
+
+#endif
+
+
 extern bool shared_str_initialized;
+extern bool force_flush_log;
+
 // KD: we don't need BugTrap since it provides _only_ nice ui window and e-mail sending
 #ifdef __BORLANDC__
     #	include "d3d9.h"
@@ -120,25 +170,25 @@ void update_clipboard	(const char *string)
 #endif // DEBUG
 }
 
-extern void BuildStackTrace();
+extern LPCSTR BuildStackTrace();
 extern char g_stackTrace[100][4096];
 extern int	g_stackTraceCount;
 
-void LogStackTrace	(LPCSTR header)
+
+void LogStackTrace(LPCSTR header)
 {
-	if (!shared_str_initialized)
-		return;
-
-	BuildStackTrace	();		
-
 	Msg				("%s",header);
+	BuildStackTrace();
 
-	for (int i=1; i<g_stackTraceCount; ++i)
-		Msg			("%s",g_stackTrace[i]);
+	for (int i = 1; i < g_stackTraceCount; ++i)
+			Msg(" %s", g_stackTrace[i]);
+
+	FlushLog();
 }
 
 void gather_info		(const char *expression, const char *description, const char *argument0, const char *argument1, const char *file, int line, const char *function, LPSTR assertion_info)
 {
+	force_flush_log = true;
 	LPSTR				buffer = assertion_info;
 	LPCSTR				endline = "\n";
 	LPCSTR				prefix = "[error]";
@@ -183,7 +233,7 @@ void gather_info		(const char *expression, const char *description, const char *
 			buffer		= assertion_info;
 			endline		= "\r\n";
 			prefix		= "";
-		}
+		}				
 	}
 
 #ifdef USE_MEMORY_MONITOR
@@ -191,30 +241,30 @@ void gather_info		(const char *expression, const char *description, const char *
 	memory_monitor::flush_each_time	(false);
 #endif // USE_MEMORY_MONITOR
 
-	if (!IsDebuggerPresent() && !strstr(GetCommandLine(),"-no_call_stack_assert")) {
-		if (shared_str_initialized)
-			Msg			("stack trace:\n");
+	if (!strstr(GetCommandLine(),"-no_call_stack_assert")) {
 
 #ifdef USE_OWN_ERROR_MESSAGE_WINDOW
-		buffer			+= sprintf(buffer,"See log file and minidump for detailed information\r\n");
+
+
+		buffer			+= sprintf(buffer, MSG_SEE_LOG);
+
 //		buffer			+= sprintf(buffer,"stack trace:%s%s",endline,endline);
 #endif // USE_OWN_ERROR_MESSAGE_WINDOW
 
+				
 		BuildStackTrace	();		
-
-		for (int i=2; i<g_stackTraceCount; ++i) {
-			if (shared_str_initialized)
-				Msg		("%s",g_stackTrace[i]);
+		Msg("!stack trace:\n");
+		for (int i = 2; i < g_stackTraceCount; ++i) 
+			Msg("!\t %s", g_stackTrace[i]);
+		
 
 #ifdef USE_OWN_ERROR_MESSAGE_WINDOW
 //			buffer		+= sprintf(buffer,"%s%s",g_stackTrace[i],endline);
 #endif // USE_OWN_ERROR_MESSAGE_WINDOW
-		}
+				
 
-		if (shared_str_initialized)
-			FlushLog	();
-
-		copy_to_clipboard	(assertion_info);
+		if (!IsDebuggerPresent())
+			 copy_to_clipboard	(assertion_info);
 	}
 }
 
@@ -227,6 +277,8 @@ void xrDebug::do_exit	(const std::string &message)
 
 void xrDebug::backend	(const char *expression, const char *description, const char *argument0, const char *argument1, const char *file, int line, const char *function, bool &ignore_always)
 {
+	force_flush_log = true;
+
 	static xrCriticalSection CS
 #ifdef PROFILE_CRITICAL_SECTIONS
 	(MUTEX_PROFILE_ID(xrDebug::backend))
@@ -243,9 +295,9 @@ void xrDebug::backend	(const char *expression, const char *description, const ch
 #ifdef USE_OWN_ERROR_MESSAGE_WINDOW
 	LPCSTR				endline = "\r\n";
 	LPSTR				buffer = assertion_info + xr_strlen(assertion_info);
-	buffer				+= sprintf(buffer,"%sPress CANCEL to abort execution%s",endline,endline);
-	buffer				+= sprintf(buffer,"Press TRY AGAIN to continue execution%s",endline);
-	buffer				+= sprintf(buffer,"Press CONTINUE to continue execution and ignore all the errors of this type%s%s",endline,endline);
+	buffer				+= sprintf(buffer, MSG_PRESS_CANCEL,   endline,endline);
+	buffer				+= sprintf(buffer, MSG_PRESS_RETRY,    endline);
+	buffer				+= sprintf(buffer, MSG_PRESS_CONTINUE, endline,endline);
 #endif // USE_OWN_ERROR_MESSAGE_WINDOW
 
 	if (handler)
@@ -264,7 +316,7 @@ void xrDebug::backend	(const char *expression, const char *description, const ch
 			MessageBox(
 				GetTopWindow(NULL),
 				assertion_info,
-				"Fatal Error",
+				"Фатальная Ошибка",
 				MB_CANCELTRYCONTINUE|MB_ICONERROR|MB_SYSTEMMODAL
 			);
 
@@ -621,30 +673,28 @@ LONG WINAPI UnhandledFilter	(_EXCEPTION_POINTERS *pExceptionInfo)
 		CONTEXT				save = *pExceptionInfo->ContextRecord;
 		BuildStackTrace		(pExceptionInfo);
 		*pExceptionInfo->ContextRecord = save;
-
-		if (shared_str_initialized)
-			Msg				("stack trace:\n");
+				
+		Msg				("stack trace:\n");
 		copy_to_clipboard	("stack trace:\r\n\r\n");
 
 		string4096			buffer;
-		for (int i=0; i<g_stackTraceCount; ++i) {
-			if (shared_str_initialized)
-				Msg			("%s",g_stackTrace[i]);
+		for (int i=0; i<g_stackTraceCount; ++i) 
+		{			
+			Msg			("%s",g_stackTrace[i]);
 			sprintf			(buffer,"%s\r\n",g_stackTrace[i]);
 			update_clipboard(buffer);
 		}
 
-		if (*error_message) {
-			if (shared_str_initialized)
-				Msg			("\n%s",error_message);
-
+		if (*error_message) 
+		{			
+			Msg			("\n%s",error_message);
 			strcat			(error_message,"\r\n");
 			update_clipboard(error_message);
 		}
 	}
 
-	if (shared_str_initialized)
-		FlushLog			();
+	
+	FlushLog			();
 
 #ifdef USE_OWN_MINI_DUMP
 		save_mini_dump		(pExceptionInfo);
@@ -654,7 +704,7 @@ LONG WINAPI UnhandledFilter	(_EXCEPTION_POINTERS *pExceptionInfo)
 		if (Debug.get_on_dialog())
 			Debug.get_on_dialog()	(true);
 
-		MessageBox			(NULL,"Fatal error occured\n\nPress OK to abort program execution","Fatal error",MB_OK|MB_ICONERROR|MB_SYSTEMMODAL);
+		MessageBox(NULL, MSG_FATAL_ERROR_OK, "Fatal error", MB_OK | MB_ICONERROR | MB_SYSTEMMODAL);
 	}
 #endif // USE_OWN_ERROR_MESSAGE_WINDOW
 
@@ -729,9 +779,9 @@ LONG WINAPI UnhandledFilter	(_EXCEPTION_POINTERS *pExceptionInfo)
 			assertion_info
 		);
 		
-		LPCSTR					endline = "\r\n";
+		// LPCSTR					endline = "\r\n";
 		LPSTR					buffer = assertion_info + xr_strlen(assertion_info);
-		buffer					+= sprintf(buffer,"Press OK to abort execution%s",endline);
+		buffer					+= sprintf(buffer, MSG_OK_TO_ABORT);
 
 		MessageBox				(
 			GetTopWindow(NULL),
@@ -758,7 +808,7 @@ LONG WINAPI UnhandledFilter	(_EXCEPTION_POINTERS *pExceptionInfo)
 	{
 		bool							ignore_always = false;
 		Debug.backend					(
-			"error handler is invoked!",
+			ERR_HANDLER_BASE,
 			reason_string,
 			0,
 			0,
@@ -818,7 +868,7 @@ LONG WINAPI UnhandledFilter	(_EXCEPTION_POINTERS *pExceptionInfo)
 		}
 
 		Debug.backend					(
-			"error handler is invoked!",
+			ERR_HANDLER_INVP,
 			expression_,
 			0,
 			0,
@@ -831,34 +881,34 @@ LONG WINAPI UnhandledFilter	(_EXCEPTION_POINTERS *pExceptionInfo)
 
 	static void std_out_of_memory_handler	()
 	{
-		handler_base					("std: out of memory");
+		handler_base					(ERR_OUT_OF_MEMORY);
 	}
 
 	static void pure_call_handler			()
 	{
-		handler_base					("pure virtual function call");
+		handler_base					(ERR_PURE_VFUNC);
 	}
 
 #ifdef CS_USE_EXCEPTIONS
 	static void unexpected_handler			()
 	{
-		handler_base					("unexpected program termination");
+		handler_base					(ERR_UNEXP_TERM);
 	}
 #endif // CS_USE_EXCEPTIONS
 
 	static void abort_handler				(int signal)
 	{
-		handler_base					("application is aborting");
+		handler_base					(ERR_APP_ABORTING);
 	}
 
 	static void floating_point_handler		(int signal)
 	{
-		handler_base					("floating point error");
+		handler_base					(ERR_FLOAT_POINT);
 	}
 
 	static void illegal_instruction_handler	(int signal)
 	{
-		handler_base					("illegal instruction");
+		handler_base					(ERR_ILLEGAL_INSTR);
 	}
 
 //	static void storage_access_handler		(int signal)
@@ -868,7 +918,7 @@ LONG WINAPI UnhandledFilter	(_EXCEPTION_POINTERS *pExceptionInfo)
 
 	static void termination_handler			(int signal)
 	{
-		handler_base					("termination with exit code 3");
+		handler_base					(ERR_TERMINATION_3);
 	}
 
     void	xrDebug::_initialize		(const bool &dedicated)
@@ -876,13 +926,13 @@ LONG WINAPI UnhandledFilter	(_EXCEPTION_POINTERS *pExceptionInfo)
 		debug_on_thread_spawn			();
 
 		_set_abort_behavior				(0,_WRITE_ABORT_MSG | _CALL_REPORTFAULT);
-		signal							(SIGABRT,		abort_handler);
-		signal							(SIGABRT_COMPAT,abort_handler);
-		signal							(SIGFPE,		floating_point_handler);
-		signal							(SIGILL,		illegal_instruction_handler);
-		signal							(SIGINT,		0);
-//		signal							(SIGSEGV,		storage_access_handler);
-		signal							(SIGTERM,		termination_handler);
+		signal							(SIGABRT,			abort_handler);
+		signal							(SIGABRT_COMPAT,	abort_handler);
+		signal							(SIGFPE,			floating_point_handler);
+		signal							(SIGILL,			illegal_instruction_handler);
+		signal							(SIGINT,			0);
+//		signal							(SIGSEGV,			storage_access_handler);
+		signal							(SIGTERM,			termination_handler);
 
 		_set_invalid_parameter_handler	(&invalid_parameter_handler);
 

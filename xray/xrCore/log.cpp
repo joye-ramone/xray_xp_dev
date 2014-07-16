@@ -9,6 +9,11 @@
 extern BOOL					LogExecCB		= TRUE;
 static string_path			logFName		= "engine.log";
 static BOOL 				no_log			= TRUE;
+
+
+#define	LOG_TIME_PRECISE
+bool __declspec(dllexport) force_flush_log = false;	// alpet: выставить в true если лог все-же записывается плохо при вылете. Слишком частая запись лога вредит SSD и снижает произволительность.
+
 #ifdef PROFILE_CRITICAL_SECTIONS
 	static xrCriticalSection	logCS(MUTEX_PROFILE_ID(log));
 #else // PROFILE_CRITICAL_SECTIONS
@@ -19,14 +24,23 @@ static LogCallback			LogCB			= 0;
 
 IWriter *LogWriter;
 
+size_t cached_log = 0;
+
 void FlushLog			(LPCSTR file_name)
 {
+	if (LogWriter)
+		LogWriter->flush();
+	cached_log = 0;
 }
 
 void FlushLog			()
 {
 	FlushLog		(logFName);
 }
+
+
+extern bool shared_str_initialized;
+
 
 void AddOne				(const char *split) 
 {
@@ -40,27 +54,52 @@ void AddOne				(const char *split)
 	OutputDebugString	("\n");
 #endif
 
+	//exec CallBack
+	if (LogExecCB&&LogCB)LogCB(split);
+
 //	DUMP_PHASE;
 	{
-		shared_str			temp = shared_str(split);
-//		DUMP_PHASE;
-		LogFile->push_back	(temp);
+		if (shared_str_initialized)
+		{
+			shared_str			temp = shared_str(split);
+			LogFile->push_back(temp);
+		}
 
-		//+RvP
-		if(LogWriter){
+		//+RvP, alpet
+		if (LogWriter)
+		{				
+			switch (*split)
+			{
+			case 0x21:
+			case 0x23:
+			case 0x25:
+				split ++; // пропустить первый символ, т.к. это вероятно цветовой тег
+				break;
+			}
+
+			char buf[64];
+#ifdef	LOG_TIME_PRECISE 
+			SYSTEMTIME lt;
+			GetLocalTime(&lt);
+			
+			sprintf_s(buf, 64, "[%02d.%02d.%02d %02d:%02d:%02d.%03d] ", lt.wDay, lt.wMonth, lt.wYear % 100, lt.wHour, lt.wMinute, lt.wSecond, lt.wMilliseconds);						
+			LogWriter->w_printf("%s%s\r\n", buf, split);
+			cached_log += xr_strlen(buf);
+			cached_log += xr_strlen(split) + 2;
+#else
 			time_t t = time(NULL);
 			tm* ti = localtime(&t);
-			char buf[64];
-			strftime(buf, 64, "[%x %X]\t", ti);
 			
-			LogWriter->w_printf("%s%s\r\n", buf, split);
-			LogWriter->flush();
+			strftime(buf, 64, "[%x %X]\t", ti);
+
+			LogWriter->wprintf("%s %s\r\n", buf, split);
+#endif
+			if (force_flush_log || cached_log >= 32768)
+				FlushLog();
 		}
 		//-RvP
 	}
 
-	//exec CallBack
-	if (LogExecCB&&LogCB)LogCB(split);
 
 	logCS.Leave				();
 }

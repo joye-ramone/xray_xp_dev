@@ -42,6 +42,7 @@
 #include "clsid_game.h"
 #include "MainMenu.h"
 #include "..\XR_IOConsole.h"
+#include <functional>  // добавлено alpet для успешной сборки в VS 2013
 
 #ifdef DEBUG
 #	include "level_debug.h"
