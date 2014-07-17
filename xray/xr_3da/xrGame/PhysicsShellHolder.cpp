@@ -379,3 +379,53 @@ void CPhysicsShellHolder::on_physics_disable()
 	u_EventGen			(net_packet,GE_FREEZE_OBJECT,ID());
 	Level().Send		(net_packet,net_flags(TRUE,TRUE));
 }
+
+void CPhysicsShellHolder::UpdateXFORM(const Fmatrix &upd)
+{
+	inherited::UpdateXFORM(upd);
+
+	static int method = 1 + 4 + 8; // alpet: набор флагов для отладки, можно менять значение во время выполнения из Watches
+
+	if (PPhysicsShell())
+	{
+		// m_pPhysicsShell->SetTransform(upd);		
+		if (method & 1)
+		{			
+			PPhysicsShell()->mXFORM.set(upd);		
+			PPhysicsShell()->SetGlTransformDynamic(upd);									
+		}
+			
+		if (method & 2)
+		{   // стянуто из Car.cpp и как-то не так работает
+			bool enable = PPhysicsShell()->isEnabled();
+
+			Fmatrix inv, replace;
+			Fmatrix restored_form;
+			PPhysicsShell()->GetGlobalTransformDynamic(&restored_form);
+			inv.set(restored_form);
+			inv.invert();
+			replace.mul(upd, inv);
+			PPhysicsShell()->SetTransform (replace);			
+			if (enable) PPhysicsShell()->Enable(); 
+			else PPhysicsShell()->Disable();
+			// PPhysicsShell()->GetGlobalTransformDynamic(&XFORM());
+		}
+		// пересчет костей 		
+		CKinematics *K = PKinematics(Visual());
+		if (K)
+		{
+			K->CalculateBones_Invalidate();
+			K->CalculateBones();
+		}
+
+		if (method & 4)
+			PPhysicsShell()->Update();
+
+		if (method & 8)		
+			PPhysicsShell()->GetGlobalTransformDynamic(&XFORM());
+		
+			
+
+	}
+		
+}

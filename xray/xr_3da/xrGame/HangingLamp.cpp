@@ -281,16 +281,13 @@ CSE_ALifeObjectHangingLamp *get_se_lamp(CHangingLamp *lobj)
 	return smart_cast<CSE_ALifeObjectHangingLamp*>(e);
 }
 
-void		CHangingLamp::SetDirection(const Fvector &v)
+void		CHangingLamp::SetDirection(const Fvector &v, float bank)
 {
-	Fmatrix &m = XFORM();	
-	Fvector pos = m.c; // save position
-	m.setHPB ( v.getH(), v.getP(), 0 );		
-	m.c = pos;		   // restore position	
+	lua_game_object()->SetDirection(v, bank);		
 }
 void		CHangingLamp::SetPosition(const Fvector &v) 
 {
-	XFORM().c = v;	   // чтобы переместить немедля		
+	lua_game_object()->SetPosition(v);	
 }
 
 void		CHangingLamp::Synchronize() // alpet: сохранение данных в серверный объект

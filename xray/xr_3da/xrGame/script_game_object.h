@@ -665,7 +665,8 @@ public:
 
 			void AttachVehicle(CScriptGameObject*);
 			void DetachVehicle();
-			void SetPosition(Fvector);
+			void SetDirection(const Fvector &dir, float bank);
+			void SetPosition(const Fvector &pos);
 			
 			// alpet: visual functions for CWeapon descedants 
 			_DECLARE_FUNCTION10 (alife_object			,			CSE_ALifeDynamicObject*);

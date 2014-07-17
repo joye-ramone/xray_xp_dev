@@ -25,6 +25,13 @@ void CWeaponMounted::BoneCallbackX(CBoneInstance *B)
 	if (P->Owner()){
 		Fmatrix rX;		rX.rotateX		(P->camera->pitch+P->m_dAngle.y);
 		B->mTransform.mulB_43(rX);
+		// alpet: сохранение ориентации после детача
+		static int method = 0;
+		Fmatrix &m = P->PPhysicsShell()->get_Element(1)->mXFORM;
+		Fvector pos = m.c;
+		float h, p, b;
+		m.getHPB (h, p, b);	// желательно не затереть горизонтальный угол 	
+		m.setHPB (h, -P->camera->pitch, b).c = pos;
 	}
 }
 
@@ -35,6 +42,12 @@ void CWeaponMounted::BoneCallbackY(CBoneInstance *B)
 	if (P->Owner()){
 		Fmatrix rY;		rY.rotateY		(P->camera->yaw+P->m_dAngle.x);
 		B->mTransform.mulB_43(rY);
+		// alpet: сохранение ориентации после детача		
+		Fmatrix &m = P->PPhysicsShell()->get_Element(1)->mXFORM;		
+		Fvector pos = m.c;		
+		float h, p, b;
+		m.getHPB(h, p, b);	// желательно не затереть вертикальный угол 	
+		m.setHPB(-P->camera->yaw, p, b).c = pos;		
 	}
 }
 //----------------------------------------------------------------------------------------
@@ -229,21 +242,68 @@ void	CWeaponMounted::cam_Update			(float dt, float fov)
 	if(A){
 		// rotate head
 		CCameraBase *cam = Camera();
-		A->Orientation().yaw			= -cam->yaw;
-		A->Orientation().pitch		= cam->pitch; // alpet: попытка исправить вертикальную инверсию, заметную при игре от 3-го лица
+		// weapon corrections
+		static float y_corr = 1;
+		static float p_corr = 1;
+		static float b_corr = 1;
+		// camera apply coef
+		static float y_coef = 1;
+		static float p_coef = 1;
+		static float b_coef = 1;
+		// actor apply coefs
+		static float ay_coef = 1;
+		static float ap_coef = 1;
+		static float ab_coef = 1;
+		static int   method = 1;
+		float h, p, b;
+		bool dump = IsDebuggerPresent() && (0 != (GetAsyncKeyState(VK_CONTROL) & 0xC000));
+
+		Fmatrix rot = XFORM(); // weapon rotation+position read
+		Fmatrix full;
+		rot.c.set(0, 0, 0);
+		rot.getHPB(h, p, b);
+		if (dump)
+			Msg("original device orientation =~C0F %.3f %.3f %.3f~C07, cam orientation =~C0E %.3f %.3f %.3f~C07 ", h, p, b, cam->yaw, cam->pitch, cam->roll);
+
+		// некоммутативность умножения матриц здесь
+		
+		full.setHPB(cam->yaw * y_coef, cam->pitch * p_coef, cam->roll  * b_coef);	   // set camera rotation 
+
+		if (method & 2)
+			full.mulB_43(rot);
+		else
+		{   // метод с похожим результатом: 
+			rot.invert(); // равноценно rot.setHPB(-h, -p, -b);							   // разворот вокруг осей Y, X и Z			 						
+			full.mulA_43(rot);															   // apply weapon rotation to camera rotation matrix	
+		}
+		full.getHPB(h, p, b);
+
+		if (dump)
+			Msg("target light orientation    =~C0B %.3f %.3f %.3f~C07", h, p, b);
+
+		A->Orientation().yaw			=  h;
+		A->Orientation().pitch		= -p; // alpet: попытка исправить вертикальную инверсию, заметную при игре от 3-го лица
+		A->Orientation().roll		=  b;
 		CCameraBase *fe = A->cam_FirstEye();
 		if (fe)
 		{   // alpet: поворот камеры актора, направляющий заодно и свет от фонаря
-			fe->yaw = cam->yaw;
-			fe->pitch = cam->pitch;
-			Fvector p = P;
-			p.y -= A->Radius() *2.f / 3.f;
-			A->XFORM().c = p;
+			fe->yaw   = h * ay_coef;
+			fe->pitch = p * ap_coef;
+			fe->roll  = b * ab_coef;
+			Fvector pv = P;
+			// pv.y -= A->Radius() *2.f / 3.f; // TODO: здесь нужно ортогональный базис "вниз" от точки камеры, а просто вычитание Y
+			A->XFORM().c = pv;
 		}
 		
 	}
 	Camera()->Update							(P,Da);
 	Level().Cameras().Update					(Camera());
+}
+
+void CWeaponMounted::UpdateXFORM(const Fmatrix &upd)
+{
+	m_pPhysicsShell->EnabledCallbacks(TRUE); // для пересчета позиций всех костей
+	inherited::UpdateXFORM(upd);
 }
 
 bool	CWeaponMounted::Use					(const Fvector& pos,const Fvector& dir,const Fvector& foot_pos)
@@ -274,6 +334,15 @@ bool	CWeaponMounted::attach_Actor		(CGameObject* actor)
 }
 void	CWeaponMounted::detach_Actor		()
 {
+	CActor *A = OwnerActor();
+	if (A)
+	{   // alpet: устранения крена, после пользования наклоненным пулеметом
+		A->Orientation().roll = 0;  
+		CCameraBase *fe = A->cam_FirstEye();
+		if (fe)
+			fe->roll = 0;
+	}
+
 	CKinematics *K = PKinematics(Visual());
 	CHolderCustom::detach_Actor();
 	// disable actor rotate callback
@@ -283,11 +352,13 @@ void	CWeaponMounted::detach_Actor		()
 	biY.reset_callback		();
 	// enable shell callback
 	m_pPhysicsShell->EnabledCallbacks(TRUE);
-
 	//закончить стрельбу
 	FireEnd();
 
 	processing_deactivate		();
+
+	
+	
 }
 
 Fvector	CWeaponMounted::ExitPosition		()

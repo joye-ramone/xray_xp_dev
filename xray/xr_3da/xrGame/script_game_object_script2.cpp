@@ -28,8 +28,7 @@
 #include "danger_object.h"
 #include "Weapon.h"
 #include "Torch.h"
-#include "alife_simulator.h"
-#include "alife_object_registry.h"
+#include "xrServer_Objects_ALife.h"
 
 using namespace luabind;
 
@@ -40,11 +39,9 @@ extern CScriptActionPlanner *script_action_planner(CScriptGameObject *obj);
 // alpet: получение визуала для худа оружия
 
 CSE_ALifeDynamicObject* CScriptGameObject::alife_object() const
-{
-	const CALifeSimulator *sim = ai().get_alife();
-	if (sim)
-		return sim->objects().object(object().ID(), true);
-	return NULL;}
+{	
+	return object().alife_object();
+}
 
 IRender_Visual* CScriptGameObject::GetWeaponHUD_Visual() const
 {

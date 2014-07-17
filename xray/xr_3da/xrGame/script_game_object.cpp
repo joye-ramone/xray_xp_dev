@@ -779,7 +779,42 @@ void CScriptGameObject::DetachVehicle()
 	actor->detach_Vehicle();
 }
 
-void CScriptGameObject::SetPosition(Fvector pos)
+
+void CScriptGameObject::SetDirection (const Fvector &dir, float bank)
+{
+	if (!g_pGameLevel)
+	{
+		Msg("Error! CScriptGameObject::SetDirection : game level doesn't exist.");
+		return;
+	}
+
+	float h, p;
+	dir.getHP(h, p);
+
+	if (this->IsActor())
+	{
+		SRotation &R = Actor()->Orientation();
+		R.pitch = p;
+		R.yaw = h;
+		R.roll = bank;
+	}
+	else
+	{		
+		Fmatrix m = object().XFORM();
+		Fmatrix r = Fidentity;				
+		r.setHPB (h, p, bank);				// set 2-axis direction 
+		m.set(r.i, r.j, r.k, m.c);		
+		object().XFORM() = m; // only visual update
+		// object().UpdateXFORM(m);
+	}
+	
+	// alpet: сохранение направлени€ в серверный экземпл€р
+	CSE_ALifeDynamicObject* se_obj = alife_object();
+	if (se_obj)
+		se_obj->angle() = dir;	
+}
+
+void CScriptGameObject::SetPosition(const Fvector &pos)
 {
 	if (!g_pGameLevel)
 	{
@@ -796,15 +831,14 @@ void CScriptGameObject::SetPosition(Fvector pos)
 		PP.w_vec3						(pos);
 		CGameObject::u_EventSend		(PP);
 		// alpet: €вное перемещение визуалов объектов
-		object().XFORM().c = pos;
-		IRender_Visual *pV = object().Visual();
-		if (pV)
-		{
-			pV->vis.sphere.P = pos;
-			CKinematics *pK = smart_cast<CKinematics*> (pV);
-			if (pK)					
-				pK->CalculateBones_Invalidate();	 // позволит объекту быстрее объ€витьс€ в новой точке			
-		}
-		
+		Fmatrix m = object().XFORM();
+		m.translate_over(pos);
+		object().UpdateXFORM(m);		
+
+		// alpet: сохранение позиции в серверный экземпл€р
+		CSE_ALifeDynamicObject* se_obj = alife_object();
+		if (se_obj)
+			se_obj->position() = pos;
+
 	}
 }

@@ -53,7 +53,7 @@ public:
 	void			SetAngle		(float angle, int target = 0);
 	void			SetAnimation	(LPCSTR name);
 	void			SetBrightness	(float brightness);
-	void			SetDirection	(const Fvector &v);
+	void			SetDirection	(const Fvector &v, float bank);
 	void			SetColor		(const Fcolor &color, int target = 0);
 	void			SetRGB			(float r, float g, float b, int target = 0);
 		
