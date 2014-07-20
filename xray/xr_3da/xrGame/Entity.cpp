@@ -79,9 +79,13 @@ void CEntity::Die(CObject* who)
 	{
 		VERIFY				(m_registered_member);
 	}
-	m_registered_member	= false;
-	if (IsGameTypeSingle())
-		Level().seniority_holder().team(g_Team()).squad(g_Squad()).group(g_Group()).unregister_member(this);
+	
+	if (m_registered_member) // alpet: без этого ограничения, при массовом убийстве вертолетов на агро, в CGroupHierarchyHolder::unregister_in_group возникает повреждение кучи
+	{
+		m_registered_member = false;
+		if (IsGameTypeSingle())
+			Level().seniority_holder().team(g_Team()).squad(g_Squad()).group(g_Group()).unregister_member(this);
+	}
 }
 
 //обновление состояния
