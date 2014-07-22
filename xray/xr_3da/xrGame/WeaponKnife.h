@@ -2,6 +2,7 @@
 
 #include "WeaponCustomPistol.h"
 #include "script_export_space.h"
+#include "../../build_config_defines.h"
 
 class CWeaponKnife: public CWeapon {
 private:
@@ -14,6 +15,9 @@ protected:
 	MotionSVec			mhud_attack2;
 	MotionSVec			mhud_attack_e;
 	MotionSVec			mhud_attack2_e;
+#if defined(KNIFE_SPRINT_MOTION)
+	MotionSVec			mhud_idle_sprint;
+#endif
 
 	HUD_SOUND			m_sndShot;
 
@@ -66,6 +70,10 @@ public:
 
 	virtual void		StartIdleAnim					();
 	virtual void		GetBriefInfo					(xr_string& str_name, xr_string& icon_sect_name, xr_string& str_count);
+
+#if defined(KNIFE_SPRINT_MOTION)
+	virtual void		onMovementChanged				(ACTOR_DEFS::EMoveCommand cmd);
+#endif
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };

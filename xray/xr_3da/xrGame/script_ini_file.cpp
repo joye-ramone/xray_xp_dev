@@ -103,3 +103,10 @@ Fvector CScriptIniFile::r_fvector3		(LPCSTR S, LPCSTR L)
 	THROW3		(inherited::line_exist(S,L),"Cannot find line",L);
 	return		(inherited::r_fvector3(S,L));
 }
+
+Fcolor CScriptIniFile::r_fcolor	(LPCSTR S, LPCSTR L)
+{
+	THROW3		(inherited::section_exist(S), "Cannot find section", S);
+	THROW3		(inherited::line_exist(S,L), "Cannot find line", L);
+	return		(inherited::r_fcolor(S,L));
+}

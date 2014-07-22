@@ -16,6 +16,12 @@
 #include "entitycondition.h"
 #include "game_base_space.h"
 #include "clsid_game.h"
+#include "../../build_config_defines.h"
+
+
+#include "HUDManager.h"
+#include "UIGameSP.h"
+#include "ui\UIInventoryWnd.h"
 
 
 using namespace InventoryUtilities;
@@ -164,7 +170,11 @@ void CInventory::Take(CGameObject *pObj, bool bNotActivate, bool strict_placemen
 
 		break;
 	default:
+#if defined(GRENADE_FROM_BELT)
+		if(CanPutInSlot(pIItem) && pIItem->GetSlot() != GRENADE_SLOT)
+#else
 		if(CanPutInSlot(pIItem))
+#endif
 		{
 			result						= Slot(pIItem, bNotActivate); VERIFY(result);
 		} 
@@ -310,7 +320,7 @@ bool CInventory::Slot(PIItem pIItem, bool bNotActivate)
 bool CInventory::Belt(PIItem pIItem) 
 {
 	if(!CanPutInBelt(pIItem))	return false;
-	
+
 	//גושü בûכא ג סכמעו
 	bool in_slot = InSlot(pIItem);
 	if(in_slot) 
@@ -339,6 +349,11 @@ bool CInventory::Belt(PIItem pIItem)
 		pIItem->object().processing_deactivate();
 
 	pIItem->object().processing_activate();
+
+#if defined(GRENADE_FROM_BELT)
+		if (pIItem->GetSlot() == GRENADE_SLOT && !m_slots[GRENADE_SLOT].m_pIItem)
+			return !Slot(pIItem);
+#endif
 
 	return true;
 }
@@ -501,7 +516,11 @@ bool CInventory::Activate(u32 slot, EActivationReason reason, bool bForce)
 		{
 			if(slot==GRENADE_SLOT)//fake for grenade
 			{
+#if defined(GRENADE_FROM_BELT)
+				PIItem gr = SameSlot(GRENADE_SLOT, NULL, false);
+#else
 				PIItem gr = SameSlot(GRENADE_SLOT, NULL, true);
+#endif
 				if(gr)
 				{
 					Slot(gr);

@@ -842,3 +842,33 @@ void CScriptGameObject::SetPosition(const Fvector &pos)
 
 	}
 }
+
+void CScriptGameObject::HealWounds(float percent)
+{
+	if (!g_pGameLevel)
+	{
+		Msg("Error! CScriptGameObject::HealWounds : game level doesn't exist.");
+		return;
+	}
+
+	CEntityAlive *obj = smart_cast<CEntityAlive*>(&object() );
+	if (!obj)
+	{
+		Msg("Error! CScriptGameObject::HealWounds : object isn't entity alive.");
+		return;
+	}
+
+	obj->conditions().ChangeBleeding(percent);
+}
+
+CScriptIniFile* CScriptGameObject::GetVisualIni() const
+{
+	if (!g_pGameLevel)
+	{
+		Msg("Error! CScriptGameObject::GetVisualIni : game level doesn't exist.");
+		return 0;
+	}
+
+	CKinematics* K = smart_cast<CKinematics*>(object().Visual());
+	return K? (CScriptIniFile*)K->LL_UserData(): 0;
+}

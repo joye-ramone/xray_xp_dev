@@ -1525,8 +1525,11 @@ void CActor::UpdateArtefactsOnBelt()
 		update_time		= 0.0f;
 	}
 
-	for(TIItemContainer::iterator it = inventory().m_belt.begin(); 
-		inventory().m_belt.end() != it; ++it) 
+#if defined(ARTEFACTS_FROM_RUCK)
+	for(TIItemContainer::iterator it = inventory().m_all.begin(); inventory().m_all.end() != it; ++it)
+#else
+	for(TIItemContainer::iterator it = inventory().m_belt.begin(); inventory().m_belt.end() != it; ++it)
+#endif
 	{
 		CArtefact*	artefact = smart_cast<CArtefact*>(*it);
 		if(artefact)
@@ -1544,8 +1547,11 @@ float	CActor::HitArtefactsOnBelt		(float hit_power, ALife::EHitType hit_type)
 {
 	float res_hit_power_k		= 1.0f;
 	float _af_count				= 0.0f;
-	for(TIItemContainer::iterator it = inventory().m_belt.begin(); 
-		inventory().m_belt.end() != it; ++it) 
+#if defined(ARTEFACTS_FROM_RUCK)
+	for(TIItemContainer::iterator it = inventory().m_all.begin(); inventory().m_all.end() != it; ++it)
+#else
+	for(TIItemContainer::iterator it = inventory().m_belt.begin(); inventory().m_belt.end() != it; ++it)
+#endif
 	{
 		CArtefact*	artefact = smart_cast<CArtefact*>(*it);
 		if(artefact){
@@ -1554,7 +1560,7 @@ float	CActor::HitArtefactsOnBelt		(float hit_power, ALife::EHitType hit_type)
 		}
 	}
 
-#ifdef INV_NEW_SLOTS_SYSTEM
+#if defined(INV_NEW_SLOTS_SYSTEM) && !defined(ARTEFACTS_FROM_RUCK)
 	PIItem helmet = inventory().m_slots[HELMET_SLOT].m_pIItem;
 	if (helmet){
 		CArtefact* helmet_artefact = smart_cast<CArtefact*>(helmet);

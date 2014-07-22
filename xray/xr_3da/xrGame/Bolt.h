@@ -1,6 +1,8 @@
 #pragma once
 #include "missile.h"
 #include "DamageSource.h"
+#include "../../build_config_defines.h"
+
 class CBolt :
 	public CMissile,
 	public IDamageSource
@@ -28,4 +30,7 @@ public:
 
 	virtual BOOL UsedAI_Locations() {return FALSE;}
 	virtual IDamageSource*	cast_IDamageSource			()	{return this;}
+#if defined(BOLT_THREAT_FIX)
+	virtual void OnStateSwitch(u32);
+#endif
 };

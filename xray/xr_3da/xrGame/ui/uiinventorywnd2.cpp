@@ -171,7 +171,11 @@ void CUIInventoryWnd::InitInventory()
 	if(_itm)
 	{
 		CUICellItem* itm				= create_cell_item(_itm);
+#if defined(GRENADE_FROM_BELT)
+		m_pUIBeltList->SetItem			(itm);
+#else
 		m_pUIBagList->SetItem			(itm);
+#endif
 	}
 
 	InventoryUtilities::UpdateWeight					(UIBagWnd, true);
@@ -221,7 +225,12 @@ bool CUIInventoryWnd::ToSlot(CUICellItem* itm, bool force_place)
 	if(GetInventory()->CanPutInSlot(iitem)){
 		CUIDragDropListEx* new_owner		= GetSlotList(_slot);
 		
-		if(_slot==GRENADE_SLOT && !new_owner )return true; //fake, sorry (((
+		if(_slot==GRENADE_SLOT && !new_owner )
+#if defined(GRENADE_FROM_BELT)
+			return false;
+#else
+			return true; //fake, sorry (((
+#endif
 		
 		if (!new_owner)
 			Msg("Bad slot %d", _slot);

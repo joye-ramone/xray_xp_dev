@@ -11,6 +11,7 @@
 #include "xr_level_controller.h"
 #include "game_cl_base.h"
 #include "xrserver_objects_alife.h"
+#include "../../build_config_defines.h"
 
 #define GRENADE_REMOVE_TIME		30000
 const float default_grenade_detonation_threshold_hit=100;
@@ -177,14 +178,22 @@ void CGrenade::PutNextToSlot()
 	{
 		NET_Packet						P;
 		m_pCurrentInventory->Ruck		(this);
-
+#if defined(GRENADE_FROM_BELT)
+		this->u_EventGen				(P, GEG_PLAYER_ITEM2BELT, this->H_Parent()->ID());
+#else
 		this->u_EventGen				(P, GEG_PLAYER_ITEM2RUCK, this->H_Parent()->ID());
+#endif
 		P.w_u16							(this->ID());
 		this->u_EventSend				(P);
-
+#if defined(GRENADE_FROM_BELT)
+		CGrenade *pNext					= smart_cast<CGrenade*>(	m_pCurrentInventory->Same(this,false)		);
+		if(!pNext) 
+			pNext						= smart_cast<CGrenade*>(	m_pCurrentInventory->SameSlot(GRENADE_SLOT, this, false)	);
+#else
 		CGrenade *pNext					= smart_cast<CGrenade*>(	m_pCurrentInventory->Same(this,true)		);
 		if(!pNext) 
 			pNext						= smart_cast<CGrenade*>(	m_pCurrentInventory->SameSlot(GRENADE_SLOT, this, true)	);
+#endif
 
 		VERIFY							(pNext != this);
 

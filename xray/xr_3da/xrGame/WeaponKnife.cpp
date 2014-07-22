@@ -12,6 +12,7 @@
 #include "level_bullet_manager.h"
 #include "ai_sounds.h"
 #include "game_cl_single.h"
+#include "../../build_config_defines.h"
 
 #define KNIFE_MATERIAL_NAME "objects\\knife"
 
@@ -44,6 +45,9 @@ void CWeaponKnife::Load	(LPCSTR section)
 	animGet				(mhud_attack2,	pSettings->r_string(*hud_sect,"anim_shoot2_start"));
 	animGet				(mhud_attack_e,	pSettings->r_string(*hud_sect,"anim_shoot1_end"));
 	animGet				(mhud_attack2_e,pSettings->r_string(*hud_sect,"anim_shoot2_end"));
+#if defined(KNIFE_SPRINT_MOTION)
+	animGet(mhud_idle_sprint, pSettings->r_string(*hud_sect,"anim_idle_sprint") );
+#endif
 
 	HUD_SOUND::LoadSound(section,"snd_shoot"		, m_sndShot		, ESoundTypes(SOUND_TYPE_WEAPON_SHOOTING)		);
 	
@@ -245,6 +249,12 @@ void CWeaponKnife::Fire2Start ()
 {
 	inherited::Fire2Start();
 	SwitchState(eFire2);
+
+	// Real Wolf: Прерывание спринта при ударе. 17.07.2014.
+#if defined(KNIFE_SPRINT_FIX)
+	if (ParentIsActor() )
+		g_actor->set_state_wishful(g_actor->get_state_wishful() & (~mcSprint) );
+#endif
 }
 
 
@@ -310,3 +320,17 @@ void CWeaponKnife::GetBriefInfo(xr_string& str_name, xr_string& icon_sect_name, 
 	str_count		= "";
 	icon_sect_name	= *cNameSect();
 }
+
+// Real Wolf: Анимация бега. 17.07.2014.
+#if defined(KNIFE_SPRINT_MOTION)
+void CWeaponKnife::onMovementChanged(ACTOR_DEFS::EMoveCommand cmd)
+{
+	if (g_actor->get_state() & mcSprint)
+	{
+		SetState(eIdle);
+		m_pHUD->animPlay(random_anim(mhud_idle_sprint), TRUE, this,  eIdle);
+	}
+	else
+		SwitchState(GetState() );
+}
+#endif

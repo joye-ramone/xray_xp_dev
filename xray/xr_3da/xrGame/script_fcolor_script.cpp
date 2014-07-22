@@ -25,5 +25,7 @@ void CScriptFcolor::script_register(lua_State *L)
 			.def("set",							(Fcolor & (Fcolor::*)(float,float,float,float))(&Fcolor::set),														return_reference_to(_1))
 			.def("set",							(Fcolor & (Fcolor::*)(const Fcolor &))(&Fcolor::set),																return_reference_to(_1))
 			.def("set",							(Fcolor & (Fcolor::*)(u32))(&Fcolor::set),																			return_reference_to(_1))
+			.def("mul_rgb",						(Fcolor & (Fcolor::*)(float))(&Fcolor::mul_rgb),																	return_reference_to(_1))
+
 	];
 }

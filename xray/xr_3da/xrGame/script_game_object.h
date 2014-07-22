@@ -667,6 +667,9 @@ public:
 			void DetachVehicle();
 			void SetDirection(const Fvector &dir, float bank);
 			void SetPosition(const Fvector &pos);
+
+			void HealWounds(float);
+			CScriptIniFile* GetVisualIni() const;
 			
 			// alpet: visual functions for CWeapon descedants 
 			_DECLARE_FUNCTION10 (alife_object			,			CSE_ALifeDynamicObject*);

@@ -369,6 +369,9 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("detach_vehicle",				&CScriptGameObject::DetachVehicle)
 		.def("set_position",				&CScriptGameObject::SetPosition)
 		.def("set_direction",				&CScriptGameObject::SetDirection)
+		.def("heal_wounds",					&CScriptGameObject::HealWounds)
+		.def("get_visual_ini",				&CScriptGameObject::GetVisualIni)
+
 
 	;return	(instance);
 }

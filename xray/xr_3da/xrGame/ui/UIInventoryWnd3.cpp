@@ -75,7 +75,7 @@ void CUIInventoryWnd::ActivatePropertiesBox()
 	char temp[64];
 	for(u8 i = 0; i < (u8)slots.size(); ++i) 
 	{
-		if (slots[i] != NO_ACTIVE_SLOT)
+		if (slots[i] != NO_ACTIVE_SLOT && slots[i] != GRENADE_SLOT)
 			if (!m_pInv->m_slots[slots[i]].m_pIItem || m_pInv->m_slots[slots[i]].m_pIItem != CurrentIItem() )
 			{
 				CEatableItem *eat = smart_cast<CEatableItem*>(CurrentIItem() );
@@ -95,12 +95,25 @@ void CUIInventoryWnd::ActivatePropertiesBox()
 		b_show			= true;
 	}
 #endif
+
+#if defined(GRENADE_FROM_BELT)
+	if (CurrentIItem() != m_pInv->m_slots[GRENADE_SLOT].m_pIItem)
+#endif
 	if(CurrentIItem()->Belt() && m_pInv->CanPutInBelt(CurrentIItem()))
 	{
 		UIPropertiesBox.AddItem("st_move_on_belt",  NULL, INVENTORY_TO_BELT_ACTION);
 		b_show			= true;
 	}
 
+#if defined(GRENADE_FROM_BELT)
+	if (CurrentIItem()->GetSlot() == GRENADE_SLOT && CurrentIItem()->m_eItemPlace != eItemPlaceRuck)
+	{
+		UIPropertiesBox.AddItem("st_move_to_bag",  NULL, INVENTORY_TO_BAG_ACTION);
+		bAlreadyDressed = true;
+		b_show			= true;
+	}
+	else
+#endif
 	if(CurrentIItem()->Ruck() && m_pInv->CanPutInRuck(CurrentIItem()) && (CurrentIItem()->GetSlot()==u32(-1) || !m_pInv->m_slots[CurrentIItem()->GetSlot()].m_bPersistent) )
 	{
 		if(!pOutfit)
