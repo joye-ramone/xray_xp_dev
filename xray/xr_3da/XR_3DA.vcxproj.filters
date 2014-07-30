@@ -501,6 +501,9 @@
     <ClInclude Include="perlin.h">
       <Filter>Engine\Noise</Filter>
     </ClInclude>
+    <ClInclude Include="lua_tools.h">
+      <Filter>General</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="defines.cpp">
@@ -874,6 +877,9 @@
     </ClCompile>
     <ClCompile Include="perlin.cpp">
       <Filter>Engine\Noise</Filter>
+    </ClCompile>
+    <ClCompile Include="lua_tools.cpp">
+      <Filter>General</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
