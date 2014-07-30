@@ -233,7 +233,7 @@ void CLocatorAPI::Register		(LPCSTR name, u32 vfs, u32 crc, u32 ptr, u32 size_re
 
 	// otherwise insert file
 	files.insert		(desc); 
-	
+
 	// Try to register folder(s)
 	string_path			temp;	
 	strcpy_s			(temp,sizeof(temp),desc.name);
@@ -1123,7 +1123,7 @@ bool CLocatorAPI::check_for_file	(LPCSTR path, LPCSTR _fname, string_path& fname
 	// correct path
 	strcpy_s				(fname,_fname);
 	xr_strlwr				(fname);
-	if (path&&path[0])
+	if (path && path[0])
 		update_path			(fname,path,fname);
 
 	// Search entry
@@ -1132,7 +1132,11 @@ bool CLocatorAPI::check_for_file	(LPCSTR path, LPCSTR _fname, string_path& fname
 
 	files_it				I = files.find(desc_f);
 	if (I == files.end())
+	{
+		Msg("!WARNING: CLocatorAPI::check_for_file not found file %s in files list (size = %d) ", desc_f.name, files.size () );		
 		return				(false);
+	}
+		
 
 	++dwOpenCounter;
 	desc					= &*I;

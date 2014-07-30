@@ -9,6 +9,7 @@
 #include	"ai_script_space.h"
 #include	"ai_script_lua_extension.h"
 #include	"luabind/return_reference_to_policy.hpp"
+#include    "lua_tools.h"
 
 using namespace				luabind;
 
@@ -81,7 +82,9 @@ void LuaLog(LPCSTR caMessage)
 }
 void LuaError(lua_State* L)
 {
-	Debug.fatal(DEBUG_INFO,"LUA error: %s",lua_tostring(L,-1));
+	LPCSTR traceback = get_lua_traceback(L, 1);
+	const char *error = lua_tostring(L, -1);
+	Debug.fatal(DEBUG_INFO,"LUA error: %s \n %s ", error ? error : "NULL", traceback);
 }
 
 #ifndef PURE_ALLOC

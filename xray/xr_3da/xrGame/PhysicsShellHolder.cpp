@@ -357,6 +357,9 @@ CPhysicsShellHolder::PHLoadState(IReader &P)
 	VERIFY(!min.similar(max));
 
 	u16 bones_number=P.r_u16();
+		
+    R_ASSERT3(bones_number <= 64, "CPhysicsShellHolder::PHLoadState", cNameVisual().c_str());
+
 	for(u16 i=0;i<bones_number;i++)
 	{
 		SPHNetState state;

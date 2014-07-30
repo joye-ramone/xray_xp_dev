@@ -10,6 +10,7 @@
 #include "stdafx.h"
 #include "ai_script_lua_extension.h"
 #include "ai_script_space.h"
+#include "lua_tools.h"
 
 #ifndef ENGINE_BUILD
 	#include "ai_space.h"
@@ -117,7 +118,9 @@ void Script::vfLoadStandardScripts(CLuaVirtualMachine *tpLuaVM)
 
 void LuaError(lua_State* L)
 {
-	Debug.fatal(DEBUG_INFO,"LUA error: %s",lua_tostring(L,-1));
+	LPCSTR traceback = get_lua_traceback(L, 1);
+	const char *error = lua_tostring(L, -1);
+	Debug.fatal(DEBUG_INFO,"LUA error: %s \n %s ", error ? error : "NULL", traceback);
 }
 
 void Script::vfExportToLua(CLuaVirtualMachine *tpLuaVM)

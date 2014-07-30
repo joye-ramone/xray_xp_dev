@@ -11,6 +11,7 @@
 #include "ai_space.h"
 #include "object_factory.h"
 #include "script_process.h"
+#include "../lua_tools.h"
 
 #ifdef USE_DEBUGGER
 #	include "script_debugger.h"
@@ -70,7 +71,9 @@ void CScriptEngine::lua_error			(lua_State *L)
 	print_output			(L,"",LUA_ERRRUN);
 
 #if !XRAY_EXCEPTIONS
-	Debug.fatal				(DEBUG_INFO,"LUA error: %s",lua_tostring(L,-1));
+	LPCSTR traceback = get_lua_traceback(L, 1);
+	const char *error = lua_tostring(L, -1);
+	Debug.fatal(DEBUG_INFO,"LUA error: %s \n %s ", error ? error : "NULL", traceback);
 #else
 	throw					lua_tostring(L,-1);
 #endif
