@@ -159,15 +159,15 @@ void CUIInventoryWnd::Init()
 	xml_init.InitDragDropListEx			(uiXml, "dragdrop_outfit", 0, m_pUIOutfitList);
 	BindDragDropListEnents				(m_pUIOutfitList);
 
-	m_pUIPistolList						= xr_new<CUIDragDropListEx>(); AttachChild(m_pUIPistolList); m_pUIPistolList->SetAutoDelete(true);
-	xml_init.InitDragDropListEx			(uiXml, "dragdrop_slot_weapon_1", 0, m_pUIPistolList);
-	BindDragDropListEnents				(m_pUIPistolList);
-
-	m_pUIAutomaticList					= xr_new<CUIDragDropListEx>(); AttachChild(m_pUIAutomaticList); m_pUIAutomaticList->SetAutoDelete(true);
-	xml_init.InitDragDropListEx			(uiXml, "dragdrop_slot_weapon_2", 0, m_pUIAutomaticList);
-	BindDragDropListEnents				(m_pUIAutomaticList);
-
 #ifdef INV_NEW_SLOTS_SYSTEM	
+	m_pUIPistolList = xr_new<CUIDragDropListEx>(); AttachChild(m_pUIPistolList); m_pUIPistolList->SetAutoDelete(true);
+	xml_init.InitDragDropListEx(uiXml, "dragdrop_slot_weapon_1", 0, m_pUIPistolList);
+	BindDragDropListEnents(m_pUIPistolList);
+
+	m_pUIAutomaticList = xr_new<CUIDragDropListEx>(); AttachChild(m_pUIAutomaticList); m_pUIAutomaticList->SetAutoDelete(true);
+	xml_init.InitDragDropListEx(uiXml, "dragdrop_slot_weapon_2", 0, m_pUIAutomaticList);
+	BindDragDropListEnents(m_pUIAutomaticList);
+
 	if (GameID() == GAME_SINGLE){
 		m_pUIKnifeList						= xr_new<CUIDragDropListEx>(); AttachChild(m_pUIKnifeList); m_pUIKnifeList->SetAutoDelete(true);
 		xml_init.InitDragDropListEx			(uiXml, "dragdrop_slot_weapon_0", 0, m_pUIKnifeList);
@@ -209,6 +209,14 @@ void CUIInventoryWnd::Init()
 		xml_init.InitDragDropListEx			(uiXml, "dragdrop_slot_quick_access_3", 0, m_pUISlotQuickAccessList_3);
 		BindDragDropListEnents				(m_pUISlotQuickAccessList_3);
 	}
+#else
+	m_pUIPistolList = xr_new<CUIDragDropListEx>(); AttachChild(m_pUIPistolList); m_pUIPistolList->SetAutoDelete(true);
+	xml_init.InitDragDropListEx(uiXml, "dragdrop_pistol", 0, m_pUIPistolList);
+	BindDragDropListEnents(m_pUIPistolList);
+
+	m_pUIAutomaticList = xr_new<CUIDragDropListEx>(); AttachChild(m_pUIAutomaticList); m_pUIAutomaticList->SetAutoDelete(true);
+	xml_init.InitDragDropListEx(uiXml, "dragdrop_automatic", 0, m_pUIAutomaticList);
+	BindDragDropListEnents(m_pUIAutomaticList);
 #endif
 
 	//pop-up menu
