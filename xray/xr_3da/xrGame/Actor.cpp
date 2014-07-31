@@ -853,18 +853,21 @@ void CActor::g_Physics(Fvector& _accel, float jump, float dt)
 		}
 	}
 }
-float g_fov = 67.5f;
+
+DLL_API float g_fov = 67.5f;
+DLL_API float wpn_fov_ratio = 0.75f;
 
 float CActor::currentFOV()
 {
 	CWeapon* pWeapon = smart_cast<CWeapon*>(inventory().ActiveItem());	
 
+
 	if (eacFirstEye == cam_active && pWeapon &&
 		pWeapon->IsZoomed() && (!pWeapon->ZoomTexture() ||
 		(!pWeapon->IsRotatingToZoom() && pWeapon->ZoomTexture())))
-		return pWeapon->GetZoomFactor() * (0.75f);
+		return pWeapon->GetZoomFactor() * (wpn_fov_ratio);
 	else
-		return g_fov;
+		return g_fov; // cam_Active()->f_fov;
 }
 
 void CActor::UpdateCL	()

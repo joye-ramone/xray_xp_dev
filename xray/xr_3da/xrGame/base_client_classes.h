@@ -7,7 +7,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-
+#include "../CameraBase.h"
 #include "script_export_space.h"
 
 class DLL_Pure;
@@ -87,3 +87,9 @@ typedef class_exporter<CTexture>	CTextureScript;
 add_to_type_list(CTextureScript)
 #undef script_type_list
 #define script_type_list save_type_list(CTextureScript)
+
+typedef class_exporter<CCameraBase>	CCameraBaseScript;
+add_to_type_list(CCameraBaseScript)
+#undef script_type_list
+#define script_type_list save_type_list(CCameraBaseScript)
+

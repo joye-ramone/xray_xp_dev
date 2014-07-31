@@ -18,6 +18,8 @@
 #include "../device.h"
 #include "../Render.h"
 #include "script_game_object.h"
+#include "Actor.h"
+#include "../CameraBase.h"
 
 
 using namespace luabind;
@@ -406,6 +408,67 @@ void CResourceManagerScript::script_register(lua_State *L)
 }
 
 // alpet ======================== SCRIPT_TEXTURE_CONTROL END =========== 
+
+// alpet ======================== CAMERA SCRIPT OBJECT =================
+
+ENGINE_API extern float psHUD_FOV;
+
+CCameraBase* actor_camera(u16 index)
+{
+	CActor *pA = smart_cast<CActor *>(Level().CurrentEntity());
+	if (!pA) return NULL;
+	return pA->cam_ByIndex(index);
+}
+
+
+float global_fov(float new_fov = 0)
+{
+	if (new_fov > 0.1)
+		g_fov = new_fov;
+	return g_fov;
+}
+
+float hud_fov(float new_fov = 0)
+{
+	if (new_fov > 0.1)
+		psHUD_FOV = new_fov;
+	return psHUD_FOV;
+
+}
+
+void CCameraBaseScript::script_register(lua_State *L)
+{
+	module(L)
+		[
+			class_<CCameraBase>("CCameraBase")
+			.def_readwrite("aspect",		&CCameraBase::f_aspect)
+			.def_readonly ("direction",		&CCameraBase::vDirection)
+			.def_readwrite("fov",			&CCameraBase::f_fov)
+			.def_readwrite("position",		&CCameraBase::vPosition)
+
+			.def_readwrite("lim_yaw",		&CCameraBase::lim_yaw)
+			.def_readwrite("lim_pitch",		&CCameraBase::lim_pitch)
+			.def_readwrite("lim_roll",		&CCameraBase::lim_roll)
+
+			.def_readwrite("yaw",			&CCameraBase::yaw)
+			.def_readwrite("pitch",			&CCameraBase::pitch)
+			.def_readwrite("roll",			&CCameraBase::roll),
+
+
+			def("actor_camera",				&actor_camera),
+			def("get_global_fov",			&global_fov),
+			def("set_global_fov",			&global_fov),
+			def("get_hud_fov",				&hud_fov),
+			def("set_hud_fov",				&hud_fov)
+
+
+
+
+		];
+}
+// alpet ======================== CAMERA SCRIPT OBJECT =================
+
+
 
 /*
 void CKinematicsScript::script_register		(lua_State *L)
