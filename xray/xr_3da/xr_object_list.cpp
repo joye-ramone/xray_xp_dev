@@ -8,7 +8,7 @@
 
 #include "xr_object.h"
 #include "../xrNetServer/net_utils.h"
-
+#include "../../build_config_defines.h"
 #include "CustomHUD.h"
 
 class fClassEQ {

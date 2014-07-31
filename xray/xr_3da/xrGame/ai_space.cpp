@@ -18,6 +18,7 @@
 #include "script_engine.h"
 #include "patrol_path_storage.h"
 #include "alife_simulator.h"
+#include "../../build_config_defines.h"
 
 ENGINE_API	bool g_dedicated_server;
 

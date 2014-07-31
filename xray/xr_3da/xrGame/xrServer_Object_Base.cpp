@@ -12,6 +12,7 @@
 #include "game_base_space.h"
 #include "script_value_container_impl.h"
 #include "clsid_game.h"
+#include "../../build_config_defines.h"
 
 #pragma warning(push)
 #pragma warning(disable:4995)

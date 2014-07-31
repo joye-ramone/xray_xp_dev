@@ -35,7 +35,7 @@ class	CLevelSoundManager;
 	class	CDebugRenderer;
 #endif
 
-extern float g_fov;
+extern DLL_API float g_fov;
 
 const int maxRP					= 64;
 const int maxTeams				= 32;

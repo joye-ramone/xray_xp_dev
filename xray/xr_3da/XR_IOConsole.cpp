@@ -13,6 +13,8 @@
 #include "GameFont.h"
 #include "xr_trims.h"
 #include "CustomHUD.h"
+#include "../../build_config_defines.h"
+
 #pragma warning(push)
 #pragma warning(disable:4995)
 //#include <locale>
@@ -86,6 +88,10 @@ void CConsole::Initialize()
 	// Commands
 	extern void CCC_Register();
 	CCC_Register	();
+	#ifdef LUAICP_COMPAT
+		LogXrayOffset("CConsole.commands", this, &this->Commands);
+	#endif
+
 }
 
 void CConsole::Destroy	()

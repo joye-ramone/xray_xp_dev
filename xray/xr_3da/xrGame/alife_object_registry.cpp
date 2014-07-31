@@ -9,6 +9,7 @@
 #include "stdafx.h"
 #include "alife_object_registry.h"
 #include "../../xrNetServer/net_utils.h"
+#include "../../build_config_defines.h"
 #include "ai_debug.h"
 
 CALifeObjectRegistry::CALifeObjectRegistry	(LPCSTR section)

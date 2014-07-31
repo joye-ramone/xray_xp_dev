@@ -12,6 +12,7 @@
 #include "game_base.h"
 #include "ai_space.h"
 #include "game_graph.h"
+#include "../../build_config_defines.h"
 
 #pragma warning(push)
 #pragma warning(disable:4995)
@@ -231,6 +232,21 @@ void CALifeSpawnRegistry::build_root_spawns	()
 	);
 
 	m_spawn_roots.erase						(I,m_spawn_roots.end());
+#ifdef LUAICP_COMPAT
+	LogXrayOffset("CALifeSpawnRegistry.spawns",		this, &this->m_spawns);
+	LogXrayOffset("CALifeSpawnRegistry.vertices",	this, &this->m_spawns.vertices());
+	if (m_spawns.vertices().size() > 0)
+	{
+		SPAWN_GRAPH::const_vertex_iterator	I = m_spawns.vertices().begin();
+		void *pVal = I._Ptr->_Myval.second;
+		void *pWrap = &I._Ptr->_Myval.second->data();
+		LogXrayOffset("CGraphVertex.CServerEntityWrapper", pVal, pWrap);
+	}
+		
+		
+
+#endif
+
 }
 
 void CALifeSpawnRegistry::build_story_spawns()

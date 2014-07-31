@@ -9,7 +9,7 @@
 
 #include "x_ray.h"
 #include "GameFont.h"
-
+#include "../../build_config_defines.h"
 
 void CObject::MakeMeCrow_internal	()
 {
