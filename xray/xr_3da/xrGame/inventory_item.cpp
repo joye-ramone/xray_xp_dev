@@ -92,6 +92,7 @@ CInventoryItem::CInventoryItem()
 
 	m_eItemPlace		= eItemPlaceUndefined;
 	m_Description		= "";
+	m_cell_item			= NULL;
 }
 
 CInventoryItem::~CInventoryItem() 

@@ -28,8 +28,16 @@ private:
 	lanim_cont				m_lanim_clr;
 	lanim_cont				m_lanim_xform;
 	void					EnableHeading_int		(bool b)				{m_bHeading = b;}
+
+	// Real Wolf. 25.07.2014.
+	shared_str				m_texture;
+	shared_str				m_shader;
 public:
 	using CUISimpleWindow::SetWndRect;
+
+	// Real Wolf. 25.07.2014.
+	const  LPCSTR	GetTextureName			()	const							{return m_texture.c_str();}
+	const  LPCSTR	GetShaderName			()	const							{return m_shader.c_str();}
 
 					CUIStatic				();
 	virtual			~CUIStatic				();
@@ -48,6 +56,9 @@ public:
 	virtual u32			GetTextureColor				() const;
 	virtual void		SetOriginalRect				(const Frect& r)			{m_UIStaticItem.SetOriginalRect(r);}
 	virtual void		SetOriginalRectEx			(const Frect& r)			{m_UIStaticItem.SetOriginalRectEx(r);}
+
+	// Real Wolf. 25.07.2014.
+	virtual Frect		GetOriginalRect				() const					{return m_UIStaticItem.GetOriginalRect();}
 	//
 			void		SetVTextAlignment(EVTextAlignment al);
 	virtual void		SetColor					(u32 color)					{ m_UIStaticItem.SetColor(color);		}

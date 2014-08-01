@@ -12,7 +12,7 @@ class CInventory;
 #include "UIOutfitInfo.h"
 #include "UIItemInfo.h"
 
-#ifdef INV_NEW_SLOTS_SYSTEM
+#if defined(INV_NEW_SLOTS_SYSTEM)
 	#include "UISleepWnd.h"
 #endif
 
@@ -93,7 +93,7 @@ protected:
 	CUIDragDropListEx*			m_pUIPistolList;
 	CUIDragDropListEx*			m_pUIAutomaticList;
 
-#ifdef INV_NEW_SLOTS_SYSTEM	
+#if defined(INV_NEW_SLOTS_SYSTEM)	
 	CUISleepWnd					UISleepWnd;
 	CUIDragDropListEx*			m_pUIKnifeList;
 	CUIDragDropListEx*			m_pUIBinocularList;
@@ -108,7 +108,12 @@ protected:
 	CUIProgressBar				UIProgressBarSatiety;
 #endif
 	
+#if defined(INV_OUTFIT_FULL_ICON_HIDE)
+	CUIDragDropListEx*		m_pUIOutfitList;
+#else
 	CUIOutfitDragDropList*		m_pUIOutfitList;
+#endif
+	
 	void						ClearAllLists				();
 	void						BindDragDropListEnents		(CUIDragDropListEx* lst);
 	
@@ -173,3 +178,7 @@ protected:
 	u32							m_iCurrentActiveSlot;
 
 };
+
+#if defined(INV_NEW_SLOTS_SYSTEM)
+extern bool is_quick_slot(u32, CInventoryItem*, CInventory*);
+#endif

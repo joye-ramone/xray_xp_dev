@@ -155,7 +155,11 @@ void CUIInventoryWnd::Init()
 	xml_init.InitDragDropListEx			(uiXml, "dragdrop_belt", 0, m_pUIBeltList);
 	BindDragDropListEnents				(m_pUIBeltList);
 
+#if defined(INV_OUTFIT_FULL_ICON_HIDE)
+	m_pUIOutfitList						= xr_new<CUIDragDropListEx>(); AttachChild(m_pUIOutfitList); m_pUIOutfitList->SetAutoDelete(true);
+#else
 	m_pUIOutfitList						= xr_new<CUIOutfitDragDropList>(); AttachChild(m_pUIOutfitList); m_pUIOutfitList->SetAutoDelete(true);
+#endif
 	xml_init.InitDragDropListEx			(uiXml, "dragdrop_outfit", 0, m_pUIOutfitList);
 	BindDragDropListEnents				(m_pUIOutfitList);
 

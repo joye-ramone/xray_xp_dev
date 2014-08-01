@@ -218,6 +218,7 @@ void CGrenade::OnAnimationEnd(u32 state)
 }
 
 
+
 void CGrenade::UpdateCL() 
 {
 	inherited::UpdateCL			();

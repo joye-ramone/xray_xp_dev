@@ -8,5 +8,8 @@
 #define ARTEFACTS_FROM_RUCK				// Real Wolf: артефакты будут работать из всего инвентаря (слотов, пояса, рюкзака).
 #define KNIFE_SPRINT_FIX				// Real Wolf: остановка спринта при при ударе2.
 #define KNIFE_SPRINT_MOTION				// Real Wolf: вопроизведение анимации бега для ножа.
-#define BOLT_THREAT_FIX					// Real Wolf: остановка спринта при броске болта с удержанием.
+#define MISSILE_THREAT_FIX				// Real Wolf: остановка спринта при броске гранаты, болта и т.д.
 #define GRENADE_FROM_BELT				// Real Wolf: гранаты с пояса.
+#define LOCK_RELOAD_IN_SPRINT			// Real Wolf: блокировка перезарядки по время спринта.
+#define HIDE_WEAPON_IN_CAR				// Real Wolf: прятать все оружие в машине.
+#define INV_OUTFIT_FULL_ICON_HIDE		// Real Wolf: иконка игрока в костюме заменена на иконку костюма.

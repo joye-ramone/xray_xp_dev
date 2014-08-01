@@ -23,6 +23,8 @@
 #include "script_game_object.h"
 #include "game_object_space.h"
 
+#include "../../build_config_defines.h"
+
 CWeaponMagazined::CWeaponMagazined(LPCSTR name, ESoundTypes eSoundType) : CWeapon(name)
 {
 	m_eSoundShow = ESoundTypes(SOUND_TYPE_ITEM_TAKING | eSoundType);
@@ -750,6 +752,9 @@ bool CWeaponMagazined::Action(s32 cmd, u32 flags)
 	{
 	case kWPN_RELOAD:
 	{
+#if defined(LOCK_RELOAD_IN_SPRINT)
+	if (!ParentIsActor() || !(g_actor->get_state() & mcSprint) )
+#endif
 		if (flags&CMD_START)
 			if (iAmmoElapsed < iMagazineSize || IsMisfire())
 				Reload();

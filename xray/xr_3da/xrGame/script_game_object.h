@@ -14,6 +14,8 @@
 #include "xr_time.h"
 #include "character_info_defs.h"
 
+#include "ui/UIStatic.h"
+
 enum EPdaMsg;
 enum ESoundTypes;
 enum ETaskState;
@@ -670,7 +672,20 @@ public:
 
 			void HealWounds(float);
 			CScriptIniFile* GetVisualIni() const;
+
+			void SetDescription(LPCSTR);
+			LPCSTR GetDescription() const;
+			void SetName(LPCSTR);
+			LPCSTR GetName() const;
+			void SetNameShort(LPCSTR);
+			LPCSTR GetNameShort() const;
+			void SetWeight(float);
+			float GetWeight() const;
+			void SetCost(u32);
+			u32 GetCost() const;
+			CUIStatic* GetCellItem() const;
 			
+
 			// alpet: visual functions for CWeapon descedants 
 			_DECLARE_FUNCTION10 (alife_object			,			CSE_ALifeDynamicObject*);
 			_DECLARE_FUNCTION10 (GetWeaponHUD_Visual	,			IRender_Visual*);

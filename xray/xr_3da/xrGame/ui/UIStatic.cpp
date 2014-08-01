@@ -48,6 +48,10 @@ CUIStatic:: CUIStatic()
 
 	m_pLines				= NULL;
 	m_bEnableTextHighlighting = false;
+
+	// Real Wolf: Обнуляем свои переменные. 27.07.2014.
+	m_texture				= NULL;
+	m_shader				= NULL;
 }
 
 CUIStatic::~ CUIStatic()
@@ -122,6 +126,9 @@ u32 CUIStatic::GetTextureColor() const{
 
 void CUIStatic::InitTextureEx(LPCSTR tex_name, LPCSTR sh_name)
 {
+	// Real Wolf: Запоминаем для методов возврата. 25.07.2014.
+	m_texture	= tex_name;
+	m_shader	= sh_name;
 
 	string_path buff;
 	u32		v_dev	= CAP_VERSION(HW.Caps.raster_major, HW.Caps.raster_minor);
@@ -130,6 +137,8 @@ void CUIStatic::InitTextureEx(LPCSTR tex_name, LPCSTR sh_name)
 		CUITextureMaster::InitTexture	(tex_name, "hud\\movie", &m_UIStaticItem);
 	else
 		CUITextureMaster::InitTexture	(tex_name, sh_name, &m_UIStaticItem);
+
+	CUIStaticItem(m_UIStaticItem);
 
 	Fvector2 p						= GetWndPos();
 	m_UIStaticItem.SetPos			(p.x, p.y);

@@ -371,6 +371,17 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("set_direction",				&CScriptGameObject::SetDirection)
 		.def("heal_wounds",					&CScriptGameObject::HealWounds)
 		.def("get_visual_ini",				&CScriptGameObject::GetVisualIni)
+		.def("set_description",				&CScriptGameObject::SetDescription)
+		.def("set_name",					&CScriptGameObject::SetName)
+		.def("set_name_short",				&CScriptGameObject::SetNameShort)
+		.def("set_weight",					&CScriptGameObject::SetWeight)
+		.def("set_cost",					&CScriptGameObject::SetCost)
+		.def("get_description",				&CScriptGameObject::GetDescription)
+		.def("get_name",					&CScriptGameObject::GetName)
+		.def("get_name_short",				&CScriptGameObject::GetNameShort)
+		.def("get_weight",					&CScriptGameObject::GetWeight)
+		.def("get_cost",					&CScriptGameObject::GetCost)
+		.def("get_cell_item",				&CScriptGameObject::GetCellItem)
 
 
 	;return	(instance);

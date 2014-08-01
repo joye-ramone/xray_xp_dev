@@ -128,11 +128,9 @@ void CUIWindow::script_register(lua_State *L)
 
 		.def("GetMousePosX",			&CUIWindow::GetMousePosX)
 		.def("GetMousePosY",			&CUIWindow::GetMousePosY)
-
+		.def("GetParent",				&CUIWindow::GetParent)
 		.def("GetAbsoluteRect",			(void (CUIWindow::*)(Frect&))&CUIWindow::GetAbsoluteRect),
 
-//		.def("",						&CUIWindow::)
-		
 		class_<CDialogHolder>("CDialogHolder")
 		.def("MainInputReceiver",		&CDialogHolder::MainInputReceiver)
 		.def("start_stop_menu",			&CDialogHolder::StartStopMenu)

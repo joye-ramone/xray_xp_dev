@@ -872,3 +872,75 @@ CScriptIniFile* CScriptGameObject::GetVisualIni() const
 	CKinematics* K = smart_cast<CKinematics*>(object().Visual());
 	return K? (CScriptIniFile*)K->LL_UserData(): 0;
 }
+
+void CScriptGameObject::SetDescription(LPCSTR desc)
+{
+	if (auto obj = smart_cast<CInventoryItem*>(&object() ) )
+		obj->m_Description = desc? desc: "";
+}
+
+LPCSTR CScriptGameObject::GetDescription() const
+{
+	if (auto obj = smart_cast<CInventoryItem*>(&object() ) )
+		return obj->m_Description.c_str();
+	return "";
+}
+
+void CScriptGameObject::SetName(LPCSTR name)
+{
+	if (auto obj = smart_cast<CInventoryItem*>(&object() ) )
+		obj->m_name = name? name: "";
+}
+
+LPCSTR CScriptGameObject::GetName() const
+{
+	if (auto obj = smart_cast<CInventoryItem*>(&object() ) )
+		return obj->m_name.c_str();
+	return "";
+}
+
+void CScriptGameObject::SetNameShort(LPCSTR name)
+{
+	if (auto obj = smart_cast<CInventoryItem*>(&object() ) )
+		obj->m_nameShort = name? name: "";
+}
+
+LPCSTR CScriptGameObject::GetNameShort() const
+{
+	if (auto obj = smart_cast<CInventoryItem*>(&object() ) )
+		return obj->m_nameShort.c_str();
+	return "";
+}
+
+void CScriptGameObject::SetWeight(float weight)
+{
+	if (auto obj = smart_cast<CInventoryItem*>(&object() ) )
+		obj->m_weight = weight;
+}
+
+float CScriptGameObject::GetWeight() const
+{
+	if (auto obj = smart_cast<CInventoryItem*>(&object() ) )
+		return obj->m_weight;
+	return 0.0;
+}
+
+void CScriptGameObject::SetCost(u32 cost)
+{
+	if (auto obj = smart_cast<CInventoryItem*>(&object() ) )
+		obj->m_cost = cost;
+}
+
+u32 CScriptGameObject::GetCost() const
+{
+	if (auto obj = smart_cast<CInventoryItem*>(&object() ) )
+		return obj->m_cost;
+	return 0;
+}
+
+CUIStatic* CScriptGameObject::GetCellItem() const
+{
+	if (auto obj = smart_cast<CInventoryItem*>(&object() ) )
+		return (CUIStatic*)obj->m_cell_item;
+	return NULL;
+}

@@ -10,6 +10,14 @@ public:
 								CUIInventoryCellItem		(CInventoryItem* itm);
 	virtual		bool			EqualTo						(CUICellItem* itm);
 				CInventoryItem* object						() {return (CInventoryItem*)m_pData;}
+
+	// Real Wolf: Для коллбеков. 25.07.2014.
+	virtual void			OnFocusReceive				();
+	virtual void			OnFocusLost					();
+	// Real Wolf: Для метода get_cell_item(). 25.07.2014.
+	virtual					~CUIInventoryCellItem		();
+	// Real Wolf: Улучшение отображения драг-объектов. 25.07.2014.
+	virtual	CUIDragItem*	CreateDragItem				();
 };
 
 class CUIAmmoCellItem :public CUIInventoryCellItem
@@ -46,7 +54,6 @@ public:
 	virtual		void			Update						();
 				CWeapon*		object						() {return (CWeapon*)m_pData;}
 	virtual		void			OnAfterChild				();
-	virtual		CUIDragItem*	CreateDragItem				();
 	virtual		bool			EqualTo						(CUICellItem* itm);
 	CUIStatic*					get_addon_static			(u32 idx)				{return m_addons[idx];}
 };

@@ -28,20 +28,28 @@ void CUIInventoryWnd::EatItem(PIItem itm)
 }
 
 #if defined(INV_NEW_SLOTS_SYSTEM)
-bool is_quick_slot(u8 slot)
+bool is_quick_slot(u32 slot, PIItem item, CInventory *inv)
 {
-	switch (slot)
+	if (slot >= SLOT_QUICK_ACCESS_0 && slot <= SLOT_QUICK_ACCESS_3)
 	{
-	case SLOT_QUICK_ACCESS_0:
-		return true;
-	case SLOT_QUICK_ACCESS_1:
-		return true;
-	case SLOT_QUICK_ACCESS_2:
-		return true;
-	case SLOT_QUICK_ACCESS_3:
+		if( inv->m_slots[SLOT_QUICK_ACCESS_0].m_pIItem 
+		&&	inv->m_slots[SLOT_QUICK_ACCESS_0].m_pIItem->object().cNameSect() == item->object().cNameSect() )
+			return false;
+
+		if(	inv->m_slots[SLOT_QUICK_ACCESS_1].m_pIItem 
+		&&	inv->m_slots[SLOT_QUICK_ACCESS_1].m_pIItem->object().cNameSect() == item->object().cNameSect() )
+			return false;
+
+		if(	inv->m_slots[SLOT_QUICK_ACCESS_2].m_pIItem 
+		&&	inv->m_slots[SLOT_QUICK_ACCESS_2].m_pIItem->object().cNameSect() == item->object().cNameSect() )
+			return false;
+
+		if(	inv->m_slots[SLOT_QUICK_ACCESS_3].m_pIItem 
+		&&	inv->m_slots[SLOT_QUICK_ACCESS_3].m_pIItem->object().cNameSect() == item->object().cNameSect() )
+			return false;
+
 		return true;
 	}
-
 	return false;
 }
 #endif
@@ -79,8 +87,9 @@ void CUIInventoryWnd::ActivatePropertiesBox()
 			if (!m_pInv->m_slots[slots[i]].m_pIItem || m_pInv->m_slots[slots[i]].m_pIItem != CurrentIItem() )
 			{
 				CEatableItem *eat = smart_cast<CEatableItem*>(CurrentIItem() );
-				// Для еды разрешены только слоты еды.
-				if (!eat || is_quick_slot(slots[i]) )
+				// Для еды разрешены только быстрые слоты.
+
+				if (!eat || is_quick_slot(u32(slots[i]), CurrentIItem(), m_pInv) )
 				{
 					sprintf_s(temp, "st_move_to_slot%d", slots[i]);
 					UIPropertiesBox.AddItem(temp,  NULL, INVENTORY_TO_SLOT0_ACTION + slots[i]);
@@ -123,13 +132,13 @@ void CUIInventoryWnd::ActivatePropertiesBox()
 		bAlreadyDressed = true;
 		b_show			= true;
 	}
-	//#if !defined(INV_NEW_SLOTS_SYSTEM)
+#if !defined(INV_NEW_SLOTS_SYSTEM)
 	if(pOutfit  && !bAlreadyDressed )
 	{
 		UIPropertiesBox.AddItem("st_dress_outfit",  NULL, INVENTORY_TO_SLOT_ACTION);
 		b_show			= true;
 	}
-	//#endif
+#endif
 	
 	//отсоединение аддонов от вещи
 	if(pWeapon)

@@ -12,6 +12,8 @@
 #include "hit_immunity.h"
 #include "attachable_item.h"
 
+class CUIInventoryCellItem;
+
 enum EHandDependence{
 	hdNone	= 0,
 	hd1Hand	= 1,
@@ -127,6 +129,12 @@ public:
 	shared_str					m_nameShort;
 	shared_str					m_nameComplex;
 
+	u32							m_cost;
+	float						m_weight;
+	shared_str					m_Description;
+	CUIInventoryCellItem*		m_cell_item;
+
+
 	EItemPlace					m_eItemPlace;
 
 
@@ -171,10 +179,7 @@ protected:
 #ifdef INV_NEW_SLOTS_SYSTEM
 	xr_vector<u8>				m_slots;
 #endif
-	u32							m_cost;
-	float						m_weight;
 	float						m_fCondition;
-	shared_str					m_Description;
 
 	ALife::_TIME_ID				m_dwItemRemoveTime;
 	ALife::_TIME_ID				m_dwItemIndependencyTime;

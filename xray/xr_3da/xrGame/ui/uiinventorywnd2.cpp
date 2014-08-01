@@ -146,7 +146,10 @@ void CUIInventoryWnd::InitInventory()
 
 	PIItem _outfit						= m_pInv->m_slots[OUTFIT_SLOT].m_pIItem;
 	CUICellItem* outfit					= (_outfit)?create_cell_item(_outfit):NULL;
-	m_pUIOutfitList->SetItem			(outfit);
+#if defined(INV_OUTFIT_FULL_ICON_HIDE)
+	if (outfit)
+#endif
+		m_pUIOutfitList->SetItem			(outfit);
 
 	TIItemContainer::iterator it, it_e;
 	for(it=m_pInv->m_belt.begin(),it_e=m_pInv->m_belt.end(); it!=it_e; ++it) 
@@ -256,6 +259,7 @@ bool CUIInventoryWnd::ToSlot(CUICellItem* itm, bool force_place)
 
 		PIItem	_iitem						= GetInventory()->m_slots[_slot].m_pIItem;
 		CUIDragDropListEx* slot_list		= GetSlotList(_slot);
+
 		VERIFY								(slot_list->ItemsCount()==1);
 
 		CUICellItem* slot_cell				= slot_list->GetItemIdx(0);
@@ -392,6 +396,7 @@ bool CUIInventoryWnd::OnItemDrop(CUICellItem* itm)
 		case iwSlot:
 		{
 #ifdef INV_NEW_SLOTS_SYSTEM
+			u32 old_slot = CurrentIItem()->GetSlot();
 			if (new_owner == m_pUIKnifeList)	
 				CurrentIItem()->SetSlot(KNIFE_SLOT);
 
@@ -432,8 +437,12 @@ bool CUIInventoryWnd::OnItemDrop(CUICellItem* itm)
 				CurrentIItem()->SetSlot(SLOT_QUICK_ACCESS_3);
 
 			auto slots = CurrentIItem()->GetSlots();
-			if (std::find(slots.begin(), slots.end(), CurrentIItem()->GetSlot() ) == slots.end() )
-				break;
+			if(	std::find(slots.begin(), slots.end(), CurrentIItem()->GetSlot() ) == slots.end()
+			||	!is_quick_slot(CurrentIItem()->GetSlot(), CurrentIItem(), m_pInv) ) 
+			{
+				CurrentIItem()->SetSlot(old_slot);
+				return true;
+			}
 #endif				
 			if(GetSlotList(CurrentIItem()->GetSlot()) == new_owner)
 				ToSlot	(itm, true);
@@ -455,9 +464,9 @@ bool CUIInventoryWnd::OnItemDbClick(CUICellItem* itm)
 {
 	PIItem __item = (PIItem)itm->m_pData;
 	u32 __slot = __item->GetSlot();
-	//#ifdef INV_NEW_SLOTS_SYSTEM
-	//if 	((__slot != SLOT_QUICK_ACCESS_0)&&(__slot != SLOT_QUICK_ACCESS_1)&&(__slot != SLOT_QUICK_ACCESS_2)&&(__slot != SLOT_QUICK_ACCESS_3))	
-	//#endif
+#if  defined(INV_NEW_SLOTS_SYSTEM)
+	if (__slot < SLOT_QUICK_ACCESS_0 || __slot > SLOT_QUICK_ACCESS_3)	
+#endif
 		if(TryUseItem((PIItem)itm->m_pData))		
 			return true;
 
@@ -475,11 +484,15 @@ bool CUIInventoryWnd::OnItemDbClick(CUICellItem* itm)
 			// ѕытаемс€ найти свободный слот из списка разрешенных.
 			// ≈сли его нету, то принудительно займет первый слот, указанный в списке.
 			auto slots = __item->GetSlots();
+			bool is_eat = __item->cast_eatable_item() != NULL;
 			for (u8 i = 0; i < (u8)slots.size(); ++i)
 			{
-				__item->SetSlot(slots[i]);
-				if (ToSlot(itm, false) )
-					return true;
+				if (!is_eat || is_quick_slot(slots[i], __item, m_pInv) )
+				{
+					__item->SetSlot(slots[i]);
+					if (ToSlot(itm, false) )
+						return true;
+				}
 			}			
 			__item->SetSlot(slots.size()? slots[0]: NO_ACTIVE_SLOT);
 #endif

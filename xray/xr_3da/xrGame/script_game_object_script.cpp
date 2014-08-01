@@ -118,8 +118,11 @@ void CScriptGameObject::script_register(lua_State *L)
 					value("on_npc_weapon_fire", int(GameObject::eOnNPCWeaponFire)),
 					value("on_npc_weapon_jammed", int(GameObject::eOnNPCWeaponJammed)),
 					value("on_npc_weapon_reload", int(GameObject::eOnNPCWeaponReload)),
-					value("on_npc_weapon_empty", int(GameObject::eOnNPCWeaponEmpty))
+					value("on_npc_weapon_empty", int(GameObject::eOnNPCWeaponEmpty)),
 					// Cribbledirge End
+
+					value("on_cell_item_focus", int(GameObject::eCellItemFocus)),
+					value("on_cell_item_focus_lost", int(GameObject::eCellItemFocusLost))
 				],
 
 				def("buy_condition", (void(*)(CScriptIniFile*, LPCSTR))(&::buy_condition)),

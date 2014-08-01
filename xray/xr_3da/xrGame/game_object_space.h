@@ -86,6 +86,9 @@ namespace GameObject {
 		eOnActorWeaponZoomIn,
 		eOnActorWeaponZoomOut,
 
+		eCellItemFocus,
+		eCellItemFocusLost,
+
 		// Cribbledirge End
 		eDummy = u32(-1),
 	};

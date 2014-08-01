@@ -100,15 +100,3 @@ u16	CBolt::Initiator				()
 {
 	return m_thrower_id;
 }
-
-// Real Wolf. 16.07.2014.
-#if defined(BOLT_THREAT_FIX)
-void CBolt::OnStateSwitch(u32 s)
-{
-	inherited::OnStateSwitch(s);
-
-	// Real Wolf: Останавливаем спринт при броске болта. 16.07.2014.
-	if (GetState() == MS_THREATEN)
-		g_actor->set_state_wishful(g_actor->get_state_wishful() & (~mcSprint) );
-}
-#endif

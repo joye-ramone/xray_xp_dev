@@ -9,6 +9,7 @@
 CUIInventoryCellItem::CUIInventoryCellItem(CInventoryItem* itm)
 {
 	m_pData											= (void*)itm;
+	itm->m_cell_item								= this;
 
 	inherited::SetShader							(InventoryUtilities::GetEquipmentIconsShader());
 
@@ -34,6 +35,62 @@ bool CUIInventoryCellItem::EqualTo(CUICellItem* itm)
 							);
 }
 
+#include "../pch_script.h"
+#include "../game_object_space.h"
+#include "../script_callback_ex.h"
+#include "../script_game_object.h"
+#include "../Actor.h"
+
+CUIInventoryCellItem::~CUIInventoryCellItem()
+{
+	if (auto item = object() )
+		item->m_cell_item = NULL;
+}
+
+void CUIInventoryCellItem::OnFocusReceive()
+{
+	inherited::OnFocusReceive();
+	auto script_obj = object()->object().lua_game_object();
+	g_actor->callback(GameObject::eCellItemFocus)(script_obj);
+}
+
+void CUIInventoryCellItem::OnFocusLost()
+{
+	inherited::OnFocusLost();	
+	auto script_obj = object()->object().lua_game_object();
+	g_actor->callback(GameObject::eCellItemFocusLost)(script_obj);
+}
+
+CUIDragItem* CUIInventoryCellItem::CreateDragItem()
+{
+	CUIDragItem* i		= inherited::CreateDragItem();
+	CUIStatic* s		= NULL;
+
+	// Real Wolf: Вместо частного решения, сделаем общее для всех детей-статиков. Необходимые параметры добавляйте сами. 25.07.2014.
+	for (auto it = this->m_ChildWndList.begin(); it != this->m_ChildWndList.end(); ++it)
+	{
+		if (auto s_child = smart_cast<CUIStatic*>(*it) )
+		{
+			s						= xr_new<CUIStatic>(); 
+			s->SetAutoDelete		(true);
+			s->SetShader			(InventoryUtilities::GetEquipmentIconsShader());
+
+			s->SetWndRect			(s_child->GetWndRect() );
+			s->SetOriginalRect		(s_child->GetOriginalRect() );
+
+			s->SetStretchTexture	(s_child->GetStretchTexture() );
+			s->SetText				(s_child->GetText() );
+
+			if (auto text = s_child->GetTextureName() ) 
+				s->InitTextureEx		(text, s_child->GetShaderName() );
+			
+			s->SetColor				(i->wnd()->GetColor());
+			i->wnd					()->AttachChild	(s);
+		}
+	}
+
+	return	i;
+}
 
 CUIAmmoCellItem::CUIAmmoCellItem(CWeaponAmmo* itm)
 :inherited(itm)
@@ -222,40 +279,6 @@ void CUIWeaponCellItem::InitAddon(CUIStatic* s, LPCSTR section, Fvector2 addon_o
 		s->SetWndPos			(addon_offset);
 		s->SetOriginalRect		(tex_rect);
 		s->SetStretchTexture	(true);
-}
-
-CUIDragItem* CUIWeaponCellItem::CreateDragItem()
-{
-	CUIDragItem* i		= inherited::CreateDragItem();
-	CUIStatic* s		= NULL;
-
-	if(GetIcon(eSilencer))
-	{
-		s				= xr_new<CUIStatic>(); s->SetAutoDelete(true);
-		s->SetShader	(InventoryUtilities::GetEquipmentIconsShader());
-		InitAddon		(s, *object()->GetSilencerName(), m_addon_offset[eSilencer]);
-		s->SetColor		(i->wnd()->GetColor());
-		i->wnd			()->AttachChild	(s);
-	}
-	
-	if(GetIcon(eScope))
-	{
-		s				= xr_new<CUIStatic>(); s->SetAutoDelete(true);
-		s->SetShader	(InventoryUtilities::GetEquipmentIconsShader());
-		InitAddon		(s,	*object()->GetScopeName(),		m_addon_offset[eScope]);
-		s->SetColor		(i->wnd()->GetColor());
-		i->wnd			()->AttachChild	(s);
-	}
-
-	if(GetIcon(eLauncher))
-	{
-		s				= xr_new<CUIStatic>(); s->SetAutoDelete(true);
-		s->SetShader	(InventoryUtilities::GetEquipmentIconsShader());
-		InitAddon		(s, *object()->GetGrenadeLauncherName(),m_addon_offset[eLauncher]);
-		s->SetColor		(i->wnd()->GetColor());
-		i->wnd			()->AttachChild	(s);
-	}
-	return				i;
 }
 
 bool CUIWeaponCellItem::EqualTo(CUICellItem* itm)

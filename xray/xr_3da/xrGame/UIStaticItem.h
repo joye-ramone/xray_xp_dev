@@ -37,6 +37,8 @@ public:
 	virtual	void	SetOriginalRect	(const Frect& r)									{iOriginalRect = r; uFlags|=flValidOriginalRect;}
 	virtual void	SetOriginalRectEx(const Frect& r)									{iOriginalRect = r; uFlags|=flValidOriginalRect; SetRect(0,0,r.width(),r.height());}
 
+	// Real Wolf. 25.07.2014.
+	virtual Frect	GetOriginalRect ()											const	{return iOriginalRect;}
 
 	void			Init			(LPCSTR tex, LPCSTR sh, float left, float top, u32 align);
 	
