@@ -238,14 +238,42 @@ bool CUIInventoryWnd::ToSlot(CUICellItem* itm, bool force_place)
 		if (!new_owner)
 			Msg("Bad slot %d", _slot);
 
+	 #if defined(INV_MOVE_ITM_INTO_QUICK_SLOTS) 
+			if ((_slot == SLOT_QUICK_ACCESS_0)||(_slot == SLOT_QUICK_ACCESS_1)||(_slot == SLOT_QUICK_ACCESS_2)||(_slot == SLOT_QUICK_ACCESS_3)){
+				for(u32 i=SLOT_QUICK_ACCESS_0; i <= SLOT_QUICK_ACCESS_3; ++i ) 
+				{	
+					if(i != _slot){
+						 PIItem l_pIItem = GetInventory()->m_slots[i].m_pIItem;
+						 if(l_pIItem){
+							if ((!xr_strcmp(l_pIItem->object().cNameSect(), iitem->object().cNameSect()))&&(l_pIItem != iitem)){
+								PIItem	_iitem						= GetInventory()->m_slots[i].m_pIItem;
+								CUIDragDropListEx* slot_list		= GetSlotList(i);
+								VERIFY								(slot_list->ItemsCount()==1);
+								CUICellItem* slot_cell				= slot_list->GetItemIdx(0);
+								VERIFY								(slot_cell && ((PIItem)slot_cell->m_pData)==_iitem);
+								bool result							= ToBag(slot_cell, false);
+								VERIFY								(result);
+								}
+							 }
+						}
+					}
+				}
+	#endif	
+	
 		bool result							= GetInventory()->Slot(iitem);
+	
 		VERIFY								(result);
 
 		CUICellItem* i						= old_owner->RemoveItem(itm, (old_owner==new_owner) );
 		
 		new_owner->SetItem					(i);
 		SendEvent_Item2Slot					(iitem);
+	#if defined(INV_NO_ACTIVATE_APPARATUS_SLOT)
+		if (activate_slot(_slot))
+			SendEvent_ActivateSlot				(iitem);
+	#else
 		SendEvent_ActivateSlot				(iitem);
+	#endif
 
 		/************************************************** added by Ray Twitty (aka Shadows) START **************************************************/
 		// обновл€ем статик веса в инвентаре
@@ -396,7 +424,9 @@ bool CUIInventoryWnd::OnItemDrop(CUICellItem* itm)
 		case iwSlot:
 		{
 #ifdef INV_NEW_SLOTS_SYSTEM
+			#if !defined(INV_MOVE_ITM_INTO_QUICK_SLOTS)
 			u32 old_slot = CurrentIItem()->GetSlot();
+			#endif
 			if (new_owner == m_pUIKnifeList)	
 				CurrentIItem()->SetSlot(KNIFE_SLOT);
 
@@ -436,13 +466,24 @@ bool CUIInventoryWnd::OnItemDrop(CUICellItem* itm)
 			else if (new_owner == m_pUISlotQuickAccessList_3)	
 				CurrentIItem()->SetSlot(SLOT_QUICK_ACCESS_3);
 
+		#if !defined(INV_MOVE_ITM_INTO_QUICK_SLOTS)
+			u32 old_slot = CurrentIItem()->GetSlot();
+		#endif
+
 			auto slots = CurrentIItem()->GetSlots();
 			if(	std::find(slots.begin(), slots.end(), CurrentIItem()->GetSlot() ) == slots.end()
-			||	!is_quick_slot(CurrentIItem()->GetSlot(), CurrentIItem(), m_pInv) ) 
+
+		#if defined(INV_MOVE_ITM_INTO_QUICK_SLOTS)
+			) 
+			break;
+		#else
+			||	!is_quick_slot(CurrentIItem()->GetSlot(), CurrentIItem(), m_pInv) 
+			) 
 			{
 				CurrentIItem()->SetSlot(old_slot);
 				return true;
 			}
+		#endif
 #endif				
 			if(GetSlotList(CurrentIItem()->GetSlot()) == new_owner)
 				ToSlot	(itm, true);
@@ -484,15 +525,23 @@ bool CUIInventoryWnd::OnItemDbClick(CUICellItem* itm)
 			// ѕытаемс€ найти свободный слот из списка разрешенных.
 			// ≈сли его нету, то принудительно займет первый слот, указанный в списке.
 			auto slots = __item->GetSlots();
+			#if !defined(INV_MOVE_ITM_INTO_QUICK_SLOTS)
 			bool is_eat = __item->cast_eatable_item() != NULL;
+			#endif
 			for (u8 i = 0; i < (u8)slots.size(); ++i)
 			{
+				#if !defined(INV_MOVE_ITM_INTO_QUICK_SLOTS)
 				if (!is_eat || is_quick_slot(slots[i], __item, m_pInv) )
 				{
 					__item->SetSlot(slots[i]);
 					if (ToSlot(itm, false) )
 						return true;
 				}
+				#else
+					__item->SetSlot(slots[i]);
+					if (ToSlot(itm, false) )
+						return true;		
+				#endif
 			}			
 			__item->SetSlot(slots.size()? slots[0]: NO_ACTIVE_SLOT);
 #endif
@@ -583,7 +632,6 @@ void CUIInventoryWnd::ClearAllLists()
 	m_pUIAutomaticList->ClearAll			(true);
 
 #ifdef INV_NEW_SLOTS_SYSTEM
-//if (GameID() == GAME_SINGLE){	// нельз€ так делать - g_pGameLevel уже удален
 if (IsGameTypeSingle()) {
 	m_pUIKnifeList->ClearAll				(true);
 	m_pUIBinocularList->ClearAll			(true);

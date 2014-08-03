@@ -13,3 +13,5 @@
 #define LOCK_RELOAD_IN_SPRINT			// Real Wolf: блокировка перезарядки по время спринта.
 #define HIDE_WEAPON_IN_CAR				// Real Wolf: прятать все оружие в машине.
 #define INV_OUTFIT_FULL_ICON_HIDE		// Real Wolf: иконка игрока в костюме заменена на иконку костюма.
+#define INV_NO_ACTIVATE_APPARATUS_SLOT  // Red Virus: убирает невозможность сменить оружие клавишами при активных слотах:  фонарика, детектора и тд
+#define INV_MOVE_ITM_INTO_QUICK_SLOTS	// Red Virus: позволяет менять местами предметы в быстрых слотах

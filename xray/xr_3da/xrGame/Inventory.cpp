@@ -26,6 +26,31 @@
 
 using namespace InventoryUtilities;
 
+#if defined(INV_NO_ACTIVATE_APPARATUS_SLOT) //red_virus
+bool activate_slot(u32 slot)
+{
+	switch (slot)
+	{
+		case  KNIFE_SLOT:
+			return true;
+		case  PISTOL_SLOT:
+			return true;
+		case  RIFLE_SLOT:
+			return true;
+		case  GRENADE_SLOT:
+			return true;
+		case  APPARATUS_SLOT:
+			return true;
+		case  BOLT_SLOT:
+			return true;
+		case  ARTEFACT_SLOT:
+			return true;
+	}
+
+	return false;
+}
+#endif
+
 // what to block
 u32	INV_STATE_LADDER		= (1<<RIFLE_SLOT);
 u32	INV_STATE_BLOCK_ALL		= 0xffffffff;
@@ -279,6 +304,9 @@ bool CInventory::Slot(PIItem pIItem, bool bNotActivate)
 				pIItem);
 #endif
 		if(m_slots[pIItem->GetSlot()].m_pIItem == pIItem && !bNotActivate )
+		#if defined(INV_NO_ACTIVATE_APPARATUS_SLOT)
+			if (activate_slot(pIItem->GetSlot()))
+		#endif
 			Activate(pIItem->GetSlot());
 
 		return false;
@@ -309,7 +337,10 @@ bool CInventory::Slot(PIItem pIItem, bool bNotActivate)
 	if(m_belt.end() != it) m_belt.erase(it);
  
 	if (( (m_iActiveSlot==pIItem->GetSlot())||(m_iActiveSlot==NO_ACTIVE_SLOT) && m_iNextActiveSlot==NO_ACTIVE_SLOT) && (!bNotActivate))
-		Activate				(pIItem->GetSlot());
+		#if defined(INV_NO_ACTIVATE_APPARATUS_SLOT)
+		if (activate_slot(pIItem->GetSlot()))
+		#endif
+			Activate				(pIItem->GetSlot());
 
 	
 	m_pOwner->OnItemSlot		(pIItem, pIItem->m_eItemPlace);

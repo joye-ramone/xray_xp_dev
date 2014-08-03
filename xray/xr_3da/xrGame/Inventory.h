@@ -171,3 +171,7 @@ protected:
 
 	void				SendActionEvent		(s32 cmd, u32 flags);
 };
+
+#if defined(INV_NO_ACTIVATE_APPARATUS_SLOT)
+extern bool activate_slot(u32 slot);
+#endif
