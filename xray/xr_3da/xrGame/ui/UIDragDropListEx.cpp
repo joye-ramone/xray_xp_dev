@@ -249,6 +249,7 @@ void CUIDragDropListEx::Draw()
 void CUIDragDropListEx::Update()
 {
 	inherited::Update			();
+		
 
 	if( m_drag_item ){
 		Frect	wndRect;
@@ -272,10 +273,17 @@ void CUIDragDropListEx::ReinitScroll()
 		m_vScrollBar->Show			( h1 > h2 );
 		m_vScrollBar->Enable		( h1 > h2 );
 
-		m_vScrollBar->SetRange		(0, _max(0,iFloor(h1-h2)) );
-		m_vScrollBar->SetScrollPos	(0);
+		
+		int r_min, r_max;
+		m_vScrollBar->GetRange(r_min, r_max);		
+		Msg("# CUIDragDropListEx::m_vScrollBar range changed from %d..%d to 0..%f ", r_min, r_max, h1 - h2);
+		m_vScrollBar->SetRange(0, _max(0, iFloor(h1 - h2)));
 		m_vScrollBar->SetStepSize	(CellSize().y/3);
 		m_vScrollBar->SetPageSize	(iFloor(GetWndSize().y/float(CellSize().y)));
+
+
+		m_vScrollBar->SetScrollPos(m_vScrollBar->GetScrollPos()); // alpet: вместо сброса позиции
+
 		m_container->SetWndPos		(0,0);
 }
 
@@ -323,6 +331,12 @@ void CUIDragDropListEx::SetCellSize(const Ivector2 new_sz)
 int CUIDragDropListEx::ScrollPos()
 {
 	return m_vScrollBar->GetScrollPos();
+}
+
+void CUIDragDropListEx::SetScrollPos(int iPos)
+{
+	m_vScrollBar->SetScrollPos(iPos);
+	m_vScrollBar->Refresh();
 }
 
 void CUIDragDropListEx::SetItem(CUICellItem* itm) //auto

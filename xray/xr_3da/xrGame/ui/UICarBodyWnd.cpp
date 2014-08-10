@@ -226,6 +226,7 @@ void CUICarBodyWnd::UpdateLists()
 {
 	TIItemContainer								ruck_list;
 	m_pUIOurBagList->ClearAll					(true);
+	int i_pos = m_pUIOthersBagList->ScrollPos();	
 	m_pUIOthersBagList->ClearAll				(true);
 
 	ruck_list.clear								();
@@ -255,6 +256,9 @@ void CUICarBodyWnd::UpdateLists()
 		CUICellItem* itm							= create_cell_item(*it);
 		m_pUIOthersBagList->SetItem					(itm);
 	}
+
+	
+	m_pUIOthersBagList->SetScrollPos(i_pos);
 
 	InventoryUtilities::UpdateWeight				(*m_pUIOurBagWnd);
 	m_b_need_update									= false;
