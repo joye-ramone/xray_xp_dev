@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "xrserver.h"
 #include "xrserver_objects.h"
+#include "../../build_config_defines.h"
 
 void ReplaceOwnershipHeader	(NET_Packet& P)
 {
@@ -20,6 +21,11 @@ void xrServer::Process_event_ownership(NET_Packet& P, ClientID sender, u32 time,
 
 	#ifdef DEBUG
 	Msg("sv ownership id_parent %s id_entity %s [%d]",ent_name_safe(id_parent).c_str(), ent_name_safe(id_entity).c_str(), Device.dwFrame);
+	#endif
+
+	#ifdef LUAICP_COMPAT
+	// для обновлений реестра объектов в перехватчике
+	MsgCB("sv ownership id_parent %s id_entity %s [%d]", ent_name_safe(id_parent).c_str(), ent_name_safe(id_entity).c_str(), Device.dwFrame);
 	#endif
 
 	if(!e_entity)		return;

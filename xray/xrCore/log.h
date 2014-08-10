@@ -10,7 +10,9 @@
 
 #define VPUSH(a)	a.x,a.y,a.z
 
-void 	XRCORE_API	__cdecl		Msg			(LPCSTR format, ...);
+void 	XRCORE_API	__cdecl			Msg			(LPCSTR format, ...);
+void 	XRCORE_API	__cdecl			MsgCB		(LPCSTR format, ...); // alpet: вывод сообщений только в колбек (для отладки)
+
 void 	XRCORE_API		Log			(LPCSTR msg);
 void 	XRCORE_API		Log			(LPCSTR msg);
 void 	XRCORE_API		Log			(LPCSTR msg, LPCSTR			dop);
@@ -26,6 +28,7 @@ void	XRCORE_API		LogXrayOffset(LPCSTR key, LPVOID base, LPVOID pval);
 
 typedef void	( * LogCallback)	(LPCSTR string);
 void	XRCORE_API				SetLogCB	(LogCallback cb);
+LogCallback XRCORE_API			GetLogCB	();
 void 							CreateLog	(BOOL no_log=FALSE);
 void 							InitLog		();
 void 							CloseLog	();
@@ -33,6 +36,7 @@ void	XRCORE_API				FlushLog	();
 
 extern 	XRCORE_API	xr_vector<shared_str>*		LogFile;
 extern 	XRCORE_API	BOOL						LogExecCB;
+
 
 #endif
 
