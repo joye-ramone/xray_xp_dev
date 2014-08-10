@@ -556,7 +556,7 @@ outloop:
 				if (C.bEmptyArgsHandled) C.Execute(last_word);
 				else {
 					IConsole_Command::TStatus S; C.Status(S);
-					Msg("- %s %s",C.Name(),S);
+					if (RecordCommands) Msg("- %s %s",C.Name(),S);
 				}
 			} else C.Execute(last_word);
 		} else {

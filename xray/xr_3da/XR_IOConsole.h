@@ -53,7 +53,7 @@ public:
 	BOOL			bVisible;
 	vecCMD			Commands;
 
-	void			AddCommand			(IConsole_Command*);
+	void			AddCommand			(IConsole_Command*);	
 	void			RemoveCommand		(IConsole_Command*);
 	void			Reset				();
 
