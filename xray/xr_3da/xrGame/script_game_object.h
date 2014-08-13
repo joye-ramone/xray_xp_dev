@@ -564,15 +564,7 @@ public:
 			bool				invulnerable						() const;
 			void				invulnerable						(bool invulnerable);
 			
-			/************************************************** added by Ray Twitty (aka Shadows) START **************************************************/
-			// фонарь
-			void				EnableTorch							(bool enable);
-			void				SwitchTorch							();
-			bool				TorchEnabled						() const;
-			// ПНВ
-			void				EnableNightVision					(bool enable);
-			void				SwitchNightVision					();
-			bool				NightVisionEnabled					() const;
+			/************************************************** added by Ray Twitty (aka Shadows) START **************************************************/	
 			// инвентарь
 			float				GetActorMaxWeight					() const;
 			void				SetActorMaxWeight					(float max_weight);

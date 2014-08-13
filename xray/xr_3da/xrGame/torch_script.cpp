@@ -28,6 +28,8 @@ CTorch *get_torch(CScriptGameObject *script_obj)
 	return NULL;
 }
 
+
+
 #pragma optimize("s",on)
 void CTorch::script_register	(lua_State *L)
 {
@@ -36,7 +38,10 @@ void CTorch::script_register	(lua_State *L)
 		class_<CTorch,CGameObject>("CTorch")
 			.def(constructor<>())
 			// alpet: управление параметрами света
-			.def("get_light",				&CTorch::GetLight)
+			.def_readonly("on"		,		&CTorch::m_switched_on)			
+			.def("enable"			,		(void (CTorch::*)(bool)) (&CTorch::Switch))
+			.def("switch"			,		(void (CTorch::*)())	 (&CTorch::Switch))			
+			.def("get_light"		,		&CTorch::GetLight)
 			.def("set_animation"	,		&CTorch::SetAnimation)
 			.def("set_angle"		,		&CTorch::SetAngle)
 			.def("set_brightness"	,		&CTorch::SetBrightness)
@@ -45,6 +50,10 @@ void CTorch::script_register	(lua_State *L)
 			.def("set_range"		,		&CTorch::SetRange)			
 			.def("set_texture"		,		&CTorch::SetTexture)
 			.def("set_virtual_size" ,		&CTorch::SetVirtualSize)
+			// работа с ПНВ
+			.def_readonly("nvd_on"		,		&CTorch::m_bNightVisionOn)
+			.def("enable_nvd"			,		(void (CTorch::*)(bool)) (&CTorch::SwitchNightVision))
+			.def("switch_nvd"			,		(void (CTorch::*)()) (&CTorch::SwitchNightVision))
 			
 			,			
 			def("get_torch_obj"		,		&get_torch) 
