@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "pch_script.h"
 #include "entitycondition.h"
 #include "inventoryowner.h"
 #include "customoutfit.h"
@@ -569,4 +570,22 @@ void CEntityCondition::remove_links	(const CObject *object)
 
 	m_pWho					= m_object;
 	m_iWhoID				= m_object->ID();
+}
+
+using namespace luabind;
+
+void set_entity_health	   (CEntityCondition *E, float h) { E->health() = h; }
+void set_entity_max_health (CEntityCondition *E, float h) { E->health() = h; }
+
+
+void CEntityCondition::script_register(lua_State *L)
+{
+	module(L)
+		[
+			class_<CEntityCondition>("CEntityCondition")
+#define		CONDITION_CLASS								CEntityCondition
+#include	"entity_conditions_export.inc"
+			.property("health",					&CEntityCondition::GetHealth,				&set_entity_health)
+			.property("max_health",				&CEntityCondition::GetMaxHealth,			&set_entity_max_health)
+		];
 }

@@ -27,43 +27,7 @@ CPHMovementControl *get_movement(CActor *pActor)
 
 #pragma optimize("s",on)
 
-// IC float CScriptActor::get_burn_immunity(CActorCondition *C) { }
-
-float get_burn_immunity(CActorCondition *C)			   { return CScriptActor::immunities(C)[ALife::eHitTypeBurn]; }
-void  set_burn_immunity(CActorCondition *C, float i)   { CScriptActor::immunities(C)[ALife::eHitTypeBurn] = i; }
-
-float get_strike_immunity(CActorCondition *C)		   { return CScriptActor::immunities(C)[ALife::eHitTypeStrike]; }
-void  set_strike_immunity(CActorCondition *C, float i) { CScriptActor::immunities(C)[ALife::eHitTypeStrike] = i; }
-
-float get_shock_immunity(CActorCondition *C)		   { return CScriptActor::immunities(C)[ALife::eHitTypeShock]; }
-void  set_shock_immunity(CActorCondition *C, float i)  { CScriptActor::immunities(C)[ALife::eHitTypeShock] = i; }
-
-float get_wound_immunity(CActorCondition *C)		   { return CScriptActor::immunities(C)[ALife::eHitTypeWound]; }
-void  set_wound_immunity(CActorCondition *C, float i)  { CScriptActor::immunities(C)[ALife::eHitTypeWound] = i; }
-
-float get_radiation_immunity(CActorCondition *C)		  { return CScriptActor::immunities(C)[ALife::eHitTypeRadiation]; }
-void  set_radiation_immunity(CActorCondition *C, float i) { CScriptActor::immunities(C)[ALife::eHitTypeRadiation] = i; }
-
-float get_telepatic_immunity(CActorCondition *C)		   { return CScriptActor::immunities(C)[ALife::eHitTypeTelepatic]; }
-void  set_telepatic_immunity(CActorCondition *C, float i)  { CScriptActor::immunities(C)[ALife::eHitTypeTelepatic] = i; }
-
-float get_chemical_burn_immunity(CActorCondition *C)		  { return CScriptActor::immunities(C)[ALife::eHitTypeChemicalBurn]; }
-void  set_chemical_burn_immunity(CActorCondition *C, float i) { CScriptActor::immunities(C)[ALife::eHitTypeChemicalBurn] = i; }
-
-float get_explosion_immunity(CActorCondition *C)		   { return CScriptActor::immunities(C)[ALife::eHitTypeExplosion]; }
-void  set_explosion_immunity(CActorCondition *C, float i)  { CScriptActor::immunities(C)[ALife::eHitTypeExplosion] = i; }
-
-float get_fire_wound_immunity(CActorCondition *C)		   { return CScriptActor::immunities(C)[ALife::eHitTypeFireWound]; }
-void  set_fire_wound_immunity(CActorCondition *C, float i) { CScriptActor::immunities(C)[ALife::eHitTypeFireWound] = i; }
-
-float get_wound_2_immunity(CActorCondition *C)			   { return CScriptActor::immunities(C)[ALife::eHitTypeWound_2]; }
-void  set_wound_2_immunity(CActorCondition *C, float i)    { CScriptActor::immunities(C)[ALife::eHitTypeWound_2] = i; }
-
-float get_physic_strike_immunity(CActorCondition *C)		   { return CScriptActor::immunities(C)[ALife::eHitTypePhysicStrike]; }
-void  set_physic_strike_immunity(CActorCondition *C, float i)  { CScriptActor::immunities(C)[ALife::eHitTypePhysicStrike] = i; }
-
-
-void set_health	 (CActorCondition *C, float h)			   { C->health()		= h; }
+void set_health(CActorCondition *C, float h)			   { C->health() = h; }
 void set_max_health (CActorCondition *C, float h)		   { C->max_health() = h; }
 
 float get_radiation_v (CActorCondition *C)					{ return CScriptActor::sccv(C).m_fV_Radiation; }
@@ -140,6 +104,8 @@ CScriptGameObject  *inventory_selected_item(CInventory *I)
 
 CScriptGameObject  *get_inventory_target(CInventory *I)		{ return item_lua_object(I->m_pTarget); }
 
+CHitImmunity *get_immunities(CActor *pActor) { return pActor->conditions().cast_hit_immunities(); }
+
 void CScriptActor::script_register(lua_State *L)
 {
 	module(L)
@@ -154,41 +120,17 @@ void CScriptActor::script_register(lua_State *L)
 			.property	  ("target",					&get_inventory_target)
 			,
 			class_ <CActorCondition>("CActorCondition")
-			// .def_readwrite("immunities",				&CActorCondition::m_HitTypeK)
-			.property("burn_immunity",					&get_burn_immunity,			 &set_burn_immunity)
-			.property("strike_immunity",				&get_strike_immunity,		 &set_strike_immunity)
-			.property("shock_immunity",					&get_shock_immunity,		 &set_shock_immunity)
-			.property("wound_immunity",					&get_wound_immunity,		 &set_wound_immunity)
-			.property("radiation_immunity",				&get_radiation_immunity,	 &set_radiation_immunity)
-			.property("telepatic_immunity",				&get_telepatic_immunity,	 &set_telepatic_immunity)
-			.property("chemical_burn_immunity",			&get_chemical_burn_immunity, &set_chemical_burn_immunity)
-			.property("explosion_immunity",				&get_explosion_immunity,	 &set_explosion_immunity)
-			.property("fire_wound_immunity",			&get_fire_wound_immunity,	 &set_fire_wound_immunity)
-			.property("wound_2_immunity",				&get_wound_2_immunity,		 &set_wound_2_immunity)
-			.property("physic_strike_immunity",			&get_physic_strike_immunity, &set_physic_strike_immunity)
-			
 			.property("health",							&CActorCondition::GetHealth,	&set_health)
 			.property("health_max",						&CActorCondition::GetMaxHealth, &set_max_health)
-			
-
+#define		CONDITION_CLASS								CActorCondition			
+#include	"entity_conditions_export.inc"
 			.def_readwrite("alcohol_health",			&CActorCondition::m_fAlcohol)
 			.def_readwrite("alcohol_v",					&CActorCondition::m_fV_Alcohol)
-			.def_readwrite("power",					    &CActorCondition::m_fPower)
-			.def_readwrite("power_max",					&CActorCondition::m_fPowerMax)
-			.def_readwrite("psy_health",				&CActorCondition::m_fPsyHealth)
-			.def_readwrite("psy_health_max",			&CActorCondition::m_fPsyHealthMax)
 			.def_readwrite("satiety",					&CActorCondition::m_fSatiety)
 			.def_readwrite("satiety_v",					&CActorCondition::m_fV_Satiety)
 			.def_readwrite("satiety_health_v",			&CActorCondition::m_fV_SatietyHealth)
 			
-			.def_readwrite("radiation",					&CActorCondition::m_fRadiation)
-			.def_readwrite("radiation_max",				&CActorCondition::m_fRadiationMax)
-			.def_readwrite("morale",					&CActorCondition::m_fEntityMorale)																
-			.def_readwrite("morale_max",				&CActorCondition::m_fEntityMoraleMax)			
-			.def_readwrite("min_wound_size",			&CActorCondition::m_fMinWoundSize)
-			.def_readonly("is_bleeding",				&CActorCondition::m_bIsBleeding)
-			.def_readwrite("health_hit_part",			&CActorCondition::m_fHealthHitPart)
-			.def_readwrite("power_hit_part",			&CActorCondition::m_fPowerHitPart)			
+		
 			.def_readwrite("max_power_leak_speed",		&CActorCondition::m_fPowerLeakSpeed)			
 			.def_readwrite("jump_power",				&CActorCondition::m_fJumpPower)
 			.def_readwrite("stand_power",				&CActorCondition::m_fStandPower)
@@ -262,7 +204,7 @@ void CScriptActor::script_register(lua_State *L)
 			.def_readonly("inventory",					&CActor::m_inventory)
 			.property("movement",						&get_movement)
 			.property("jump_speed",						&get_jump_speed, &set_jump_speed)
+			.property("immunities",						&get_immunities)		
 
-
-		];
+		];		
 }

@@ -27,9 +27,13 @@
 #include "relation_registry.h"
 #include "danger_object.h"
 #include "Actor.h"
+#include "ActorCondition.h"
 #include "Weapon.h"
 #include "Torch.h"
+#include "hit_immunity.h"
 #include "holder_custom.h"
+#include "Entity.h"
+#include "EntityCondition.h"
 #include "Inventory.h"
 #include "InventoryOwner.h"
 
@@ -43,6 +47,29 @@ CActor *get_actor(CScriptGameObject *script_obj)
 {	
 	CGameObject *obj = &script_obj->object();
 	return smart_cast<CActor*>(obj);
+}
+
+CEntityCondition *get_obj_conditions (CScriptGameObject *script_obj)
+{
+	CGameObject *obj = &script_obj->object();
+	CActor *pA = smart_cast<CActor*> (obj);
+	if (pA)
+		return &pA->conditions();
+
+	CEntity *pE = smart_cast<CEntity*> (obj);
+	if (pE)
+		return pE->conditions();
+
+	return NULL;
+}
+
+CHitImmunity *get_obj_immunities(CScriptGameObject *script_obj)
+{	
+	CEntityCondition *cond = get_obj_conditions (script_obj);	
+	if (cond)
+		return smart_cast<CHitImmunity*> (cond);
+
+	return NULL;
 }
 
 CInventory *get_obj_inventory(CScriptGameObject *script_obj)
@@ -309,8 +336,12 @@ class_<CScriptGameObject> &script_register_game_object1(class_<CScriptGameObject
 		.def("get_hud_visual"				,			    &CScriptGameObject::GetWeaponHUD_Visual)
 		.def("load_hud_visual"				,			    &CScriptGameObject::LoadWeaponHUD_Visual)
 		.property("inventory"				,				&get_obj_inventory)		
-		,
+		.property("immunities"				,				&get_obj_immunities)
+		.property("conditions"				,				&get_obj_conditions)		
+		, 
+
 		def("get_actor_obj"					,				&Actor)
 		
 	;return	(instance);
+	
 }

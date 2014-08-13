@@ -11,6 +11,9 @@
 #include "game_object_space.h"
 #include "script_ini_file.h"
 #include "sight_manager_space.h"
+#include "hit_immunity.h"
+#include "EntityCondition.h"
+
 
 using namespace luabind;
 
@@ -18,11 +21,12 @@ extern class_<CScriptGameObject> &script_register_game_object1(class_<CScriptGam
 extern class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject> &);
 extern class_<CScriptGameObject> &script_register_game_object_trader(class_<CScriptGameObject> &);
 
+
 #pragma optimize("s",on)
 void CScriptGameObject::script_register(lua_State *L)
 {
 	class_<CScriptGameObject>	instance("game_object");
-
+	
 	module(L)
 		[
 			class_<CSightParams>("CSightParams")
@@ -130,5 +134,9 @@ void CScriptGameObject::script_register(lua_State *L)
 				def("sell_condition", (void(*)(CScriptIniFile*, LPCSTR))(&::sell_condition)),
 				def("sell_condition", (void(*)(float, float))(&::sell_condition)),
 				def("show_condition", &::show_condition)
+
 		];
+
+		CHitImmunity::script_register(L);
+		CEntityCondition::script_register(L);
 }

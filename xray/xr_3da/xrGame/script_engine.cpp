@@ -12,7 +12,8 @@
 #include "object_factory.h"
 #include "script_process.h"
 #include "../lua_tools.h"
-
+#include "../../build_config_defines.h"
+ 
 #ifdef USE_DEBUGGER
 #	include "script_debugger.h"
 #endif
@@ -25,6 +26,17 @@
 #endif
 
 extern void export_classes(lua_State *L);
+
+#ifdef LUAICP_COMPAT
+void luaicp_error_handler(lua_State *L)
+{
+	lua_getglobal(L, "AtPanicHandler");
+	if lua_isfunction(L, -1)
+		lua_call(L, 0, 0);
+	else
+		lua_pop(L, 1);
+}
+#endif
 
 CScriptEngine::CScriptEngine			()
 {
@@ -73,7 +85,7 @@ void CScriptEngine::lua_error			(lua_State *L)
 #if !XRAY_EXCEPTIONS
 	LPCSTR traceback = get_lua_traceback(L, 1);
 	const char *error = lua_tostring(L, -1);
-	Debug.fatal(DEBUG_INFO,"LUA error: %s \n %s ", error ? error : "NULL", traceback);
+	Debug.fatal(DEBUG_INFO, "LUA error: %s \n %s ", error ? error : "NULL", traceback);
 #else
 	throw					lua_tostring(L,-1);
 #endif

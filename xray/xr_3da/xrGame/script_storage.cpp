@@ -11,6 +11,8 @@
 #include "script_thread.h"
 #include <stdarg.h>
 #include "doug_lea_memory_allocator.h"
+#include "../lua_tools.h"
+#include "../../build_config_defines.h"
 
 LPCSTR	file_header_old = "\
 local function script_name() \
@@ -355,9 +357,17 @@ bool CScriptStorage::do_file	(LPCSTR caScriptName, LPCSTR caNameSpaceName)
 	FS.r_close		(l_tpFileReader);
 
 	int errFuncId = -1;
+#ifdef LUAICP_COMPAT2 // exception dangerous
+	lua_getglobal(lua(), "AtPanicHandler");
+	if ( lua_isfunction( lua(), -1) )
+		errFuncId = lua_gettop(lua());
+	else
+	    lua_pop(lua(), 1);
+#endif
+
 #ifdef USE_DEBUGGER
-	if( ai().script_engine().debugger() )
-	errFuncId = ai().script_engine().debugger()->PrepareLua(lua());
+	if( ai().script_engine().debugger() && errFuncId < 0 )
+	    errFuncId = ai().script_engine().debugger()->PrepareLua(lua());
 #endif
 	if (0)	//.
 	{
@@ -375,7 +385,9 @@ bool CScriptStorage::do_file	(LPCSTR caScriptName, LPCSTR caNameSpaceName)
 		ai().script_engine().debugger()->UnPrepareLua(lua(),errFuncId);
 #endif
 	if (l_iErrorCode) {
-
+#ifdef LUAICP_COMPAT
+		print_output(lua(), caScriptName, l_iErrorCode);
+#endif
 #ifdef DEBUG
 		print_output(lua(),caScriptName,l_iErrorCode);
 #endif
@@ -497,8 +509,9 @@ luabind::object CScriptStorage::name_space(LPCSTR namespace_name)
 
 bool CScriptStorage::print_output(lua_State *L, LPCSTR caScriptFileName, int iErorCode)
 {
-	if (iErorCode)
-		print_error		(L,iErorCode);
+	if (iErorCode)	
+		print_error(L, iErorCode);		
+	
 
 	if (!lua_isstring(L,-1))
 		return			(false);
@@ -516,8 +529,18 @@ bool CScriptStorage::print_output(lua_State *L, LPCSTR caScriptFileName, int iEr
 	else {
 		if (!iErorCode)
 			script_log	(ScriptStorage::eLuaMessageTypeInfo,"Output from %s",caScriptFileName);
+
 		script_log		(iErorCode ? ScriptStorage::eLuaMessageTypeError : ScriptStorage::eLuaMessageTypeMessage,"%s",S);
 #ifdef USE_DEBUGGER
+
+		if (iErorCode)
+		{
+			LPCSTR traceback = get_lua_traceback(L, 1);
+			Msg("!LUA_ERROR: %s", S);
+			Msg("!  Script %s errorCode = %d   \n %s", caScriptFileName, iErorCode, traceback);
+		}
+
+
 		if (ai().script_engine().debugger() && ai().script_engine().debugger()->Active()) {
 			ai().script_engine().debugger()->Write		(S);
 			ai().script_engine().debugger()->ErrorBreak	();
