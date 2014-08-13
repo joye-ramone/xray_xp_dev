@@ -27,10 +27,12 @@ void HUD_SOUND::LoadSound(	LPCSTR section, LPCSTR line,
 	//R_ASSERT3				(!hud_snd.sounds.empty(), "there is no sounds for:", section);
 	
 	//new debug line to prevent annoying pop-up errors /dae & cribbledirge 2014June11
+#ifdef DEBUG
 	if(hud_snd.sounds.empty())
 	{
-		Msg("[%s: line %d]  No sounds for -- %s", __FILE__,__LINE__,section);
+		 Msg("[%s: line %d]  No sounds for -- %s", __FILE__,__LINE__,section);
 	}
+#endif
 }
 
 void  HUD_SOUND::LoadSound(LPCSTR section, LPCSTR line, 

@@ -72,6 +72,7 @@ class	CActor:
 #endif
 {
 	friend class CActorCondition;
+	friend class CScriptActor;
 private:
 	typedef CEntityAlive	inherited;
 	//////////////////////////////////////////////////////////////////////////

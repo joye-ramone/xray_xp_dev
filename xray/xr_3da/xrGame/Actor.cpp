@@ -191,6 +191,11 @@ CActor::CActor() : CEntityAlive()
 	m_dwILastUpdateTime		= 0;
 
 	m_location_manager		= xr_new<CLocationManager>(this);
+	#ifdef LUAICP_COMPAT
+		LogXrayOffset("CActor.physics_support", this, &this->m_pPhysics_support);
+		LogXrayOffset("CActor.inventory",		this, &this->m_inventory);
+	#endif
+
 }
 
 

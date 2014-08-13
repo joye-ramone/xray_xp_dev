@@ -110,6 +110,13 @@ CCharacterPhysicsSupport::CCharacterPhysicsSupport(EType atype,CEntityAlive* aen
 	case etBitting:
 		m_PhysicMovementControl->AllocateCharacterObject(CPHMovementControl::ai);
 	}
+#ifdef LUAICP_COMPAT
+	static u32 saved = 0;
+	if (!saved++)
+	{
+		LogXrayOffset("CPS.movement_control", this, &this->m_PhysicMovementControl);		
+	}
+#endif
 };
 
 void CCharacterPhysicsSupport::SetRemoved()

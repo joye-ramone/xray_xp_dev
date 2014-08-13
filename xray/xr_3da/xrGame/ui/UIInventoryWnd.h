@@ -53,6 +53,7 @@ public:
 
 	void					AddItemToBag				(PIItem pItem);
 
+	
 protected:
 	enum eInventorySndAction{	eInvSndOpen	=0,
 								eInvSndClose,
@@ -172,11 +173,12 @@ protected:
 
 	void						SetCurrentItem				(CUICellItem* itm);
 	CUICellItem*				CurrentItem					();
-	PIItem						CurrentIItem				();
+	
 
 	TIItemContainer				ruck_list;
 	u32							m_iCurrentActiveSlot;
-
+public:
+	PIItem						CurrentIItem();
 };
 
 #if defined(INV_NEW_SLOTS_SYSTEM)

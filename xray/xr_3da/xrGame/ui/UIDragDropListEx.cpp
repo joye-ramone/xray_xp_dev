@@ -276,7 +276,7 @@ void CUIDragDropListEx::ReinitScroll()
 		
 		int r_min, r_max;
 		m_vScrollBar->GetRange(r_min, r_max);		
-		Msg("# CUIDragDropListEx::m_vScrollBar range changed from %d..%d to 0..%f ", r_min, r_max, h1 - h2);
+		// Msg("# CUIDragDropListEx::m_vScrollBar range changed from %d..%d to 0..%f ", r_min, r_max, h1 - h2);
 		m_vScrollBar->SetRange(0, _max(0, iFloor(h1 - h2)));
 		m_vScrollBar->SetStepSize	(CellSize().y/3);
 		m_vScrollBar->SetPageSize	(iFloor(GetWndSize().y/float(CellSize().y)));

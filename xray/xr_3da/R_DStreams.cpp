@@ -4,6 +4,8 @@
 #include "ResourceManager.h"
 #include "R_DStreams.h"
 
+XRCORE_API LPCSTR  BuildStackTrace();
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -31,7 +33,8 @@ void _VertexStream::Destroy	()
 	_clear					();
 }
 
-void* _VertexStream::Lock	( u32 vl_Count, u32 Stride, u32& vOffset )
+
+void* _VertexStream::Lock(u32 vl_Count, u32 Stride, u32& vOffset)
 {
 #ifdef DEBUG
 	PGO					(Msg("PGO:VB_LOCK:%d",vl_Count));
@@ -40,8 +43,15 @@ void* _VertexStream::Lock	( u32 vl_Count, u32 Stride, u32& vOffset )
 #endif
 
 	// Ensure there is enough space in the VB for this data
-	u32	bytes_need		= vl_Count*Stride;
-	R_ASSERT			((bytes_need<=mSize) && vl_Count);
+	u32	bytes_need = vl_Count*Stride;
+	if (bytes_need > mSize)
+	{
+		Msg("! FATAL: _VertexStream::Lock, bytes_need = %d, mSize = %d, vl_Count = %d", bytes_need, mSize, vl_Count);
+		BuildStackTrace();
+	}
+		
+
+	R_ASSERT			((bytes_need<=mSize) && vl_Count > 0);
 
 	// Vertex-local info
 	u32 vl_mSize		= mSize/Stride;

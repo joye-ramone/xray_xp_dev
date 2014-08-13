@@ -26,6 +26,7 @@
 #include "script_zone.h"
 #include "relation_registry.h"
 #include "danger_object.h"
+#include "Actor.h"
 #include "Weapon.h"
 #include "Torch.h"
 #include "xrServer_Objects_ALife.h"
@@ -34,6 +35,11 @@ using namespace luabind;
 
 extern CScriptActionPlanner *script_action_planner(CScriptGameObject *obj);
 
+CActor *get_actor(CScriptGameObject *script_obj)
+{
+	CGameObject *obj = &script_obj->object();
+	return smart_cast<CActor*>(obj);
+}
 
 
 // alpet: получение визуала для худа оружия
@@ -286,6 +292,7 @@ class_<CScriptGameObject> &script_register_game_object1(class_<CScriptGameObject
 		// alpet: export object cast		 
 		.def("get_game_object",				&CScriptGameObject::object)
 		.def("get_alife_object",			&CScriptGameObject::alife_object)		
+		.def("get_actor",					&get_actor)
 		.def("get_torch",					&get_torch)			
 		.def("get_hud_visual",			    &CScriptGameObject::GetWeaponHUD_Visual)
 		.def("load_hud_visual",			    &CScriptGameObject::LoadWeaponHUD_Visual)

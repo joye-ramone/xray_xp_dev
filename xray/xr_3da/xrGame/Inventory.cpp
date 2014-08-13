@@ -89,7 +89,13 @@ CInventory::CInventory()
 	m_fTakeDist									= pSettings->r_float	("inventory","take_dist");
 	m_fMaxWeight								= pSettings->r_float	("inventory","max_weight");
 	m_iMaxBelt									= pSettings->r_s32		("inventory","max_belt");
-	
+#ifdef LUAICP_COMPAT
+	static u32 saved = 0;
+	if (!saved++)
+	{		
+		LogXrayOffset("CInventory.target", this, &this->m_pTarget);
+	}
+#endif
 	m_slots.resize								(SLOTS_TOTAL);
 	
 	m_iActiveSlot								= NO_ACTIVE_SLOT;

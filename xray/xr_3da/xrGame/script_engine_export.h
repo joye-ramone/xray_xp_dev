@@ -135,6 +135,7 @@
 #	include "Scope.h"
 #	include "StalkerOutfit.h"
 #	include "Torch.h"
+#   include "script_actor.h"
 #	include "WeaponAK74.h"
 #	include "WeaponBinoculars.h"
 #	include "WeaponBM16.h"
@@ -162,5 +163,4 @@
 #	include "space_restrictor.h"
 #	include "physicobject.h"
 #	include "EffectorZoomInertion.h"
-
 #endif

@@ -597,6 +597,24 @@ u32 vertex_id(const Fvector &vec)
 	return ai().level_graph().vertex_id(vec);
 }
 
+void start_dialog(CUIDialogWnd *dlg, bool doHideIndicators)
+{	
+	CUI *ui = HUD().GetUI();
+	
+	if (NULL != ui->MainInputReceiver()) return;
+
+	if (dlg && !dlg->IsShown())
+		ui->StartStopMenu(dlg, doHideIndicators);
+}
+
+void stop_dialog(CUIDialogWnd *dlg)
+{
+	CUI *ui = HUD().GetUI();
+	if (dlg != ui->MainInputReceiver()) return;
+	if (dlg)
+		ui->StartStopMenu(dlg, false);
+}
+
 
 #pragma optimize("s",on)
 void CLevel::script_register(lua_State *L)
@@ -760,6 +778,10 @@ void CLevel::script_register(lua_State *L)
 		def("get_pda_wnd",			&get_pda_wnd),
 		def("get_talk_wnd",			&get_talk_wnd),
 		def("get_car_body_wnd",		&get_car_body_wnd),
-		def("get_trade_wnd",		&get_trade_wnd)
+		def("get_trade_wnd",		&get_trade_wnd),
+		// alpet: сокращенные функции запуска-остановки диалогов
+		def("start_dialog",			&start_dialog),
+		def("stop_dialog",			&stop_dialog)			
+
 	];
 }
