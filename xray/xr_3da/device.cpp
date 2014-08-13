@@ -15,6 +15,7 @@
 
 #include "x_ray.h"
 #include "render.h"
+#include "../../build_config_defines.h"
 
 ENGINE_API CRenderDevice Device;
 ENGINE_API BOOL g_bRendering = FALSE; 
@@ -245,7 +246,19 @@ void CRenderDevice::Run			()
 				// Release start point - allow thread to run
 				mt_csLeave.Enter			();
 				mt_csEnter.Leave			();
-				Sleep						(0);
+
+				
+#ifdef ECO_RENDER
+				static u32 time_frame = 0;
+				u32 time_diff = timeGetTime() - time_frame;
+				time_frame = timeGetTime();
+				if (time_diff < 10)   // если более 100 кадров в секунду, как в меню например
+					Sleep(10 - time_diff);
+#else
+				Sleep(0);
+#endif // ECO_RENDER
+
+				
 
 #ifndef DEDICATED_SERVER
 				Statistic->RenderTOTAL_Real.FrameStart	();
