@@ -535,9 +535,16 @@ bool CScriptStorage::print_output(lua_State *L, LPCSTR caScriptFileName, int iEr
 
 		if (iErorCode)
 		{
-			LPCSTR traceback = get_lua_traceback(L, 1);
-			Msg("!LUA_ERROR: %s", S);
-			Msg("!  Script %s errorCode = %d   \n %s", caScriptFileName, iErorCode, traceback);
+			
+			Msg("!LUA_ERROR: %s", S);			
+#ifdef LUAICP_COMPAT
+			lua_getglobal(L, "DebugDumpAll");
+			lua_pcall(L, 0, 0, -1);
+#else
+			LPCSTR traceback = get_lua_traceback(L, 0);
+			Msg("! %s", caScriptFileName, iErorCode, traceback);
+#endif 
+
 		}
 
 

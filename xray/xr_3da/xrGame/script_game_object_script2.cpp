@@ -21,90 +21,14 @@
 #include "script_monster_hit_info.h"
 #include "script_entity_action.h"
 #include "action_planner.h"
-#include "PhysicsShell.h"
-#include "helicopter.h"
-#include "script_zone.h"
-#include "relation_registry.h"
+//#include "script_zone.h"
+//#include "relation_registry.h"
 #include "danger_object.h"
-#include "Actor.h"
-#include "ActorCondition.h"
-#include "Weapon.h"
-#include "Torch.h"
-#include "hit_immunity.h"
-#include "holder_custom.h"
-#include "Entity.h"
-#include "EntityCondition.h"
-#include "Inventory.h"
-#include "InventoryOwner.h"
-
-#include "xrServer_Objects_ALife.h"
 
 using namespace luabind;
 
+
 extern CScriptActionPlanner *script_action_planner(CScriptGameObject *obj);
-
-CActor *get_actor(CScriptGameObject *script_obj)
-{	
-	CGameObject *obj = &script_obj->object();
-	return smart_cast<CActor*>(obj);
-}
-
-CEntityCondition *get_obj_conditions (CScriptGameObject *script_obj)
-{
-	CGameObject *obj = &script_obj->object();
-	CActor *pA = smart_cast<CActor*> (obj);
-	if (pA)
-		return &pA->conditions();
-
-	CEntity *pE = smart_cast<CEntity*> (obj);
-	if (pE)
-		return pE->conditions();
-
-	return NULL;
-}
-
-CHitImmunity *get_obj_immunities(CScriptGameObject *script_obj)
-{	
-	CEntityCondition *cond = get_obj_conditions (script_obj);	
-	if (cond)
-		return smart_cast<CHitImmunity*> (cond);
-
-	return NULL;
-}
-
-CInventory *get_obj_inventory(CScriptGameObject *script_obj)
-{
-	CInventoryOwner *owner = smart_cast<CInventoryOwner *>( &script_obj->object() );
-	if (owner) return owner->m_inventory;
-	CHolderCustom* holder = script_obj->get_current_holder();
-	if (holder) return holder->GetInventory();		
-	return NULL;
-}
-
-// alpet: получение визуала для худа оружия
-
-CSE_ALifeDynamicObject* CScriptGameObject::alife_object() const
-{	
-	return object().alife_object();
-}
-
-IRender_Visual* CScriptGameObject::GetWeaponHUD_Visual() const
-{
-	CGameObject *obj = &this->object();	
-	CWeapon *wpn = dynamic_cast<CWeapon*> (obj);
-	if (!wpn) return NULL;
-
-	return wpn->GetHUD()->Visual();
-}
-
-void CScriptGameObject::LoadWeaponHUD_Visual(LPCSTR wpn_hud_section)
-{
-	CGameObject *obj = &this->object();
-	CWeapon *wpn = dynamic_cast<CWeapon*> (obj);
-	if (!wpn) return;
-
-	wpn->GetHUD()->Load(wpn_hud_section);
-}
 
 
 class_<CScriptGameObject> &script_register_game_object1(class_<CScriptGameObject> &instance)
@@ -327,20 +251,7 @@ class_<CScriptGameObject> &script_register_game_object1(class_<CScriptGameObject
 #endif // DEBUG
 		.def("invulnerable",				(bool (CScriptGameObject::*)() const)&CScriptGameObject::invulnerable)
 		.def("invulnerable",				(void (CScriptGameObject::*)(bool))&CScriptGameObject::invulnerable)
-
-		// alpet: export object cast		 
-		.def("get_game_object"				,				&CScriptGameObject::object)
-		.def("get_alife_object"				,				&CScriptGameObject::alife_object)		
-		.def("get_actor"					,				&get_actor)
-		.def("get_torch"					,				&get_torch)			
-		.def("get_hud_visual"				,			    &CScriptGameObject::GetWeaponHUD_Visual)
-		.def("load_hud_visual"				,			    &CScriptGameObject::LoadWeaponHUD_Visual)
-		.property("inventory"				,				&get_obj_inventory)		
-		.property("immunities"				,				&get_obj_immunities)
-		.property("conditions"				,				&get_obj_conditions)		
-		, 
-
-		def("get_actor_obj"					,				&Actor)
+			
 		
 	;return	(instance);
 	

@@ -19,6 +19,7 @@ using namespace luabind;
 
 extern class_<CScriptGameObject> &script_register_game_object1(class_<CScriptGameObject> &);
 extern class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject> &);
+extern class_<CScriptGameObject> &script_register_game_object3(class_<CScriptGameObject> &);
 extern class_<CScriptGameObject> &script_register_game_object_trader(class_<CScriptGameObject> &);
 
 
@@ -50,9 +51,11 @@ void CScriptGameObject::script_register(lua_State *L)
 				.def_readonly("m_vector", &CSightParams::m_vector)
 				.def_readonly("m_sight_type", &CSightParams::m_sight_type),
 
+				script_register_game_object3(
 				script_register_game_object2(
 				script_register_game_object1(
 				script_register_game_object_trader(instance)
+				)
 				)
 				),
 

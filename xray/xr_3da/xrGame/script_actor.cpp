@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: script_actor.cpp
 //	Created 	: 12.08.2014
-//  Modified 	: 12.08.2014
+//  Modified 	: 14.08.2014
 //	Author		: Alexander Petrov
 //	Description : Script Actor (params)
 ////////////////////////////////////////////////////////////////////////////
@@ -119,11 +119,11 @@ void CScriptActor::script_register(lua_State *L)
 			.property	  ("selected_item",				&inventory_selected_item)
 			.property	  ("target",					&get_inventory_target)
 			,
-			class_ <CActorCondition>("CActorCondition")
+			class_ <CActorCondition, CEntityCondition>("CActorCondition")
 			.property("health",							&CActorCondition::GetHealth,	&set_health)
 			.property("health_max",						&CActorCondition::GetMaxHealth, &set_max_health)
-#define		CONDITION_CLASS								CActorCondition			
-#include	"entity_conditions_export.inc"
+// #define		CONDITION_CLASS								CActorCondition			
+// #include	"entity_conditions_export.inc"
 			.def_readwrite("alcohol_health",			&CActorCondition::m_fAlcohol)
 			.def_readwrite("alcohol_v",					&CActorCondition::m_fV_Alcohol)
 			.def_readwrite("satiety",					&CActorCondition::m_fSatiety)
@@ -178,7 +178,7 @@ void CScriptActor::script_register(lua_State *L)
 			.property("jump_up_velocity",				&get_jump_up_velocity,				    &CPHMovementControl::SetJumpUpVelocity)
 
 			,
-			class_<CActor>("CActor")
+			class_<CActor, CGameObject>("CActor")
 			
 			.def_readonly("condition",					&CActor::m_entity_condition)
 			.def_readwrite("hit_slowmo",				&CActor::hit_slowmo)
