@@ -37,7 +37,7 @@ void CWeaponSVD::script_register	(lua_State *L)
 {
 	module(L)
 	[
-		class_<CWeaponSVD,CGameObject>("CWeaponSVD")
+		class_<CWeaponSVD, CWeaponMagazined>("CWeaponSVD")
 			.def(constructor<>())
 	];
 }

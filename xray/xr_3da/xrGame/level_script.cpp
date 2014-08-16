@@ -88,6 +88,27 @@ CScriptGameObject *get_object_by_id(u32 id)
 	return pGameObject->lua_game_object();
 }
 
+void raw_get_object_by_id(lua_State *L)
+{
+	// alpet: при использовании lua_newthread может быть создана отдельна€ VM.  отора€ потом потребуетс€ дл€ свойства CScriptGameObject.interface
+	CScriptGameObject *result = NULL;
+
+	u32 id = (u32) lua_tointeger(L, 1);
+	if (id < 0xFFFF)
+	{
+		result = get_object_by_id(id);
+		if (result)
+		{
+			result->set_lua_state(L);
+			luabind::detail::convert_to_lua<CScriptGameObject*>(L, result);
+			return;
+		}
+	}
+	
+	lua_pushnil(L);		
+}
+
+
 LPCSTR get_weather	()
 {
 	return			(*g_pGamePersistent->Environment().GetWeather());
@@ -629,7 +650,11 @@ void CLevel::script_register(lua_State *L)
 	module(L,"level")
 	[
 		// obsolete\deprecated
+#ifdef LUAICP_COMPAT
+		def("object_by_id",						raw_get_object_by_id, raw(_1)),
+#else
 		def("object_by_id",						get_object_by_id),
+#endif
 #ifdef DEBUG
 		def("debug_object",						get_object_by_name),
 		def("debug_actor",						tpfGetActor),

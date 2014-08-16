@@ -535,6 +535,8 @@ bool CScriptStorage::print_output(lua_State *L, LPCSTR caScriptFileName, int iEr
 
 		if (iErorCode)
 		{
+			if (strstr(S, "no overload of  'net_packet:r_vec3'"))  // при загрузке серверных объектов выполн€ютс€ их кор€вые скрипты с тыщей таких ошибок :(
+				 return (true);
 			
 			Msg("!LUA_ERROR: %s", S);			
 #ifdef LUAICP_COMPAT

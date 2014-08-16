@@ -18,7 +18,7 @@ void CWeaponWalther::script_register	(lua_State *L)
 {
 	module(L)
 	[
-		class_<CWeaponWalther,CGameObject>("CWeaponWalther")
+		class_<CWeaponWalther, CWeaponMagazined>("CWeaponWalther")
 			.def(constructor<>())
 	];
 }

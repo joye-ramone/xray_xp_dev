@@ -19,7 +19,7 @@ void CRGD5::script_register	(lua_State *L)
 {
 	module(L)
 	[
-		class_<CRGD5,CGameObject>("CRGD5")
+		class_<CRGD5,CGrenade>("CRGD5")
 			.def(constructor<>())
 	];
 }

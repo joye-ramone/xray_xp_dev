@@ -1,11 +1,14 @@
 #pragma once
 
 #include "inventory_item.h"
+#include "base_client_classes.h"
 
 class CPhysicItem;
 class CEntityAlive;
 
-class CEatableItem : public CInventoryItem {
+
+class CEatableItem : public CInventoryItem {	
+	friend class CEatableItemScript;
 private:
 	typedef CInventoryItem	inherited;
 

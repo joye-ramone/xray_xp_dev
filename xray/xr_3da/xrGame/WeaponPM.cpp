@@ -21,7 +21,7 @@ void CWeaponPM::script_register	(lua_State *L)
 {
 	module(L)
 	[
-		class_<CWeaponPM,CGameObject>("CWeaponPM")
+		class_<CWeaponPM, CWeaponMagazined>("CWeaponPM")
 			.def(constructor<>())
 	];
 }

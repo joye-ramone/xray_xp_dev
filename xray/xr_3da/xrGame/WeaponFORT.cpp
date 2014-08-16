@@ -16,7 +16,7 @@ void CWeaponFORT::script_register	(lua_State *L)
 {
 	module(L)
 	[
-		class_<CWeaponFORT,CGameObject>("CWeaponFORT")
+		class_<CWeaponFORT, CWeaponMagazined>("CWeaponFORT")
 			.def(constructor<>())
 	];
 }

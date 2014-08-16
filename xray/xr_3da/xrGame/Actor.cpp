@@ -195,7 +195,7 @@ CActor::CActor() : CEntityAlive()
 		LogXrayOffset("CActor.physics_support", this, &this->m_pPhysics_support);
 		LogXrayOffset("CActor.inventory",		this, &this->m_inventory);
 	#endif
-
+	m_class_name = get_class_name<CActor>(this);
 }
 
 

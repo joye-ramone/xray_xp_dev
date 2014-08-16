@@ -11,6 +11,7 @@
 
 CEatableItemObject::CEatableItemObject	()
 {
+	m_class_name = get_class_name<CEatableItemObject>(this);
 }
 
 CEatableItemObject::~CEatableItemObject	()

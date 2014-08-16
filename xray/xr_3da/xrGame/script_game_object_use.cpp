@@ -56,6 +56,7 @@ Fvector CScriptGameObject::GetCurrentDirection()
 CScriptGameObject::CScriptGameObject		(CGameObject *game_object)
 {
 	m_game_object	= game_object;
+	m_lua_state		= NULL;
 	R_ASSERT2		(m_game_object,"Null actual object passed!");
 }
 

@@ -23,6 +23,8 @@ class CUIStaticItem;
 class CWeapon : public CHudItemObject,
 	public CShootingObject
 {
+
+	friend class CWeaponScript;
 private:
 	typedef CHudItemObject inherited;
 

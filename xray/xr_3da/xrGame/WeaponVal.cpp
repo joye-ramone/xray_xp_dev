@@ -18,7 +18,7 @@ void CWeaponVal::script_register	(lua_State *L)
 {
 	module(L)
 	[
-		class_<CWeaponVal,CGameObject>("CWeaponVal")
+		class_<CWeaponVal, CWeaponMagazined>("CWeaponVal")
 			.def(constructor<>())
 	];
 }

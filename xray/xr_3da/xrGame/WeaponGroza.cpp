@@ -18,7 +18,7 @@ void CWeaponGroza::script_register	(lua_State *L)
 {
 	module(L)
 	[
-		class_<CWeaponGroza,CGameObject>("CWeaponGroza")
+		class_<CWeaponGroza, CWeaponMagazinedWGrenade>("CWeaponGroza")
 			.def(constructor<>())
 	];
 }

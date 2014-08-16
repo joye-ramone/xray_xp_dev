@@ -22,7 +22,7 @@ void CWeaponFN2000::script_register	(lua_State *L)
 {
 	module(L)
 	[
-		class_<CWeaponFN2000,CGameObject>("CWeaponFN2000")
+		class_<CWeaponFN2000, CWeaponMagazined>("CWeaponFN2000")
 			.def(constructor<>())
 	];
 }

@@ -8,7 +8,7 @@ void CWeaponBM16::script_register	(lua_State *L)
 {
 	module(L)
 	[
-		class_<CWeaponBM16,CGameObject>("CWeaponBM16")
+		class_<CWeaponBM16, CWeaponShotgun>("CWeaponBM16")
 			.def(constructor<>())
 	];
 }

@@ -17,6 +17,8 @@ struct dContact;
 struct SGameMtl;
 class CMissile : public CHudItemObject
 {
+	friend class CWeaponScript;
+
 	typedef CHudItemObject inherited;
 public:
 							CMissile					();

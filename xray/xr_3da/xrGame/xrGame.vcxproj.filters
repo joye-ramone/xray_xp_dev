@@ -2287,6 +2287,15 @@
     <Filter Include="AI\AScript\ScriptClasses\UI\Tutorial">
       <UniqueIdentifier>{a0716022-9305-4db1-904d-de97ee0d4653}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Weapons">
+      <UniqueIdentifier>{6ef08afb-df9a-40d6-ae85-c87121e5ca13}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AI\AScript\ScriptClasses\ScriptActor">
+      <UniqueIdentifier>{1b8bfa0c-8d71-46b3-958a-1e297f8dbcc2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AI\AScript\ScriptClasses\DerivedClientClasses">
+      <UniqueIdentifier>{2aa1b359-c9e1-44ab-ad25-d228887bebb4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mt_config.h">
@@ -6556,6 +6565,12 @@
       <Filter>AI\AScript\ScriptEngine</Filter>
     </ClInclude>
     <ClInclude Include="raypick.h" />
+    <ClInclude Include="script_actor.h">
+      <Filter>AI\AScript\ScriptClasses\ScriptActor</Filter>
+    </ClInclude>
+    <ClInclude Include="derived_client_classes.h">
+      <Filter>AI\AScript\ScriptClasses\DerivedClientClasses</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="damage_manager.cpp">

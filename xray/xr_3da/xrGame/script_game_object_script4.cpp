@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: script_game_object_script4.cpp
 //	Created 	: 14.08.2014
-//  Modified 	: 14.08.2014
+//  Modified 	: 15.08.2014
 //	Author		: Alexander Petrov
 //	Description : Script Actor (params)
 ////////////////////////////////////////////////////////////////////////////
@@ -41,27 +41,33 @@
 #include "ai_space_inline.h"
 
 #include "Actor.h"
+#include "Artifact.h"
 #include "Car.h"
 #include "Entity.h"
+#include "eatable_item_object.h"
+#include "Grenade.h"
 #include "HangingLamp.h"
 #include "helicopter.h"
 #include "Inventory.h"
+#include "inventory_item_object.h"
 #include "InventoryOwner.h"
 #include "Torch.h"
 #include "Weapon.h"
-
-
+#include "WeaponMagazined.h"
+#include "WeaponMagazinedWGrenade.h"
 
 #include "script_engine.h"
 
 #include "xrServer_Objects_ALife.h"
 
 
-CActor *get_actor(CScriptGameObject *script_obj)
+template <typename T>
+T* script_game_object_cast (CScriptGameObject *script_obj)
 {
 	CGameObject *obj = &script_obj->object();
-	return smart_cast<CActor*>(obj);
+	return smart_cast<T *>(obj);
 }
+
 
 CEntityCondition *get_obj_conditions(CScriptGameObject *script_obj)
 {
@@ -74,6 +80,7 @@ CEntityCondition *get_obj_conditions(CScriptGameObject *script_obj)
 	if (pE)
 		return pE->conditions();
 
+	
 	return NULL;
 }
 
@@ -83,6 +90,10 @@ CHitImmunity *get_obj_immunities(CScriptGameObject *script_obj)
 	if (cond)
 		return smart_cast<CHitImmunity*> (cond);
 
+	CGameObject *obj = &script_obj->object();	
+	CArtefact *pArt = smart_cast<CArtefact*> (obj);
+	if (pArt)
+		return &pArt->m_ArtefactHitImmunities;
 	return NULL;
 }
 
@@ -147,11 +158,30 @@ void lua_pushgameobject(lua_State *L, CGameObject *obj)
 {
 	using namespace luabind::detail;
 
-	if ( test_pushobject<CActor>		(L, obj) || // script_actor.cpp
-		 test_pushobject<CCar>			(L, obj) ||
-		 test_pushobject<CHangingLamp>  (L, obj) ||
-	 	 test_pushobject<CHelicopter>   (L, obj) ||
-		 test_pushobject<CTorch>		(L, obj)
+	obj->lua_game_object()->set_lua_state(L);
+
+	// базовые классы в иерархии должны быть добавлены последними
+	if (smart_cast<CInventoryItem*>(obj))
+	{
+		if (// наследнички CInventoryItem 
+			test_pushobject<CTorch>						(L, obj) ||						
+			test_pushobject<CArtefact>					(L, obj) ||			
+			test_pushobject<CEatableItemObject>			(L, obj) ||
+			test_pushobject<CGrenade>					(L, obj) ||
+			test_pushobject<CWeaponMagazinedWGrenade>	(L, obj) ||
+			test_pushobject<CWeaponMagazined>			(L, obj) ||
+			test_pushobject<CWeapon>					(L, obj) ||
+			test_pushobject<CInventoryItemObject>		(L, obj) ||
+			test_pushobject<CInventoryItem>				(L, obj)
+			) return;
+	}
+
+	if ( test_pushobject<CActor>					(L, obj) || // script_actor.cpp
+		 test_pushobject<CCar>						(L, obj) ||		 
+		 test_pushobject<CHangingLamp>				(L, obj) || 
+	 	 test_pushobject<CHelicopter>				(L, obj) ||		 		 
+		 test_pushobject<CEntityAlive>				(L, obj) ||
+		 test_pushobject<CEntity>					(L, obj)	 
 	   ) return;
 
 	convert_to_lua<CGameObject*> (L, obj); // for default 
@@ -183,29 +213,106 @@ CGameObject *lua_togameobject(lua_State *L, int index)
 	return obj;
 }
 
+bool test_in_stack(u32 *pstack, u32 pvalue)
+{
+	for (int i = 0; i < 16; i ++)
+	if (pstack[i] == pvalue)
+		return true;
+
+	return false;
+}
+
+lua_State* active_vm(CGameObject *obj = NULL)
+{
+	lua_State *L = NULL;
+
+	if (obj)
+		L = obj->lua_game_object()->lua_state();
+		
+    if (!L) L =	ai().script_engine().lua();	 
+
+#ifdef LUAICP_COMPAT
+
+
+	#pragma todo("alpet: свойство interface может не возвращаться, в колбеках движка при использовании LuaSafeCall ")
+
+	LPCSTR member = NULL;
+	for (int i = lua_gettop(L); i > 0; i--)
+	{		
+		if (lua_type(L, i) == LUA_TSTRING)
+			member = lua_tostring(L, i); // for verify 'interface'
+
+		CGameObject *ref = lua_togameobject(L, i);
+		if (member && obj && ref == obj && strstr(member, "interface"))
+			return L;   // иногда работает при использовании iterate_inventory из вызова LuaSafeCall
+	}
+
+	lua_getfield(L, LUA_REGISTRYINDEX, "active_vm");	
+	if (lua_islightuserdata(L, -1))
+	{
+		lua_State *Lsrc = L;
+		L = (lua_State*)lua_topointer(L, -1);
+		lua_pop(Lsrc, 1);
+	}
+	else
+	{
+		Msg("!WARN: active_vm not set in LUA_REGISTRY. type(L,-1) = %d", lua_type(L, -1));
+		lua_pop(L, 1);
+	}
+		
+#endif
+	return L;
+}
+
+LPCSTR script_object_class_name(lua_State *L)
+{
+	using namespace luabind::detail;
+
+	static string64 class_name;
+	sprintf_s (class_name, 63, "lua_type = %d", lua_type(L, 1));
+
+	if (lua_isuserdata(L, 1))
+	{
+		object_rep* rep = is_class_object(L, 1);
+		if (rep)
+			strcpy_s(class_name, 63, rep->crep()->name());
+	}
+	
+	return class_name;
+}
+
 
 // alpet: получение произвольного объекта движка по ID  или game_object
 void dynamic_engine_object(lua_State *L)
 {	
 	using namespace luabind::detail;
-#ifdef LUAICP_COMPAT
-	xr_string s = stack_content_by_name(L, 1); // luabind::detail::
-	MsgCB("#DEBUG: Params: %s", s.c_str());
-#endif
 
 	CGameObject *obj = lua_togameobject(L, 1);
 
-	if (obj)
-		lua_pushgameobject(L, obj);
+	if (obj)	
+		lua_pushgameobject(L, obj);			
 	else
 		lua_pushnil (L);
 }
 
-void get_interface(CScriptGameObject *script_obj)
-{
-	lua_State *L = ai().script_engine().lua();
-	lua_pushgameobject(L, &script_obj->object());	
+void raw_get_interface(CScriptGameObject *script_obj, lua_State *L)
+{	
+	script_obj->set_lua_state(L);  // for future use
+	CGameObject *obj = &script_obj->object();
+	lua_pushgameobject(L, obj);
+	static int type = lua_type(L, -1);
+	static int top = lua_gettop(L);
+	VERIFY(type == LUA_TUSERDATA && top > 0);
 }
+
+void get_interface(CScriptGameObject *script_obj)
+{	
+	lua_State *L = active_vm(&script_obj->object());
+	raw_get_interface (script_obj, L);
+}
+
+
+
 
 void set_interface (CScriptGameObject *script_obj, void *param) { }
 
@@ -219,16 +326,27 @@ class_<CScriptGameObject> &script_register_game_object3(class_<CScriptGameObject
 		// alpet: export object cast		 
 		.def("get_game_object",				&CScriptGameObject::object)
 		.def("get_alife_object",			&CScriptGameObject::alife_object)
-		.def("get_actor",					&get_actor)
+		.def("get_actor",					&script_game_object_cast<CActor>)
+		.def("get_artefact",				&script_game_object_cast<CArtefact>)
+		.def("get_eatable_item",			&script_game_object_cast<CEatableItemObject>)
+		.def("get_grenade",					&script_game_object_cast<CGrenade>)
+		.def("get_inventory_item",			&script_game_object_cast<CInventoryItemObject>)
+		.def("get_interface",				&raw_get_interface, raw(_2))    // более надежное и быстрое решение, при использовании LuaSafeCall
 		.def("get_torch",					&get_torch)
+		.def("get_weapon",					&script_game_object_cast<CWeapon>)
+		.def("get_weapon_m",				&script_game_object_cast<CWeaponMagazined>)
+		.def("get_weapon_mwg",				&script_game_object_cast<CWeaponMagazinedWGrenade>)
+
 		.def("get_hud_visual",				&CScriptGameObject::GetWeaponHUD_Visual)
 		.def("load_hud_visual",				&CScriptGameObject::LoadWeaponHUD_Visual)
 		.property("interface",				&get_interface,  &set_interface, raw(_2))	
 		.property("inventory",				&get_obj_inventory)
 		.property("immunities",				&get_obj_immunities)
 		.property("conditions",				&get_obj_conditions)		
+		
 		,
 
+		def("script_object_class_name",		&script_object_class_name, raw(_1)),
 		def("engine_object",				&dynamic_engine_object, raw(_1)),
 		def("get_actor_obj",				&Actor)
 	; return instance;

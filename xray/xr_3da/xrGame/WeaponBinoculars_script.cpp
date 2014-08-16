@@ -7,7 +7,7 @@ void CWeaponBinoculars::script_register	(lua_State *L)
 {
 	module(L)
 	[
-		class_<CWeaponBinoculars,CGameObject>("CWeaponBinoculars")
+		class_<CWeaponBinoculars, CWeaponMagazined>("CWeaponBinoculars")
 			.def(constructor<>())
 	];
 }

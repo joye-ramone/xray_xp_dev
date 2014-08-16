@@ -17,7 +17,7 @@ void CWeaponAK74::script_register	(lua_State *L)
 {
 	module(L)
 	[
-		class_<CWeaponAK74,CGameObject>("CWeaponAK74")
+		class_<CWeaponAK74, CWeaponMagazinedWGrenade>("CWeaponAK74")
 			.def(constructor<>())
 	];
 }

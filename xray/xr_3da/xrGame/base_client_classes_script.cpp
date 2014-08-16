@@ -17,10 +17,15 @@
 #include "../ResourceManager.h"
 #include "../device.h"
 #include "../Render.h"
-#include "script_game_object.h"
 #include "Actor.h"
-#include "../CameraBase.h"
+#include "Explosive.h"
+#include "inventory_item.h"
+#include "script_game_object.h"
+#include "xrServer_Objects_ALife.h"
+#include <typeinfo>
 
+
+struct CGlobalFlags { };
 
 using namespace luabind;
 
@@ -87,6 +92,25 @@ void ICollidableScript::script_register	(lua_State *L)
 }
 
 
+IC u32 get_inventory_item_flags(CGameObject* O)
+{
+	CInventoryItem *II = smart_cast<CInventoryItem*> (O);
+	if (II)
+		return II->m_flags.flags;
+	return 0;
+}
+
+LPCSTR get_obj_class_name(CGameObject *obj) { return obj->CppClassName(); }
+
+IC LPCSTR get_class_id(CGameObject *obj)
+
+{
+	static string16 result;
+	CLSID2TEXT(obj->CLS_ID, result);
+	return result;
+}
+
+
 void CObjectScript::script_register		(lua_State *L)
 {
 	module(L)
@@ -131,14 +155,56 @@ void CObjectScript::script_register		(lua_State *L)
 
 			.def("net_Export",			&CGameObject::net_Export,		&CGameObjectWrapper::net_Export_static)
 			.def("net_Import",			&CGameObject::net_Import,		&CGameObjectWrapper::net_Import_static)
-			.def("net_Spawn",			&CGameObject::net_Spawn,	&CGameObjectWrapper::net_Spawn_static)
+			.def("net_Spawn",			&CGameObject::net_Spawn,		&CGameObjectWrapper::net_Spawn_static)
 
 			.def("use",					&CGameObject::use,	&CGameObjectWrapper::use_static)
 
 //			.def("setVisible",			&CGameObject::setVisible)
 			.def("getVisible",			&CGameObject::getVisible)
 			.def("getEnabled",			&CGameObject::getEnabled)
+			
+			// alpet: дополнительные свойства 
+			
+			.def("test_server_flag"			,					&CGameObject::TestServerFlag)			
+			.property	 ("se_object"		,					&CGameObject::alife_object)
+			.property	 ("item_flags"		,					&get_inventory_item_flags)     // ???! проблемы с кастингом, не позволяют оставить это свойство в CInventoryItem
+			.property	 ("class_name"		,					&get_obj_class_name)
+			.property	 ("class_id"		,					&get_class_id)
+			
+			.def("load_config"				,					&CGameObject::Load)
 //			.def("setEnabled",			&CGameObject::setEnabled)
+			,
+// ======================================================================================================================			
+			
+			class_<CGlobalFlags>("global_flags")  // для оптимальности доступа, предполагается в скриптах скопировать элементы этого "класса" в пространство имен _G 
+			.enum_("explosion")
+			[
+				value("flExploding"				,				int(1)),
+				value("flExplodEventSent"		,				int(2)),
+				value("flReadyToExplode"		,				int(4)),
+				value("flExploded"				,				int(8))
+			]
+			.enum_("inventory_item")
+			[
+				value("FdropManual"				,				int(CInventoryItem::EIIFlags::FdropManual)),
+				value("FCanTake"				,				int(CInventoryItem::EIIFlags::FCanTake)),
+				value("FCanTrade"				,				int(CInventoryItem::EIIFlags::FCanTrade)),
+				value("Fbelt"					,				int(CInventoryItem::EIIFlags::Fbelt)),
+				value("Fruck"					,				int(CInventoryItem::EIIFlags::Fruck)),
+				value("FRuckDefault"			,				int(CInventoryItem::EIIFlags::FRuckDefault)),
+				value("FUsingCondition"			,				int(CInventoryItem::EIIFlags::FUsingCondition)),
+				value("FAllowSprint"			,				int(CInventoryItem::EIIFlags::FAllowSprint)),
+				value("Fuseful_for_NPC"			,				int(CInventoryItem::EIIFlags::Fuseful_for_NPC)),
+				value("FInInterpolation"		,				int(CInventoryItem::EIIFlags::FInInterpolation)),
+				value("FInInterpolate"			,				int(CInventoryItem::EIIFlags::FInInterpolate)),
+				value("FIsQuestItem"			,				int(CInventoryItem::EIIFlags::FIsQuestItem)),
+				value("FIAlwaysTradable"		,				int(CInventoryItem::EIIFlags::FIAlwaysTradable)),
+				value("FIAlwaysUntradable"		,				int(CInventoryItem::EIIFlags::FIAlwaysUntradable)),
+				value("FIUngroupable"			,				int(CInventoryItem::EIIFlags::FIUngroupable)),
+				value("FIManualHighlighting"	,				int(CInventoryItem::EIIFlags::FIManualHighlighting))
+			]
+
+
 
 //		,class_<CPhysicsShellHolder,CGameObject>("CPhysicsShellHolder")
 //			.def(constructor<>())
@@ -157,7 +223,7 @@ void CObjectScript::script_register		(lua_State *L)
 //		,class_<CAI_Stalker,CCustomMonster>("CAI_Stalker")
 	];
 }
-
+		
 // alpet ======================== SCRIPT_TEXTURE_CONTROL BEGIN =========== 
 
 

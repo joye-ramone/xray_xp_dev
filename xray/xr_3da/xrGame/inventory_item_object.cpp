@@ -11,6 +11,7 @@
 
 CInventoryItemObject::CInventoryItemObject	()
 {
+	m_class_name = get_class_name<CInventoryItemObject>(this);
 }
 
 CInventoryItemObject::~CInventoryItemObject	()

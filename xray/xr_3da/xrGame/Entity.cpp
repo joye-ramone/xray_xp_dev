@@ -27,6 +27,7 @@
 CEntity::CEntity()
 {
 	m_registered_member		= false;
+	m_class_name = get_class_name<CEntity>(this);
 }
 
 CEntity::~CEntity()

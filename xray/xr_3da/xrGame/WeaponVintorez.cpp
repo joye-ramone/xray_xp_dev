@@ -18,7 +18,7 @@ void CWeaponVintorez::script_register	(lua_State *L)
 {
 	module(L)
 	[
-		class_<CWeaponVintorez,CGameObject>("CWeaponVintorez")
+		class_<CWeaponVintorez, CWeaponMagazined>("CWeaponVintorez")
 			.def(constructor<>())
 	];
 }

@@ -42,6 +42,7 @@ CWeaponMagazined::CWeaponMagazined(LPCSTR name, ESoundTypes eSoundType) : CWeapo
 	m_iShotNum = 0;
 	m_iQueueSize = WEAPON_ININITE_QUEUE;
 	m_bLockType = false;
+	m_class_name = get_class_name<CWeaponMagazined>(this);
 }
 
 CWeaponMagazined::~CWeaponMagazined()

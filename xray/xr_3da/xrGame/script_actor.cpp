@@ -122,8 +122,6 @@ void CScriptActor::script_register(lua_State *L)
 			class_ <CActorCondition, CEntityCondition>("CActorCondition")
 			.property("health",							&CActorCondition::GetHealth,	&set_health)
 			.property("health_max",						&CActorCondition::GetMaxHealth, &set_max_health)
-// #define		CONDITION_CLASS								CActorCondition			
-// #include	"entity_conditions_export.inc"
 			.def_readwrite("alcohol_health",			&CActorCondition::m_fAlcohol)
 			.def_readwrite("alcohol_v",					&CActorCondition::m_fV_Alcohol)
 			.def_readwrite("satiety",					&CActorCondition::m_fSatiety)
@@ -150,8 +148,7 @@ void CScriptActor::script_register(lua_State *L)
 			.def_readwrite("cant_spint_power_begin",	&CActorCondition::m_fCantSprintPowerBegin)
 			.def_readwrite("cant_spint_power_end",		&CActorCondition::m_fCantSprintPowerEnd)
 			.def_readwrite("limping_health_begin",		&CActorCondition::m_fLimpingHealthBegin)
-			.def_readwrite("limping_health_end",		&CActorCondition::m_fLimpingHealthEnd)
-			// .def_readwrite("", &CActorCondition::)
+			.def_readwrite("limping_health_end",		&CActorCondition::m_fLimpingHealthEnd)	
 			.def_readonly("limping",					&CActorCondition::m_bLimping)
 			.def_readonly("cant_walk",					&CActorCondition::m_bCantWalk)
 			.def_readonly("cant_sprint",				&CActorCondition::m_bCantSprint)
@@ -165,7 +162,6 @@ void CScriptActor::script_register(lua_State *L)
 			.property("bleeding_v",						&get_bleeding_v,						&set_bleeding_v)
 			.property("wound_incarnation_v",			&get_wound_incarnation_v,				&set_wound_incarnation_v)
 			.property("health_restore_v",				&get_health_restore_v,					&set_health_restore_v)
-
 			.def("get_wound_size",						&get_wound_size)
 			.def("get_wound_total_size",				&get_wound_total_size)
 			,
@@ -175,10 +171,9 @@ void CScriptActor::script_register(lua_State *L)
 			.def_readwrite("crash_speed_min",			&CPHMovementControl::fMinCrashSpeed)
 			.def_readwrite("collision_damage_factor",	&CPHMovementControl::fCollisionDamageFactor)
 			.def_readwrite("air_control_param",			&CPHMovementControl::fAirControlParam)			
-			.property("jump_up_velocity",				&get_jump_up_velocity,				    &CPHMovementControl::SetJumpUpVelocity)
-
+			.property("jump_up_velocity",				&get_jump_up_velocity,				    &CPHMovementControl::SetJumpUpVelocity)			
 			,
-			class_<CActor, CGameObject>("CActor")
+			class_<CActor, CEntityAlive>("CActor")
 			
 			.def_readonly("condition",					&CActor::m_entity_condition)
 			.def_readwrite("hit_slowmo",				&CActor::hit_slowmo)
@@ -198,13 +193,13 @@ void CScriptActor::script_register(lua_State *L)
 			.def_readwrite("disp_vel_factor",			&CActor::m_fDispVelFactor)
 			.def_readwrite("disp_accel_factor",			&CActor::m_fDispAccelFactor)
 			.def_readwrite("disp_crouch_factor",		&CActor::m_fDispCrouchFactor)
-			.def_readwrite("disp_crouch_no_acc_factor", &CActor::m_fDispCrouchNoAccelFactor)
-			.def_readwrite("disp_jump_factor",			&CActor::m_vMissileOffset)		
+			.def_readwrite("disp_crouch_no_acc_factor", &CActor::m_fDispCrouchNoAccelFactor)			
 
 			.def_readonly("inventory",					&CActor::m_inventory)
 			.property("movement",						&get_movement)
 			.property("jump_speed",						&get_jump_speed, &set_jump_speed)
 			.property("immunities",						&get_immunities)		
+			.property("class_name",						&get_class_name<CActor>)
 
 		];		
 }

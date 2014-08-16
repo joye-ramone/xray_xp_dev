@@ -80,6 +80,7 @@ CWeapon::CWeapon(LPCSTR name)
 	m_UIScope = NULL;
 	m_set_next_ammoType_on_reload = u32(-1);
 	m_bZoomingIn = false;
+	m_class_name = get_class_name<CWeapon>(this);
 }
 
 CWeapon::~CWeapon()

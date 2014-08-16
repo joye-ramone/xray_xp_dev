@@ -60,6 +60,7 @@ CEntityAlive::CEntityAlive()
 	m_ef_detector_type		= u32(-1);
 
 	m_material_manager		= 0;
+	m_class_name			= get_class_name<CEntityAlive>(this);
 }
 
 CEntityAlive::~CEntityAlive()

@@ -8,7 +8,7 @@ void CWeaponHPSA::script_register	(lua_State *L)
 {
 	module(L)
 	[
-		class_<CWeaponHPSA,CGameObject>("CWeaponHPSA")
+		class_<CWeaponHPSA, CWeaponMagazined>("CWeaponHPSA")
 			.def(constructor<>())
 	];
 }

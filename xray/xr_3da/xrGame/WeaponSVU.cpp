@@ -16,7 +16,7 @@ void CWeaponSVU::script_register	(lua_State *L)
 {
 	module(L)
 	[
-		class_<CWeaponSVU,CGameObject>("CWeaponSVU")
+		class_<CWeaponSVU, CWeaponMagazined>("CWeaponSVU")
 			.def(constructor<>())
 	];
 }

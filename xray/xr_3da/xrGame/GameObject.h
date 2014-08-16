@@ -40,6 +40,26 @@ class CSpaceRestrictor;
 class CAttachableItem;
 class animation_movement_controller;
 class CBlend;
+
+
+// alpet: для добавления свойства property
+template <typename T>
+LPCSTR get_class_name(CGameObject *src)
+{
+#ifdef RTTI
+	return typeid(*src).name();
+#else
+	T *obj = smart_cast<T*>(src);
+	if (obj)
+		return typeid(obj).name();
+	else
+		return typeid(src).name();
+#endif
+
+}
+
+
+
 namespace GameObject {
 	enum ECallbackType;
 };
@@ -57,13 +77,16 @@ class CGameObject :
 	Flags32							m_server_flags;
 	CAI_ObjectLocation				*m_ai_location;
 	ALife::_STORY_ID				m_story_id;
-	animation_movement_controller	*m_anim_mov_ctrl;
+	animation_movement_controller	*m_anim_mov_ctrl;	
 protected:
+	shared_str						m_class_name;
 	//время удаления объекта
 	bool					m_bObjectRemoved;
 public:
 	CGameObject();
 	virtual ~CGameObject();
+public:
+	virtual LPCSTR						CppClassName ()								{ return m_class_name.c_str(); }
 public:
 	//functions used for avoiding most of the smart_cast
 	virtual CAttachmentOwner*			cast_attachment_owner()						{ return NULL; }
@@ -87,7 +110,7 @@ public:
 	virtual CAttachableItem*			cast_attachable_item()						{ return NULL; }
 	virtual CHolderCustom*				cast_holder_custom()						{ return NULL; }
 	virtual CBaseMonster*				cast_base_monster()						{ return NULL; }
-
+	
 public:
 	virtual BOOL						feel_touch_on_contact(CObject *)					{ return TRUE; }
 	virtual bool						use(CGameObject* who_use)		{ return CUsableScriptObject::use(who_use); };

@@ -22,6 +22,9 @@ class CBlend;
 class CKinematics;
 class CKinematicsAnimated;
 
+template <class C, typename T> 
+IC void fake_setter(C *, T) {}; // alpet: чтобы определялись типы свойств при дампе в lua_help.script
+
 typedef class_exporter<DLL_Pure>	DLL_PureScript;
 add_to_type_list(DLL_PureScript)
 #undef script_type_list

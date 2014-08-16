@@ -8,7 +8,7 @@ void CWeaponKnife::script_register	(lua_State *L)
 {
 	module(L)
 	[
-		class_<CWeaponKnife,CGameObject>("CWeaponKnife")
+		class_<CWeaponKnife, CWeapon>("CWeaponKnife")
 			.def(constructor<>())
 	];
 }
