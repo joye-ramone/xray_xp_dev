@@ -367,6 +367,11 @@ void CObject::setDestroy			(BOOL _destroy)
 #ifdef DEBUG
 		Msg("cl setDestroy [%d][%d]",ID(),Device.dwFrame);
 #endif
+
+#ifdef LUAICP_COMPAT
+		MsgCB("cl setDestroy [%d][%d]", ID(), Device.dwFrame);
+#endif
+
 	}else
 		VERIFY		(!g_pGameLevel->Objects.registered_object_to_destroy(this));
 }

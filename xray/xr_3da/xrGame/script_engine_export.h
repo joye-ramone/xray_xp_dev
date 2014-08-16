@@ -162,5 +162,9 @@
 #	include "ai/trader/ai_trader.h"
 #	include "space_restrictor.h"
 #	include "physicobject.h"
+#	include "inventory_item_object.h"
+#   include "eatable_item_object.h"
 #	include "EffectorZoomInertion.h"
+#	include "Entity.h"
+
 #endif

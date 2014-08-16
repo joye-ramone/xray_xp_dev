@@ -975,7 +975,7 @@ public:
 
 };
 
-#ifdef DEBUG
+// #ifdef DEBUG
 extern void print_help(lua_State *L);
 
 struct CCC_LuaHelp : public IConsole_Command {
@@ -1001,7 +1001,7 @@ struct CCC_ClearSmartCastStats : public IConsole_Command {
 		clear_smart_cast_stats();
 	}
 };
-#endif
+// #endif
 
 //#ifndef MASTER_GOLD
 #	include "game_graph.h"
@@ -1510,10 +1510,10 @@ void CCC_RegisterCommands()
 //#endif // MASTER_GOLD
 
 	CMD3(CCC_Mask,		"g_autopickup",			&psActorFlags,	AF_AUTOPICKUP);
-
+	CMD1(CCC_LuaHelp,   "lua_help");
 
 #ifdef DEBUG
-	CMD1(CCC_LuaHelp,				"lua_help");
+	
 	CMD1(CCC_ShowSmartCastStats,	"show_smart_cast_stats");
 	CMD1(CCC_ClearSmartCastStats,	"clear_smart_cast_stats");
 

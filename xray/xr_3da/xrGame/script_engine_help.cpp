@@ -8,13 +8,59 @@
 
 #include "pch_script.h"
 
-#ifdef DEBUG
+
+#ifndef LUABIND_NO_ERROR_CHECKING3
 
 #ifndef BOOST_NO_STRINGSTREAM
 #	include <sstream>
 #else
 #	include <strstream>
 #endif
+
+static IWriter *dumper = NULL;
+string1024 line_buf;
+
+// redefinition for fast save
+void OpenDumper()
+{
+	string_path  dump_name;
+	strcpy_s(dump_name, 260, "lua_help.script");
+
+	if (FS.path_exist("$logs$"))
+		FS.update_path(dump_name, "$logs$", dump_name);
+
+	dumper = FS.w_open(dump_name);
+}
+
+void CloseDumper()
+{
+	if (dumper)
+	{
+		FS.w_close(dumper);
+		xr_delete(dumper);
+		dumper = NULL;
+	}
+}
+
+void FastMsg (LPCSTR format, ...)
+{	
+	static u32 saldo = 0;
+	va_list mark;	
+	va_start(mark, format);
+	int sz = _vsnprintf(line_buf, sizeof(line_buf)-1, format, mark); 
+	
+	line_buf[sizeof(line_buf) - 1] = 0;
+	va_end(mark);
+	dumper->w_printf("%s\r\n", line_buf);
+	saldo += xr_strlen(line_buf);
+	if (saldo >= 32768)
+	{
+		saldo = 0;
+		dumper->flush();
+	}
+
+}
+
 
 xr_string to_string					(luabind::object const& o)
 {
@@ -62,7 +108,7 @@ xr_string &process_signature				(xr_string &str)
 
 xr_string member_to_string			(luabind::object const& e, LPCSTR function_signature)
 {
-#if !defined(LUABIND_NO_ERROR_CHECKING)
+#if !defined(LUABIND_NO_ERROR_CHECKING3)
     using namespace luabind;
 	lua_State* L = e.lua_state();
 	LUABIND_CHECK_STACK(L);
@@ -133,7 +179,7 @@ void print_class						(lua_State *L, luabind::detail::class_rep *crep)
 				S.append(",");
 			S.append	((*I).base->name());
 		}
-		Msg				("%s {",S.c_str());
+		FastMsg				("%s {",S.c_str());
 	}
 	// print class constants
 	{
@@ -142,12 +188,12 @@ void print_class						(lua_State *L, luabind::detail::class_rep *crep)
 		luabind::detail::class_rep::STATIC_CONSTANTS::const_iterator	E = constants.end();
 		for ( ; I != E; ++I)
 #ifndef USE_NATIVE_LUA_STRINGS
-			Msg		("    const %s = %d;",(*I).first,(*I).second);
+			FastMsg		("    const %s = %d;",(*I).first,(*I).second);
 #else
-			Msg		("    const %s = %d;",getstr((*I).first.m_object),(*I).second);
+			FastMsg		("    const %s = %d;",getstr((*I).first.m_object),(*I).second);
 #endif
 		if (!constants.empty())
-			Msg		("    ");
+			FastMsg		("    ");
 	}
 	// print class properties
 	{
@@ -161,14 +207,15 @@ void print_class						(lua_State *L, luabind::detail::class_rep *crep)
 		PROPERTIES::const_iterator	E = properties.end();
 		for ( ; I != E; ++I)
 #ifndef USE_NATIVE_LUA_STRINGS
-			Msg	("    property %s;",(*I).first);
+			FastMsg	("    property %s;",(*I).first);
 #else
-			Msg	("    property %s;",getstr((*I).first.m_object));
+			FastMsg	("    property %s;",getstr((*I).first.m_object));
 #endif
 		if (!properties.empty())
-			Msg		("    ");
+			FastMsg		("    ");
 	}
 	// print class constructors
+	
 	{
 		const std::vector<luabind::detail::construct_rep::overload_t>	&constructors = crep->constructors().overloads;
 		std::vector<luabind::detail::construct_rep::overload_t>::const_iterator	I = constructors.begin();
@@ -181,11 +228,12 @@ void print_class						(lua_State *L, luabind::detail::class_rep *crep)
 			strreplaceall	(S,"float","number");
 			strreplaceall	(S,"lua_State*, ","");
 			strreplaceall	(S," ,lua_State*","");
-			Msg		("    %s %s;",crep->name(),S.c_str());
+			FastMsg		("    %s %s;",crep->name(),S.c_str());
 		}
 		if (!constructors.empty())
-			Msg		("    ");
+			FastMsg		("    ");
 	}
+	
 	// print class methods
 	{
 		crep->get_table	(L);
@@ -207,10 +255,10 @@ void print_class						(lua_State *L, luabind::detail::class_rep *crep)
 			strreplaceall	(S,"function __gt","operator >");
 			strreplaceall	(S,"function __ge","operator >=");
 			strreplaceall	(S,"function __eq","operator ==");
-			Msg			("%s",member_to_string(object,S.c_str()).c_str());
+			FastMsg			("%s",member_to_string(object,S.c_str()).c_str());
 		}
 	}
-	Msg			("};\n");
+	FastMsg			("};\n");
 }
 
 void print_free_functions				(lua_State *L, const luabind::object &object, LPCSTR header, const xr_string &indent)
@@ -233,7 +281,7 @@ void print_free_functions				(lua_State *L, const luabind::object &object, LPCST
 					if (lua_getupvalue(L, -2, 1) != 0)
 					{
 						if (!count)
-							Msg("\n%snamespace %s {",indent.c_str(),header);
+							FastMsg("\n%snamespace %s {",indent.c_str(),header);
 						++count;
 						rep = static_cast<luabind::detail::free_functions::function_rep*>(lua_touserdata(L, -1));
 						std::vector<luabind::detail::free_functions::overload_rep>::const_iterator	i = rep->overloads().begin();
@@ -241,7 +289,7 @@ void print_free_functions				(lua_State *L, const luabind::object &object, LPCST
 						for ( ; i != e; ++i) {
 							xr_string	S;
 							(*i).get_signature(L,S);
-							Msg("    %sfunction %s%s;",indent.c_str(),rep->name(),process_signature(S).c_str());
+							FastMsg("    %sfunction %s%s;",indent.c_str(),rep->name(), process_signature(S).c_str());
 						}
 						lua_pop(L, 1);
 					}
@@ -252,48 +300,106 @@ void print_free_functions				(lua_State *L, const luabind::object &object, LPCST
 		lua_pop(L, 1);
 	}
 	{
+		static xr_vector<xr_string> nesting_path;
+
 		xr_string				_indent = indent;
 		_indent.append			("    ");
+		
 		object.pushvalue();
-		lua_pushnil		(L);
-		while (lua_next(L, -2) != 0) {
+		int n_table = lua_gettop(L);
+		// Msg("# n_table = %d ", n_table);
+		lua_pushnil		(L);		
+		int save_top = lua_gettop(L);
+
+		while (lua_next(L, n_table) != 0) {
+
 			if (lua_type(L, -1) == LUA_TTABLE) {
-				if (xr_strcmp("_G",lua_tostring(L, -2))) {
+				if ( xr_strcmp("_G",lua_tostring(L, -2)) ) {
 					LPCSTR				S = lua_tostring(L, -2);
 					luabind::object		object(L);
-					object.set			();
-					if (!xr_strcmp("security",S)) {
-						S = S;
+					object.set			();					
+					
+
+					if (!xr_strcmp("security", S)) { S = S; } /// wtf?
+
+					nesting_path.push_back(S);
+
+					u32 nest_level = nesting_path.size();
+					// если слишком много вложений или начали повторяться строки
+					if ( nest_level < 15 && 
+						  ! ( nest_level > 1 &&  nesting_path.at(0) == S ) 
+					    )
+					{
+						print_free_functions(L, object, S, _indent);
 					}
-					print_free_functions(L,object,S,_indent);
+					else
+					{
+						// problem detected
+						Msg("! WARN: probably self-reference in scripts ");
+						for (u32 ns = 0; ns < nesting_path.size(); ns++)
+							Msg(" %d = %s", ns, nesting_path.at(ns).c_str());
+						FlushLog();
+						dumper->flush();
+					}
+					nesting_path.pop_back();
+
 				}
 			}
-#pragma todo("Dima to Dima : Remove this hack if find out why")
-			if (lua_isnumber(L,-2)) {
-				lua_pop(L,1);
-				lua_pop(L,1);
+// #pragma todo("Dima to Dima : Remove this hack if find out why")			
+			// если ключ - цифровой, убрать из стека значение и ключ.
+			if (lua_isnumber(L,-2)) {				
+				/*
+				Msg("~ Hack: removing value[%d] with type %x", lua_tonumber(L, -2), lua_type(L, -1));
+				lua_pop(L, 1);
+				lua_pop(L, 1);
+				if (lua_gettop(L) > n_table)
+					lua_settop(L, n_table);
 				break;
+				*/
 			}
-			lua_pop	(L, 1);
-		}
+			// */			
+			// lua_pop	(L, 1);	// remove value from stack
+			lua_settop (L, save_top);
+			// Msg("$  -----------------  stack-top = %d, up_value_type = %d ", lua_gettop(L), lua_type(L, -1));
+		} 		
+		
 	}
 	if (count)
-		Msg("%s};",indent.c_str());
+		FastMsg("%s};",indent.c_str());
 }
 
 void print_help							(lua_State *L)
 {
-	Msg					("\nList of the classes exported to LUA\n");
-	luabind::detail::class_registry::get_registry(L)->iterate_classes(L,&print_class);
-	Msg					("End of list of the classes exported to LUA\n");
-	Msg					("\nList of the namespaces exported to LUA\n");
-	print_free_functions(L,luabind::get_globals(L),"","");
-	Msg					("End of list of the namespaces exported to LUA\n");
+	OpenDumper();
+	__try
+	{
+		FastMsg					("\nList of the classes exported to LUA\n");
+		luabind::detail::class_registry::get_registry(L)->iterate_classes(L,&print_class);
+		FastMsg					("End of list of the classes exported to LUA\n");
+		FastMsg					("\nList of the namespaces exported to LUA\n");
+
+		__try
+		{
+			print_free_functions(L, luabind::get_globals(L), "", " ");
+		}
+		__except (EXCEPTION_EXECUTE_HANDLER)
+		{
+			
+			Msg("Fatal: Exception catched in print_free_functions  ");
+		}
+	}
+	__finally
+	{
+		dumper->flush();
+		FastMsg("End of list of the namespaces exported to LUA\n");
+		CloseDumper();
+	}	
+	
 }
 #else
 void print_help							(lua_State *L)
 {
-	Msg					("! Release build doesn't support lua-help :(");
+	FastMsg					("! Release build doesn't support lua-help :(");
 }
 #endif
 

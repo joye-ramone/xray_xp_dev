@@ -4,7 +4,9 @@
 // #define LUAICP_COMPAT				// alpet: включает совместимость с перехватчиком Lua (luaicp.dll).
 // #define SCRIPT_ICONS_CONTROL		    // alpet: включает экспорт функции setup_game_icon в Lua
 #define SCRIPT_EZI_CONTROL			// alpet: включает экспорт класса CEffectorZoomInertion для управления движением прицела
-#define ECO_RENDER						// alpet: добавляет небольшую задержку между рендерингом кадров, чтобы зря не насиловать видеокарту при больших FPS 
+#define ECO_RENDER						// alpet: добавляет небольшую задержку между рендерингом кадров, чтобы зря не насиловать видеокарту при больших FPS
+//#define MT_OPT							// alpet: задает выделенные ядра ЦП для второго потока
+//#define PERF_CHECK							// alpet: задает выделенные ядра ЦП в биндере, для выяснения пропорций нагрузки  
 #define SUN_DIR_NOT_DEBUG			    // Real Wolf: отключение вывода в лог информации вида CurrentEnv.sun_dir...
 #define ARTEFACTS_FROM_RUCK				// Real Wolf: артефакты будут работать из всего инвентаря (слотов, пояса, рюкзака).
 #define KNIFE_SPRINT_FIX				// Real Wolf: остановка спринта при при ударе2.

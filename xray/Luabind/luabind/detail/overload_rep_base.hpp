@@ -26,12 +26,13 @@
 #include <luabind/config.hpp>
 #include <boost/function/function1.hpp>
 
+
 namespace luabind { namespace detail
 {
 	// this class represents a specific overload of a member-function.
 	struct LUABIND_API overload_rep_base
 	{
-#if !defined(NDEBUG) && !defined(LUABIND_NO_ERROR_CHECKING)
+#if !defined(NDEBUG) && !defined(LUABIND_NO_ERROR_CHECKING3)
 		overload_rep_base(): m_get_signature_fun(0), m_match_fun(0), m_arity(-1) {}
 #else
         overload_rep_base(): m_match_fun(0), m_arity(-1) {}
@@ -51,7 +52,7 @@ namespace luabind { namespace detail
 			m_match_fun = fn;
 		}
 
-#ifndef LUABIND_NO_ERROR_CHECKING
+#ifndef LUABIND_NO_ERROR_CHECKING3
 		inline void get_signature(lua_State* L, string_class& s) const 
 		{ 
 			m_get_signature_fun(L, s); 
@@ -65,7 +66,7 @@ namespace luabind { namespace detail
 
 	protected:
 
-#ifndef LUABIND_NO_ERROR_CHECKING
+#ifndef LUABIND_NO_ERROR_CHECKING3
 		get_sig_ptr m_get_signature_fun;
 #endif
 

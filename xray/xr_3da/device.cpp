@@ -23,6 +23,10 @@ ENGINE_API BOOL g_bRendering = FALSE;
 BOOL		g_bLoaded = FALSE;
 ref_light	precache_light = 0;
 
+#ifdef MT_OPT
+#pragma message("alpet: дефайн MT_OPT не рекомендуется для trunk")
+#endif 
+
 BOOL CRenderDevice::Begin	()
 {
 #ifndef DEDICATED_SERVER
@@ -111,6 +115,18 @@ void CRenderDevice::End		(void)
 
 volatile u32	mt_Thread_marker		= 0x12345678;
 void 			mt_Thread	(void *ptr)	{
+	
+
+#ifdef MT_OPT
+	HANDLE ht = GetCurrentThread();
+	HANDLE hp = GetCurrentProcess();
+	DWORD af_mask = 0, af_sys_mask = 0;
+	GetProcessAffinityMask(hp, &af_mask, &af_sys_mask);
+	int cc = floor(log2((double)af_mask + 1) / 2);  // count of cores / 2
+	af_mask <<= std::min (4, cc);   // на последние ядра
+	SetThreadAffinityMask(ht, af_mask);
+#endif
+
 	while (true) {
 		// waiting for Device permission to execute
 		Device.mt_csEnter.Enter	();

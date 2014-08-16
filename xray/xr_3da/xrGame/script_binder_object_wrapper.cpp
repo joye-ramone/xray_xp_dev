@@ -11,6 +11,13 @@
 #include "script_game_object.h"
 #include "xrServer_Objects_ALife.h"
 #include "../../xrNetServer/net_utils.h"
+#include "../../build_config_defines.h"
+#include "GameObject.h"
+
+#ifdef PERF_CHECK
+#pragma message("alpet: дефайн PERF_CHECK не рекомендуется для trunk/release")
+#pragma optimize("t", on)
+#endif 
 
 CScriptBinderObjectWrapper::CScriptBinderObjectWrapper	(CScriptGameObject *object) :
 	CScriptBinderObject	(object)
@@ -43,7 +50,22 @@ void CScriptBinderObjectWrapper::reload_static			(CScriptBinderObject *script_bi
 
 bool CScriptBinderObjectWrapper::net_Spawn				(SpawnType DC)
 {
-	return							(luabind::call_member<bool>(this,"net_spawn",DC));
+	bool result;
+	__try
+	{
+#ifdef PERF_CHECK
+		SetThreadAffinityMask(GetCurrentThread(), 0x0002);
+#endif
+		result = (luabind::call_member<bool>(this, "net_spawn", DC));
+	}
+	__finally
+	{
+#ifdef PERF_CHECK
+		SetThreadAffinityMask(GetCurrentThread(), 0xFFFF);
+#endif
+	}
+	
+	return result;
 }
 
 bool CScriptBinderObjectWrapper::net_Spawn_static		(CScriptBinderObject *script_binder_object, SpawnType DC)
@@ -82,8 +104,24 @@ void CScriptBinderObjectWrapper::net_Export_static		(CScriptBinderObject *script
 }
 
 void CScriptBinderObjectWrapper::shedule_Update			(u32 time_delta)
-{
-	luabind::call_member<void>		(this,"update",time_delta);
+{	
+	__try
+	{
+#ifdef PERF_CHECK
+		CGameObject *obj = &this->m_object->object();
+		if (obj && obj->cast_actor())
+			SetThreadAffinityMask(GetCurrentThread(), 0x0008);
+		else
+			SetThreadAffinityMask(GetCurrentThread(), 0x0004);
+#endif		
+		luabind::call_member<void>(this, "update", time_delta);
+	}
+	__finally
+	{
+#ifdef PERF_CHECK
+		SetThreadAffinityMask(GetCurrentThread(), 0x0001);
+#endif
+	}
 }
 
 void CScriptBinderObjectWrapper::shedule_Update_static	(CScriptBinderObject *script_binder_object, u32 time_delta)
