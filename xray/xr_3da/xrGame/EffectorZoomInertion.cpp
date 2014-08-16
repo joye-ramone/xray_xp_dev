@@ -166,6 +166,16 @@ BOOL CEffectorZoomInertion::Process		(Fvector &p, Fvector &d, Fvector &n,
 
 using namespace luabind;
 
+Fvector get_current_point (CEffectorZoomInertion *E) { return E->m_vCurrentPoint; }
+Fvector get_last_point	  (CEffectorZoomInertion *E) { return E->m_vLastPoint; }
+Fvector get_target_point  (CEffectorZoomInertion *E) { return E->m_vTargetPoint; }
+
+
+void set_current_point (CEffectorZoomInertion *E, const Fvector src) { E->m_vCurrentPoint.set(src); }
+void set_last_point	   (CEffectorZoomInertion *E, const Fvector src) { E->m_vLastPoint.set(src); }
+void set_target_point  (CEffectorZoomInertion *E, const Fvector src) { E->m_vTargetPoint.set(src); }
+
+
 #pragma optimize("s",on)
 void CEffectorZoomInertion::script_register(lua_State *L)
 {
@@ -178,10 +188,11 @@ void CEffectorZoomInertion::script_register(lua_State *L)
 			.def_readwrite ("float_speed",		&CEffectorZoomInertion::m_fFloatSpeed)
 			.def_readwrite ("disp_radius",		&CEffectorZoomInertion::m_fDispRadius)
 			.def_readwrite ("epsilon",			&CEffectorZoomInertion::m_fEpsilon)
-			.def_readwrite ("current_point",	&CEffectorZoomInertion::m_vCurrentPoint)
-			.def_readwrite ("last_point",		&CEffectorZoomInertion::m_vLastPoint)
-			.def_readwrite ("target_point",		&CEffectorZoomInertion::m_vTargetPoint)
+			.property      ("current_point",	&get_current_point, &set_current_point)
+			.property      ("last_point",		&get_last_point,    &set_last_point)
+			.property      ("target_point",		&get_target_point,  &set_target_point)			
 			.def_readwrite ("target_vel",		&CEffectorZoomInertion::m_vTargetVel)
+			.def_readwrite ("time_passed",		&CEffectorZoomInertion::m_dwTimePassed)
 			// settings for real-time modify
 			.def_readwrite ("camera_move_epsilon",	&CEffectorZoomInertion::m_fCameraMoveEpsilon)
 			.def_readwrite ("disp_min",				&CEffectorZoomInertion::m_fDispMin)
