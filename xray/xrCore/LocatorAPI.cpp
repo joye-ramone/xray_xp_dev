@@ -297,7 +297,7 @@ IReader* open_chunk(void* ptr, u32 ID)
 void CLocatorAPI::ProcessArchive(LPCSTR _path, LPCSTR base_path)
 {
 	// find existing archive
-	if (strstr(_path, "gamedata\\")) 
+	if (strstr(_path, "gamedata\\") || strstr(_path, "bin\\")) 
 	{
 		Msg("CLocatorAPI::ProcessArchive ignoring file %s", _path); // добавлено alpet: предотвращает exception при распакованной gamedata
 		return;

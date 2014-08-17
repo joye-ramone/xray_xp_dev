@@ -6,6 +6,8 @@
 
 
 #include <dinput.h>
+#include "../ai_space.h"
+#include "../script_engine.h"
 #include "../actor.h"
 #include "../HUDManager.h"
 #include "../PDA.h"
@@ -88,10 +90,13 @@ float		g_fHudAdjustValue			= 0.0f;
 	{
 		CUIMainIngameWnd *window = GetMainIngameWindow();
 		if (!window)
+		{
+			log_script_error("SetupGameIcon failed due GetMainIngameWindow() returned NULL");
 			return false;
+		}
 
 
-		CUIStatic *sIcon = warn_icon_list[icon];
+		CUIStatic *sIcon = warn_icon_list[icon & 7];
 		
 		if (sIcon)
 		{			

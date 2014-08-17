@@ -467,7 +467,7 @@ bool CUIInventoryWnd::OnItemDrop(CUICellItem* itm)
 				CurrentIItem()->SetSlot(SLOT_QUICK_ACCESS_3);
 
 		#if !defined(INV_MOVE_ITM_INTO_QUICK_SLOTS)
-			u32 old_slot = CurrentIItem()->GetSlot();
+			old_slot = CurrentIItem()->GetSlot();
 		#endif
 
 			auto slots = CurrentIItem()->GetSlots();

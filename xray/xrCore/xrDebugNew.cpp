@@ -177,13 +177,23 @@ extern int	g_stackTraceCount;
 
 void LogStackTrace(LPCSTR header)
 {
-	Msg				("%s",header);
-	BuildStackTrace();
+	bool ss_init = shared_str_initialized; // alpet: при некоторых сбоях это все-равно дает исключение в shared_str::doc
+	shared_str_initialized = false;
+	__try
+	{
+		Msg("%s", header);
+		BuildStackTrace();
 
-	for (int i = 1; i < g_stackTraceCount; ++i)
+		for (int i = 1; i < g_stackTraceCount; ++i)
 			Msg(" %s", g_stackTrace[i]);
 
-	FlushLog();
+		FlushLog();
+	}
+	__finally
+	{
+		shared_str_initialized = ss_init;
+	}
+	
 }
 
 void gather_info		(const char *expression, const char *description, const char *argument0, const char *argument1, const char *file, int line, const char *function, LPSTR assertion_info)
@@ -250,13 +260,20 @@ void gather_info		(const char *expression, const char *description, const char *
 
 //		buffer			+= sprintf(buffer,"stack trace:%s%s",endline,endline);
 #endif // USE_OWN_ERROR_MESSAGE_WINDOW
+		bool ss_init = shared_str_initialized;
+		shared_str_initialized = false;
+		__try
+		{
+			BuildStackTrace();
+			Msg("!stack trace:\n");
+			for (int i = 2; i < g_stackTraceCount; ++i)
+				Msg("!\t %s", g_stackTrace[i]);
+		}
+		__finally
+		{
+			shared_str_initialized = ss_init;
+		}
 
-				
-		BuildStackTrace	();		
-		Msg("!stack trace:\n");
-		for (int i = 2; i < g_stackTraceCount; ++i) 
-			Msg("!\t %s", g_stackTrace[i]);
-		
 
 #ifdef USE_OWN_ERROR_MESSAGE_WINDOW
 //			buffer		+= sprintf(buffer,"%s%s",g_stackTrace[i],endline);
@@ -669,12 +686,16 @@ LONG WINAPI UnhandledFilter	(_EXCEPTION_POINTERS *pExceptionInfo)
 	string256				error_message;
 	format_message			(error_message,sizeof(error_message));
 
-	if (!error_after_dialog && !strstr(GetCommandLine(),"-no_call_stack_assert")) {
+	force_flush_log = true;
+
+	if (!error_after_dialog && !strstr(GetCommandLine(),"-no_call_stack_assert"))
+	__try
+	{
 		CONTEXT				save = *pExceptionInfo->ContextRecord;
 		BuildStackTrace		(pExceptionInfo);
 		*pExceptionInfo->ContextRecord = save;
 				
-		Msg				("stack trace:\n");
+		Msg				("Unhandled exception stack trace:\n");
 		copy_to_clipboard	("stack trace:\r\n\r\n");
 
 		string4096			buffer;
@@ -692,9 +713,10 @@ LONG WINAPI UnhandledFilter	(_EXCEPTION_POINTERS *pExceptionInfo)
 			update_clipboard(error_message);
 		}
 	}
-
-	
-	FlushLog			();
+	__finally
+	{
+		FlushLog();
+	}
 
 #ifdef USE_OWN_MINI_DUMP
 		save_mini_dump		(pExceptionInfo);
