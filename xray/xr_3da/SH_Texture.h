@@ -50,7 +50,9 @@ public:
 	void								Load			();
 	void								LoadImpl		();
 	void								PostLoad		();
+	void								SetName			(LPCSTR _name);
 	void								Unload			(void);
+	
 //	void								Apply			(u32 dwStage);
 
 	void								surface_set		(IDirect3DBaseTexture9* surf);

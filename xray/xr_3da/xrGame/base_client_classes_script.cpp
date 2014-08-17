@@ -22,6 +22,7 @@
 #include "inventory_item.h"
 #include "script_game_object.h"
 #include "xrServer_Objects_ALife.h"
+#include "../lua_tools.h"
 #include <typeinfo>
 
 
@@ -413,7 +414,7 @@ LPCSTR script_texture_getname(CTexture *t)
 
 void script_texture_setname (CTexture *t, LPCSTR name)
 {
-	t->set_name(name);
+	t->SetName(name);
 }
 
 
@@ -433,6 +434,17 @@ void script_texture_reload(CTexture *t)
 	t->Load();
 }
 
+void script_texture_cast(lua_State *L)
+{
+	using namespace luabind::detail;
+	CTexture *result = (CTexture*) lua_topointer(L, 1);
+	if (!IsBadReadPtr(result, sizeof(CTexture)))
+		convert_to_lua<CTexture*> (L, result); // for default 
+	else
+		lua_pushnil(L);
+}
+
+
 
 void CTextureScript::script_register(lua_State *L)
 {
@@ -448,9 +460,43 @@ void CTextureScript::script_register(lua_State *L)
 			.def("get_name",			&script_texture_getname)
 			.def("set_name",			&script_texture_setname)
 			.def("get_surface",			&CTexture::surface_get)
+			.def("cast_texture",		&script_texture_cast, raw(_1))	
 			.def_readonly("ref_count",  &CTexture::dwReference)
 			
 		];
+}
+
+
+__declspec(dllexport) CResourceManager *get_resource_manager() // also can be used in luaicp
+{
+	return Device.Resources;
+}
+
+void cast_ptr_CTexture(lua_State *L)
+{
+	CTexture *t = (CTexture*) (lua_topointer(L, 1));
+	if (t)
+		luabind::detail::convert_to_lua<CTexture*>(L, t);
+	else
+		lua_pushnil(L);
+}
+
+void get_loaded_textures(CResourceManager *mgr, lua_State *L)
+{
+	CResourceManager::map_Texture &map = mgr->textures();
+
+	CResourceManager::map_Texture::iterator I = map.begin();
+	CResourceManager::map_Texture::iterator E = map.end();
+	
+	lua_createtable(L, 0, 0);
+	int t = lua_gettop(L);
+
+	for ( ; I != E; ++I)
+	if (I->first)
+	{		
+		lua_pushlightuserdata (L, (void*)I->second); // alpet: дешевле вставлять указатель, и в скриптах кастовать его через cast_ptr_CTexture только для нужных объектов	
+		lua_setfield (L, t, I->first); 
+	}
 }
 
 
@@ -459,6 +505,11 @@ void CResourceManagerScript::script_register(lua_State *L)
 	// added by alpet 10.07.14
 	module(L) [ 
 		// added by alpet
+		class_<CResourceManager>("CResourceManager")
+		.def("get_loaded_textures",  &get_loaded_textures, raw(_2))
+		,
+		def("cast_ptr_CTexture",	&cast_ptr_CTexture, raw(_1)),
+		def("get_resource_manager", &get_resource_manager),
 		def("texture_create",		&script_texture_create),
 		def("texture_delete",		&script_texture_delete),
 		def("texture_find",			&script_texture_find),

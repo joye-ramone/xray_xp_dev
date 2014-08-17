@@ -2331,9 +2331,7 @@ C++ class CALifeSmartTerrainTask {
     function game_vertex_id() const;
 };
 
-C++ class CActor : CEntityAlive {
- property			class_id;
- property			class_name;
+C++ class CActorBase {
  property			climb_coef               (number);
  property			condition;
  property			crouch_coef              (number);
@@ -2347,29 +2345,16 @@ C++ class CActor : CEntityAlive {
  property			hit_slowmo               (number);
  property			immunities;
  property			inventory;
- property			item_flags;
  property			jump_speed               (number);
  property			movement;
- property			radiation                (number);
  property			run_back_factor          (number);
  property			run_factor               (number);
  property			run_strafe_coef          (number);
- property			se_object;
  property			sprint_koef              (number);
  property			walk_accel               (number);
  property			walk_back_factor         (number);
  property			walk_strafe_coef         (number);
     
-    function Visual();
-    function _construct();
-    function net_Import(net_packet&);
-    function getVisible() const;
-    function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
-    function load_config(string);
-    function net_Export(net_packet&);
-    function getEnabled() const;
-    function use(CGameObject*);
 };
 
 C++ class CActorCondition : CEntityCondition {
@@ -2426,6 +2411,51 @@ C++ class CActorCondition : CEntityCondition {
     
     function get_wound_size(CActorCondition*, number, number);
     function get_wound_total_size(CActorCondition*, number);
+};
+
+C++ class CActor : CActorBase,CEntityAlive {
+ property			class_id;
+ property			class_name;
+ property			climb_coef               (number);
+ property			condition;
+ property			crouch_coef              (number);
+ property			disp_accel_factor        (number);
+ property			disp_aim                 (number);
+ property			disp_base                (number);
+ property			disp_crouch_factor       (number);
+ property			disp_crouch_no_acc_factor(number);
+ property			disp_vel_factor          (number);
+ property			hit_probability          (number);
+ property			hit_slowmo               (number);
+ property			immunities;
+ property			inventory;
+ property			item_flags;
+ property			jump_speed               (number);
+ property			movement;
+ property			radiation                (number);
+ property			run_back_factor          (number);
+ property			run_factor               (number);
+ property			run_strafe_coef          (number);
+ property			se_object;
+ property			sprint_koef              (number);
+ property			walk_accel               (number);
+ property			walk_back_factor         (number);
+ property			walk_strafe_coef         (number);
+    
+    function Visual();
+    function _construct();
+    function net_Import(net_packet&);
+    function getVisible() const;
+    function net_Spawn(cse_abstract*);
+    function test_server_flag(number) const;
+    function load_config(string);
+    function net_Export(net_packet&);
+    function getEnabled() const;
+    function use(CGameObject*);
+};
+
+C++ class CApplication {
+    function set_load_texture(string);
 };
 
 C++ class CArtefact : CInventoryItemObject {
@@ -3364,6 +3394,12 @@ C++ class CKinematicsAnimated {
     function PlayCycle(CKinematicsAnimated*, string);
 };
 
+C++ class CLevelGraph {
+ property			level_id;
+ property			vertices_count;
+    
+};
+
 C++ class FS {
     const FS_ClampExt = 4;
     const FS_ListFiles = 1;
@@ -3788,6 +3824,10 @@ C++ class render_device {
     function time_global(const render_device*);
     function pause(render_device*, boolean);
     function set_fov(render_device*, number);
+};
+
+C++ class CResourceManager {
+    function get_loaded_textures(CResourceManager*, lua_State*);
 };
 
 C++ class CRustyHairArtefact : CArtefact {
@@ -7117,14 +7157,15 @@ C++ class stalker_ids {
 C++ class CTexture {
  property			ref_count;
     
-    function get_surface();
     function delete(CTexture*);
-    function get_name(CTexture*);
-    function unload(CTexture*);
-    function set_name(CTexture*, string);
-    function load(CTexture*);
     function find(string);
     function reload(CTexture*);
+    function get_name(CTexture*);
+    function unload(CTexture*);
+    function cast_texture(lua_State*);
+    function get_surface();
+    function load(CTexture*);
+    function set_name(CTexture*, string);
 };
 
 C++ class CThornArtefact : CArtefact {
@@ -10177,61 +10218,60 @@ List of the namespaces exported to LUA
      function device();
      function IsGameTypeSingle();
      function GetTextureInfo(string, string);
-     function bit_not(number);
      function texture_get_name(CTexture*);
+     function get_torch_obj(game_object*);
      function game_graph();
      function set_global_fov(number);
      function dik_to_bind(number);
      function GetFontGraffiti19Russian();
+     function cast_ptr_CTexture(lua_State*);
      function sell_condition(ini_file*, string);
      function sell_condition(number, number);
      function buy_condition(ini_file*, string);
      function buy_condition(number, number);
      function texture_delete(CTexture*);
      function get_hud();
-     function actor_camera(number);
      function GetFontSmall();
-     function user_name();
      function error_log(string);
      function GetFontLetterica18Russian();
+     function actor_camera(number);
      function command_line();
      function get_actor_obj();
      function get_hud_fov(number);
-     function ef_storage();
      function getFS();
-     function create_ini_file(string);
+     function texture_load(CTexture*);
      function valid_saved_game(string);
      function get_console();
      function GetFontGraffiti50Russian();
      function app_ready();
-     function prefetch(string);
-     function bit_xor(number, number);
-     function GetARGB(number, number, number, number);
-     function GetTextureName(string);
      function texture_to_visual(IRender_Visual*, string);
+     function GetTextureName(string);
+     function create_ini_file(string);
+     function GetFontDI();
      function GetFontLetterica16Russian();
      function log(string);
      function object_by_id(lua_State*);
      function system_ini();
      function show_condition(ini_file*, string);
-     function get_torch_obj(game_object*);
-     function texture_to_object(game_object*, number, string);
+     function user_name();
+     function GetARGB(number, number, number, number);
      function xrRender_test_r2_hw();
+     function texture_to_object(game_object*, number, string);
+     function texture_unload(CTexture*);
+     function get_resource_manager();
      function switch_zoom_osc(boolean);
      function setup_game_icon(number, number, number, number);
      function GetFontLetterica25();
      function log1(string);
-     function script_object_class_name(lua_State*);
      function GetFontMedium();
-     function texture_unload(CTexture*);
-     function GetFontDI();
-     function editor();
      function texture_from_object(game_object*, number, number);
      function set_hud_fov(number);
      function flush();
+     function editor();
      function texture_create(string);
      function GetFontGraffiti22Russian();
      function texture_set_name(CTexture*, string);
+     function bit_not(number);
      function texture_from_visual(IRender_Visual*, number);
      function engine_object(lua_State*);
      function find_effector_zi();
@@ -10239,48 +10279,51 @@ List of the namespaces exported to LUA
      function verify_if_thread_is_running();
      function script_server_object_version();
      function GetTextureRect(string);
+     function get_application();
+     function prefetch(string);
      function get_global_fov(number);
+     function script_object_class_name(lua_State*);
      function bind_to_dik(enum EGameActions);
-     function texture_load(CTexture*);
+     function ef_storage();
+     function bit_xor(number, number);
 
      namespace level {
          function add_complex_effector(string, number);
          function enable_input();
          function map_change_spot_hint(number, string, string);
          function game_id();
-         function vertex_position(number);
+         function vertex_in_direction(number, vector, number);
          function set_game_difficulty(enum ESingleGameDifficulty);
          function map_add_object_spot(number, string, string);
          function rain_factor();
          function remove_pp_effector(number);
          function vertex_id(const vector&);
-         function add_call(const function<boolean>&, const function<void>&);
-         function add_call(object, const function<boolean>&, const function<void>&);
-         function add_call(object, string, string);
+         function get_graph();
+         function remove_complex_effector(number);
          function set_weather_fx(string);
          function add_cam_effector2(string, number, boolean, string);
-         function set_weather(string, boolean);
-         function remove_complex_effector(number);
-         function prefetch_sound(string);
          function set_pp_effector_factor(number, number, number);
          function set_pp_effector_factor(number, number);
+         function add_pp_effector(string, number, boolean);
+         function prefetch_sound(string);
+         function add_cam_effector(string, number, boolean, string);
          function name();
          function environment();
          function remove_cam_effector(number);
          function iterate_sounds(string, number, function<void>);
          function iterate_sounds(string, number, object, function<void>);
-         function add_pp_effector(string, number, boolean);
+         function set_snd_volume(number);
          function object_by_id(lua_State*);
-         function add_cam_effector(string, number, boolean, string);
+         function get_snd_volume();
          function get_weather();
          function present();
          function hide_indicators();
          function physics_world();
          function get_time_hours();
-         function set_snd_volume(number);
-         function get_snd_volume();
          function get_bounding_volume();
          function spawn_phantom(const vector&);
+         function vertex_position(number);
+         function remove_calls_for_object(object);
          function map_remove_object_spot(number, string);
          function main_input_receiver();
          function map_add_object_spot_ser(number, string, string);
@@ -10288,14 +10331,16 @@ List of the namespaces exported to LUA
          function remove_call(const function<boolean>&, const function<void>&);
          function remove_call(object, const function<boolean>&, const function<void>&);
          function remove_call(object, string, string);
-         function remove_calls_for_object(object);
+         function add_call(const function<boolean>&, const function<void>&);
+         function add_call(object, const function<boolean>&, const function<void>&);
+         function add_call(object, string, string);
          function cover_in_direction(number, const vector&);
          function disable_input();
-         function vertex_in_direction(number, vector, number);
+         function remove_dialog_to_render(CUIDialogWnd*);
          function get_time_minutes();
          function get_time_factor();
-         function remove_dialog_to_render(CUIDialogWnd*);
          function start_stop_menu(CUIDialogWnd*, boolean);
+         function set_weather(string, boolean);
          function set_time_factor(number);
          function is_wfx_playing();
          function get_time_days();
@@ -10327,16 +10372,16 @@ List of the namespaces exported to LUA
          function object_by_id(lua_State*);
      };
 
-     namespace main_menu {
-         function get_main_menu();
-     };
-
      namespace game {
          function translate_string(string);
          function time();
          function get_game_time();
          function has_active_tutorial();
          function start_tutorial(string);
+     };
+
+     namespace main_menu {
+         function get_main_menu();
      };
 
      namespace actor_stats {

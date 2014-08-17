@@ -698,3 +698,4 @@ extern void buy_condition	(CScriptIniFile *ini_file, LPCSTR section);
 extern void buy_condition	(float friend_factor, float enemy_factor);
 extern void show_condition	(CScriptIniFile *ini_file, LPCSTR section);
 
+extern void	lua_pushgameobject(lua_State *L, CGameObject *obj);

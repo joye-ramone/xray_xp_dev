@@ -74,6 +74,13 @@ void CTexture::PostLoad	()
 	else						bind		= fastdelegate::FastDelegate1<u32>(this,&CTexture::apply_normal);
 }
 
+void CTexture::SetName(LPCSTR _name)
+{
+	Msg("# texture name changing from %-30s to %s", cName.c_str(), _name);
+	this->set_name(_name);
+}
+
+
 void CTexture::apply_load	(u32 dwStage)	{
 	if (!flags.bLoaded)		Load			()	;
 	else					PostLoad		()	;

@@ -174,6 +174,7 @@ public:
 	void			StoreNecessaryTextures	();
 	void			DestroyNecessaryTextures();
 	void			Dump					(bool bBrief);
+	map_Texture		&textures				() { return m_textures;  }
 };
 
 #endif //ResourceManagerH

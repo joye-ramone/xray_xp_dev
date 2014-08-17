@@ -52,6 +52,7 @@
 #include "inventory_item_object.h"
 #include "InventoryOwner.h"
 #include "Torch.h"
+#include "script_actor.h"
 #include "Weapon.h"
 #include "WeaponMagazined.h"
 #include "WeaponMagazinedWGrenade.h"
@@ -176,8 +177,14 @@ void lua_pushgameobject(lua_State *L, CGameObject *obj)
 			) return;
 	}
 
-	if ( test_pushobject<CActor>					(L, obj) || // script_actor.cpp
-		 test_pushobject<CCar>						(L, obj) ||		 
+	if (smart_cast<CActor*>(obj))
+	{
+		luabind::detail::convert_to_lua<CActorObject*>(L, (CActorObject*)obj);
+		return;
+	}
+
+
+	if ( test_pushobject<CCar>						(L, obj) ||		 
 		 test_pushobject<CHangingLamp>				(L, obj) || 
 	 	 test_pushobject<CHelicopter>				(L, obj) ||		 		 
 		 test_pushobject<CEntityAlive>				(L, obj) ||
@@ -326,7 +333,7 @@ class_<CScriptGameObject> &script_register_game_object3(class_<CScriptGameObject
 		// alpet: export object cast		 
 		.def("get_game_object",				&CScriptGameObject::object)
 		.def("get_alife_object",			&CScriptGameObject::alife_object)
-		.def("get_actor",					&script_game_object_cast<CActor>)
+		.def("get_actor",					&script_game_object_cast<CActorObject>)
 		.def("get_artefact",				&script_game_object_cast<CArtefact>)
 		.def("get_eatable_item",			&script_game_object_cast<CEatableItemObject>)
 		.def("get_grenade",					&script_game_object_cast<CGrenade>)

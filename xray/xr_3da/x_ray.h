@@ -26,6 +26,7 @@ private:
 	ref_shader				sh_progress;
 //	ref_shader				sh_progress2;
 	int						load_stage;
+	shared_str				load_texture;	
 
 	u32						ll_dwReference;
 private:
@@ -52,6 +53,7 @@ public:
 	void					SetLoadLogo			(ref_shader NewLoadLogo);
 	void					LoadSwitch			();
 	void					LoadDraw			();
+	void					SetLoadTexture		(LPCSTR _name);
 
 	virtual	void			OnEvent				(EVENT E, u64 P1, u64 P2);
 

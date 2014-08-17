@@ -29,7 +29,6 @@
 #include "map_location.h"
 #include "phworld.h"
 #include "raypick.h"
-
 #include "../xr_collide_defs.h"
 
 using namespace luabind;
@@ -637,24 +636,38 @@ void stop_dialog(CUIDialogWnd *dlg)
 }
 
 
+const CLevelGraph *get_level_graph() { return ai().get_level_graph(); }
+
+u8  get_level_id(CLevelGraph *graph) { return graph->level_id(); }
+
+u32 get_vertex_count(CLevelGraph *graph) { return graph->header().vertex_count(); }
+
 #pragma optimize("s",on)
 void CLevel::script_register(lua_State *L)
 {
 	class_<CEnvDescriptor>("CEnvDescriptor")
-		.def_readonly("fog_density",			&CEnvDescriptor::fog_density)
-		.def_readonly("far_plane",				&CEnvDescriptor::far_plane),
+	.def_readonly("fog_density", &CEnvDescriptor::fog_density)
+	.def_readonly("far_plane", &CEnvDescriptor::far_plane),
 
 	class_<CEnvironment>("CEnvironment")
-		.def("current",							current_environment);
-
+	.def("current", current_environment);
 	module(L,"level")
 	[
+		class_<CLevelGraph>("CLevelGraph")
+		.property("level_id",                   &get_level_id)
+		.property("vertices_count",				&get_vertex_count)
+		
+		,
+		def("get_graph",                        &get_level_graph),
+
 		// obsolete\deprecated
 #ifdef LUAICP_COMPAT
 		def("object_by_id",						raw_get_object_by_id, raw(_1)),
 #else
 		def("object_by_id",						get_object_by_id),
 #endif
+		
+
 #ifdef DEBUG
 		def("debug_object",						get_object_by_name),
 		def("debug_actor",						tpfGetActor),
@@ -810,3 +823,4 @@ void CLevel::script_register(lua_State *L)
 
 	];
 }
+ 

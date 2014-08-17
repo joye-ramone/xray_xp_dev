@@ -14,6 +14,13 @@
 #include "ActorCondition.h"
 #include "script_export_space.h"
 
+class CActorObject:
+	public CActor
+{
+
+};
+
+
 class CScriptActor
 {	
 public:

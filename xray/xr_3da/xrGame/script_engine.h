@@ -100,3 +100,5 @@ add_to_type_list(CScriptEngine)
 #define script_type_list save_type_list(CScriptEngine)
 
 #include "script_engine_inline.h"
+
+extern DLL_API void log_script_error(LPCSTR format, ...);

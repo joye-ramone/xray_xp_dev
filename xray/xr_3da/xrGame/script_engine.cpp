@@ -384,3 +384,16 @@ void CScriptEngine::collect_all_garbage	()
 	lua_gc					(lua(),LUA_GCCOLLECT,0);
 	lua_gc					(lua(),LUA_GCCOLLECT,0);
 }
+
+
+DLL_API void log_script_error(LPCSTR format, ...)
+{
+	string1024 line_buf;
+	va_list mark;	
+	va_start(mark, format);
+	int sz = _vsnprintf(line_buf, sizeof(line_buf)-1, format, mark); 	
+	line_buf[sizeof(line_buf) - 1] = 0;
+	va_end(mark);
+
+	ai().script_engine().script_log(ScriptStorage::ELuaMessageType::eLuaMessageTypeError, line_buf);
+}

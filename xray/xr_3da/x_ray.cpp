@@ -119,6 +119,24 @@ ENGINE_API	string512		g_sLaunchOnExit_app;
 // startup point
 void InitEngine		()
 {
+
+#define LUACAP_ALWAYS_LOAD
+#ifdef LUACAP_ALWAYS_LOAD
+	CHAR dllName[MAX_PATH];
+	GetModuleFileName (0, dllName, MAX_PATH);
+	if (NULL == GetModuleHandle("luaicp.dll"))
+		for (int i = strlen(dllName) - 1; i > 0; i --) 
+			if (dllName[i] == 0x5C)  {
+				dllName[i + 1] = 0;
+				strcat_s(dllName, "luaicp.dll");
+				HMODULE hDLL = LoadLibrary(dllName);
+				if (!hDLL) break;
+				typedef void(WINAPI *LUAICP_INITPROC) (LPVOID param);
+				LUAICP_INITPROC init = (LUAICP_INITPROC) GetProcAddress(hDLL, "Init");
+				if (init)
+					init(NULL);
+			}
+#endif
 	Engine.Initialize			( );
 	while (!g_bIntroFinished)	Sleep	(100);
 	Device.Initialize			( );
@@ -606,7 +624,7 @@ int APIENTRY WinMain_impl(HINSTANCE hInstance,
 	logoWindow					= CreateDialog(GetModuleHandle(NULL),	MAKEINTRESOURCE(IDD_STARTUP), 0, logDlgProc );
 	SetWindowPos				(
 		logoWindow,
-#ifndef DEBUG
+#ifndef NDEBUG
 		HWND_TOPMOST,
 #else
 		HWND_NOTOPMOST,
@@ -805,6 +823,7 @@ void _InitializeFont(CGameFont*& F, LPCSTR section, u32 flags)
 CApplication::CApplication()
 {
 	ll_dwReference	= 0;
+	load_texture = "ui\\ui_load";
 
 	// events
 	eQuit						= Engine.Event.Handler_Attach("KERNEL:quit",this);
@@ -919,6 +938,11 @@ void CApplication::OnEvent(EVENT E, u64 P1, u64 P2)
 static	CTimer	phase_timer		;
 extern	ENGINE_API BOOL			g_appLoaded = FALSE;
 
+void CApplication::SetLoadTexture(LPCSTR _name)
+{
+	load_texture = _name;
+}
+
 void CApplication::LoadBegin	()
 {
 	ll_dwReference++;
@@ -930,7 +954,7 @@ void CApplication::LoadBegin	()
 		_InitializeFont		(pFontSystem,"ui_font_graffiti19_russian",0);
 
 		ll_hGeom.create		(FVF::F_TL, RCache.Vertex.Buffer(), RCache.QuadIB);
-		sh_progress.create	("hud\\default","ui\\ui_load");
+		sh_progress.create	("hud\\default", load_texture.c_str());
 		ll_hGeom2.create		(FVF::F_TL, RCache.Vertex.Buffer(),NULL);
 #endif
 		phase_timer.Start	();

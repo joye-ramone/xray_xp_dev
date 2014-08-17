@@ -13,6 +13,7 @@
 //#include <ostream>
 #include "script_additional_libs.h"
 #include "xr_level_controller.h"
+#include "../x_ray.h"
 
 using namespace luabind;
 
@@ -182,6 +183,8 @@ ICF	u32	script_time_global	()	{ return Device.dwTimeGlobal; }
 ICF	u32	script_time_global	()	{ return 0; }
 #endif
 extern int get_action_dik(EGameActions _action_id);
+CApplication *get_application() { return pApp; }
+
 #pragma optimize("s",on)
 void CScriptEngine::script_register(lua_State *L)
 {
@@ -198,6 +201,11 @@ void CScriptEngine::script_register(lua_State *L)
 			.def("start",&profile_timer_script::start)
 			.def("stop",&profile_timer_script::stop)
 			.def("time",&profile_timer_script::time)
+		,
+		class_<CApplication>("CApplication")
+		.def("set_load_texture",				&CApplication::SetLoadTexture),
+		def("get_application",					&get_application)
+
 	];
 
 	function	(L,	"log",							LuaLog);
