@@ -42,7 +42,7 @@ public:
 	bool OnKeyboardPress(int dik);
 
 protected:
-	
+
 	CUIStatic			UIStaticDiskIO;
 	CUIStatic			UIStaticHealth;
 	CUIStatic			UIStaticArmor;
@@ -61,6 +61,7 @@ protected:
 	CUIStatic			UIWeaponSignAmmo;
 	CUIStatic			UIWeaponIcon;
 	Frect				UIWeaponIcon_rect;
+		
 public:
 	CUIStatic*			GetPDAOnline					() { return &UIPdaOnline; };
 protected:

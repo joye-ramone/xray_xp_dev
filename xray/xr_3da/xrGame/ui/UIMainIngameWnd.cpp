@@ -53,6 +53,7 @@
 #include "../game_news.h"
 #include "../pch_script.h"
 
+
 #ifdef DEBUG
 #	include "../debug_renderer.h"
 
@@ -73,7 +74,7 @@ float		g_fHudAdjustValue			= 0.0f;
 	
 	bool __declspec(dllexport) external_icon_ctrl = false;			// alpet: для возможности внешнего контроля иконок (используется в NLC6 вместо типичных индикаторов). Никак не влияет на игру для остальных модов.	
 
-	__declspec(dllexport) CUIMainIngameWnd* WINAPI GetMainIngameWindow()
+	DLL_API CUIMainIngameWnd* GetMainIngameWindow()
 	{
 
 		if (g_hud)
@@ -327,7 +328,7 @@ void CUIMainIngameWnd::Init()
 	UIStaticDiskIO.InitTexture				("ui\\ui_disk_io");
 	UIStaticDiskIO.SetOriginalRect			(0,0,32,32);
 	UIStaticDiskIO.SetStretchTexture		(TRUE);
-
+		
 
 	HUD_SOUND::LoadSound					("maingame_ui", "snd_new_contact"		, m_contactSnd		, SOUND_TYPE_IDLE);
 }
@@ -1003,17 +1004,64 @@ void CUIMainIngameWnd::ReceiveNews(GAME_NEWS_DATA* news)
 	HUD().GetUI()->m_pMessagesWnd->AddIconedPdaMessage(*(news->texture_name), news->tex_rect, news->SingleLineText(), news->show_time);
 }
 
+template <typename T>
+bool test_push_window(lua_State *L, CUIWindow *wnd)
+{
+	T* derived = smart_cast<T*>(wnd);
+	if (derived)
+	{		
+		luabind::detail::convert_to_lua<T*>(L, derived);
+		return true;
+	}
+	return false;
+}
+
+
+void GetStaticRaw(CUIMainIngameWnd *wnd, lua_State *L)
+{
+	using namespace luabind::detail;		
+	CUIWindow *child = NULL;
+
+	shared_str name = lua_tostring(L, 2);
+	// поскольку окон мало, прямой перебор будет быстрым
+	for (CUIMainIngameWnd::WINDOW_LIST::iterator it = wnd->GetChildWndList().begin(); it != wnd->GetChildWndList().end(); ++it)
+	{		
+		child = smart_cast<CUIWindow*>(*it);
+		if (child)
+		{
+			shared_str sname = child->WindowName();
+			if (sname == name)	break;
+		}
+		child = NULL;
+	}
+	
+	if (child)
+	{	
+		// if (test_push_window<CUIMotionIcon>  (L, child)) return;		
+		if (test_push_window<CUIProgressBar> (L, child)) return;		
+		if (test_push_window<CUIStatic>		 (L, child)) return;
+		if (test_push_window<CUIWindow>	     (L, child)) return;						
+	}
+	lua_pushnil(L);
+}
+
+
 #pragma optimize("s",on)
 void CUIMainIngameWnd::script_register(lua_State *L)
 {
-#ifdef SCRIPT_ICONS_CONTROL
+
 	module(L)
 		[
-			// class_< CUIMainIngameWnd >("CUIMainIngameWnd")
+			class_<CUIMainIngameWnd, CUIWindow>("CUIMainIngameWnd")
+			.def("GetStatic",		&GetStaticRaw, raw(_2))
+			,
 			// .def("turn_off_icon", &TurnOffWarningIcon),
+			def("get_main_window",   &GetMainIngameWindow), // get_mainingame_window better??
+#ifdef SCRIPT_ICONS_CONTROL
 			def("setup_game_icon", &SetupGameIcon)
-		];
 #endif
+		];
+
 }
 #pragma optimize("",on)
 
