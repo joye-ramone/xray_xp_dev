@@ -66,7 +66,7 @@ void _draw_cam_pos(CGameFont* pFont)
 	float sz		= pFont->GetHeight();
 	pFont->SetHeightI(0.02f);
 	pFont->SetColor	(0xffffffff);
-	pFont->Out		(10, 600, "CAMERA POSITION:  [%3.2f,%3.2f,%3.2f]",VPUSH(Device.vCameraPosition));
+	pFont->Out		(10, (float)Device.dwHeight - 30, "CAMERA POSITION:  [%3.2f,%3.2f,%3.2f]",VPUSH(Device.vCameraPosition));
 	pFont->SetHeight(sz);
 	pFont->OnRender	();
 }
@@ -209,7 +209,7 @@ void CStats::Show()
 
 #define PPP(a) (100.f*float(a)/float(EngineTOTAL.result))
 		F.OutNext	("*** ENGINE:  %2.2fms",EngineTOTAL.result);	
-		F.OutNext	("Memory:      %2.2fa",fMem_calls);
+		F.OutNext	("Memory:      %7.2fa",fMem_calls);
 		F.OutNext	("uClients:    %2.2fms, %2.1f%%, crow(%d)/active(%d)/total(%d)",UpdateClient.result,PPP(UpdateClient.result),UpdateClient_crows,UpdateClient_active,UpdateClient_total);
 		F.OutNext	("uSheduler:   %2.2fms, %2.1f%%",Sheduler.result,		PPP(Sheduler.result));
 		F.OutNext	("uSheduler_L: %2.2fms",fShedulerLoad);
@@ -295,13 +295,13 @@ void CStats::Show()
 		//////////////////////////////////////////////////////////////////////////
 		// Renderer specific
 		F.SetHeightI						(f_base_size);
-		F.OutSet						(200,0);
+		F.OutSet						( (float)Device.dwWidth / 2.f,  0);
 		Render->Statistics				(&F);
 
 		//////////////////////////////////////////////////////////////////////////
 		// Game specific
 		F.SetHeightI						(f_base_size);
-		F.OutSet						(400,0);
+		F.OutSet						( (float)Device.dwWidth - 200, 0);
 		g_pGamePersistent->Statistics	(&F);
 
 		//////////////////////////////////////////////////////////////////////////

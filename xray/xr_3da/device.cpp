@@ -178,6 +178,8 @@ int g_svDedicateServerUpdateReate = 100;
 
 ENGINE_API xr_list<LOADING_EVENT>			g_loading_events;
 
+extern bool IsMainMenuActive();
+
 void CRenderDevice::Run			()
 {
 //	DUMP_PHASE;
@@ -256,24 +258,25 @@ void CRenderDevice::Run			()
 				RCache.set_xform_view		( mView				);
 				RCache.set_xform_project	( mProject			);
 				D3DXMatrixInverse			( (D3DXMATRIX*)&mInvFullTransform, 0, (D3DXMATRIX*)&mFullTransform);
-
 				// *** Resume threads
 				// Capture end point - thread must run only ONE cycle
 				// Release start point - allow thread to run
 				mt_csLeave.Enter			();
 				mt_csEnter.Leave			();
-
-				
 #ifdef ECO_RENDER
 				static u32 time_frame = 0;
-				u32 time_diff = timeGetTime() - time_frame;
-				time_frame = timeGetTime();
-				if (time_diff < 10)   // если более 100 кадров в секунду, как в меню например
-					Sleep(10 - time_diff);
-#else
-				Sleep(0);
-#endif // ECO_RENDER
+				u32 time_curr = timeGetTime();
+				u32 time_diff = time_curr - time_frame;
+				time_frame = time_curr;
+				u32 optimal = 10;
+				if ( Device.Paused() ||	IsMainMenuActive() )  
+					optimal = 32;
 
+				if (time_diff < optimal)   // если более 100 кадров в секунду, как в меню например
+					Sleep(optimal - time_diff);				
+#else
+				Sleep(0);				
+#endif // ECO_RENDER
 				
 
 #ifndef DEDICATED_SERVER

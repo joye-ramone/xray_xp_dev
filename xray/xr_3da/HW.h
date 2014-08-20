@@ -24,6 +24,8 @@ public:
 	D3DDEVTYPE				DevT;
 	D3DPRESENT_PARAMETERS	DevPP;
 
+	int						maxRefreshRate;  // alpet: для ограничения через настройки 
+
 	CHW()
 	{
     	hD3D9		= NULL;
@@ -31,6 +33,7 @@ public:
 		pDevice		= NULL;
 		pBaseRT		= NULL;
 		pBaseZB		= NULL;
+		maxRefreshRate = 200;
 	};
 
 	void					CreateD3D				();

@@ -19,6 +19,7 @@
 #include "ispatial.h"
 #include "CopyProtection.h"
 #include "Text_Console.h"
+#include "../../build_config_defines.h"
 #include <process.h>
 
 //---------------------------------------------------------------------
@@ -618,7 +619,16 @@ int APIENTRY WinMain_impl(HINSTANCE hInstance,
 	g_dedicated_server			= true;
 #endif // DEDICATED_SERVER
 
+#ifdef LUAICP_COMPAT
+	// alpet: на первом ядре процессора любят сидеть фоновые процессы винды, так что лучше выбрать эксклюзив попытаться 
+	SetThreadAffinityMask		(GetCurrentThread(), 2 + 8 + 16);	
+	SetThreadPriority			(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);  // чтобы вытеснить остальных из планировщика винды на занятом ядре
+	SetProcessPriorityBoost		(GetCurrentProcess(), FALSE);
+	SetPriorityClass			(GetCurrentProcess(), HIGH_PRIORITY_CLASS);          // при подвисании это конечно накажет, но есть быстрые клавиши суицида процесса игры. 
+
+#else
 	SetThreadAffinityMask		(GetCurrentThread(),1);
+#endif
 
 	// Title window
 	logoWindow					= CreateDialog(GetModuleHandle(NULL),	MAKEINTRESOURCE(IDD_STARTUP), 0, logDlgProc );

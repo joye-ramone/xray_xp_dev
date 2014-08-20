@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "xrSheduler.h"
 #include "xr_object.h"
+#include <mmsystem.h>
 
 //#define DEBUG_SCHEDULER
 
@@ -276,11 +277,13 @@ void CSheduler::Pop					()
 	Items.pop_back	();
 }
 
+#pragma optimize("gyt", on) // для отладки следующей секции кода, закомментировать эту прагму
+
 void CSheduler::ProcessStep			()
 {
 	// Normal priority
 	u32		dwTime					= Device.dwTimeGlobal;
-	CTimer							eTimer;
+	CTimer							eTimer;	
 	for (int i=0;!Items.empty() && Top().dwTimeForExecute < dwTime; ++i) {
 		u32		delta_ms			= dwTime - Top().dwTimeForExecute;
 
@@ -411,8 +414,21 @@ void CSheduler::Switch				()
 	}
 }
 */
+
+
 void CSheduler::Update				()
 {
+
+#ifdef RARELY_UPDATE
+	static u32 time_frame = 0;
+	u32 time_curr = timeGetTime();
+	u32 time_diff = time_curr - time_frame;				
+	if (time_diff < 33)   // update rate adjust to 30
+		return;	
+	time_frame = time_curr;
+#endif 
+
+	
 	R_ASSERT						(Device.Statistic);
 	// Initialize
 	Device.Statistic->Sheduler.Begin();

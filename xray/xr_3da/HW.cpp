@@ -305,6 +305,10 @@ void		CHW::CreateDevice		(HWND m_hWnd)
 
     // Create the device
 	u32 GPU		= selectGPU();	
+#ifdef GPU_EXTRA_CONFIG
+	GPU |= D3DCREATE_FPU_PRESERVE;	// вероятно решит некоторые проблемы с Lua
+#endif
+	 
 	HRESULT R	= HW.pD3D->CreateDevice(DevAdapter,
 										DevT,
 										m_hWnd,
@@ -407,7 +411,7 @@ u32 CHW::selectRefresh(u32 dwWidth, u32 dwHeight, D3DFORMAT fmt)
 			pD3D->EnumAdapterModes(DevAdapter,fmt,I,&Mode);
 			if (Mode.Width==dwWidth && Mode.Height==dwHeight)
 			{
-				if (Mode.RefreshRate>selected) selected = Mode.RefreshRate;
+				if (Mode.RefreshRate <= maxRefreshRate && Mode.RefreshRate>selected) selected = Mode.RefreshRate;
 			}
 		}
 		return selected;
