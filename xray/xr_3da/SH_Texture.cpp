@@ -187,9 +187,12 @@ void CTexture::LoadImpl		()
 	if (0==stricmp(*cName,"$null"))	return;
 	if (0!=strstr(*cName,"$user$"))	{
 		flags.bUser	= true;
+
 		return;
 	}
 	
+	if ( strstr(cName.c_str(), "act_arm_perchatka") )
+ 		Msg(" loading texture %s ", cName.c_str());
 
 	Preload							();
 #ifndef		DEDICATED_SERVER

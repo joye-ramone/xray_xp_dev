@@ -4,6 +4,7 @@
 
 #include "stdafx.h"
 #include "hit_immunity.h"
+#include "GameObject.h"
 #include "pch_script.h"
 
 CHitImmunity::CHitImmunity()
@@ -74,6 +75,7 @@ void  set_wound_2_immunity(CHitImmunity *I, float i)		{ I->immunities()[ALife::e
 float get_physic_strike_immunity(CHitImmunity *I)			{ return I->immunities()[ALife::eHitTypePhysicStrike]; }
 void  set_physic_strike_immunity(CHitImmunity *I, float i)  { I->immunities()[ALife::eHitTypePhysicStrike] = i; }
 
+extern LPCSTR get_lua_class_name(luabind::object O);
 
 void CHitImmunity::script_register(lua_State *L)
 {
@@ -91,5 +93,6 @@ void CHitImmunity::script_register(lua_State *L)
 			.property("fire_wound_immunity"		,			&get_fire_wound_immunity,		&set_fire_wound_immunity)
 			.property("wound_2_immunity"		,			&get_wound_2_immunity,			&set_wound_2_immunity)
 			.property("physic_strike_immunity"	,			&get_physic_strike_immunity,	&set_physic_strike_immunity)
+			.property("class_name"				,			&get_lua_class_name)
 		];
 }

@@ -577,15 +577,31 @@ using namespace luabind;
 void set_entity_health	   (CEntityCondition *E, float h) { E->health() = h; }
 void set_entity_max_health (CEntityCondition *E, float h) { E->health() = h; }
 
+bool get_entity_crouch	(CEntity::SEntityState *S) { return S->bCrouch; }
+bool get_entity_fall	(CEntity::SEntityState *S) { return S->bFall; }
+bool get_entity_jump	(CEntity::SEntityState *S) { return S->bJump; }
+bool get_entity_sprint	(CEntity::SEntityState *S) { return S->bSprint; }
+
+extern LPCSTR get_lua_class_name(luabind::object O);
 
 void CEntityCondition::script_register(lua_State *L)
 {
 	module(L)
 		[
+			class_ <CEntity::SEntityState>("SEntityState")
+			.property	  ("crouch"				,				&get_entity_crouch)
+			.property	  ("fall"				,				&get_entity_fall)
+			.property     ("jump"				,				&get_entity_jump)
+			.property	  ("sprint"				,				&get_entity_sprint)
+			.def_readonly ("velocity"			,				&CEntity::SEntityState::fVelocity)
+			.def_readonly ("a_velocity"			,				&CEntity::SEntityState::fAVelocity)		
+			.property     ("class_name"			,				&get_lua_class_name)
+			,
 			class_<CEntityCondition>("CEntityCondition")
 #define		CONDITION_CLASS								CEntityCondition
 #include	"entity_conditions_export.inc"
-			.property("health",					&CEntityCondition::GetHealth,				&set_entity_health)
-			.property("max_health",				&CEntityCondition::GetMaxHealth,			&set_entity_max_health)
+			.property("health"					,				&CEntityCondition::GetHealth,				&set_entity_health)
+			.property("max_health"				,				&CEntityCondition::GetMaxHealth,			&set_entity_max_health)
+			.property("class_name"				,				&get_lua_class_name)
 		];
 }

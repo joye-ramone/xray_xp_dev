@@ -7,6 +7,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "pch_script.h"
+#include "../lua_tools.h"
 
 #include "pda_space.h"
 #include "memory_space.h"
@@ -40,22 +41,8 @@
 
 #include "ai_space_inline.h"
 
-#include "Actor.h"
-#include "Artifact.h"
-#include "Car.h"
-#include "Entity.h"
-#include "eatable_item_object.h"
-#include "Grenade.h"
-#include "HangingLamp.h"
-#include "helicopter.h"
-#include "Inventory.h"
-#include "inventory_item_object.h"
-#include "InventoryOwner.h"
-#include "Torch.h"
+#include "exported_classes_def.h"
 #include "script_actor.h"
-#include "Weapon.h"
-#include "WeaponMagazined.h"
-#include "WeaponMagazinedWGrenade.h"
 
 #include "script_engine.h"
 
@@ -140,21 +127,6 @@ CGameObject *client_obj(u32 id)
 }
 
 
-
-template <typename T>
-IC bool test_pushobject(lua_State *L, CGameObject * obj)
-{	
-	using namespace luabind::detail;
-	T *pObj = smart_cast<T*> (obj);
-	if (pObj && get_class_rep<T>(L))
-	{		
-		convert_to_lua<T*>(L, pObj);  // обязательно конвертировать указатель, а не значение. Иначе вызов деструктора при сборке мусора!
-		return true;		
-	}
-	return false;
-}
-
-
 void lua_pushgameobject(lua_State *L, CGameObject *obj)
 {
 	using namespace luabind::detail;
@@ -229,7 +201,7 @@ bool test_in_stack(u32 *pstack, u32 pvalue)
 	return false;
 }
 
-lua_State* active_vm(CGameObject *obj = NULL)
+lua_State* active_vm(CGameObject *obj = NULL) // deprecated
 {
 	lua_State *L = NULL;
 
@@ -239,9 +211,6 @@ lua_State* active_vm(CGameObject *obj = NULL)
     if (!L) L =	ai().script_engine().lua();	 
 
 #ifdef LUAICP_COMPAT
-
-
-	#pragma todo("alpet: свойство interface может не возвращаться, в колбеках движка при использовании LuaSafeCall ")
 
 	LPCSTR member = NULL;
 	for (int i = lua_gettop(L); i > 0; i--)
@@ -271,7 +240,7 @@ lua_State* active_vm(CGameObject *obj = NULL)
 	return L;
 }
 
-LPCSTR script_object_class_name(lua_State *L)
+LPCSTR script_object_class_name(lua_State *L) // для raw-функции. Так-же см. get_lua_class_name для raw-свойства.
 {
 	using namespace luabind::detail;
 
@@ -302,7 +271,7 @@ void dynamic_engine_object(lua_State *L)
 		lua_pushnil (L);
 }
 
-void raw_get_interface(CScriptGameObject *script_obj, lua_State *L)
+void raw_get_interface(CScriptGameObject *script_obj, lua_State *L) // deprecated
 {	
 	script_obj->set_lua_state(L);  // for future use
 	CGameObject *obj = &script_obj->object();
@@ -312,10 +281,10 @@ void raw_get_interface(CScriptGameObject *script_obj, lua_State *L)
 	VERIFY(type == LUA_TUSERDATA && top > 0);
 }
 
-void get_interface(CScriptGameObject *script_obj)
+void get_interface(luabind::object O)
 {	
-	lua_State *L = active_vm(&script_obj->object());
-	raw_get_interface (script_obj, L);
+	lua_State *L = O.lua_state();
+	dynamic_engine_object(L);	
 }
 
 
@@ -335,9 +304,11 @@ class_<CScriptGameObject> &script_register_game_object3(class_<CScriptGameObject
 		.def("get_alife_object",			&CScriptGameObject::alife_object)
 		.def("get_actor",					&script_game_object_cast<CActorObject>)
 		.def("get_artefact",				&script_game_object_cast<CArtefact>)
+		.def("get_base_monster",			&script_game_object_cast<CBaseMonster>)
 		.def("get_eatable_item",			&script_game_object_cast<CEatableItemObject>)
 		.def("get_grenade",					&script_game_object_cast<CGrenade>)
 		.def("get_inventory_item",			&script_game_object_cast<CInventoryItemObject>)
+		.def("get_inventory_owner",			&script_game_object_cast<CInventoryOwner>)
 		.def("get_interface",				&raw_get_interface, raw(_2))    // более надежное и быстрое решение, при использовании LuaSafeCall
 		.def("get_torch",					&get_torch)
 		.def("get_weapon",					&script_game_object_cast<CWeapon>)

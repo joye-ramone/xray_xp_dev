@@ -7,6 +7,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "pch_script.h"
+#include "../../Luabind/luabind/detail/class_rep.hpp"
 
 
 #ifndef LUABIND_NO_ERROR_CHECKING3
@@ -101,10 +102,30 @@ xr_string &process_signature				(xr_string &str)
 	strreplaceall	(str,"custom [","");
 	strreplaceall	(str,"]","");
 	strreplaceall	(str,"float","number");
-	strreplaceall	(str,"lua_State*, ","");
-	strreplaceall	(str," ,lua_State*","");
+	strreplaceall	(str,"lua_State*, ",  "thread");
+	strreplaceall	(str," ,lua_State*",  "thread");
 	return			(str);
 }
+
+xr_string &extract_last_params               (xr_string &str)
+{
+	process_signature(str);
+	LPCSTR s = str.c_str();
+	LPCSTR c1 = strstr(s, "(");
+	LPCSTR c2 = strstr(s, "*");
+	LPCSTR c3 = strstr(s, ", ");
+	if (c1 && c2 && c3 && c2 < c3 )
+	{
+		str.erase(str.find('('), str.find(", ") + 1);
+		if (str.at(0) == ' ')
+			str.erase(0, 1);
+		str = "(" + str;
+	}
+
+
+	return			(str);
+}
+
 
 xr_string member_to_string			(luabind::object const& e, LPCSTR function_signature)
 {
@@ -196,21 +217,39 @@ void print_class						(lua_State *L, luabind::detail::class_rep *crep)
 			FastMsg		("    ");
 	}
 	// print class properties
+	using namespace luabind::detail;
 	{
 #ifndef USE_NATIVE_LUA_STRINGS
 		typedef std::map<const char*, luabind::detail::class_rep::callback, luabind::detail::ltstr> PROPERTIES;
 #else
 		typedef luabind::detail::class_rep::callback_map PROPERTIES;
 #endif
-		const PROPERTIES &properties = crep->properties();
+		const PROPERTIES &properties		 = crep->properties();
+		const PROPERTIES &properties_rw		 = crep->properties_rw();
 		PROPERTIES::const_iterator	I = properties.begin();
 		PROPERTIES::const_iterator	E = properties.end();
-		for ( ; I != E; ++I)
+		for (; I != E; ++I)
+		{
+
 #ifndef USE_NATIVE_LUA_STRINGS
-			FastMsg	("    property %s;",(*I).first);
+			LPCSTR	 pname = (*I).first;
+			PROPERTIES::const_iterator	X = properties_rw.find(pname);
+
+			xr_string cname = "";
+			if (X != properties_rw.end())
+			{
+				luabind::detail::class_rep::callback  cb = properties_rw.at(pname);
+				if ((u32)cb.sig > 0x1000)
+					cb.sig(L, cname);
+
+				FastMsg(" property\t\t\t%-25s%s;", pname, extract_last_params(cname).c_str());
+			}
+			else		
+				FastMsg(" property\t\t\t%s;", pname);
 #else
-			FastMsg	("    property %s;",getstr((*I).first.m_object));
+			FastMsg("    property %s;", getstr((*I).first.m_object));
 #endif
+		}
 		if (!properties.empty())
 			FastMsg		("    ");
 	}
@@ -242,7 +281,7 @@ void print_class						(lua_State *L, luabind::detail::class_rep *crep)
 		for (luabind::object::iterator i = table.begin(); i != table.end(); ++i) {
 			luabind::object	object = *i;
 			xr_string	S;
-			S			= "    function ";
+			S			= "    function ";		
 			S.append	(to_string(i.key()).c_str());
 
 			strreplaceall	(S,"function __add","operator +");
@@ -303,6 +342,7 @@ void print_free_functions				(lua_State *L, const luabind::object &object, LPCST
 		static xr_vector<xr_string> nesting_path;
 
 		xr_string				_indent = indent;
+		xr_string				last_key = "?";
 		_indent.append			("    ");
 		
 		object.pushvalue();
@@ -311,24 +351,36 @@ void print_free_functions				(lua_State *L, const luabind::object &object, LPCST
 		lua_pushnil		(L);		
 		int save_top = lua_gettop(L);
 
-		while (lua_next(L, n_table) != 0) {
+#pragma todo("alpet : при загруженной сохраненке здесь происходит сбой invalid key to 'next', а потом креш в недрах Direct3D ")
+		while (lua_next(L, n_table) != 0) {  
 
-			if (lua_type(L, -1) == LUA_TTABLE) {
-				if ( xr_strcmp("_G",lua_tostring(L, -2)) ) {
-					LPCSTR				S = lua_tostring(L, -2);
+			last_key = lua_tostring(L, -2);
+			if (lua_type(L, -1) == LUA_TTABLE) {				
+
+				if (nesting_path.size() == 0 && // скан глобального пространства имен
+				   (last_key == "" || last_key == "config" || last_key == "package" || last_key == "jit" || last_key == "loaded" )) // с дампом экспортируемых luabind вещей, возникают сбои!
+				{
+					Msg("! skipping namespace %s ", last_key.c_str());
+					lua_pop(L, 1);
+					continue;
+				}
+
+				if (xr_strcmp("_G", lua_tostring(L, -2))) {
+					LPCSTR				S = last_key.c_str(); // lua_tostring(L, -2);
 					luabind::object		object(L);
-					object.set			();					
-					
+					object.set();
+
 
 					if (!xr_strcmp("security", S)) { S = S; } /// wtf?
+					Msg("# dumping namespace %s ", S);
 
 					nesting_path.push_back(S);
 
 					u32 nest_level = nesting_path.size();
 					// если слишком много вложений или начали повторяться строки
-					if ( nest_level < 15 && 
-						  ! ( nest_level > 1 &&  nesting_path.at(0) == S ) 
-					    )
+					if (nest_level < 15 &&
+						!(nest_level > 1 && nesting_path.at(0) == S)
+						)
 					{
 						print_free_functions(L, object, S, _indent);
 					}
@@ -345,21 +397,34 @@ void print_free_functions				(lua_State *L, const luabind::object &object, LPCST
 
 				}
 			}
-// #pragma todo("Dima to Dima : Remove this hack if find out why")			
+			// #pragma todo("Dima to Dima : Remove this hack if find out why")			
 			// если ключ - цифровой, убрать из стека значение и ключ.
-			if (lua_isnumber(L,-2)) {				
+			if (lua_isnumber(L, -2)) {
 				/*
 				Msg("~ Hack: removing value[%d] with type %x", lua_tonumber(L, -2), lua_type(L, -1));
-				lua_pop(L, 1);
-				lua_pop(L, 1);
 				if (lua_gettop(L) > n_table)
-					lua_settop(L, n_table);
+				lua_pop(L, 1);
+				lua_pop(L, 1);
+				lua_settop(L, n_table);
 				break;
 				*/
 			}
 			// */			
 			// lua_pop	(L, 1);	// remove value from stack
-			lua_settop (L, save_top);
+			lua_pop(L, 1);
+			if (lua_gettop(L) > save_top)
+			{
+				Msg("lua_gettop returned %d vs expected %d", lua_gettop(L), save_top);
+				lua_settop(L, save_top);
+			}
+			if (lua_type(L, save_top) != LUA_TSTRING)
+			{	
+#pragma message ("alpet : сия проблема иногда всплывает, если дампить lua_help.script при загруженной сохраненке.")
+				Msg("!WARN: probably invalid key at top after %s, type = %d. Numeric value = 0x%x ", last_key.c_str(), lua_type(L, save_top), lua_tointeger(L, save_top));				
+				lua_pop(L, 1);
+				lua_pop(L, 1);				// remove the table
+				break;		
+			}
 			// Msg("$  -----------------  stack-top = %d, up_value_type = %d ", lua_gettop(L), lua_type(L, -1));
 		} 		
 		
@@ -370,29 +435,44 @@ void print_free_functions				(lua_State *L, const luabind::object &object, LPCST
 
 void print_help							(lua_State *L)
 {
+
+	if (g_pGameLevel)
+	{
+		Msg("!ERROR: Рекомендуется lua_help выполнять до загрузки уровня (из главного меню).");
+		return;
+	}
+
 	OpenDumper();
+	BOOL paused = Device.Paused();
+	Device.Pause(TRUE, TRUE, FALSE, "lua_help");
+	// L = lua_newthread (L);
+	int top = lua_gettop(L);
+	SleepEx(10, FALSE);
+
 	__try
 	{
 		FastMsg					("\nList of the classes exported to LUA\n");
 		luabind::detail::class_registry::get_registry(L)->iterate_classes(L,&print_class);
 		FastMsg					("End of list of the classes exported to LUA\n");
 		FastMsg					("\nList of the namespaces exported to LUA\n");
-
+				
 		__try
 		{
 			print_free_functions(L, luabind::get_globals(L), "", " ");
+			FastMsg("End of list of the namespaces exported to LUA\n");
 		}
 		__except (EXCEPTION_EXECUTE_HANDLER)
-		{
-			
+		{			
 			Msg("Fatal: Exception catched in print_free_functions  ");
+			FastMsg("WARNING: incomplete list of the namespaces exported to LUA\n");
 		}
 	}
 	__finally
 	{
-		dumper->flush();
-		FastMsg("End of list of the namespaces exported to LUA\n");
+		dumper->flush();		
 		CloseDumper();
+		Device.Pause(paused, TRUE, FALSE, "lua_help");
+		lua_settop(L, top);
 	}	
 	
 }

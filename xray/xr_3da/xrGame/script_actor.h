@@ -20,6 +20,12 @@ class CActorObject:
 
 };
 
+class CActorConditionObject :
+	public CActorCondition
+{
+	CActorConditionObject(CActor *pActor): CActorCondition(pActor) { };
+};
+
 
 class CScriptActor
 {	

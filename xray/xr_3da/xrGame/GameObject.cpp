@@ -68,6 +68,9 @@ CGameObject::CGameObject()
 
 CGameObject::~CGameObject()
 {
+#ifdef LUAICP_COMPAT
+    MsgCB("cl destroying [%d][%d]", ID(), Device.dwFrame);
+#endif
 	VERIFY(!animation_movement());
 	VERIFY(!m_ini_file);
 	VERIFY(!m_lua_game_object);

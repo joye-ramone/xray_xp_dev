@@ -699,3 +699,16 @@ extern void buy_condition	(float friend_factor, float enemy_factor);
 extern void show_condition	(CScriptIniFile *ini_file, LPCSTR section);
 
 extern void	lua_pushgameobject(lua_State *L, CGameObject *obj);
+
+template <typename T>
+IC bool test_pushobject(lua_State *L, CGameObject* obj)
+{	
+	using namespace luabind::detail;
+	T *pObj = smart_cast<T*> (obj);
+	if (pObj && get_class_rep<T>(L))
+	{		
+		convert_to_lua<T*>(L, pObj);  // обязательно конвертировать указатель, а не значение. Иначе вызов деструктора при сборке мусора!
+		return true;		
+	}
+	return false;
+}

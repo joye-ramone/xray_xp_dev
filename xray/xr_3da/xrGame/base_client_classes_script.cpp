@@ -111,6 +111,28 @@ IC LPCSTR get_class_id(CGameObject *obj)
 	return result;
 }
 
+DLL_API LPCSTR raw_lua_class_name(lua_State *L)
+{
+	using namespace luabind::detail;
+	for (int i = lua_gettop(L) - 1; i > 0; i--) // обычно аргумент (-2) = объект
+	if (lua_isuserdata(L, i))
+	{
+		object_rep *rep = is_class_object(L, i); 
+		if (rep)			
+			return rep->crep()->name();		
+	}
+	return "?";
+}
+
+
+LPCSTR get_lua_class_name(luabind::object O)
+{			
+	lua_State *L = O.lua_state();				
+	if (L)
+		return raw_lua_class_name(L);	
+	return "?";
+}
+
 
 void CObjectScript::script_register		(lua_State *L)
 {
@@ -169,7 +191,7 @@ void CObjectScript::script_register		(lua_State *L)
 			.def("test_server_flag"			,					&CGameObject::TestServerFlag)			
 			.property	 ("se_object"		,					&CGameObject::alife_object)
 			.property	 ("item_flags"		,					&get_inventory_item_flags)     // ???! проблемы с кастингом, не позвол€ют оставить это свойство в CInventoryItem
-			.property	 ("class_name"		,					&get_obj_class_name)
+			.property	 ("class_name"		,					&get_lua_class_name)
 			.property	 ("class_id"		,					&get_class_id)
 			
 			.def("load_config"				,					&CGameObject::Load)
@@ -481,6 +503,14 @@ void cast_ptr_CTexture(lua_State *L)
 		lua_pushnil(L);
 }
 
+#ifdef LUAICP_COMPAT
+DLL_API void *get_textures_map(CResourceManager *mgr)
+{
+	if (mgr) return &mgr->textures();
+	return NULL;
+}
+#endif
+
 void get_loaded_textures(CResourceManager *mgr, lua_State *L)
 {
 	CResourceManager::map_Texture &map = mgr->textures();
@@ -490,12 +520,17 @@ void get_loaded_textures(CResourceManager *mgr, lua_State *L)
 	
 	lua_createtable(L, 0, 0);
 	int t = lua_gettop(L);
+	LPCSTR pattern = NULL;
+	if (t > 1)
+		pattern = lua_tostring(L, 2);
 
 	for ( ; I != E; ++I)
 	if (I->first)
 	{		
-		lua_pushlightuserdata (L, (void*)I->second); // alpet: дешевле вставл€ть указатель, и в скриптах кастовать его через cast_ptr_CTexture только дл€ нужных объектов	
-		lua_setfield (L, t, I->first); 
+		LPCSTR name = I->first;
+		if ( pattern && !strstr(name, pattern) ) continue;				
+		lua_pushlightuserdata (L, (void*)I->second); // alpet: дешевле вставл€ть указатель, и в скриптах кастовать его через cast_ptr_CTexture только дл€ нужных объектов			
+		lua_setfield(L, t, name);
 	}
 }
 

@@ -44,18 +44,9 @@ class CBlend;
 
 // alpet: для добавления свойства property
 template <typename T>
-LPCSTR get_class_name(CGameObject *src)
+LPCSTR get_class_name(T *src)
 {
-#ifdef RTTI
-	return typeid(*src).name();
-#else
-	T *obj = smart_cast<T*>(src);
-	if (obj)
-		return typeid(obj).name();
-	else
-		return typeid(src).name();
-#endif
-
+	return typeid(src).name();
 }
 
 
