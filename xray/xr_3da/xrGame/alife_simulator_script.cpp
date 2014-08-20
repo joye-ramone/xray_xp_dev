@@ -337,6 +337,18 @@ void assign_story_id		(CALifeSimulator *alife, ALife::_OBJECT_ID id, ALife::_STO
 	alife->assign_story_id	(id, sid);
 }
 // KD
+
+LPCSTR get_save_name(CALifeSimulator *sim) 
+{
+	// alpet: обертка предотвращает вылет, при обращении к свойству на ранней стадии  инициализации
+	LPCSTR result = NULL;
+	if (sim)
+		result = sim->save_name();
+	if (result)
+		return result;
+	else
+		return "NULL";
+}
 #pragma optimize("s",on)
 void CALifeSimulator::script_register			(lua_State *L)
 {
@@ -374,6 +386,8 @@ void CALifeSimulator::script_register			(lua_State *L)
 			.def("switch_distance",			&CALifeSimulator::set_switch_distance)
 			.def("teleport_object",			&teleport_object)
 			.def("assign_story_id",			&assign_story_id)
+			// .def_readonly("save_name",		&CALifeSimulator::m_save_name)
+			.property("save_name",			&get_save_name)
 		,def("alife",						&alife)
 	];
 

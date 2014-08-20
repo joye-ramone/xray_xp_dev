@@ -762,12 +762,6 @@ void CLevel::script_register(lua_State *L)
 		def("get_actor_ranking",				&get_actor_ranking)
 	];
 
-	module(L)
-	[
-		def("command_line",						&command_line),
-		def("IsGameTypeSingle",					&IsGameTypeSingle)
-	];
-
 	module(L,"relation_registry")
 	[
 		def("community_goodwill",				&g_community_goodwill),
@@ -777,6 +771,9 @@ void CLevel::script_register(lua_State *L)
 
 	module(L)
 	[
+		def("command_line",						&command_line),
+		def("IsGameTypeSingle",					&IsGameTypeSingle),
+
 		class_<CRayPick>("ray_pick")
 			.def(								constructor<>())
 			.def(								constructor<Fvector&, Fvector&, float, collide::rq_target, CScriptGameObject*>())
