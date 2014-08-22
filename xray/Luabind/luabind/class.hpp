@@ -917,7 +917,7 @@ namespace luabind
 		class_& property(const char* name, Getter g, Setter s, const GetPolicies& get_policies)
 		{
 			add_getter(name, boost::bind<int>(detail::get_caller<T, Getter, GetPolicies>(get_policies), _1, _2, g));
-#ifndef LUABIND_NO_ERROR_CHECKING
+#ifndef LUABIND_NO_ERROR_CHECKING3
 			add_setter(
 				name
 				, boost::bind<int>(detail::set_caller<T, Setter, detail::null_type>(), _1, _2, s)
@@ -938,7 +938,7 @@ namespace luabind
 									, const SetPolicies& set_policies)
 		{
 			add_getter(name, boost::bind<int>(detail::get_caller<T, Getter, GetPolicies>(get_policies), _1, _2, g));
-#ifndef LUABIND_NO_ERROR_CHECKING
+#ifndef LUABIND_NO_ERROR_CHECKING3
 			add_setter(
 				name
 				, boost::bind<int>(detail::set_caller<T, Setter, SetPolicies>(), _1, _2, s)
@@ -968,7 +968,7 @@ namespace luabind
 		class_& def_readwrite(const char* name, D T::*member_ptr)
 		{
 			add_getter(name, boost::bind<int>(detail::auto_get<T,D,detail::null_type>(), _1, _2, member_ptr));
-#ifndef LUABIND_NO_ERROR_CHECKING
+#ifndef LUABIND_NO_ERROR_CHECKING3
 			add_setter(
 				name
 				, boost::bind<int>(detail::auto_set<T,D,detail::null_type>(), _1, _2, member_ptr)
@@ -984,7 +984,7 @@ namespace luabind
 		class_& def_readwrite(const char* name, D T::*member_ptr, const GetPolicies& get_policies)
 		{
 			add_getter(name, boost::bind<int>(detail::auto_get<T,D,GetPolicies>(get_policies), _1, _2, member_ptr));
-#ifndef LUABIND_NO_ERROR_CHECKING
+#ifndef LUABIND_NO_ERROR_CHECKING3
 			add_setter(
 				name
 				, boost::bind<int>(detail::auto_set<T,D,detail::null_type>(), _1, _2, member_ptr)
@@ -1189,8 +1189,9 @@ namespace luabind
 									 Setter s,
 									 boost::mpl::bool_<false>)
 		{
-			add_getter(name, boost::bind<int>(detail::get_caller<T,Getter,detail::null_type>(), _1, _2, g));
-#ifndef LUABIND_NO_ERROR_CHECKING
+			add_getter(name
+				, boost::bind<int>(detail::get_caller<T,Getter,detail::null_type>(), _1, _2, g));
+#ifndef LUABIND_NO_ERROR_CHECKING3
 			add_setter(
 				name
 				, boost::bind<int>(detail::set_caller<T, Setter, detail::null_type>(), _1, _2, s)
@@ -1213,7 +1214,7 @@ namespace luabind
 			o.set_match_fun(detail::mem_fn_matcher<F, T, Policies>(fn));
 			o.set_fun(detail::mem_fn_callback<F, T, Policies>(fn));
 
-#ifndef LUABIND_NO_ERROR_CHECKING
+#ifndef LUABIND_NO_ERROR_CHECKING3
 			o.set_sig_fun(&detail::get_member_signature<F>::apply);
 #endif
 			this->add_method(name, o);
@@ -1236,7 +1237,7 @@ namespace luabind
 			o.set_fun_static(
 				detail::mem_fn_callback<Default, T, Policies>(default_));
 
-#ifndef LUABIND_NO_ERROR_CHECKING
+#ifndef LUABIND_NO_ERROR_CHECKING3
 			o.set_sig_fun(&detail::get_member_signature<F>::apply);
 #endif
 

@@ -28,6 +28,9 @@
 
 using namespace luabind::detail;
 
+#define LUABIND_NO_ERROR_CHECKING2
+#pragma optimize("t",on)
+
 namespace luabind { namespace detail
 {
 	struct method_name
@@ -605,7 +608,7 @@ int luabind::detail::class_rep::function_dispatcher(lua_State* L)
 	int min_match = std::numeric_limits<int>::max();
 	bool found;
 
-#ifdef LUABIND_NO_ERROR_CHECKING
+#ifdef LUABIND_NO_ERROR_CHECKING2
 	if (rep->overloads().size() == 1)
 	{
 		match_index = 0;
@@ -617,7 +620,7 @@ int luabind::detail::class_rep::function_dispatcher(lua_State* L)
 		int num_params = lua_gettop(L) /*- 1*/;
 		found = find_best_match(L, &rep->overloads().front(), rep->overloads().size(), sizeof(overload_rep), ambiguous, min_match, match_index, num_params);
 
-#ifdef LUABIND_NO_ERROR_CHECKING
+#ifdef LUABIND_NO_ERROR_CHECKING2
 
 	}
 
@@ -1445,9 +1448,10 @@ int luabind::detail::class_rep::static_class_gettable(lua_State* L)
 		msg += "' in class '";
 		msg += crep->name();
 		msg += "'";
-		lua_pushstring(L, msg.c_str());
+		fprintf(stderr, "!#LUA_ERROR: %s", msg);		
+		// lua_pushstring(L, msg.c_str());
 	}
-	lua_error(L);
+	// lua_error(L);
 
 #endif
 
@@ -1666,6 +1670,12 @@ void luabind::detail::class_rep::register_methods(lua_State* L)
 		lua_pushcclosure(L, function_dispatcher, 3);
 		lua_settable(L, -4);
 	}
+}
+
+
+const class_rep::property_map& luabind::detail::class_rep::properties_rw() const
+{
+	return m_setters;
 }
 
 const class_rep::property_map& luabind::detail::class_rep::properties() const

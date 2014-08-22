@@ -228,7 +228,7 @@ namespace luabind { namespace detail
 		struct callback
 		{
 			boost::function2<int, lua_State*, int> func;
-#ifndef LUABIND_NO_ERROR_CHECKING
+#ifndef LUABIND_NO_ERROR_CHECKING3
 			int (*match)(lua_State*, int);
 
 			typedef void(*get_sig_ptr)(lua_State*, string_class&);
@@ -239,6 +239,7 @@ namespace luabind { namespace detail
 
 #ifndef USE_NATIVE_LUA_STRINGS
 		const std::map<const char*, callback, ltstr>& properties() const;
+		const std::map<const char*, callback, ltstr>& properties_rw() const;
 		typedef std::map<const char*, callback, ltstr> property_map;
 #else
 		typedef std::hash_map<lua_string_holder, callback, TString_hash_compare, custom_allocator_type<std::pair<lua_string_holder, callback> > > property_map;

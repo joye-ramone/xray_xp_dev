@@ -92,9 +92,9 @@ namespace luabind
 						error_callback_fun e = get_error_callback();
 						if (e) e(L);
 	
-						assert(0 && "the lua function threw an error and exceptions are disabled."
+						/*assert(0 && "the lua function threw an error and exceptions are disabled."
 							"if you want to handle this error use luabind::set_error_callback()");
-						std::terminate();
+						std::terminate();*/
 #endif
 					}
 				}
@@ -114,9 +114,9 @@ namespace luabind
 						error_callback_fun e = get_error_callback();
 						if (e) e(L);
 	
-						assert(0 && "tried to call uninitialized functor object."
+						/*assert(0 && "tried to call uninitialized functor object."
 							"if you want to handle this error use luabind::set_error_callback()");
-						std::terminate();
+						std::terminate();*/
 	#endif
 					}
 #endif
@@ -136,9 +136,9 @@ namespace luabind
 						error_callback_fun e = get_error_callback();
 						if (e) e(L);
 	
-						assert(0 && "the lua function threw an error and exceptions are disabled."
+						/*assert(0 && "the lua function threw an error and exceptions are disabled."
 							"if you want to handle this error use luabind::set_error_callback()");
-						std::terminate();
+						std::terminate();*/
 #endif
 					}
 
@@ -152,9 +152,9 @@ namespace luabind
 						cast_failed_callback_fun e = get_cast_failed_callback();
 						if (e) e(L, LUABIND_TYPEID(Ret));
 
-						assert(0 && "the lua function's return value could not be converted."
+						/*assert(0 && "the lua function's return value could not be converted."
 								"if you want to handle this error use luabind::set_error_callback()");
-						std::terminate();
+						std::terminate();*/
 #endif
 					}
 #endif
@@ -178,9 +178,9 @@ namespace luabind
 						error_callback_fun e = get_error_callback();
 						if (e) e(L);
 	
-						assert(0 && "tried to call uninitialized functor object."
+						/*assert(0 && "tried to call uninitialized functor object."
 							"if you want to handle this error use luabind::set_error_callback()");
-						std::terminate();
+						std::terminate();*/
 	#endif
 					}
 #endif
@@ -199,9 +199,9 @@ namespace luabind
 						error_callback_fun e = get_error_callback();
 						if (e) e(L);
 	
-						assert(0 && "the lua function threw an error and exceptions are disabled."
+						/*assert(0 && "the lua function threw an error and exceptions are disabled."
 							"if you want to handle this error use luabind::set_error_callback()");
-						std::terminate();
+						std::terminate();*/
 #endif
 					}
 
@@ -215,9 +215,9 @@ namespace luabind
 						cast_failed_callback_fun e = get_cast_failed_callback();
 						if (e) e(L, LUABIND_TYPEID(Ret));
 
-						assert(0 && "the lua function's return value could not be converted."
+						/*assert(0 && "the lua function's return value could not be converted."
 							"if you want to handle this error use luabind::set_error_callback()");
-						std::terminate();
+						std::terminate();*/
 #endif
 					}
 #endif
@@ -260,7 +260,7 @@ namespace luabind
 
 					m_called = true;
 					lua_State* L = m_func->lua_state();
-#ifndef LUABIND_NO_ERROR_CHECKING
+#ifndef LUABIND_NO_ERROR_CHECKING2
 					if (L == 0)
 					{
 	#ifndef LUABIND_NO_EXCEPTIONS
@@ -269,9 +269,9 @@ namespace luabind
 						error_callback_fun e = get_error_callback();
 						if (e) e(L);
 	
-						assert(0 && "tried to call uninitialized functor object."
+						/*assert(0 && "tried to call uninitialized functor object."
 							"if you want to handle this error use luabind::set_error_callback()");
-						std::terminate();
+						std::terminate();*/
 	#endif
 					}
 #endif
@@ -289,9 +289,9 @@ namespace luabind
 						error_callback_fun e = get_error_callback();
 						if (e) e(L);
 	
-						assert(0 && "the lua function threw an error and exceptions are disabled."
+						/*assert(0 && "the lua function threw an error and exceptions are disabled."
 							"if you want to handle this error use luabind::set_error_callback()");
-						std::terminate();
+						std::terminate();*/
 #endif
 					}
 				}
@@ -310,9 +310,9 @@ namespace luabind
 						error_callback_fun e = get_error_callback();
 						if (e) e(L);
 	
-						assert(0 && "tried to call uninitialized functor object."
+						/*assert(0 && "tried to call uninitialized functor object."
 							"if you want to handle this error use luabind::set_error_callback()");
-						std::terminate();
+						std::terminate();*/
 	#endif
 					}
 #endif

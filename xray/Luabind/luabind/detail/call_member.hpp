@@ -34,6 +34,8 @@
 #include <boost/preprocessor/control/if.hpp>
 #include <boost/preprocessor/facilities/expand.hpp>
 
+// #undef LUABIND_NO_ERROR_CHECKING
+
 namespace luabind
 {
 	namespace detail
@@ -87,9 +89,9 @@ namespace luabind
 						error_callback_fun e = get_error_callback();
 						if (e) e(L);
 	
-						assert(0 && "the lua function threw an error and exceptions are disabled."
+						/*assert(0 && "the lua function threw an error and exceptions are disabled."
 								"If you want to handle this error use luabind::set_error_callback()");
-						std::terminate();
+						std::terminate();*/
 #endif
 					}
 					// pops the return values from the function
@@ -117,10 +119,10 @@ namespace luabind
 #else
 						error_callback_fun e = get_error_callback();
 						if (e) e(L);
-	
+						/*
 						assert(0 && "the lua function threw an error and exceptions are disabled."
 							"If you want to handle this error use luabind::set_error_callback()");
-						std::terminate();
+						std::terminate(); //*/
 #endif
 					}
 
@@ -137,10 +139,10 @@ namespace luabind
 #else
 						cast_failed_callback_fun e = get_cast_failed_callback();
 						if (e) e(L, LUABIND_TYPEID(Ret));
-
+						/*
 						assert(0 && "the lua function's return value could not be converted."
 							"If you want to handle this error use luabind::set_error_callback()");
-						std::terminate();
+						std::terminate();*/
 #endif
 					}
 #endif
@@ -171,10 +173,11 @@ namespace luabind
 #else
 						error_callback_fun e = get_error_callback();
 						if (e) e(L);
-	
+
+						/*
 						assert(0 && "the lua function threw an error and exceptions are disabled."
 							"If you want to handle this error use luabind::set_error_callback()");
-						std::terminate();
+						std::terminate();*/
 #endif
 					}
 
@@ -191,10 +194,10 @@ namespace luabind
 #else
 						cast_failed_callback_fun e = get_cast_failed_callback();
 						if (e) e(L, LUABIND_TYPEID(Ret));
-
+						/*
 						assert(0 && "the lua function's return value could not be converted."
 							"If you want to handle this error use luabind::set_error_callback()");
-						std::terminate();
+						std::terminate();*/
 #endif
 					}
 #endif
@@ -253,10 +256,10 @@ namespace luabind
 #else
 						error_callback_fun e = get_error_callback();
 						if (e) e(L);
-	
+						/*
 						assert(0 && "the lua function threw an error and exceptions are disabled."
 							"If you want to handle this error use luabind::set_error_callback()");
-						std::terminate();
+						std::terminate(); //*/
 #endif
 					}
 					// pops the return values from the function
@@ -285,9 +288,9 @@ namespace luabind
 						error_callback_fun e = get_error_callback();
 						if (e) e(L);
 	
-						assert(0 && "the lua function threw an error and exceptions are disabled."
+						/*assert(0 && "the lua function threw an error and exceptions are disabled."
 							"If you want to handle this error use luabind::set_error_callback()");
-						std::terminate();
+						std::terminate();*/
 #endif
 					}
 					// pops the return values from the function

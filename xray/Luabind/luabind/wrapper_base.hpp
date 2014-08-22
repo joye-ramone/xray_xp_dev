@@ -57,6 +57,9 @@ namespace luabind
 	{
 		friend struct detail::wrap_access;
 		wrap_base() {}
+#ifdef LUAICP_COMPAT
+		lua_State* lua_vm() { return m_self.state(); }
+#endif
 
     #define BOOST_PP_ITERATION_PARAMS_1 (4, (0, LUABIND_MAX_ARITY, <luabind/wrapper_base.hpp>, 1))
 	#include BOOST_PP_ITERATE()

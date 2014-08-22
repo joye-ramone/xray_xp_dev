@@ -91,6 +91,11 @@ namespace std
 #endif
 
 // LUABIND_NO_ERROR_CHECKING
+#ifndef LUAICP_COMPAT
+#define LUAICP_COMPAT
+#endif
+
+#define LUABIND_NO_ERROR_CHECKING2
 // define this to remove all error checks
 // this will improve performance and memory
 // footprint.

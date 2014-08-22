@@ -54,7 +54,7 @@ namespace luabind { namespace detail { namespace free_functions {
         int match_index = -1;
         bool ret;
 
-#ifdef LUABIND_NO_ERROR_CHECKING
+#ifdef LUABIND_NO_ERROR_CHECKING2
         if (rep->overloads().size() == 1)
         {
             match_index = 0;
@@ -73,7 +73,7 @@ namespace luabind { namespace detail { namespace free_functions {
               , match_index
               , num_params
             );
-#ifdef LUABIND_NO_ERROR_CHECKING
+#ifdef LUABIND_NO_ERROR_CHECKING2
         }
 #else
         if (!ret)

@@ -278,15 +278,19 @@ namespace luabind { namespace detail {
     void class_base::add_getter(
         const char* name, const boost::function2<int, lua_State*, int>& g)
     {
-        detail::class_rep::callback c;
+        detail::class_rep::callback c;		
         c.func = g;
         c.pointer_offset = 0;
+#ifndef LUABIND_NO_ERROR_CHECKING3
+		c.sig = NULL;
+		c.match = NULL;
+#endif
 
         const char* key = name;
         m_registration->m_getters[key] = c;
     }
 
-#ifdef LUABIND_NO_ERROR_CHECKING
+#ifdef LUABIND_NO_ERROR_CHECKING3
     void class_base::add_setter(
         const char* name
         , const boost::function2<int, lua_State*, int>& s)
@@ -302,7 +306,7 @@ namespace luabind { namespace detail {
         c.func = s;
         c.pointer_offset = 0;
 
-#ifndef LUABIND_NO_ERROR_CHECKING
+#ifndef LUABIND_NO_ERROR_CHECKING3
         c.match = match;
         c.sig = get_sig_ptr;
 #endif

@@ -564,7 +564,7 @@ namespace luabind { namespace detail
 				int num_params = lua_gettop(L) - 1;
 				found = find_best_match(L, rep->overloads().begin(), rep->overloads().end(), ambiguous, min_match, match_index, num_params);
 
-#ifdef LUABIND_NO_ERROR_CHECKING
+#ifdef LUABIND_NO_ERROR_CHECKING2
 
 			}
 
@@ -794,7 +794,7 @@ namespace luabind { namespace detail
 
 		inline void add_getter(const char* name, const boost::function2<int, lua_State*, int>& g)
 		{
-			callback c;
+			callback c;		
 			c.func = g;
 			c.pointer_offset = 0;
 #ifndef LUABIND_DONT_COPY_STRINGS
