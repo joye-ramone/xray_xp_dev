@@ -2,6 +2,7 @@
 #include "UICellCustomItems.h"
 #include "UIInventoryUtilities.h"
 #include "../Weapon.h"
+#include "UIDragDropListEx.h"
 
 #define INV_GRID_WIDTHF			50.0f
 #define INV_GRID_HEIGHTF		50.0f
@@ -13,7 +14,7 @@ CUIInventoryCellItem::CUIInventoryCellItem(CInventoryItem* itm)
 
 	inherited::SetShader							(InventoryUtilities::GetEquipmentIconsShader());
 
-	m_grid_size.set									(itm->GetGridWidth(),itm->GetGridHeight());
+	m_grid_size.set									(itm->GetGridWidth(),itm->GetGridHeight());	
 	Frect rect; 
 	rect.lt.set										(	INV_GRID_WIDTHF*itm->GetXPos(), 
 														INV_GRID_HEIGHTF*itm->GetYPos() );
@@ -23,6 +24,7 @@ CUIInventoryCellItem::CUIInventoryCellItem(CInventoryItem* itm)
 
 	inherited::SetOriginalRect						(rect);
 	inherited::SetStretchTexture					(true);
+	b_auto_drag_childs = true;
 }
 
 bool CUIInventoryCellItem::EqualTo(CUICellItem* itm)
@@ -65,6 +67,7 @@ CUIDragItem* CUIInventoryCellItem::CreateDragItem()
 {
 	CUIDragItem* i		= inherited::CreateDragItem();
 	CUIStatic* s		= NULL;
+	if (!b_auto_drag_childs) return i;   // в отдельном случае не требуется автоматика(!)
 
 	// Real Wolf: Вместо частного решения, сделаем общее для всех детей-статиков. Необходимые параметры добавляйте сами. 25.07.2014.
 	for (auto it = this->m_ChildWndList.begin(); it != this->m_ChildWndList.end(); ++it)
@@ -85,6 +88,7 @@ CUIDragItem* CUIInventoryCellItem::CreateDragItem()
 				s->InitTextureEx		(text, s_child->GetShaderName() );
 			
 			s->SetColor				(i->wnd()->GetColor());
+			s->SetHeading			(i->wnd()->Heading());
 			i->wnd					()->AttachChild	(s);
 		}
 	}
@@ -141,6 +145,8 @@ CUIWeaponCellItem::CUIWeaponCellItem(CWeapon* itm)
 	m_addons[eScope]		= NULL;
 	m_addons[eLauncher]		= NULL;
 
+	m_cell_size.set (INV_GRID_WIDTHF, INV_GRID_HEIGHTF); // alpet: это просто значения по умолчанию
+
 	if(itm->SilencerAttachable())
 		m_addon_offset[eSilencer].set(object()->GetSilencerX(), object()->GetSilencerY());
 
@@ -173,6 +179,7 @@ bool CUIWeaponCellItem::is_launcher()
 
 void CUIWeaponCellItem::CreateIcon(eAddonType t)
 {
+	if (GetIcon(t)) return;  // накапливаются дочерние статитики из-за добавления вертикального отображения. Не работает автоудаление?
 	m_addons[t]					= xr_new<CUIStatic>();	
 	m_addons[t]->SetAutoDelete	(true);
 	AttachChild					(m_addons[t]);
@@ -192,15 +199,18 @@ CUIStatic* CUIWeaponCellItem::GetIcon(eAddonType t)
 
 void CUIWeaponCellItem::Update()
 {
+	bool b						= Heading();
 	inherited::Update			();
+	
+	bool bForceReInitAddons		= (b!=Heading()); 
 
 	if (object()->SilencerAttachable()){
 		if (object()->IsSilencerAttached())
 		{
-			if (!GetIcon(eSilencer))
+			if (!GetIcon(eSilencer) || bForceReInitAddons)
 			{
 				CreateIcon	(eSilencer);
-				InitAddon	(GetIcon(eSilencer), *object()->GetSilencerName(), m_addon_offset[eSilencer]);
+				InitAddon	(GetIcon(eSilencer), *object()->GetSilencerName(), m_addon_offset[eSilencer], Heading());
 			}
 		}
 		else
@@ -213,10 +223,10 @@ void CUIWeaponCellItem::Update()
 	if (object()->ScopeAttachable()){
 		if (object()->IsScopeAttached())
 		{
-			if (!GetIcon(eScope))
+			if (!GetIcon(eScope) || bForceReInitAddons)
 			{
 				CreateIcon	(eScope);
-				InitAddon	(GetIcon(eScope), *object()->GetScopeName(), m_addon_offset[eScope]);
+				InitAddon	(GetIcon(eScope), *object()->GetScopeName(), m_addon_offset[eScope], Heading());
 			}
 		}
 		else
@@ -229,10 +239,10 @@ void CUIWeaponCellItem::Update()
 	if (object()->GrenadeLauncherAttachable()){
 		if (object()->IsGrenadeLauncherAttached())
 		{
-			if (!GetIcon(eLauncher))
+			if (!GetIcon(eLauncher) || bForceReInitAddons)
 			{
 				CreateIcon	(eLauncher);
-				InitAddon	(GetIcon(eLauncher), *object()->GetGrenadeLauncherName(), m_addon_offset[eLauncher]);
+				InitAddon	(GetIcon(eLauncher), *object()->GetGrenadeLauncherName(), m_addon_offset[eLauncher], Heading());
 			}
 		}
 		else
@@ -243,28 +253,75 @@ void CUIWeaponCellItem::Update()
 	}
 }
 
-void CUIWeaponCellItem::OnAfterChild()
+void CUIWeaponCellItem::OnAfterChild(CUIDragDropListEx* parent_list)
 {
-	if(is_silencer() && GetIcon(eSilencer))
-		InitAddon	(GetIcon(eSilencer), *object()->GetSilencerName(),	m_addon_offset[eSilencer]);
-
-	if(is_scope() && GetIcon(eScope))
-		InitAddon	(GetIcon(eScope),	*object()->GetScopeName(),		m_addon_offset[eScope]);
-
-	if(is_launcher() && GetIcon(eLauncher))
-		InitAddon	(GetIcon(eLauncher), *object()->GetGrenadeLauncherName(),m_addon_offset[eLauncher]);
+	const Ivector2 &cs = parent_list->CellSize();
+	m_cell_size.set( (float)cs.x, (float)cs.y );
+	CUIStatic* s_silencer	= is_silencer() ? GetIcon(eSilencer) : NULL;
+	CUIStatic* s_scope		= is_scope()	? GetIcon(eScope) : NULL;
+	CUIStatic* s_launcher	= is_launcher() ? GetIcon(eLauncher) : NULL;
+	
+	InitAllAddons(s_silencer, s_scope, s_launcher, parent_list->GetVerticalPlacement());
 }
 
-void CUIWeaponCellItem::InitAddon(CUIStatic* s, LPCSTR section, Fvector2 addon_offset)
+void CUIWeaponCellItem::InitAllAddons(CUIStatic* s_silencer, CUIStatic* s_scope, CUIStatic* s_launcher, bool b_vertical)
+{
+	
+	if (s_silencer) 
+		InitAddon	(s_silencer, *object()->GetSilencerName(),	      m_addon_offset[eSilencer], b_vertical);
+	if (s_scope) 
+		InitAddon	(s_scope,	 *object()->GetScopeName(),		      m_addon_offset[eScope], b_vertical);	
+	if (s_launcher)
+		InitAddon	(s_launcher, *object()->GetGrenadeLauncherName(), m_addon_offset[eLauncher], b_vertical);
+
+}
+
+void CUIWeaponCellItem::InitAddon(CUIStatic* s, LPCSTR section, Fvector2 addon_offset, bool b_rotate)
 {
 	
 		Frect					tex_rect;
 		Fvector2				base_scale;
-		base_scale.x			= GetWidth()/(INV_GRID_WIDTHF*m_grid_size.x);
-		base_scale.y			= GetHeight()/(INV_GRID_HEIGHTF*m_grid_size.y);
+		Fvector2				inventory_size;
+		Fvector2				expected_size;
+		static int method = 1;
+
+
+		inventory_size.x = INV_GRID_WIDTHF  * m_grid_size.x;
+		inventory_size.y = INV_GRID_HEIGHTF * m_grid_size.y;
+		// m_grid_size содержит информацию об размерах иконки оружия Columns x Rows
+		expected_size.x = m_cell_size.x * m_grid_size.x; // vert: cell_size = 40x50, grid_size = 5x2 
+		expected_size.y = m_cell_size.y * m_grid_size.y; 			
+		if (Heading())
+		{   // h = 250, w = 80, i.x = 300, i.y = 100	
+			if (1 == method)
+			{   // надо поменять местами height & width.
+				expected_size.x = m_cell_size.y * m_grid_size.x;
+				expected_size.y = m_cell_size.x * m_grid_size.y;
+			}			
+			if (2 == method)
+			{   // надо поменять местами height & width + пропорции
+				expected_size.x = m_cell_size.y * m_grid_size.y;
+				expected_size.y = m_cell_size.x * m_grid_size.x;
+			}
+
+			base_scale.x = GetHeight() / inventory_size.x;  // допущение, что происходит стретч сетки, вместо появления полосы прокрутки
+			base_scale.y = GetWidth()  / inventory_size.y;  // или, что указанные размеры контрола в конфиге полностью пропорциональны его сетке
+			
+		}else
+		{
+			base_scale.x = GetWidth()   /  inventory_size.x;
+			base_scale.y = GetHeight()  /  inventory_size.y;			
+		} 
+
+		if (method > 0)
+		{   // тестовый метод, если размеры ячеек не подстраиваются под размеры окна
+			base_scale.x = expected_size.x / inventory_size.x;
+			base_scale.y = expected_size.y / inventory_size.y;
+		}		
 
 		Fvector2				cell_size;
-		cell_size.x				= pSettings->r_u32(section, "inv_grid_width")*INV_GRID_WIDTHF;
+
+		cell_size.x				= pSettings->r_u32(section, "inv_grid_width")*INV_GRID_WIDTHF; // это допущение, что ячейки инвентаря 50х50 всегда? )
 		cell_size.y				= pSettings->r_u32(section, "inv_grid_height")*INV_GRID_HEIGHTF;
 
 		tex_rect.x1				= pSettings->r_u32(section, "inv_grid_x")*INV_GRID_WIDTHF;
@@ -273,13 +330,66 @@ void CUIWeaponCellItem::InitAddon(CUIStatic* s, LPCSTR section, Fvector2 addon_o
 		tex_rect.rb.add			(tex_rect.lt,cell_size);
 
 		cell_size.mul			(base_scale);
-		addon_offset.mul		(base_scale);
-
-		s->SetWndSize			(cell_size);
+		if(b_rotate)
+		{
+			s->SetWndSize		(Fvector2().set(cell_size.y, cell_size.x) );
+			Fvector2 new_offset;
+#ifdef DEBUG_SLOTS
+			Msg(" original icon offset = %.3f x %.3f, base_scale = %.3f x %.3f", addon_offset.x, addon_offset.y, base_scale.x, base_scale.y);
+#endif
+			float correct		= addon_offset.y > 0 ? 1 : ( addon_offset.y < 0 ? -1 : 0 );
+			new_offset.x		= addon_offset.y * base_scale.y - correct;
+			if (method > 0)
+			    new_offset.y		= expected_size.x - addon_offset.x*base_scale.x - cell_size.x;
+			else
+				new_offset.y		= GetHeight()	   - addon_offset.x*base_scale.x - cell_size.y;
+			addon_offset		= new_offset;
+#ifdef DEBUG_SLOTS
+			Msg(" rotated icon offset = %.3f x %.3f", addon_offset.x, addon_offset.y);
+#endif
+		}else
+		{
+			s->SetWndSize		(cell_size);
+			addon_offset.mul	(base_scale);
+		} 
 		s->SetWndPos			(addon_offset);
 		s->SetOriginalRect		(tex_rect);
 		s->SetStretchTexture	(true);
+
+		s->EnableHeading		(b_rotate);
+		
+		if(b_rotate)
+		{
+			s->SetHeading			(GetHeading());
+			Fvector2 offs;
+			offs.set				(0.0f, s->GetWndSize().y);
+			s->SetHeadingPivot		(Fvector2().set(0.0f,0.0f), /*Fvector2().set(0.0f,0.0f)*/offs, true);
+		} 
 }
+
+CUIStatic *MakeAddonStatic(CUIDragItem* i)
+{
+	CUIStatic* s		= xr_new<CUIStatic>();
+	s->SetShader	(InventoryUtilities::GetEquipmentIconsShader());
+	s->SetAutoDelete(true);
+	s->SetColor		(i->wnd()->GetColor());
+	i->wnd			()->AttachChild	(s);
+	return s;
+}
+
+CUIDragItem* CUIWeaponCellItem::CreateDragItem()
+{
+	b_auto_drag_childs = false;
+ 	CUIDragItem* i		= inherited::CreateDragItem();		
+	CUIStatic* s_silencer	= GetIcon(eSilencer) ? MakeAddonStatic(i) : NULL;
+	CUIStatic* s_scope		= GetIcon(eScope)    ? MakeAddonStatic(i) : NULL;
+	CUIStatic* s_launcher	= GetIcon(eLauncher) ? MakeAddonStatic(i) : NULL;		
+	if (Heading()) m_cell_size.set(m_cell_size.y, m_cell_size.x);   // swap before	
+	InitAllAddons(s_silencer, s_scope, s_launcher, false);	
+	if (Heading()) m_cell_size.set( m_cell_size.y, m_cell_size.x );  // swap after
+
+	return				i;
+} 
 
 bool CUIWeaponCellItem::EqualTo(CUICellItem* itm)
 {
@@ -309,3 +419,4 @@ void CBuyItemCustomDrawCell::OnDraw(CUICellItem* cell)
 	m_pFont->Out						(pos.x, pos.y, m_string);
 	m_pFont->OnRender					();
 }
+	

@@ -1,7 +1,7 @@
 #pragma once
 
 class CInventory;
-#include "UIDialogWnd.h"
+#include "UIScriptWnd.h"
 #include "UIStatic.h"
 
 #include "UIProgressBar.h"

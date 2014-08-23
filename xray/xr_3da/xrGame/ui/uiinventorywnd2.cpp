@@ -224,8 +224,11 @@ bool CUIInventoryWnd::ToSlot(CUICellItem* itm, bool force_place)
 	CUIDragDropListEx*	old_owner			= itm->OwnerList();
 	PIItem	iitem							= (PIItem)itm->m_pData;
 	u32 _slot								= iitem->GetSlot();
+		
 
-	if(GetInventory()->CanPutInSlot(iitem)){
+	if(GetInventory()->CanPutInSlot(iitem)){		
+		
+
 		CUIDragDropListEx* new_owner		= GetSlotList(_slot);
 		
 		if(_slot==GRENADE_SLOT && !new_owner )
@@ -235,8 +238,7 @@ bool CUIInventoryWnd::ToSlot(CUICellItem* itm, bool force_place)
 			return true; //fake, sorry (((
 #endif
 		
-		if (!new_owner)
-			Msg("Bad slot %d", _slot);
+
 
 	 #if defined(INV_MOVE_ITM_INTO_QUICK_SLOTS) 
 			if ((_slot == SLOT_QUICK_ACCESS_0)||(_slot == SLOT_QUICK_ACCESS_1)||(_slot == SLOT_QUICK_ACCESS_2)||(_slot == SLOT_QUICK_ACCESS_3)){
@@ -259,13 +261,24 @@ bool CUIInventoryWnd::ToSlot(CUICellItem* itm, bool force_place)
 					}
 				}
 	#endif	
-	
-		bool result							= GetInventory()->Slot(iitem);
-	
-		VERIFY								(result);
 
+
+		bool result							= GetInventory()->Slot(iitem);
+		if (!new_owner)
+		{
+			Msg("!ERROR: Bad slot %d", _slot);
+			GetSlotList(_slot);  // for tracing
+			return false;
+		}
+	
+
+		VERIFY								(result);
+#ifdef DEBUG_SLOTS
+		Msg("# inventory wnd ToSlot (0x%p) from old_owner = 0x%p ", itm, old_owner);
+#endif
 		CUICellItem* i						= old_owner->RemoveItem(itm, (old_owner==new_owner) );
 		
+
 		new_owner->SetItem					(i);
 		SendEvent_Item2Slot					(iitem);
 	#if defined(INV_NO_ACTIVATE_APPARATUS_SLOT)
@@ -288,7 +301,17 @@ bool CUIInventoryWnd::ToSlot(CUICellItem* itm, bool force_place)
 		PIItem	_iitem						= GetInventory()->m_slots[_slot].m_pIItem;
 		CUIDragDropListEx* slot_list		= GetSlotList(_slot);
 
+		if (0 == slot_list->ItemsCount())
+		{
+			Msg("!ERROR: slot(%d).ItemsCount = 0 (no cells) ", _slot);
+			return false;
+		}
+
+
+
 		VERIFY								(slot_list->ItemsCount()==1);
+		VERIFY								(slot_list->ItemsCount()>=1);
+
 
 		CUICellItem* slot_cell				= slot_list->GetItemIdx(0);
 		VERIFY								(slot_cell && ((PIItem)slot_cell->m_pData)==_iitem);
@@ -306,6 +329,10 @@ bool CUIInventoryWnd::ToBag(CUICellItem* itm, bool b_use_cursor_pos)
 
 	if(GetInventory()->CanPutInRuck(iitem))
 	{
+#ifdef DEBUG_SLOTS
+		Msg("# inventory wnd ToBag (0x%p) ", itm);
+#endif
+
 		CUIDragDropListEx*	old_owner		= itm->OwnerList();
 		CUIDragDropListEx*	new_owner		= NULL;
 		if(b_use_cursor_pos){

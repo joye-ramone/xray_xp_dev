@@ -38,7 +38,9 @@ private:
 	enum{	
 		flGroupSimilar		=	(1<<0),
 		flAutoGrow			=	(1<<1),
-		flCustomPlacement	=	(1<<2)
+		flCustomPlacement	=	(1<<2),
+		flVerticalPlacement =   (1<<3),
+		flAlwaysShowScroll	=	(1<<4)
 	};
 	Flags8					m_flags;
 	CUICellItem*			m_selected_item;
@@ -88,6 +90,8 @@ public:
 			bool			IsGrouping			();
 			void			SetCustomPlacement	(bool b);
 			bool			GetCustomPlacement	();
+			void			SetVerticalPlacement(bool b)    { m_flags.set(flVerticalPlacement,b); }
+			bool			GetVerticalPlacement()		    { return !!m_flags.test(flVerticalPlacement); }
 public:
 			// items management
 			virtual void	SetItem				(CUICellItem* itm); //auto
@@ -147,9 +151,9 @@ protected:
 				CUICell&		GetCellAt			(const Ivector2& pos);
 				Ivector2		PickCell			(const Fvector2& abs_pos);
 				Ivector2		GetItemPos			(CUICellItem* itm);
-				Ivector2		FindFreeCell		(const Ivector2& size);
-				bool			HasFreeSpace		(const Ivector2& size);
-				bool			IsRoomFree			(const Ivector2& pos, const Ivector2& size);
+				Ivector2		FindFreeCell		(const Ivector2& _size);
+				bool			HasFreeSpace		(const Ivector2& _size);
+				bool			IsRoomFree			(const Ivector2& pos, const Ivector2& _size);
 				
 				bool			AddSimilar			(CUICellItem* itm);
 				CUICellItem*	FindSimilar			(CUICellItem* itm);

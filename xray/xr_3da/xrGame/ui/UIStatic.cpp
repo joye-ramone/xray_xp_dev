@@ -193,13 +193,37 @@ void CUIStatic::DrawTexture(){
 		GetAbsoluteRect	(rect);
 		m_UIStaticItem.SetPos	(rect.left + m_TextureOffset.x, rect.top + m_TextureOffset.y);
 
-		if(m_bStretchTexture)
+		if (m_bStretchTexture)
+		{
+			if (Heading())
+			{
+				if (m_UIStaticItem.GetFixedLTWhileHeading())
+				{
+					float t1, t2;
+					t1 = rect.width();
+					t2 = rect.height();
+					rect.y2 = rect.y1 + t1;
+					rect.x2 = rect.x1 + t2;
+				}
+			}
 			m_UIStaticItem.SetRect(0, 0, rect.width(), rect.height());
+		}
 		else{
 			Frect r={0.0f,0.0f,
 				m_UIStaticItem.GetOriginalRectScaled().width(),
 				m_UIStaticItem.GetOriginalRectScaled().height()};
-			if (r.width()&&r.height())	m_UIStaticItem.SetRect(r);
+			if (r.width() && r.height())
+			{
+				if(Heading())
+				{
+					float t1,t2;
+					t1			= rect.width();
+					t2			= rect.height();
+					rect.y2		= rect.y1 + t1;
+					rect.x2		= rect.x1 + t2;
+				} 
+				m_UIStaticItem.SetRect(r);
+			}
 		}
 
 		if( Heading() ){

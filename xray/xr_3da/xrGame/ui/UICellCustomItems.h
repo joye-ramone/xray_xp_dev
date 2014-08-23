@@ -6,6 +6,10 @@
 class CUIInventoryCellItem :public CUICellItem
 {
 	typedef  CUICellItem	inherited;
+
+protected:
+	bool						b_auto_drag_childs;
+
 public:
 								CUIInventoryCellItem		(CInventoryItem* itm);
 	virtual		bool			EqualTo						(CUICellItem* itm);
@@ -40,20 +44,22 @@ public:
 	enum eAddonType{	eSilencer=0, eScope, eLauncher, eMaxAddon};
 protected:
 	CUIStatic*					m_addons					[eMaxAddon];
-	Fvector2					m_addon_offset				[eMaxAddon];
+	Fvector2					m_addon_offset				[eMaxAddon];	
 	void						CreateIcon					(eAddonType);
 	void						DestroyIcon					(eAddonType);
 	CUIStatic*					GetIcon						(eAddonType);
-	void						InitAddon					(CUIStatic* s, LPCSTR section, Fvector2 offset);
+	void						InitAddon					(CUIStatic* s, LPCSTR section, Fvector2 offset, bool b_rotate);
+	void						InitAllAddons				(CUIStatic* s_silencer, CUIStatic* s_scope, CUIStatic* s_launcher,  bool b_vertical);
 	bool						is_scope					();
 	bool						is_silencer					();
 	bool						is_launcher					();
 public:
 								CUIWeaponCellItem			(CWeapon* itm);
 				virtual			~CUIWeaponCellItem			();
+				CUIDragItem*	CreateDragItem				();
 	virtual		void			Update						();
 				CWeapon*		object						() {return (CWeapon*)m_pData;}
-	virtual		void			OnAfterChild				();
+	virtual		void			OnAfterChild				(CUIDragDropListEx* parent_list);
 	virtual		bool			EqualTo						(CUICellItem* itm);
 	CUIStatic*					get_addon_static			(u32 idx)				{return m_addons[idx];}
 };

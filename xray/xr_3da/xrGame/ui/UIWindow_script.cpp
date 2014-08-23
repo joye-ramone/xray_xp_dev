@@ -5,6 +5,7 @@
 #include "UIDialogWnd.h"
 #include "../HUDManager.h"
 #include "../GamePersistent.h"
+#include "UIDragDropListEx.h"
 #include "UILabel.h"
 #include "UIMMShniaga.h"
 #include "UITextureMaster.h"
@@ -66,6 +67,12 @@ TEX_INFO	get_texture_info(LPCSTR name, LPCSTR def_name)
 	return CUITextureMaster::FindItem(name, def_name);
 }
 
+CUIWindow *find_child_window(CUIWindow *wnd, LPCSTR name) // script wrapper LPCSTR->shared_str
+{
+	return wnd->FindChild(name);
+}
+
+
 using namespace luabind;
 
 #pragma optimize("s",on)
@@ -99,6 +106,7 @@ void CUIWindow::script_register(lua_State *L)
 		.def(							constructor<>())
 		.def("AttachChild",				&CUIWindow::AttachChild, adopt(_2))
 		.def("DetachChild",				&CUIWindow::DetachChild)
+		.def("FindChild",				&find_child_window)	
 		.def("DetachFromParent",		&CUIWindow::DetachFromParent)
 		.def("SetAutoDelete",			&CUIWindow::SetAutoDelete)
 		.def("IsAutoDelete",			&CUIWindow::IsAutoDelete)
@@ -178,6 +186,10 @@ void CUIWindow::script_register(lua_State *L)
 		.def("GetMaxScrollPos",			&CUIScrollView::GetMaxScrollPos)
 		.def("GetCurrentScrollPos",		&CUIScrollView::GetCurrentScrollPos)
 		.def("SetScrollPos",			&CUIScrollView::SetScrollPos),
+
+		class_<CUIDragDropListEx, CUIWindow>("CUIDragDropListEx")
+		,
+
 
 
 //		.def("",						&CUIFrameLineWnd::)

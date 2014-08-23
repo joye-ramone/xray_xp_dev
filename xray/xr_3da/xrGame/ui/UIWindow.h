@@ -188,10 +188,10 @@ public:
 	IC void					SetAutoDelete		(bool auto_delete)			{m_bAutoDelete = auto_delete;}
 
 	// Name of the window
-	const shared_str		WindowName			() const					{ return m_windowName; }
-	void					SetWindowName		(LPCSTR wn)					{ m_windowName = wn; }
-	LPCSTR					WindowName_script	()							{return *m_windowName;}
-	CUIWindow*				FindChild			(const shared_str name);
+	const shared_str		WindowName			() const;
+	void					SetWindowName		(LPCSTR wn, BOOL ifnset = FALSE);					
+	LPCSTR					WindowName_script	()							{return *WindowName();}
+	CUIWindow*				FindChild			(const shared_str name,  u32 max_nested = 15);
 
 	IC bool					CursorOverWindow	() const					{ return m_bCursorOverWindow; }
 

@@ -193,11 +193,17 @@ void CDialogHolder::SetMainInputReceiver	(CUIDialogWnd* ir, bool _find_remove)
 //. #include "script_engine.h"
 void CDialogHolder::StartStopMenu(CUIDialogWnd* pDialog, bool bDoHideIndicators)
 {
-//.	ai().script_engine().script_log	(eLuaMessageTypeError,"foo");
-	if( pDialog->IsShown() )
+	//.	ai().script_engine().script_log	(eLuaMessageTypeError,"foo");
+	if (pDialog->IsShown())
 		StopMenu(pDialog);
 	else
+	{
+		GetUICursor()->UpdateCursorPosition();
+		Fvector2 mp = GetUICursor()->GetCursorPosition();
+		if (mp.x >= UI_BASE_WIDTH - 1 || mp.y >= UI_BASE_HEIGHT - 1) 
+			GetUICursor()->SetUICursorPosition		(Fvector2().set(512, 400));
 		StartMenu(pDialog, bDoHideIndicators);
+	}
 	
 }
 

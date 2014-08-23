@@ -1,6 +1,7 @@
 #include "pch_script.h"
 
 //UI-controls
+#include "UIDragDropListEx.h"
 #include "UIListWnd.h"
 #include "UIScriptWnd.h"
 #include "UIButton.h"
@@ -24,6 +25,7 @@ export_class &script_register_ui_window2(export_class &instance)
 {
 	instance
 		.def("GetStatic",		(CUIStatic* (BaseType::*)(LPCSTR)) &BaseType::GetControl<CUIStatic>)
+		.def("GetDragDrop",		(CUIDragDropListEx* (BaseType::*)(LPCSTR)) &BaseType::GetControl<CUIDragDropListEx>)
 		.def("GetEditBox",		(CUIEditBox* (BaseType::*)(LPCSTR)) &BaseType::GetControl<CUIEditBox>)
 		.def("GetDialogWnd",	(CUIDialogWnd* (BaseType::*)(LPCSTR)) &BaseType::GetControl<CUIDialogWnd>)
 		.def("GetFrameWindow",	(CUIFrameWindow* (BaseType::*)(LPCSTR)) &BaseType::GetControl<CUIFrameWindow>)

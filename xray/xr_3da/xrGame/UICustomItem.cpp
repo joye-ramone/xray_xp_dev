@@ -5,11 +5,12 @@
 CUICustomItem::CUICustomItem()
 {    
 	uAlign				= alNone;
-	uFlags				= 0;
+	uFlags.zero			();
 	iVisRect.set		(0,0,0,0);
 	iOriginalRect.set	(0,0,0,0);
 	eMirrorMode			= tmNone;
 	iHeadingPivot.set	(0,0); 
+	iHeadingOffset.set	(0,0);
 }
 //--------------------------------------------------------------------
 
@@ -24,12 +25,12 @@ void CUICustomItem::Render(FVF::TL*& Pointer, const Fvector2& pos, u32 color,
 	Fvector2		ts;
 	ts.set			(float(T->get_Width()),float(T->get_Height()));
 	
-	if (!(uFlags&flValidRect)){
+	if (!uFlags.test(flValidRect)){
 		SetRect		(0,0,ts.x,ts.y);
 	}
-	if (!(uFlags&flValidOriginalRect)){
+	if (!uFlags.test(flValidOriginalRect)){
 		iOriginalRect.set(0,0,ts.x,ts.y);
-		uFlags |= flValidOriginalRect;
+		uFlags.set(flValidOriginalRect, TRUE);
 	}
 
 	Fvector2 LTp,RBp;
@@ -83,11 +84,12 @@ void CUICustomItem::Render(FVF::TL*& Pointer, const Fvector2& pos_ns, u32 color,
 	ts.set			(float(T->get_Width()),float(T->get_Height()));
 	hp.set			(0.5f/ts.x,0.5f/ts.y);
 
-	if (!(uFlags&flValidRect))	SetRect		(0,0,ts.x,ts.y);
+	if (!uFlags.test(flValidRect))	SetRect		(0,0,ts.x,ts.y);
 
-	if (!(uFlags&flValidOriginalRect)){
+	if (!uFlags.test(flValidOriginalRect) )
+	{
 		iOriginalRect.set(0,0,ts.x,ts.y);
-		uFlags		|= flValidOriginalRect;
+		uFlags.set (flValidOriginalRect, TRUE);
 	}
 
 	Fvector2							pivot,offset,SZ;
@@ -99,12 +101,16 @@ void CUICustomItem::Render(FVF::TL*& Pointer, const Fvector2& pos_ns, u32 color,
 	float sinA							= _sin(angle);
 
 	// Rotation
-	if(!(uFlags&flValidHeadingPivot))	pivot.set(iVisRect.x2/2.f, iVisRect.y2/2.f);
-	else								pivot.set(iHeadingPivot.x, iHeadingPivot.y);
+	if( !uFlags.test(flValidHeadingPivot) )	
+		pivot.set(iVisRect.x2/2.f, iVisRect.y2/2.f);
+	else								
+		pivot.set(iHeadingPivot.x, iHeadingPivot.y);
 
 //.	UI()->ClientToScreenScaled			(pivot, pivot.x, pivot.y);
 	pivot.set							(pivot);
 	offset.set							(pos_ns);
+
+	offset.add							(iHeadingOffset);
 
 	Fvector2							LTt,RBt;
 	LTt.set								(iOriginalRect.x1/ts.x+hp.x, iOriginalRect.y1/ts.y+hp.y);
@@ -113,7 +119,8 @@ void CUICustomItem::Render(FVF::TL*& Pointer, const Fvector2& pos_ns, u32 color,
 	if (tmMirrorHorisontal == eMirrorMode || tmMirrorBoth == eMirrorMode)	std::swap	(LTt.x,RBt.x);
 	if (tmMirrorVertical == eMirrorMode || tmMirrorBoth == eMirrorMode)		std::swap	(LTt.y,RBt.y);
 
-	float kx = (UI()->is_16_9_mode())?0.8333f: 1.0f;
+	float kx =	(UI()->is_16_9_mode())?0.8333f:1.0f;
+
 	// clip poly
 	sPoly2D			S; S.resize(4);
 	// LT
@@ -167,5 +174,22 @@ Frect CUICustomItem::GetOriginalRect() const
 void CUICustomItem::SetOriginalRect(float x, float y, float width, float height)
 {
 	iOriginalRect.set(x,y,x+width,y+height); 
-	uFlags|=flValidOriginalRect; 
+	uFlags.set(flValidOriginalRect, TRUE);  
 }
+
+void CUICustomItem::ResetHeadingPivot()
+{
+	uFlags.set(flValidHeadingPivot, FALSE); 
+	uFlags.set(flFixedLTWhileHeading,FALSE);
+}
+
+void CUICustomItem::SetHeadingPivot(const Fvector2& p, const Fvector2& offset, bool fixedLT)		
+{
+	iHeadingPivot=p; 
+	iHeadingOffset=offset; 
+	uFlags.set(flValidHeadingPivot, TRUE); 
+	if(fixedLT)
+		uFlags.set(flFixedLTWhileHeading,TRUE);
+	else
+		uFlags.set(flFixedLTWhileHeading,FALSE);
+} 

@@ -5,6 +5,7 @@
 #include "../HUDManager.h"
 #include "../level.h"
 #include "../object_broker.h"
+#include "UIDragDropListEx.h"
 
 CUICellItem::CUICellItem()
 {
@@ -74,6 +75,24 @@ CUIDragItem* CUICellItem::CreateDragItem()
 	tmp = xr_new<CUIDragItem>(this);
 	Frect r;
 	GetAbsoluteRect(r);
+	if( m_UIStaticItem.GetFixedLTWhileHeading() )
+	{
+		float w, h;
+		w				= r.width();
+		h				= r.height();
+		if (Heading())
+		{   // исправление пропорций
+			w = w / m_cell_size.x * m_cell_size.y;
+			h = h / m_cell_size.y * m_cell_size.x;
+		}
+
+		Fvector2 cp = GetUICursor()->GetCursorPosition();
+		// поворот на 90 градусов, и центрирование по курсору мыша						
+		r.x1			= (cp.x - h / 2.0f);
+		r.y1			= (cp.y - w / 2.0f);
+		r.x2			= r.x1 + h;
+		r.y2			= r.y1 + w;
+	} 
 	tmp->Init(GetShader(),r,GetUIStaticItem().GetOriginalRect());
 	return tmp;
 }
@@ -127,6 +146,23 @@ void CUICellItem::UpdateItemText()
 
 	SetText				(str);
 }
+
+void CUICellItem::Update()
+{
+	EnableHeading(m_pParentList->GetVerticalPlacement());
+	if(Heading())
+	{
+		SetHeading			( 90.0f * (PI/180.0f) );
+		SetHeadingPivot		(Fvector2().set(0.0f,0.0f), Fvector2().set(0.0f,GetWndSize().y), true);
+	}else
+		ResetHeadingPivot	();
+
+	inherited::Update();
+	
+	m_b_already_drawn=false;
+ 
+}
+
 
 void CUICellItem::SetCustomDraw			(ICustomDrawCell* c){
 	if (m_custom_draw)

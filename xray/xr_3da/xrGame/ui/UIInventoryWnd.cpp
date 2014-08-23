@@ -89,6 +89,7 @@ void CUIInventoryWnd::Init()
 	if (GameID() == GAME_SINGLE){
 		AttachChild							(&UISleepWnd);
 		UISleepWnd.Init();
+		UISleepWnd.SetWindowName("sleep_wnd");  // для лучшего нахождения через GetStatic
 	}
 #endif
 	
@@ -380,7 +381,8 @@ void CUIInventoryWnd::Update()
 }
 
 void CUIInventoryWnd::Show() 
-{ 
+{ 	
+
 	InitInventory			();
 	inherited::Show			();
 

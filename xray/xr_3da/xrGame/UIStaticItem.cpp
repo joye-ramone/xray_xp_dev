@@ -44,7 +44,7 @@ void CUIStaticItem::CreateShader(LPCSTR tex, LPCSTR sh)
 #ifdef DEBUG
 	dbg_tex_name = tex;
 #endif
-	uFlags &= !flValidRect;
+	uFlags.set(flValidRect, FALSE);
 }
 
 void CUIStaticItem::SetShader(const ref_shader& sh)
@@ -54,7 +54,7 @@ void CUIStaticItem::SetShader(const ref_shader& sh)
 
 void CUIStaticItem::Init(LPCSTR tex, LPCSTR sh, float left, float top, u32 align)
 {
-	uFlags &= !flValidRect;
+	uFlags.set(flValidRect, FALSE);
 
 	CreateShader	(tex,sh);
 	SetPos			(left,top);

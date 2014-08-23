@@ -23,6 +23,7 @@
 #include "UIGameSP.h"
 #include "ui\UIInventoryWnd.h"
 
+#pragma optimize("gyt", off)
 
 using namespace InventoryUtilities;
 
@@ -402,7 +403,7 @@ bool CInventory::Belt(PIItem pIItem)
 bool CInventory::Ruck(PIItem pIItem) 
 {
 	if(!CanPutInRuck(pIItem)) return false;
-	
+
 	bool in_slot = InSlot(pIItem);
 	//вещь была в слоте
 	if(in_slot) 
@@ -416,6 +417,7 @@ bool CInventory::Ruck(PIItem pIItem)
 		TIItemContainer::iterator it = std::find(m_belt.begin(), m_belt.end(), pIItem); 
 		if(m_belt.end() != it) m_belt.erase(it);
 	}
+		
 	
 	m_ruck.insert									(m_ruck.end(), pIItem); 
 	
@@ -1022,7 +1024,8 @@ bool CInventory::CanPutInSlot(PIItem pIItem) const
 	if( !GetOwner()->CanPutInSlot(pIItem, pIItem->GetSlot() ) ) return false;
 
 	if(pIItem->GetSlot() < m_slots.size() && 
-		m_slots[pIItem->GetSlot()].m_pIItem == NULL )
+	  ( m_slots[pIItem->GetSlot()].m_pIItem == NULL || 
+	    m_slots[pIItem->GetSlot()].m_pIItem == pIItem ) ) // alpet: бывает странная ситуация, когда предмет сразу и в слоте, и в инвентаре
 		return true;
 	
 	return false;

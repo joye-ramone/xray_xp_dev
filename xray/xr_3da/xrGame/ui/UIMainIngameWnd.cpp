@@ -69,22 +69,23 @@ using namespace luabind;
 //	hud adjust mode
 int			g_bHudAdjustMode			= 0;
 float		g_fHudAdjustValue			= 0.0f;
+
+DLL_API CUIMainIngameWnd* GetMainIngameWindow()
+{
+	if (g_hud)
+	{
+		CUI *pUI = g_hud->GetUI();
+		if (pUI)
+			return pUI->UIMainIngameWnd;
+	}
+	return NULL;
+}
+
+
 #ifdef SCRIPT_ICONS_CONTROL
 	CUIStatic * warn_icon_list[8] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 	
 	bool __declspec(dllexport) external_icon_ctrl = false;			// alpet: дл€ возможности внешнего контрол€ иконок (используетс€ в NLC6 вместо типичных индикаторов). Ќикак не вли€ет на игру дл€ остальных модов.	
-
-	DLL_API CUIMainIngameWnd* GetMainIngameWindow()
-	{
-
-		if (g_hud)
-		{
-			CUI *pUI = g_hud->GetUI();
-			if (pUI)
-				return pUI->UIMainIngameWnd;
-		}
-		return NULL;
-	}
 
 
 	bool __declspec(dllexport) SetupGameIcon(u32 icon, u32 cl, float width, float height) // позвол€ет расцветить иконку или изменить еЄ размер
@@ -1019,22 +1020,10 @@ bool test_push_window(lua_State *L, CUIWindow *wnd)
 
 void GetStaticRaw(CUIMainIngameWnd *wnd, lua_State *L)
 {
-	using namespace luabind::detail;		
-	CUIWindow *child = NULL;
-
+	using namespace luabind::detail;			
+	// wnd->GetChildWndList();
 	shared_str name = lua_tostring(L, 2);
-	// поскольку окон мало, пр€мой перебор будет быстрым
-	for (CUIMainIngameWnd::WINDOW_LIST::iterator it = wnd->GetChildWndList().begin(); it != wnd->GetChildWndList().end(); ++it)
-	{		
-		child = smart_cast<CUIWindow*>(*it);
-		if (child)
-		{
-			shared_str sname = child->WindowName();
-			if (sname == name)	break;
-		}
-		child = NULL;
-	}
-	
+	CUIWindow *child = wnd->FindChild(name, 2); 	
 	if (child)
 	{	
 		// if (test_push_window<CUIMotionIcon>  (L, child)) return;		
@@ -1052,8 +1041,9 @@ void CUIMainIngameWnd::script_register(lua_State *L)
 
 	module(L)
 		[
+
 			class_<CUIMainIngameWnd, CUIWindow>("CUIMainIngameWnd")
-			.def("GetStatic",		&GetStaticRaw, raw(_2))
+			.def("GetStatic",		 &GetStaticRaw, raw(_2))
 			,
 			// .def("turn_off_icon", &TurnOffWarningIcon),
 			def("get_main_window",   &GetMainIngameWindow), // get_mainingame_window better??

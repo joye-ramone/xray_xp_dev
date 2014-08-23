@@ -24,6 +24,7 @@ protected:
 	CUIDragDropListEx*		m_pParentList;
 	Ivector2				m_grid_size;
 	ICustomDrawCell*		m_custom_draw;
+	Fvector2				m_cell_size;				// alpet: реальные размеры €чейки инветар€ вместо 50.f
 	int						m_accelerator;
 	virtual void			UpdateItemText			();
 public:
@@ -33,9 +34,9 @@ public:
 	virtual		bool		OnKeyboard				(int dik, EUIMessages keyboard_action);
 	virtual		bool		OnMouse					(float x, float y, EUIMessages mouse_action);
 	virtual		void		Draw					();
-	virtual		void		Update					()						{inherited::Update(); m_b_already_drawn=false;};
+	virtual		void		Update					();
 				
-	virtual		void		OnAfterChild			()						{};
+	virtual		void		OnAfterChild			(CUIDragDropListEx* parent_list)						{};
 
 				u32			ChildsCount				();
 				void		 PushChild				(CUICellItem*);

@@ -49,10 +49,14 @@ extern int keyname_to_dik(LPCSTR);
 
 #define DI_FONT_NAME			"di"
 
+
+////
+
 //////////////////////////////////////////////////////////////////////////
 
 const char * const		COLOR_DEFINITIONS					= "color_defs.xml";
 CUIXmlInit::ColorDefs		*CUIXmlInit::m_pColorDefs			= NULL;
+
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -106,8 +110,9 @@ bool CUIXmlInit::InitWindow(CUIXml& xml_doc, LPCSTR path,
 	if (xml_doc.NavigateToNode(buf, index))
 		pWnd->SetWindowName(xml_doc.Read(buf, index, NULL));
 	else
-	if (xr_strlen(path) && "" == pWnd->WindowName() )
-		pWnd->SetWindowName(path);
+		if (xr_strlen(path))
+			pWnd->SetWindowName (path, TRUE);
+		
 
 	InitAutoStaticGroup			(xml_doc, path, index, pWnd);
 	return true;
@@ -148,7 +153,8 @@ bool CUIXmlInit::InitFrameWindow(CUIXml& xml_doc, LPCSTR path,
 	if(xml_doc.NavigateToNode(buf,index)) InitStatic(xml_doc, buf, index, pWnd->UITitleText);
 	
 	pWnd->BringToTop	(pWnd->UITitleText);
-
+	if (xr_strlen(path))
+		pWnd->SetWindowName (path, TRUE);
 	return true;
 }
 
@@ -219,8 +225,7 @@ bool CUIXmlInit::InitStatic(CUIXml& xml_doc, LPCSTR path,
 
 	bool bComplexMode = xml_doc.ReadAttribInt(path, index, "complex_mode",0)?true:false;
 	if(bComplexMode)
-		pWnd->SetTextComplexMode(bComplexMode);
-	
+		pWnd->SetTextComplexMode(bComplexMode);	
 	return true;
 }
 
@@ -454,6 +459,12 @@ bool CUIXmlInit::InitDragDropListEx(CUIXml& xml_doc, const char* path, int index
 	pWnd->SetGrouping		(tmp!=0);
 	tmp						= xml_doc.ReadAttribInt(path, index, "custom_placement", 1);
 	pWnd->SetCustomPlacement(tmp!=0);
+	tmp						= xml_doc.ReadAttribInt(path, index, "vertical_placement", 0);
+	pWnd->SetVerticalPlacement(tmp!=0); 
+
+	if (xr_strlen(path))
+		pWnd->SetWindowName (path, TRUE);
+		
 
 	return true;
 }
@@ -509,6 +520,10 @@ bool CUIXmlInit::InitListWnd(CUIXml& xml_doc, LPCSTR path,
 
 	bool bVertFlip						= (1==xml_doc.ReadAttribInt	(path, index, "flip_vert", 0));
 	pWnd->SetVertFlip					(bVertFlip);
+
+	if (xr_strlen(path))
+		pWnd->SetWindowName (path, TRUE);
+
 
 	return true;
 }
@@ -573,6 +588,10 @@ bool CUIXmlInit::InitProgressBar(CUIXml& xml_doc, LPCSTR path,
 		color = GetColor	(xml_doc, buf, index, 0xff);
 		pWnd->m_maxColor.set(color);
 	}
+
+	if (xr_strlen(path))
+		pWnd->SetWindowName (path, TRUE);
+
 
 	return true;
 }
@@ -772,6 +791,9 @@ bool CUIXmlInit::InitFrameLine(CUIXml& xml_doc, const char* path, int index, CUI
 	strconcat(sizeof(buf),buf,path,":title");
 	if(xml_doc.NavigateToNode(buf,index)) InitStatic(xml_doc, buf, index, &pWnd->UITitleText);
 
+	if (xr_strlen(path))
+		pWnd->SetWindowName (path, TRUE);
+
 	return true;
 }
 
@@ -789,7 +811,7 @@ bool CUIXmlInit::InitLabel(CUIXml& xml_doc, const char* path, int index, CUILabe
 		pWnd->SetTextPosX(text_x);
 	if (text_y)
         pWnd->SetTextPosY(text_y);
-
+	
 	return true;
 }
 
@@ -1335,6 +1357,9 @@ bool CUIXmlInit::InitComboBox(CUIXml& xml_doc, const char* path, int index, CUIC
 		color					= GetColor(xml_doc, _path, index, 0x00);
 		pWnd->SetTextColorD		(color);
 	}
+	if (xr_strlen(path))
+		pWnd->SetWindowName (path, TRUE);
+
 
 	return true;
 }

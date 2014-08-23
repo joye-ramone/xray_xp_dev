@@ -4,6 +4,7 @@
 #include "../object_broker.h"
 #include "UICellItem.h"
 
+
 CUIDragItem* CUIDragDropListEx::m_drag_item = NULL;
 
 void CUICell::Clear()
@@ -109,7 +110,7 @@ void CUIDragDropListEx::DestroyDragItem()
 		VERIFY(GetParent()->GetMouseCapturer()==m_drag_item);
 		GetParent()->SetCapture				(NULL, false);
 
-		delete_data							(m_drag_item);
+		delete_data							(m_drag_item);		
 	}
 }
 
@@ -128,6 +129,9 @@ void CUIDragDropListEx::OnItemStartDragging(CUIWindow* w, void* pData)
 	if(m_f_item_start_drag && m_f_item_start_drag(itm) ) return;
 
 	CreateDragItem						(itm);
+#ifdef DEBUG_SLOTS
+	Msg("# item drag starting ");
+#endif
 }
 
 void CUIDragDropListEx::OnItemDrop(CUIWindow* w, void* pData)
@@ -143,6 +147,9 @@ void CUIDragDropListEx::OnItemDrop(CUIWindow* w, void* pData)
 
 	CUIDragDropListEx*	old_owner		= itm->OwnerList();
 	CUIDragDropListEx*	new_owner		= m_drag_item->BackList();
+#ifdef DEBUG_SLOTS	
+	Msg("# drop item from 0x%p to 0x%p ", old_owner, new_owner);
+#endif
 
 	bool b				= (old_owner==new_owner)&&!GetCustomPlacement();
 
@@ -163,6 +170,9 @@ void CUIDragDropListEx::OnItemDBClick(CUIWindow* w, void* pData)
 {
 	OnItemSelected						(w, pData);
 	CUICellItem*		itm				= smart_cast<CUICellItem*>(w);
+#ifdef DEBUG_SLOTS
+	Msg("# item transfer via dbl-click ");
+#endif
 
 	if(m_f_item_db_click && m_f_item_db_click(itm) ){
 		DestroyDragItem						();
@@ -172,6 +182,7 @@ void CUIDragDropListEx::OnItemDBClick(CUIWindow* w, void* pData)
 	CUIDragDropListEx*	old_owner		= itm->OwnerList();
 	VERIFY								(m_drag_item==NULL);
 	VERIFY								(old_owner == this);
+	
 
 	if(old_owner&&old_owner->GetCustomPlacement())
 	{
@@ -353,7 +364,7 @@ void CUIDragDropListEx::SetItem(CUICellItem* itm) //auto
 void CUIDragDropListEx::SetItem(CUICellItem* itm, Fvector2 abs_pos) // start at cursor pos
 {
 	if(m_container->AddSimilar(itm))	return;
-
+	
 	const Ivector2 dest_cell_pos =	m_container->PickCell		(abs_pos);
 
 	if(m_container->ValidCell(dest_cell_pos) && m_container->IsRoomFree(dest_cell_pos,itm->GetGridSize()))
@@ -366,6 +377,9 @@ void CUIDragDropListEx::SetItem(CUICellItem* itm, Ivector2 cell_pos) // start at
 {
 	if(m_container->AddSimilar(itm))	return;
 	R_ASSERT						(m_container->IsRoomFree(cell_pos, itm->GetGridSize()));
+#ifdef DEBUG_SLOTS
+	Msg("# drag-drop list SetItem (0x%p) ", itm);
+#endif
 
 	m_container->PlaceItemAtPos	(itm, cell_pos);
 
@@ -384,6 +398,10 @@ bool CUIDragDropListEx::CanSetItem(CUICellItem* itm){
 
 CUICellItem* CUIDragDropListEx::RemoveItem(CUICellItem* itm, bool force_root)
 {
+#ifdef DEBUG_SLOTS
+	Msg("# %s.RemoveItem ", WindowName());
+#endif
+
 	CUICellItem* i				= m_container->RemoveItem		(itm, force_root);
 	i->SetOwnerList				((CUIDragDropListEx*)NULL);
 	return						i;
@@ -400,7 +418,13 @@ bool CUIDragDropListEx::IsOwner(CUICellItem* itm){
 
 CUICellItem* CUIDragDropListEx::GetItemIdx(u32 idx)
 {
-	R_ASSERT(idx<ItemsCount());
+	if (idx >= ItemsCount())
+	{
+		Msg(" attempt get item %d, but items count = %d ", idx, ItemsCount());
+		return NULL;
+	}
+
+	// R_ASSERT(idx<);
 	WINDOW_LIST_it it = m_container->GetChildWndList().begin();
 	std::advance	(it, idx);
 	return smart_cast<CUICellItem*>(*it);
@@ -450,7 +474,10 @@ CUICellItem* CUICellContainer::FindSimilar(CUICellItem* itm)
 
 void CUICellContainer::PlaceItemAtPos(CUICellItem* itm, Ivector2& cell_pos)
 {
-	Ivector2 cs				= itm->GetGridSize();
+	Ivector2 cs				=	itm->GetGridSize();
+	if(m_pParentDragDropList->GetVerticalPlacement())
+		std::swap(cs.x,cs.y); 
+
 	for(int x=0; x<cs.x; ++x)
 		for(int y=0; y<cs.y; ++y){
 			CUICell& C		= GetCellAt(Ivector2().set(x,y).add(cell_pos));
@@ -461,7 +488,7 @@ void CUICellContainer::PlaceItemAtPos(CUICellItem* itm, Ivector2& cell_pos)
 	itm->SetWndSize			( Fvector2().set( (m_cellSize.x*cs.x),		(m_cellSize.y*cs.y)		 )	);
 
 	AttachChild				(itm);
-	itm->OnAfterChild		();
+	itm->OnAfterChild		(m_pParentDragDropList);
 }
 
 CUICellItem* CUICellContainer::RemoveItem(CUICellItem* itm, bool force_root)
@@ -477,6 +504,9 @@ CUICellItem* CUICellContainer::RemoveItem(CUICellItem* itm, bool force_root)
 			return				iii;
 		}
 	}
+#ifdef DEBUG_SLOTS
+	Msg("#	no item in childWndList ");
+#endif
 
 	if(!force_root && itm->ChildsCount())
 	{
@@ -484,9 +514,15 @@ CUICellItem* CUICellContainer::RemoveItem(CUICellItem* itm, bool force_root)
 		R_ASSERT			(0==iii->ChildsCount());
 		return				iii;
 	}
+#ifdef DEBUG_SLOTS
+	Msg("#	no item in childs ");
+#endif
 
 	Ivector2 pos			= GetItemPos(itm);
 	Ivector2 cs				= itm->GetGridSize();
+
+	if(m_pParentDragDropList->GetVerticalPlacement())
+		std::swap(cs.x,cs.y); 
 
 	for(int x=0; x<cs.x;++x)
 		for(int y=0; y<cs.y;++y)
@@ -500,23 +536,27 @@ CUICellItem* CUICellContainer::RemoveItem(CUICellItem* itm, bool force_root)
 	return					itm;
 }
 
-Ivector2 CUICellContainer::FindFreeCell	(const Ivector2& size)
+Ivector2 CUICellContainer::FindFreeCell	(const Ivector2& _size)
 {
 	Ivector2 tmp;
+	Ivector2 size = _size; 
+	if(m_pParentDragDropList->GetVerticalPlacement())
+		std::swap(size.x, size.y); 
+
 	for(tmp.y=0; tmp.y<=m_cellsCapacity.y-size.y; ++tmp.y )
 		for(tmp.x=0; tmp.x<=m_cellsCapacity.x-size.x; ++tmp.x )
-			if(IsRoomFree(tmp,size))
+			if(IsRoomFree(tmp,_size))
 				return  tmp;
 
 	if(m_pParentDragDropList->IsAutoGrow())
 	{
 		Grow	();
-		return							FindFreeCell	(size);
+		return							FindFreeCell	(_size);
 	}else{
 		m_pParentDragDropList->Compact		();
 		for(tmp.y=0; tmp.y<=m_cellsCapacity.y-size.y; ++tmp.y )
 			for(tmp.x=0; tmp.x<=m_cellsCapacity.x-size.x; ++tmp.x )
-				if(IsRoomFree(tmp,size))
+				if(IsRoomFree(tmp,_size))
 					return  tmp;
 
 		Msg("FindFreeCell for window %s: item size = %d x %d, m_cellsCapacity = %d x %d ", m_windowName.c_str(), size.x, size.y, m_cellsCapacity.x, m_cellsCapacity.y);
@@ -525,19 +565,27 @@ Ivector2 CUICellContainer::FindFreeCell	(const Ivector2& size)
 	return			tmp;
 }
 
-bool CUICellContainer::HasFreeSpace		(const Ivector2& size){
+bool CUICellContainer::HasFreeSpace		(const Ivector2& _size){
 	Ivector2 tmp;
+	Ivector2 size = _size; 
+	if(m_pParentDragDropList->GetVerticalPlacement())
+		std::swap(size.x, size.y); 
+
 	for(tmp.y=0; tmp.y<=m_cellsCapacity.y-size.y; ++tmp.y )
 		for(tmp.x=0; tmp.x<=m_cellsCapacity.x-size.x; ++tmp.x )
-			if(IsRoomFree(tmp,size))
+			if(IsRoomFree(tmp,_size))
 				return true;
 
 	return false;
 }
 
-bool CUICellContainer::IsRoomFree(const Ivector2& pos, const Ivector2& size)
+bool CUICellContainer::IsRoomFree(const Ivector2& pos, const Ivector2& _size)
 {
 	Ivector2 tmp;
+	Ivector2 size = _size; 
+
+	if(m_pParentDragDropList->GetVerticalPlacement())
+		std::swap(size.x, size.y); 
 
 	for(tmp.x =pos.x; tmp.x<pos.x+size.x; ++tmp.x)
 		for(tmp.y =pos.y; tmp.y<pos.y+size.y; ++tmp.y)
