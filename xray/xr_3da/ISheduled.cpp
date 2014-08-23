@@ -4,9 +4,14 @@
 
 ISheduled::ISheduled	()	
 {
+#ifdef LUAICP_COMPAT
+	shedule.t_min		= 33;
+#else
 	shedule.t_min		= 20;
+#endif
 	shedule.t_max		= 1000;
 	shedule.b_locked	= FALSE;
+	updated_times		= 0;
 #ifdef DEBUG
 	dbg_startframe		= 1;
 	dbg_update_shedule	= 0;
@@ -40,6 +45,8 @@ void	ISheduled::shedule_unregister		()
 
 void	ISheduled::shedule_Update			(u32 dt)
 {
+	updated_times ++;
+
 #ifdef DEBUG
 	if (dbg_startframe==dbg_update_shedule)	
 	{

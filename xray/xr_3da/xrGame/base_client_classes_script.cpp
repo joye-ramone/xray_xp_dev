@@ -60,11 +60,27 @@ void ISpatialScript::script_register	(lua_State *L)
 }
 */
 
+
+void set_object_schedule(ISheduled* obj, u32 t_min, u32 t_max)
+{
+	obj->shedule.t_min = t_min;
+	obj->shedule.t_max = t_max;
+}
+
+u32 get_schedule_max(ISheduled* obj) { return obj->shedule.t_max; }
+u32 get_schedule_min(ISheduled* obj) { return obj->shedule.t_min; }
+
+
 void ISheduledScript::script_register	(lua_State *L)
 {
 	module(L)
 	[
 		class_<ISheduled,CISheduledWrapper>("ISheduled")
+		.def_readwrite("updated_times",			&ISheduled::updated_times)		 	 // может потребоваться сброс счетчиков после сверки	
+		.property("schedule_max",				&get_schedule_max)
+		.property("schedule_min",				&get_schedule_min)
+		.def("set_schedule",					&set_object_schedule)                // для подбора оптимального интервала апдейта объекта, например в зависимости дистанции до актора
+		
 //			.def(constructor<>())
 //			.def("shedule_Scale",		&ISheduled::shedule_Scale,		&CISheduledWrapper::shedule_Scale_static)
 //			.def("shedule_Update",		&ISheduled::shedule_Update,		&CISheduledWrapper::shedule_Update_static)

@@ -277,7 +277,7 @@ void CSheduler::Pop					()
 	Items.pop_back	();
 }
 
-#pragma optimize("gyt", on) // для отладки следующей секции кода, закомментировать эту прагму
+// #pragma optimize("gyt", on) // для отладки следующей секции кода, закомментировать эту прагму
 
 void CSheduler::ProcessStep			()
 {
@@ -345,7 +345,9 @@ void CSheduler::ProcessStep			()
 
 
 //			try {
-				T.Object->shedule_Update	(clampr(Elapsed,u32(1),u32(_max(u32(T.Object->shedule.t_max),u32(1000)))) );
+				u32 elps = clampr(Elapsed, (u32)1, u32(_max(u32(T.Object->shedule.t_max), (u32)1000)));
+				T.Object->shedule_Update	(elps);
+				Device.Statistic->Sheduler.cycles++;
 //			} catch (...) {
 #ifdef DEBUG
 //				Msg		("! xrSheduler: object '%s' raised an exception", _obj_name);
@@ -417,18 +419,7 @@ void CSheduler::Switch				()
 
 
 void CSheduler::Update				()
-{
-
-#ifdef RARELY_UPDATE
-	static u32 time_frame = 0;
-	u32 time_curr = timeGetTime();
-	u32 time_diff = time_curr - time_frame;				
-	if (time_diff < 33)   // update rate adjust to 30
-		return;	
-	time_frame = time_curr;
-#endif 
-
-	
+{	
 	R_ASSERT						(Device.Statistic);
 	// Initialize
 	Device.Statistic->Sheduler.Begin();
@@ -464,6 +455,7 @@ void CSheduler::Update				()
 		T.Object->dbg_startframe	= Device.dwFrame;
 #endif
 		T.Object->shedule_Update	(Elapsed);
+		Device.Statistic->Sheduler.cycles++;
 		T.dwTimeOfLastExecute		= dwTime;
 	}
 
@@ -473,7 +465,16 @@ void CSheduler::Update				()
 #ifdef DEBUG_SCHEDULER
 	Msg								("SCHEDULER: PROCESS STEP FINISHED %d",Device.dwFrame);
 #endif // DEBUG_SCHEDULER
+#if defined(ECO_RENDER) || defined(LUAICP_COMPAT)
+	clamp							(psShedulerTarget,3.f,50.f); // занимать до 50 мс в кадре (клинч неписей вероятен, если много в онлайне объектов).
+	if (Device.dwFrame % 10000 == 0)
+	{
+		Msg("# Sheduler Items.size = %5d, ItemsRT.size = %5d ", Items.size(), ItemsRT.size());
+	}
+
+#else
 	clamp							(psShedulerTarget,3.f,66.f);
+#endif
 	psShedulerCurrent				= 0.9f*psShedulerCurrent + 0.1f*psShedulerTarget;
 	Device.Statistic->fShedulerLoad	= psShedulerCurrent;
 

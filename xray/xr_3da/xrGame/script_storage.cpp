@@ -371,8 +371,10 @@ bool CScriptStorage::do_file	(LPCSTR caScriptName, LPCSTR caNameSpaceName)
 #endif
 	if (0)	//.
 	{
-	    for (int i=0; lua_type(lua(), -i-1); i++)
-            Msg	("%2d : %s",-i-1,lua_typename(lua(), lua_type(lua(), -i-1)));
+		for (int i = 0; lua_type(lua(), -i - 1); i++)
+		{
+			Msg("%2d : %s", -i - 1, lua_typename(lua(), lua_type(lua(), -i - 1)));			
+		}
 	}
 
 	// because that's the first and the only call of the main chunk - there is no point to compile it

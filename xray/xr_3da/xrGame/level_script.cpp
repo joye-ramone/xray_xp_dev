@@ -29,6 +29,7 @@
 #include "map_location.h"
 #include "phworld.h"
 #include "raypick.h"
+#include "ui/UIScriptWnd.h"
 #include "../xr_collide_defs.h"
 
 using namespace luabind;

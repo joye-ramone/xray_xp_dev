@@ -382,7 +382,12 @@ if(!g_dedicated_server)
 		cam_Set					(eacFirstEye);
 
 	// sheduler
+#ifdef LUAICP_COMPAT // для подстройки производительности на разных платформах
+	shedule.t_min				= max ((u32)1, (u32)pSettings->r_u8 ("actor_schedule", "t_min" ));
+	shedule.t_max				= max ((u32)1, (u32)pSettings->r_u8 ("actor_schedule", "t_max" ));
+#else
 	shedule.t_min				= shedule.t_max = 1;
+#endif
 
 	// настройки дисперсии стрельбы
 	m_fDispBase					= pSettings->r_float		(section,"disp_base"		 );

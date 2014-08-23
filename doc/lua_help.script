@@ -2115,7 +2115,10 @@ C++ class CAI_Bloodsucker : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CAI_Bloodsucker ();
     
@@ -2124,10 +2127,11 @@ C++ class CAI_Bloodsucker : CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -2135,7 +2139,10 @@ C++ class CAI_Boar : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CAI_Boar ();
     
@@ -2144,10 +2151,11 @@ C++ class CAI_Boar : CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -2155,7 +2163,10 @@ C++ class CAI_Dog : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CAI_Dog ();
     
@@ -2164,10 +2175,11 @@ C++ class CAI_Dog : CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -2175,7 +2187,10 @@ C++ class CAI_Flesh : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CAI_Flesh ();
     
@@ -2184,10 +2199,11 @@ C++ class CAI_Flesh : CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -2195,7 +2211,10 @@ C++ class CAI_PseudoDog : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CAI_PseudoDog ();
     
@@ -2204,10 +2223,11 @@ C++ class CAI_PseudoDog : CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -2215,7 +2235,10 @@ C++ class CAI_Stalker : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CAI_Stalker ();
     
@@ -2224,10 +2247,11 @@ C++ class CAI_Stalker : CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -2235,7 +2259,10 @@ C++ class CAI_Trader : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CAI_Trader ();
     
@@ -2244,10 +2271,11 @@ C++ class CAI_Trader : CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -2370,10 +2398,13 @@ C++ class CActorBase : CInventoryOwner,CGameObject {
  property			run_back_coef            (number);
  property			run_coef                 (number);
  property			run_strafe_coef          (number);
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
  property			sprint_koef              (number);
  property			state;
  property			talking;
+ property			updated_times            (number);
  property			walk_accel               (number);
  property			walk_back_coef           (number);
  property			walk_strafe_coef         (number);
@@ -2383,10 +2414,11 @@ C++ class CActorBase : CInventoryOwner,CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -2518,10 +2550,13 @@ C++ class CActor : CActorBase,CEntityAlive {
  property			run_back_coef            (number);
  property			run_coef                 (number);
  property			run_strafe_coef          (number);
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
  property			sprint_koef              (number);
  property			state;
  property			talking;
+ property			updated_times            (number);
  property			walk_accel               (number);
  property			walk_back_coef           (number);
  property			walk_strafe_coef         (number);
@@ -2531,8 +2566,9 @@ C++ class CActor : CActorBase,CEntityAlive {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
+    function test_server_flag(number) const;
     function net_Export(net_packet&);
     function getEnabled() const;
     function use(CGameObject*);
@@ -2553,15 +2589,19 @@ C++ class CArtefact : CInventoryItemObject {
  property			power_restore_speed      (number);
  property			radiation_restore_speed  (number);
  property			satiety_restore_speed    (number);
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     function Visual();
     function _construct();
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
+    function test_server_flag(number) const;
     function net_Export(net_packet&);
     function getEnabled() const;
     function use(CGameObject*);
@@ -2584,20 +2624,24 @@ C++ class CBaseMonster : CInventoryOwner,CEntityAlive {
  property			raw_money                (number);
  property			run_turn_left            (boolean);
  property			run_turn_right           (boolean);
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
  property			sleep                    (boolean);
  property			state_invisible          (boolean);
  property			talking;
+ property			updated_times            (number);
     
     function Visual();
     function _construct();
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -2612,7 +2656,10 @@ C++ class CBastArtefact : CArtefact {
  property			power_restore_speed      (number);
  property			radiation_restore_speed  (number);
  property			satiety_restore_speed    (number);
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CBastArtefact ();
     
@@ -2621,10 +2668,11 @@ C++ class CBastArtefact : CArtefact {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -2639,7 +2687,10 @@ C++ class CBlackDrops : CArtefact {
  property			power_restore_speed      (number);
  property			radiation_restore_speed  (number);
  property			satiety_restore_speed    (number);
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CBlackDrops ();
     
@@ -2648,10 +2699,11 @@ C++ class CBlackDrops : CArtefact {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -2666,7 +2718,10 @@ C++ class CBlackGraviArtefact : CArtefact {
  property			power_restore_speed      (number);
  property			radiation_restore_speed  (number);
  property			satiety_restore_speed    (number);
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CBlackGraviArtefact ();
     
@@ -2675,10 +2730,11 @@ C++ class CBlackGraviArtefact : CArtefact {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -2689,7 +2745,10 @@ C++ class CBurer : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CBurer ();
     
@@ -2698,10 +2757,11 @@ C++ class CBurer : CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -2730,12 +2790,15 @@ C++ class CCar : CGameObject,holder {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CCar ();
     
     function PlayDamageParticles();
-    function Action(number, number);
+    function _construct();
     function getVisible() const;
     function SetfFuelTank(number);
     function load_config(string);
@@ -2757,17 +2820,18 @@ C++ class CCar : CGameObject,holder {
     function StopEngine();
     function SetParam(number, vector);
     function GetfFuel();
-    function CanHit();
+    function IsObjectVisible(game_object*);
     function IsActiveEngine();
+    function ChangefFuel(number);
     function ChangefHealth(number);
     function StopDamageParticles();
     function CurrentVel();
-    function ChangefFuel(number);
-    function ExplodeTime();
     function FireDirDiff();
-    function _construct();
+    function ExplodeTime();
+    function set_schedule(ISheduled*, number, number);
     function GetfFuelConsumption();
-    function IsObjectVisible(game_object*);
+    function Action(number, number);
+    function CanHit();
     function CarExplode();
     function use(CGameObject*);
 };
@@ -2776,7 +2840,10 @@ C++ class CCat : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CCat ();
     
@@ -2785,10 +2852,11 @@ C++ class CCat : CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -2796,7 +2864,10 @@ C++ class CChimera : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CChimera ();
     
@@ -2805,10 +2876,11 @@ C++ class CChimera : CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -2838,7 +2910,10 @@ C++ class CController : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CController ();
     
@@ -2847,10 +2922,11 @@ C++ class CController : CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -2899,7 +2975,10 @@ C++ class CDummyArtefact : CArtefact {
  property			power_restore_speed      (number);
  property			radiation_restore_speed  (number);
  property			satiety_restore_speed    (number);
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CDummyArtefact ();
     
@@ -2908,10 +2987,11 @@ C++ class CDummyArtefact : CArtefact {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -2950,7 +3030,10 @@ C++ class CEatableItemObject : CEatableItem,CGameObject {
  property			eat_satiety              (number);
  property			item_flags;
  property			item_place;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
  property			wounds_heal_perc         (number);
     
     function Visual();
@@ -2958,10 +3041,11 @@ C++ class CEatableItemObject : CEatableItem,CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -2994,7 +3078,10 @@ C++ class CElectricBall : CArtefact {
  property			power_restore_speed      (number);
  property			radiation_restore_speed  (number);
  property			satiety_restore_speed    (number);
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CElectricBall ();
     
@@ -3003,10 +3090,11 @@ C++ class CElectricBall : CArtefact {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -3014,17 +3102,21 @@ C++ class CEntity : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     function Visual();
     function _construct();
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -3034,15 +3126,19 @@ C++ class CEntityAlive : CEntity {
  property			condition;
  property			item_flags;
  property			radiation                (number);
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     function Visual();
     function _construct();
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
+    function test_server_flag(number) const;
     function net_Export(net_packet&);
     function getEnabled() const;
     function use(CGameObject*);
@@ -3111,7 +3207,10 @@ C++ class CF1 : CGrenade {
  property			light_color;
  property			light_range              (number);
  property			light_time               (number);
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CF1 ();
     
@@ -3121,8 +3220,9 @@ C++ class CF1 : CGrenade {
     function explode();
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
+    function test_server_flag(number) const;
     function net_Export(net_packet&);
     function getEnabled() const;
     function use(CGameObject*);
@@ -3139,7 +3239,10 @@ C++ class CFadedBall : CArtefact {
  property			power_restore_speed      (number);
  property			radiation_restore_speed  (number);
  property			satiety_restore_speed    (number);
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CFadedBall ();
     
@@ -3148,10 +3251,11 @@ C++ class CFadedBall : CArtefact {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -3159,7 +3263,10 @@ C++ class CFracture : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CFracture ();
     
@@ -3168,10 +3275,11 @@ C++ class CFracture : CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -3186,7 +3294,10 @@ C++ class CGalantineArtefact : CArtefact {
  property			power_restore_speed      (number);
  property			radiation_restore_speed  (number);
  property			satiety_restore_speed    (number);
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CGalantineArtefact ();
     
@@ -3195,10 +3306,11 @@ C++ class CGalantineArtefact : CArtefact {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -3221,7 +3333,10 @@ C++ class CGameObject : DLL_Pure,ISheduled,ICollidable,IRenderable {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CGameObject ();
     
@@ -3230,8 +3345,9 @@ C++ class CGameObject : DLL_Pure,ISheduled,ICollidable,IRenderable {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
+    function test_server_flag(number) const;
     function net_Export(net_packet&);
     function getEnabled() const;
     function use(CGameObject*);
@@ -3263,7 +3379,10 @@ C++ class CGraviArtefact : CArtefact {
  property			power_restore_speed      (number);
  property			radiation_restore_speed  (number);
  property			satiety_restore_speed    (number);
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CGraviArtefact ();
     
@@ -3272,10 +3391,11 @@ C++ class CGraviArtefact : CArtefact {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -3302,7 +3422,10 @@ C++ class CGrenade : explosive,CMissile {
  property			light_color;
  property			light_range              (number);
  property			light_time               (number);
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     function Visual();
     function _construct();
@@ -3310,10 +3433,11 @@ C++ class CGrenade : explosive,CMissile {
     function explode();
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -3321,7 +3445,10 @@ C++ class CHairsZone : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CHairsZone ();
     
@@ -3330,10 +3457,11 @@ C++ class CHairsZone : CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -3341,7 +3469,10 @@ C++ class hanging_lamp : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     hanging_lamp ();
     
@@ -3353,21 +3484,22 @@ C++ class hanging_lamp : CGameObject {
     function net_Spawn(cse_abstract*);
     function load_config(string);
     function net_Export(net_packet&);
+    function get_light(number);
     function Visual();
-    function set_direction(const vector&, number);
+    function _construct();
     function set_brightness(number);
     function net_Import(net_packet&);
     function set_angle(number, number);
     function synchronize();
-    function _construct();
-    function set_animation(string);
     function set_rgb(number, number, number, number);
+    function set_animation(string);
+    function set_direction(const vector&, number);
     function set_texture(string, number);
-    function turn_on();
-    function set_range(number, number);
-    function get_light(number);
-    function turn_off();
     function test_server_flag(number) const;
+    function set_range(number, number);
+    function turn_off();
+    function turn_on();
+    function set_schedule(ISheduled*, number, number);
     function use(CGameObject*);
 };
 
@@ -3401,7 +3533,10 @@ C++ class CHelicopter : CGameObject {
  property			m_time_between_rocket_attack(number);
  property			m_use_mgun_on_attack     (boolean);
  property			m_use_rocket_on_attack   (boolean);
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CHelicopter ();
     
@@ -3427,18 +3562,19 @@ C++ class CHelicopter : CGameObject {
     function Explode();
     function SetOnPointRangeDist(number);
     function SetFireTrailLength(number);
-    function GetOnPointRangeDist();
     function Visual();
+    function GetOnPointRangeDist();
     function TurnLighting(boolean);
     function GetCurrVelocityVec();
+    function GetRealAltitude();
     function SetBarrelDirTolerance(number);
     function GetBodyState();
-    function GetRealAltitude();
-    function GoPatrolByRoundPath(vector, number, boolean);
+    function set_schedule(ISheduled*, number, number);
     function net_Spawn(cse_abstract*);
     function UseFireTrail();
     function UseFireTrail(boolean);
     function SetDestPosition(vector*);
+    function GoPatrolByRoundPath(vector, number, boolean);
     function getEnabled() const;
     function GetState();
     function Die();
@@ -3497,17 +3633,21 @@ C++ class CInventoryItemObject : CInventoryItem,CGameObject {
  property			class_name;
  property			item_flags;
  property			item_place;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     function Visual();
     function _construct();
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -3588,7 +3728,10 @@ C++ class CMercuryBall : CArtefact {
  property			power_restore_speed      (number);
  property			radiation_restore_speed  (number);
  property			satiety_restore_speed    (number);
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CMercuryBall ();
     
@@ -3597,10 +3740,11 @@ C++ class CMercuryBall : CArtefact {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -3608,7 +3752,10 @@ C++ class CMincer : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CMincer ();
     
@@ -3617,10 +3764,11 @@ C++ class CMincer : CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -3631,15 +3779,19 @@ C++ class CMissile : CInventoryItemObject {
  property			destroy_time_max         (number);
  property			item_flags;
  property			item_place;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     function Visual();
     function _construct();
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
+    function test_server_flag(number) const;
     function net_Export(net_packet&);
     function getEnabled() const;
     function use(CGameObject*);
@@ -3649,7 +3801,10 @@ C++ class CMosquitoBald : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CMosquitoBald ();
     
@@ -3658,10 +3813,11 @@ C++ class CMosquitoBald : CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -3737,7 +3893,10 @@ C++ class CPhysicObject : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CPhysicObject ();
     
@@ -3746,10 +3905,11 @@ C++ class CPhysicObject : CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -3812,7 +3972,10 @@ C++ class CPoltergeist : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CPoltergeist ();
     
@@ -3821,10 +3984,11 @@ C++ class CPoltergeist : CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -3839,7 +4003,10 @@ C++ class CPseudoGigant : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CPseudoGigant ();
     
@@ -3848,10 +4015,11 @@ C++ class CPseudoGigant : CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -3859,7 +4027,10 @@ C++ class CPsyDog : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CPsyDog ();
     
@@ -3868,10 +4039,11 @@ C++ class CPsyDog : CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -3879,7 +4051,10 @@ C++ class CPsyDogPhantom : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CPsyDogPhantom ();
     
@@ -3888,10 +4063,11 @@ C++ class CPsyDogPhantom : CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -3921,7 +4097,10 @@ C++ class CRGD5 : CGrenade {
  property			light_color;
  property			light_range              (number);
  property			light_time               (number);
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CRGD5 ();
     
@@ -3931,8 +4110,9 @@ C++ class CRGD5 : CGrenade {
     function explode();
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
+    function test_server_flag(number) const;
     function net_Export(net_packet&);
     function getEnabled() const;
     function use(CGameObject*);
@@ -3974,7 +4154,10 @@ C++ class CRustyHairArtefact : CArtefact {
  property			power_restore_speed      (number);
  property			radiation_restore_speed  (number);
  property			satiety_restore_speed    (number);
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CRustyHairArtefact ();
     
@@ -3983,10 +4166,11 @@ C++ class CRustyHairArtefact : CArtefact {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -6163,7 +6347,10 @@ C++ class CScope : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CScope ();
     
@@ -6172,10 +6359,11 @@ C++ class CScope : CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -7052,10 +7240,11 @@ C++ class ce_script_zone : DLL_Pure {
 C++ class CServerList : CUIWindow {
     CServerList ();
     
-    function SetWindowName(string);
+    function SetWindowName(string, number);
     function Enable(boolean);
-    function DetachFromParent();
+    function SetHeight(number);
     function SetFilters(SServerFilters&);
+    function FindChild(CUIWindow*, string);
     function RefreshQuick();
     function GetMousePosX() const;
     function GetWidth() const;
@@ -7084,8 +7273,8 @@ C++ class CServerList : CUIWindow {
     function SetWndRect(Frect);
     function SetWndRect(number, number, number, number);
     function NetRadioChanged(boolean);
+    function DetachFromParent();
     function IsAutoDelete();
-    function SetHeight(number);
     function ResetPPMode();
     function SetWndSize(number, number);
     function SetFont(CGameFont*);
@@ -7102,7 +7291,10 @@ C++ class CSnork : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CSnork ();
     
@@ -7111,10 +7303,11 @@ C++ class CSnork : CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -7131,7 +7324,10 @@ C++ class CSpaceRestrictor : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CSpaceRestrictor ();
     
@@ -7140,10 +7336,11 @@ C++ class CSpaceRestrictor : CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -7151,7 +7348,10 @@ C++ class CStalkerOutfit : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CStalkerOutfit ();
     
@@ -7160,10 +7360,11 @@ C++ class CStalkerOutfit : CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -7315,7 +7516,10 @@ C++ class CThornArtefact : CArtefact {
  property			power_restore_speed      (number);
  property			radiation_restore_speed  (number);
  property			satiety_restore_speed    (number);
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CThornArtefact ();
     
@@ -7324,10 +7528,11 @@ C++ class CThornArtefact : CArtefact {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -7338,7 +7543,10 @@ C++ class CTorch : CInventoryItemObject {
  property			item_place;
  property			nvd_on;
  property			on;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CTorch ();
     
@@ -7358,12 +7566,13 @@ C++ class CTorch : CInventoryItemObject {
     function net_Import(net_packet&);
     function set_angle(number, number);
     function set_animation(string);
-    function set_texture(string, number);
-    function test_server_flag(number) const;
-    function set_range(number, number);
     function switch_nvd();
+    function set_texture(string, number);
+    function set_schedule(ISheduled*, number, number);
+    function set_range(number, number);
     function _construct();
     function get_light(number);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -7371,7 +7580,10 @@ C++ class CTushkano : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CTushkano ();
     
@@ -7380,10 +7592,11 @@ C++ class CTushkano : CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -7391,9 +7604,10 @@ C++ class CUI3tButton : CUIButton {
     CUI3tButton ();
     
     function SetHighlightColor(number);
-    function SetWindowName(string);
-    function AdjustHeightToText();
-    function SetHeight(number);
+    function SetWindowName(string, number);
+    function Enable(boolean);
+    function SetText(string);
+    function FindChild(CUIWindow*, string);
     function SetOriginalRect(number, number, number, number);
     function GetMousePosX() const;
     function GetColor() const;
@@ -7419,8 +7633,8 @@ C++ class CUI3tButton : CUIButton {
     function GetText();
     function SetStretchTexture(boolean);
     function SetTextComplexMode(boolean);
+    function AdjustHeightToText();
     function EnableTextHighlighting(boolean);
-    function SetTextureOffset(number, number);
     function ClipperOn();
     function IsAutoDelete();
     function SetAutoDelete(boolean);
@@ -7437,12 +7651,12 @@ C++ class CUI3tButton : CUIButton {
     function SetTextST(string);
     function GetStretchTexture();
     function WindowName();
-    function DetachFromParent();
+    function SetTextureOffset(number, number);
     function SetTextY(number);
     function SetWndRect(Frect);
     function SetWndRect(number, number, number, number);
-    function Enable(boolean);
-    function SetText(string);
+    function SetHeight(number);
+    function DetachFromParent();
     function InitTexture(string);
     function ResetPPMode();
     function SetWndSize(number, number);
@@ -7454,9 +7668,10 @@ C++ class CUIButton : CUIStatic {
     CUIButton ();
     
     function SetHighlightColor(number);
-    function SetWindowName(string);
+    function SetWindowName(string, number);
     function Enable(boolean);
-    function SetText(string);
+    function SetHeight(number);
+    function FindChild(CUIWindow*, string);
     function SetOriginalRect(number, number, number, number);
     function GetMousePosX() const;
     function GetColor() const;
@@ -7481,13 +7696,13 @@ C++ class CUIButton : CUIStatic {
     function ResetPPMode();
     function SetFont(CGameFont*);
     function SetStretchTexture(boolean);
-    function SetTextST(string);
-    function SetHeight(number);
+    function SetText(string);
+    function DetachFromParent();
     function AdjustHeightToText();
     function ClipperOn();
     function SetTextureOffset(number, number);
     function SetAutoDelete(boolean);
-    function DetachFromParent();
+    function SetTextST(string);
     function GetWndRect(Frect&);
     function SetWndPos(number, number);
     function AttachChild(CUIWindow*);
@@ -7522,9 +7737,10 @@ C++ class CUICheckButton : CUI3tButton {
     CUICheckButton ();
     
     function SetHighlightColor(number);
-    function SetWindowName(string);
+    function SetWindowName(string, number);
     function AdjustHeightToText();
-    function SetTextureOffset(number, number);
+    function SetText(string);
+    function FindChild(CUIWindow*, string);
     function GetText();
     function GetMousePosX() const;
     function GetColor() const;
@@ -7550,13 +7766,13 @@ C++ class CUICheckButton : CUI3tButton {
     function GetHeading();
     function GetFont();
     function GetClipperState();
-    function SetText(string);
-    function SetStretchTexture(boolean);
-    function Enable(boolean);
-    function SetHeight(number);
-    function SetTextComplexMode(boolean);
-    function ClipperOn();
     function DetachFromParent();
+    function SetStretchTexture(boolean);
+    function SetHeight(number);
+    function Enable(boolean);
+    function EnableTextHighlighting(boolean);
+    function ClipperOn();
+    function SetTextureOffset(number, number);
     function SetAutoDelete(boolean);
     function GetTextY();
     function GetWndRect(Frect&);
@@ -7575,7 +7791,7 @@ C++ class CUICheckButton : CUI3tButton {
     function SetTextY(number);
     function SetWndRect(Frect);
     function SetWndRect(number, number, number, number);
-    function EnableTextHighlighting(boolean);
+    function SetTextComplexMode(boolean);
     function SetOriginalRect(number, number, number, number);
     function InitTexture(string);
     function SetFont(CGameFont*);
@@ -7587,49 +7803,51 @@ C++ class CUICheckButton : CUI3tButton {
 C++ class CUIComboBox : CUIWindow {
     CUIComboBox ();
     
-    function SetAutoDelete(boolean);
-    function GetFont();
-    function CurrentID();
-    function SetWindowName(string);
+    function SetWindowName(string, number);
     function Enable(boolean);
     function SetHeight(number);
-    function SetWndSize(number, number);
-    function DetachChild(CUIWindow*);
-    function IsAutoDelete();
-    function GetWidth() const;
+    function FindChild(CUIWindow*, string);
     function GetMousePosX() const;
     function SetListLength(number);
+    function GetWidth() const;
+    function DetachChild(CUIWindow*);
+    function SetPPMode();
+    function GetParent() const;
+    function IsShown();
+    function Show(boolean);
+    function GetHeight() const;
+    function SetWidth(number);
+    function IsEnabled();
+    function GetMousePosY() const;
+    function GetFont();
+    function SetAutoDelete(boolean);
     function GetWndRect(Frect&);
-    function ResetPPMode();
     function AttachChild(CUIWindow*);
-    function DetachFromParent();
     function SetWndPos(number, number);
-    function SetFont(CGameFont*);
     function SetVertScroll(boolean);
     function Init(number, number, number, number);
     function Init(Frect*);
     function Init(number, number, number);
-    function SetPPMode();
-    function GetParent() const;
-    function IsShown();
+    function WindowName();
+    function SetFont(CGameFont*);
     function SetWndRect(Frect);
     function SetWndRect(number, number, number, number);
-    function Show(boolean);
-    function GetHeight() const;
-    function SetWidth(number);
-    function WindowName();
-    function IsEnabled();
-    function GetMousePosY() const;
+    function CurrentID();
+    function ResetPPMode();
+    function DetachFromParent();
+    function IsAutoDelete();
+    function SetWndSize(number, number);
     function SetCurrentID(number);
     function GetAbsoluteRect(Frect&);
 };
 
 C++ class CUICustomEdit : CUIWindow {
     function GetTextAlignment();
-    function SetWindowName(string);
+    function SetWindowName(string, number);
     function Enable(boolean);
-    function DetachFromParent();
+    function SetHeight(number);
     function SetTextPosX(number);
+    function FindChild(CUIWindow*, string);
     function GetText();
     function GetMousePosX() const;
     function GetWidth() const;
@@ -7657,7 +7875,7 @@ C++ class CUICustomEdit : CUIWindow {
     function SetTextColor(number);
     function SetWndRect(Frect);
     function SetWndRect(number, number, number, number);
-    function SetHeight(number);
+    function DetachFromParent();
     function SetText(string);
     function IsAutoDelete();
     function ResetPPMode();
@@ -7668,10 +7886,11 @@ C++ class CUICustomEdit : CUIWindow {
 
 C++ class CUICustomSpin : CUIWindow {
     function GetFont();
-    function SetWindowName(string);
+    function SetWindowName(string, number);
     function Enable(boolean);
-    function SetHeight(number);
+    function DetachFromParent();
     function GetWidth() const;
+    function FindChild(CUIWindow*, string);
     function IsAutoDelete();
     function GetText();
     function GetMousePosX() const;
@@ -7679,12 +7898,12 @@ C++ class CUICustomSpin : CUIWindow {
     function GetWndRect(Frect&);
     function ResetPPMode();
     function AttachChild(CUIWindow*);
-    function DetachFromParent();
+    function SetHeight(number);
     function SetWndPos(number, number);
     function SetFont(CGameFont*);
-    function DetachChild(CUIWindow*);
     function Init(number, number, number, number);
     function Init(Frect*);
+    function DetachChild(CUIWindow*);
     function SetPPMode();
     function GetParent() const;
     function IsShown();
@@ -7702,12 +7921,13 @@ C++ class CUICustomSpin : CUIWindow {
 
 C++ class CUIDialogWnd : CUIWindow {
     function GetFont();
-    function SetWindowName(string);
-    function Enable(boolean);
-    function SetHeight(number);
     function SetWndSize(number, number);
+    function SetWindowName(string, number);
+    function Enable(boolean);
+    function DetachFromParent();
     function SetWndRect(Frect);
     function SetWndRect(number, number, number, number);
+    function FindChild(CUIWindow*, string);
     function IsAutoDelete();
     function GetWidth() const;
     function GetMousePosX() const;
@@ -7715,12 +7935,12 @@ C++ class CUIDialogWnd : CUIWindow {
     function GetWndRect(Frect&);
     function ResetPPMode();
     function AttachChild(CUIWindow*);
-    function DetachFromParent();
+    function SetHeight(number);
     function SetWndPos(number, number);
     function SetFont(CGameFont*);
-    function DetachChild(CUIWindow*);
     function Init(number, number, number, number);
     function Init(Frect*);
+    function DetachChild(CUIWindow*);
     function SetPPMode();
     function GetParent() const;
     function IsShown();
@@ -7738,10 +7958,12 @@ C++ class CUIDialogWnd : CUIWindow {
 C++ class CUIScriptWnd : CUIDialogWnd,DLL_Pure {
     CUIScriptWnd ();
     
+    function GetDragDrop(string);
     function _construct();
-    function SetWindowName(string);
+    function SetWindowName(string, number);
     function Enable(boolean);
     function SetHeight(number);
+    function FindChild(CUIWindow*, string);
     function GetFrameLineWnd(string);
     function GetMousePosX() const;
     function SetHolder(CDialogHolder*);
@@ -7766,7 +7988,7 @@ C++ class CUIScriptWnd : CUIDialogWnd,DLL_Pure {
     function AddCallback(string, number, const function<void>&);
     function AddCallback(string, number, const function<void>&, object);
     function GetTabControl(string);
-    function GetAbsoluteRect(Frect&);
+    function DetachFromParent();
     function SetAutoDelete(boolean);
     function GetFrameWindow(string);
     function GetWndRect(Frect&);
@@ -7786,7 +8008,7 @@ C++ class CUIScriptWnd : CUIDialogWnd,DLL_Pure {
     function SetWndRect(number, number, number, number);
     function Register(CUIWindow*);
     function Register(CUIWindow*, string);
-    function DetachFromParent();
+    function GetAbsoluteRect(Frect&);
     function GetProgressBar(string);
     function GetMousePosY() const;
     function SetWndSize(number, number);
@@ -7794,14 +8016,49 @@ C++ class CUIScriptWnd : CUIDialogWnd,DLL_Pure {
     function IsAutoDelete();
 };
 
+C++ class CUIDragDropListEx : CUIWindow {
+    function GetFont();
+    function SetWindowName(string, number);
+    function Enable(boolean);
+    function DetachFromParent();
+    function FindChild(CUIWindow*, string);
+    function IsAutoDelete();
+    function GetWidth() const;
+    function GetMousePosX() const;
+    function SetWndSize(number, number);
+    function GetWndRect(Frect&);
+    function ResetPPMode();
+    function AttachChild(CUIWindow*);
+    function SetHeight(number);
+    function SetWndPos(number, number);
+    function SetFont(CGameFont*);
+    function Init(number, number, number, number);
+    function Init(Frect*);
+    function DetachChild(CUIWindow*);
+    function SetPPMode();
+    function GetParent() const;
+    function IsShown();
+    function SetWndRect(Frect);
+    function SetWndRect(number, number, number, number);
+    function Show(boolean);
+    function GetHeight() const;
+    function SetWidth(number);
+    function WindowName();
+    function IsEnabled();
+    function GetMousePosY() const;
+    function SetAutoDelete(boolean);
+    function GetAbsoluteRect(Frect&);
+};
+
 C++ class CUIEditBox : CUICustomEdit {
     CUIEditBox ();
     
     function GetTextAlignment();
-    function SetWindowName(string);
+    function SetWindowName(string, number);
     function Enable(boolean);
-    function DetachFromParent();
+    function SetHeight(number);
     function SetTextPosX(number);
+    function FindChild(CUIWindow*, string);
     function GetText();
     function GetMousePosX() const;
     function GetWidth() const;
@@ -7833,7 +8090,7 @@ C++ class CUIEditBox : CUICustomEdit {
     function ResetPPMode();
     function SetNumbersOnly(boolean);
     function InitTexture(string);
-    function SetHeight(number);
+    function DetachFromParent();
     function SetWndSize(number, number);
     function SetTextAlignment(enum CGameFont::EAligment);
     function IsAutoDelete();
@@ -7843,10 +8100,11 @@ C++ class CUIEditBoxEx : CUICustomEdit {
     CUIEditBoxEx ();
     
     function GetTextAlignment();
-    function SetWindowName(string);
+    function SetWindowName(string, number);
     function Enable(boolean);
-    function DetachFromParent();
+    function SetHeight(number);
     function SetTextPosX(number);
+    function FindChild(CUIWindow*, string);
     function GetText();
     function GetMousePosX() const;
     function GetWidth() const;
@@ -7878,7 +8136,7 @@ C++ class CUIEditBoxEx : CUICustomEdit {
     function ResetPPMode();
     function SetNumbersOnly(boolean);
     function InitTexture(string);
-    function SetHeight(number);
+    function DetachFromParent();
     function SetWndSize(number, number);
     function SetTextAlignment(enum CGameFont::EAligment);
     function IsAutoDelete();
@@ -7887,13 +8145,14 @@ C++ class CUIEditBoxEx : CUICustomEdit {
 C++ class CUIFrameLineWnd : CUIWindow {
     CUIFrameLineWnd ();
     
-    function GetFont();
     function GetTitleStatic();
-    function SetWindowName(string);
-    function Enable(boolean);
-    function SetHeight(number);
+    function GetFont();
     function SetColor(number);
+    function SetWindowName(string, number);
+    function Enable(boolean);
+    function DetachFromParent();
     function SetWndSize(number, number);
+    function FindChild(CUIWindow*, string);
     function IsAutoDelete();
     function GetWidth() const;
     function GetMousePosX() const;
@@ -7901,13 +8160,13 @@ C++ class CUIFrameLineWnd : CUIWindow {
     function GetWndRect(Frect&);
     function ResetPPMode();
     function AttachChild(CUIWindow*);
-    function DetachFromParent();
+    function SetHeight(number);
     function SetWndPos(number, number);
     function SetFont(CGameFont*);
-    function DetachChild(CUIWindow*);
     function Init(number, number, number, number);
     function Init(Frect*);
     function Init(string, number, number, number, number, boolean);
+    function DetachChild(CUIWindow*);
     function SetPPMode();
     function GetParent() const;
     function IsShown();
@@ -7927,11 +8186,12 @@ C++ class CUIFrameWindow : CUIWindow {
     CUIFrameWindow ();
     
     function GetFont();
-    function SetWindowName(string);
-    function Enable(boolean);
-    function SetHeight(number);
     function GetTitleStatic();
+    function SetWindowName(string, number);
+    function Enable(boolean);
+    function DetachFromParent();
     function SetColor(number);
+    function FindChild(CUIWindow*, string);
     function IsAutoDelete();
     function GetWidth() const;
     function GetMousePosX() const;
@@ -7939,13 +8199,13 @@ C++ class CUIFrameWindow : CUIWindow {
     function GetWndRect(Frect&);
     function ResetPPMode();
     function AttachChild(CUIWindow*);
-    function DetachFromParent();
+    function SetHeight(number);
     function SetWndPos(number, number);
     function SetFont(CGameFont*);
-    function DetachChild(CUIWindow*);
     function Init(number, number, number, number);
     function Init(Frect*);
     function Init(string, number, number, number, number);
+    function DetachChild(CUIWindow*);
     function SetPPMode();
     function GetParent() const;
     function IsShown();
@@ -7976,9 +8236,10 @@ C++ class CUIGameCustom {
 C++ class CUILabel : CUIFrameLineWnd {
     CUILabel ();
     
-    function SetWindowName(string);
+    function SetWindowName(string, number);
     function Enable(boolean);
-    function DetachFromParent();
+    function SetHeight(number);
+    function FindChild(CUIWindow*, string);
     function GetText();
     function GetMousePosX() const;
     function SetOrientation(boolean);
@@ -8004,7 +8265,7 @@ C++ class CUILabel : CUIFrameLineWnd {
     function SetText(string);
     function GetAbsoluteRect(Frect&);
     function GetTitleStatic();
-    function SetHeight(number);
+    function DetachFromParent();
     function GetMousePosY() const;
     function SetWndRect(Frect);
     function SetWndRect(number, number, number, number);
@@ -8018,9 +8279,10 @@ C++ class CUIListItem : CUIButton {
     CUIListItem ();
     
     function SetHighlightColor(number);
-    function SetWindowName(string);
-    function AdjustHeightToText();
-    function SetHeight(number);
+    function SetWindowName(string, number);
+    function Enable(boolean);
+    function SetText(string);
+    function FindChild(CUIWindow*, string);
     function SetOriginalRect(number, number, number, number);
     function GetMousePosX() const;
     function GetColor() const;
@@ -8046,8 +8308,8 @@ C++ class CUIListItem : CUIButton {
     function GetText();
     function SetStretchTexture(boolean);
     function SetTextComplexMode(boolean);
+    function AdjustHeightToText();
     function EnableTextHighlighting(boolean);
-    function SetTextureOffset(number, number);
     function ClipperOn();
     function IsAutoDelete();
     function SetAutoDelete(boolean);
@@ -8064,12 +8326,12 @@ C++ class CUIListItem : CUIButton {
     function SetTextST(string);
     function GetStretchTexture();
     function WindowName();
-    function DetachFromParent();
+    function SetTextureOffset(number, number);
     function SetTextY(number);
     function SetWndRect(Frect);
     function SetWndRect(number, number, number, number);
-    function Enable(boolean);
-    function SetText(string);
+    function SetHeight(number);
+    function DetachFromParent();
     function InitTexture(string);
     function ResetPPMode();
     function SetWndSize(number, number);
@@ -8082,9 +8344,10 @@ C++ class CUIListItemEx : CUIListItem {
     
     function SetHighlightColor(number);
     function SetSelectionColor(number);
-    function SetWindowName(string);
+    function SetWindowName(string, number);
     function AdjustHeightToText();
-    function SetTextureOffset(number, number);
+    function SetText(string);
+    function FindChild(CUIWindow*, string);
     function GetText();
     function GetMousePosX() const;
     function GetColor() const;
@@ -8107,13 +8370,13 @@ C++ class CUIListItemEx : CUIListItem {
     function GetHeading();
     function GetFont();
     function GetClipperState();
-    function SetText(string);
-    function SetStretchTexture(boolean);
-    function Enable(boolean);
-    function SetHeight(number);
-    function SetTextComplexMode(boolean);
-    function ClipperOn();
     function DetachFromParent();
+    function SetStretchTexture(boolean);
+    function SetHeight(number);
+    function Enable(boolean);
+    function EnableTextHighlighting(boolean);
+    function ClipperOn();
+    function SetTextureOffset(number, number);
     function SetAutoDelete(boolean);
     function GetTextY();
     function GetWndRect(Frect&);
@@ -8132,7 +8395,7 @@ C++ class CUIListItemEx : CUIListItem {
     function SetTextY(number);
     function SetWndRect(Frect);
     function SetWndRect(number, number, number, number);
-    function EnableTextHighlighting(boolean);
+    function SetTextComplexMode(boolean);
     function SetOriginalRect(number, number, number, number);
     function InitTexture(string);
     function SetFont(CGameFont*);
@@ -8144,9 +8407,10 @@ C++ class CUIListItemEx : CUIListItem {
 C++ class CUIListWnd : CUIWindow {
     CUIListWnd ();
     
-    function SetWindowName(string);
+    function SetWindowName(string, number);
     function Enable(boolean);
-    function DetachFromParent();
+    function SetHeight(number);
+    function FindChild(CUIWindow*, string);
     function ActivateList(boolean);
     function ScrollToBegin();
     function GetMousePosX() const;
@@ -8186,10 +8450,10 @@ C++ class CUIListWnd : CUIWindow {
     function IsScrollBarEnabled();
     function WindowName();
     function SetVertFlip(boolean);
-    function SetHeight(number);
+    function RemoveItem(number);
     function SetWndRect(Frect);
     function SetWndRect(number, number, number, number);
-    function RemoveItem(number);
+    function DetachFromParent();
     function AddItem(CUIListItem*);
     function IsAutoDelete();
     function ResetPPMode();
@@ -8200,10 +8464,11 @@ C++ class CUIListWnd : CUIWindow {
 
 C++ class CUIMMShniaga : CUIWindow {
     function GetFont();
-    function SetWindowName(string);
+    function SetWindowName(string, number);
     function Enable(boolean);
-    function SetHeight(number);
+    function DetachFromParent();
     function SetVisibleMagnifier(boolean);
+    function FindChild(CUIWindow*, string);
     function IsAutoDelete();
     function GetWidth() const;
     function GetMousePosX() const;
@@ -8211,12 +8476,12 @@ C++ class CUIMMShniaga : CUIWindow {
     function GetWndRect(Frect&);
     function ResetPPMode();
     function AttachChild(CUIWindow*);
-    function DetachFromParent();
+    function SetHeight(number);
     function SetWndPos(number, number);
     function SetFont(CGameFont*);
-    function DetachChild(CUIWindow*);
     function Init(number, number, number, number);
     function Init(Frect*);
+    function DetachChild(CUIWindow*);
     function SetPPMode();
     function GetParent() const;
     function IsShown();
@@ -8234,10 +8499,11 @@ C++ class CUIMMShniaga : CUIWindow {
 
 C++ class CUIMainIngameWnd : CUIWindow {
     function GetFont();
-    function SetWindowName(string);
+    function SetWindowName(string, number);
     function Enable(boolean);
-    function SetHeight(number);
     function DetachFromParent();
+    function SetHeight(number);
+    function FindChild(CUIWindow*, string);
     function IsAutoDelete();
     function GetWidth() const;
     function GetMousePosX() const;
@@ -8248,9 +8514,9 @@ C++ class CUIMainIngameWnd : CUIWindow {
     function GetStatic(CUIMainIngameWnd*, lua_State*);
     function SetWndPos(number, number);
     function SetFont(CGameFont*);
-    function DetachChild(CUIWindow*);
     function Init(number, number, number, number);
     function Init(Frect*);
+    function DetachChild(CUIWindow*);
     function SetPPMode();
     function GetParent() const;
     function IsShown();
@@ -8270,10 +8536,11 @@ C++ class CUIMapInfo : CUIWindow {
     CUIMapInfo ();
     
     function GetFont();
-    function SetWindowName(string);
+    function SetWindowName(string, number);
     function Enable(boolean);
-    function SetHeight(number);
+    function DetachFromParent();
     function GetWidth() const;
+    function FindChild(CUIWindow*, string);
     function IsAutoDelete();
     function InitMap(string);
     function GetMousePosX() const;
@@ -8281,12 +8548,12 @@ C++ class CUIMapInfo : CUIWindow {
     function GetWndRect(Frect&);
     function ResetPPMode();
     function AttachChild(CUIWindow*);
-    function DetachFromParent();
+    function SetHeight(number);
     function SetWndPos(number, number);
     function SetFont(CGameFont*);
-    function DetachChild(CUIWindow*);
     function Init(number, number, number, number);
     function Init(Frect*);
+    function DetachChild(CUIWindow*);
     function SetPPMode();
     function GetParent() const;
     function IsShown();
@@ -8305,9 +8572,10 @@ C++ class CUIMapInfo : CUIWindow {
 C++ class CUIMapList : CUIWindow {
     CUIMapList ();
     
-    function SetWindowName(string);
+    function SetWindowName(string, number);
     function Enable(boolean);
-    function DetachFromParent();
+    function SetHeight(number);
+    function FindChild(CUIWindow*, string);
     function GetMousePosX() const;
     function GetCommandLine(string);
     function GetWidth() const;
@@ -8342,7 +8610,7 @@ C++ class CUIMapList : CUIWindow {
     function SetWndRect(number, number, number, number);
     function LoadMapList();
     function IsAutoDelete();
-    function SetHeight(number);
+    function DetachFromParent();
     function ResetPPMode();
     function SetWndSize(number, number);
     function SetFont(CGameFont*);
@@ -8352,9 +8620,10 @@ C++ class CUIMapList : CUIWindow {
 C++ class CUIMessageBox : CUIStatic {
     CUIMessageBox ();
     
-    function SetWindowName(string);
+    function SetWindowName(string, number);
     function Enable(boolean);
-    function SetText(string);
+    function SetHeight(number);
+    function FindChild(CUIWindow*, string);
     function SetOriginalRect(number, number, number, number);
     function GetMousePosX() const;
     function GetColor() const;
@@ -8380,13 +8649,13 @@ C++ class CUIMessageBox : CUIStatic {
     function ResetPPMode();
     function SetFont(CGameFont*);
     function SetStretchTexture(boolean);
-    function SetTextST(string);
-    function SetHeight(number);
+    function SetText(string);
+    function DetachFromParent();
     function AdjustHeightToText();
     function ClipperOn();
     function SetTextureOffset(number, number);
     function SetAutoDelete(boolean);
-    function DetachFromParent();
+    function SetTextST(string);
     function GetWndRect(Frect&);
     function SetWndPos(number, number);
     function AttachChild(CUIWindow*);
@@ -8416,9 +8685,10 @@ C++ class CUIMessageBox : CUIStatic {
 C++ class CUIMessageBoxEx : CUIDialogWnd {
     CUIMessageBoxEx ();
     
-    function SetWindowName(string);
+    function SetWindowName(string, number);
     function Enable(boolean);
     function SetHeight(number);
+    function FindChild(CUIWindow*, string);
     function GetMousePosX() const;
     function SetHolder(CDialogHolder*);
     function GetWidth() const;
@@ -8446,8 +8716,8 @@ C++ class CUIMessageBoxEx : CUIDialogWnd {
     function SetWndRect(Frect);
     function SetWndRect(number, number, number, number);
     function SetText(string);
-    function DetachFromParent();
     function GetAbsoluteRect(Frect&);
+    function DetachFromParent();
     function GetMousePosY() const;
     function SetWndSize(number, number);
     function GetParent() const;
@@ -8469,48 +8739,50 @@ C++ class COptionsManager {
 C++ class CUIProgressBar : CUIWindow {
     CUIProgressBar ();
     
-    function GetProgressPos();
-    function GetFont();
-    function SetWndSize(number, number);
-    function SetWindowName(string);
+    function SetWindowName(string, number);
     function Enable(boolean);
     function SetHeight(number);
     function GetRange_max();
-    function SetProgressPos(number);
-    function IsAutoDelete();
-    function GetWidth() const;
+    function FindChild(CUIWindow*, string);
     function GetMousePosX() const;
-    function GetRange_min();
-    function GetWndRect(Frect&);
-    function ResetPPMode();
-    function AttachChild(CUIWindow*);
-    function DetachFromParent();
-    function SetWndPos(number, number);
-    function SetFont(CGameFont*);
+    function SetProgressPos(number);
+    function GetWidth() const;
     function DetachChild(CUIWindow*);
-    function Init(number, number, number, number);
-    function Init(Frect*);
     function SetPPMode();
     function GetParent() const;
     function IsShown();
-    function SetWndRect(Frect);
-    function SetWndRect(number, number, number, number);
     function Show(boolean);
     function GetHeight() const;
     function SetWidth(number);
-    function WindowName();
     function IsEnabled();
     function GetMousePosY() const;
+    function GetFont();
     function SetAutoDelete(boolean);
+    function GetRange_min();
+    function GetWndRect(Frect&);
+    function AttachChild(CUIWindow*);
+    function SetWndPos(number, number);
+    function Init(number, number, number, number);
+    function Init(Frect*);
+    function WindowName();
+    function SetWndRect(Frect);
+    function SetWndRect(number, number, number, number);
+    function ResetPPMode();
+    function GetProgressPos();
+    function DetachFromParent();
+    function IsAutoDelete();
+    function SetWndSize(number, number);
+    function SetFont(CGameFont*);
     function GetAbsoluteRect(Frect&);
 };
 
 C++ class CUIPropertiesBox : CUIFrameWindow {
     CUIPropertiesBox ();
     
-    function SetWindowName(string);
+    function SetWindowName(string, number);
     function Enable(boolean);
     function SetHeight(number);
+    function FindChild(CUIWindow*, string);
     function GetMousePosX() const;
     function GetWidth() const;
     function Hide();
@@ -8537,9 +8809,9 @@ C++ class CUIPropertiesBox : CUIFrameWindow {
     function RemoveAll();
     function WindowName();
     function RemoveItem(number);
-    function DetachFromParent();
-    function GetTitleStatic();
     function GetAbsoluteRect(Frect&);
+    function GetTitleStatic();
+    function DetachFromParent();
     function GetMousePosY() const;
     function SetWndRect(Frect);
     function SetWndRect(number, number, number, number);
@@ -8552,9 +8824,10 @@ C++ class CUIPropertiesBox : CUIFrameWindow {
 C++ class CUIScrollView : CUIWindow {
     CUIScrollView ();
     
-    function SetWindowName(string);
+    function SetWindowName(string, number);
     function Enable(boolean);
-    function DetachFromParent();
+    function SetHeight(number);
+    function FindChild(CUIWindow*, string);
     function RemoveWindow(CUIWindow*);
     function ScrollToBegin();
     function GetMousePosX() const;
@@ -8585,8 +8858,8 @@ C++ class CUIScrollView : CUIWindow {
     function SetWndRect(Frect);
     function SetWndRect(number, number, number, number);
     function SetScrollPos(number);
-    function SetHeight(number);
     function IsAutoDelete();
+    function DetachFromParent();
     function ResetPPMode();
     function SetWndSize(number, number);
     function SetFont(CGameFont*);
@@ -8597,10 +8870,11 @@ C++ class CUISpinFlt : CUICustomSpin {
     CUISpinFlt ();
     
     function GetFont();
-    function SetWindowName(string);
+    function SetWindowName(string, number);
     function Enable(boolean);
-    function DetachFromParent();
+    function SetHeight(number);
     function GetAbsoluteRect(Frect&);
+    function FindChild(CUIWindow*, string);
     function SetAutoDelete(boolean);
     function GetText();
     function GetMousePosX() const;
@@ -8610,10 +8884,10 @@ C++ class CUISpinFlt : CUICustomSpin {
     function GetWidth() const;
     function WindowName();
     function SetWndPos(number, number);
+    function DetachChild(CUIWindow*);
+    function GetParent() const;
     function Init(number, number, number, number);
     function Init(Frect*);
-    function GetParent() const;
-    function DetachChild(CUIWindow*);
     function SetPPMode();
     function SetFont(CGameFont*);
     function IsShown();
@@ -8622,7 +8896,7 @@ C++ class CUISpinFlt : CUICustomSpin {
     function SetWndRect(number, number, number, number);
     function GetHeight() const;
     function SetWidth(number);
-    function SetHeight(number);
+    function DetachFromParent();
     function IsEnabled();
     function SetWndSize(number, number);
     function ResetPPMode();
@@ -8633,10 +8907,11 @@ C++ class CUISpinNum : CUICustomSpin {
     CUISpinNum ();
     
     function GetFont();
-    function SetWindowName(string);
+    function SetWindowName(string, number);
     function Enable(boolean);
-    function DetachFromParent();
+    function SetHeight(number);
     function GetAbsoluteRect(Frect&);
+    function FindChild(CUIWindow*, string);
     function SetAutoDelete(boolean);
     function GetText();
     function GetMousePosX() const;
@@ -8646,10 +8921,10 @@ C++ class CUISpinNum : CUICustomSpin {
     function GetWidth() const;
     function WindowName();
     function SetWndPos(number, number);
+    function DetachChild(CUIWindow*);
+    function GetParent() const;
     function Init(number, number, number, number);
     function Init(Frect*);
-    function GetParent() const;
-    function DetachChild(CUIWindow*);
     function SetPPMode();
     function SetFont(CGameFont*);
     function IsShown();
@@ -8658,7 +8933,7 @@ C++ class CUISpinNum : CUICustomSpin {
     function SetWndRect(number, number, number, number);
     function GetHeight() const;
     function SetWidth(number);
-    function SetHeight(number);
+    function DetachFromParent();
     function IsEnabled();
     function SetWndSize(number, number);
     function ResetPPMode();
@@ -8669,10 +8944,11 @@ C++ class CUISpinText : CUICustomSpin {
     CUISpinText ();
     
     function GetFont();
-    function SetWindowName(string);
+    function SetWindowName(string, number);
     function Enable(boolean);
-    function DetachFromParent();
+    function SetHeight(number);
     function GetAbsoluteRect(Frect&);
+    function FindChild(CUIWindow*, string);
     function SetAutoDelete(boolean);
     function GetText();
     function GetMousePosX() const;
@@ -8682,10 +8958,10 @@ C++ class CUISpinText : CUICustomSpin {
     function GetWidth() const;
     function WindowName();
     function SetWndPos(number, number);
+    function DetachChild(CUIWindow*);
+    function GetParent() const;
     function Init(number, number, number, number);
     function Init(Frect*);
-    function GetParent() const;
-    function DetachChild(CUIWindow*);
     function SetPPMode();
     function SetFont(CGameFont*);
     function IsShown();
@@ -8694,7 +8970,7 @@ C++ class CUISpinText : CUICustomSpin {
     function SetWndRect(number, number, number, number);
     function GetHeight() const;
     function SetWidth(number);
-    function SetHeight(number);
+    function DetachFromParent();
     function IsEnabled();
     function SetWndSize(number, number);
     function ResetPPMode();
@@ -8704,9 +8980,10 @@ C++ class CUISpinText : CUICustomSpin {
 C++ class CUIStatic : CUIWindow {
     CUIStatic ();
     
-    function SetWindowName(string);
+    function SetWindowName(string, number);
     function Enable(boolean);
-    function SetText(string);
+    function SetHeight(number);
+    function FindChild(CUIWindow*, string);
     function GetText();
     function GetMousePosX() const;
     function GetColor() const;
@@ -8749,12 +9026,12 @@ C++ class CUIStatic : CUIWindow {
     function Init(string, number, number, number, number);
     function GetTextY();
     function WindowName();
-    function DetachFromParent();
+    function SetTextST(string);
     function SetTextY(number);
     function SetWndRect(Frect);
     function SetWndRect(number, number, number, number);
-    function SetHeight(number);
-    function SetTextST(string);
+    function DetachFromParent();
+    function SetText(string);
     function InitTexture(string);
     function ResetPPMode();
     function SetWndSize(number, number);
@@ -8766,9 +9043,10 @@ C++ class CUITabButton : CUIButton {
     CUITabButton ();
     
     function SetHighlightColor(number);
-    function SetWindowName(string);
-    function AdjustHeightToText();
-    function SetHeight(number);
+    function SetWindowName(string, number);
+    function Enable(boolean);
+    function SetText(string);
+    function FindChild(CUIWindow*, string);
     function SetOriginalRect(number, number, number, number);
     function GetMousePosX() const;
     function GetColor() const;
@@ -8794,8 +9072,8 @@ C++ class CUITabButton : CUIButton {
     function GetText();
     function SetStretchTexture(boolean);
     function SetTextComplexMode(boolean);
+    function AdjustHeightToText();
     function EnableTextHighlighting(boolean);
-    function SetTextureOffset(number, number);
     function ClipperOn();
     function IsAutoDelete();
     function SetAutoDelete(boolean);
@@ -8812,12 +9090,12 @@ C++ class CUITabButton : CUIButton {
     function SetTextST(string);
     function GetStretchTexture();
     function WindowName();
-    function DetachFromParent();
+    function SetTextureOffset(number, number);
     function SetTextY(number);
     function SetWndRect(Frect);
     function SetWndRect(number, number, number, number);
-    function Enable(boolean);
-    function SetText(string);
+    function SetHeight(number);
+    function DetachFromParent();
     function InitTexture(string);
     function ResetPPMode();
     function SetWndSize(number, number);
@@ -8828,9 +9106,10 @@ C++ class CUITabButton : CUIButton {
 C++ class CUITabControl : CUIWindow {
     CUITabControl ();
     
-    function SetWindowName(string);
+    function SetWindowName(string, number);
     function Enable(boolean);
-    function DetachFromParent();
+    function SetHeight(number);
+    function FindChild(CUIWindow*, string);
     function GetMousePosX() const;
     function GetActiveIndex();
     function GetWidth() const;
@@ -8855,10 +9134,10 @@ C++ class CUITabControl : CUIWindow {
     function SetNewActiveTab(number);
     function WindowName();
     function RemoveAll();
-    function SetHeight(number);
+    function RemoveItem(number);
     function SetWndRect(Frect);
     function SetWndRect(number, number, number, number);
-    function RemoveItem(number);
+    function DetachFromParent();
     function AddItem(CUITabButton*);
     function AddItem(string, string, number, number, number, number);
     function IsAutoDelete();
@@ -8872,11 +9151,12 @@ C++ class CUITrackBar : CUIWindow {
     CUITrackBar ();
     
     function GetFont();
-    function SetWindowName(string);
-    function Enable(boolean);
-    function SetHeight(number);
     function ResetPPMode();
+    function SetWindowName(string, number);
+    function Enable(boolean);
+    function DetachFromParent();
     function SetFont(CGameFont*);
+    function FindChild(CUIWindow*, string);
     function IsAutoDelete();
     function GetWidth() const;
     function GetMousePosX() const;
@@ -8884,12 +9164,12 @@ C++ class CUITrackBar : CUIWindow {
     function GetWndRect(Frect&);
     function SetCheck(boolean);
     function AttachChild(CUIWindow*);
-    function DetachFromParent();
+    function SetHeight(number);
     function SetWndPos(number, number);
     function GetCheck();
-    function DetachChild(CUIWindow*);
     function Init(number, number, number, number);
     function Init(Frect*);
+    function DetachChild(CUIWindow*);
     function SetPPMode();
     function GetParent() const;
     function IsShown();
@@ -8909,9 +9189,10 @@ C++ class CUIWindow {
     CUIWindow ();
     
     function GetFont();
-    function SetWindowName(string);
+    function SetWindowName(string, number);
     function Enable(boolean);
-    function SetHeight(number);
+    function DetachFromParent();
+    function FindChild(CUIWindow*, string);
     function GetAbsoluteRect(Frect&);
     function GetMousePosY() const;
     function SetAutoDelete(boolean);
@@ -8923,17 +9204,17 @@ C++ class CUIWindow {
     function SetWndPos(number, number);
     function Show(boolean);
     function WindowName();
-    function Init(number, number, number, number);
-    function Init(Frect*);
+    function DetachChild(CUIWindow*);
     function SetPPMode();
     function SetFont(CGameFont*);
     function IsShown();
-    function DetachChild(CUIWindow*);
+    function Init(number, number, number, number);
+    function Init(Frect*);
     function SetWndRect(Frect);
     function SetWndRect(number, number, number, number);
     function GetHeight() const;
     function SetWidth(number);
-    function DetachFromParent();
+    function SetHeight(number);
     function IsEnabled();
     function SetWndSize(number, number);
     function GetWidth() const;
@@ -8952,35 +9233,45 @@ C++ class CWeapon : CInventoryItemObject {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			grenade_launcher_x       (number);
+ property			grenade_launcher_y       (number);
  property			iron_sight_zoom_factor   (number);
  property			item_flags;
  property			item_place;
  property			misfire;
  property			next_state;
+ property			schedule_max;
+ property			schedule_min;
  property			scope_dynamic_zoom       (boolean);
+ property			scope_x                  (number);
+ property			scope_y                  (number);
  property			scrope_zoom_factor       (number);
  property			se_object;
+ property			silencer_x               (number);
+ property			silencer_y               (number);
  property			state;
+ property			updated_times            (number);
  property			zoom_enabled             (boolean);
  property			zoom_factor              (number);
  property			zoom_mode;
  property			zoom_rotate_time         (number);
     
-    function Visual();
     function stop_shoothing();
-    function _construct();
-    function net_Import(net_packet&);
-    function stop_fire2();
+    function getEnabled() const;
     function getVisible() const;
     function net_Spawn(cse_abstract*);
     function load_config(string);
-    function start_fire();
-    function stop_fire();
-    function test_server_flag(number) const;
-    function getEnabled() const;
-    function start_fire2();
     function net_Export(net_packet&);
     function get_ammo_current(boolean) const;
+    function Visual();
+    function net_Import(net_packet&);
+    function start_fire();
+    function stop_fire2();
+    function set_schedule(ISheduled*, number, number);
+    function _construct();
+    function start_fire2();
+    function test_server_flag(number) const;
+    function stop_fire();
     function use(CGameObject*);
 };
 
@@ -8991,18 +9282,27 @@ C++ class CWeaponAK74 : CWeaponMagazinedWGrenade {
  property			class_name;
  property			cur_fire_mode            (number);
  property			gren_mag_size            (number);
+ property			grenade_launcher_x       (number);
+ property			grenade_launcher_y       (number);
  property			iron_sight_zoom_factor   (number);
  property			item_flags;
  property			item_place;
  property			misfire;
  property			next_state;
  property			queue_size               (number);
+ property			schedule_max;
+ property			schedule_min;
  property			scope_dynamic_zoom       (boolean);
+ property			scope_x                  (number);
+ property			scope_y                  (number);
  property			scrope_zoom_factor       (number);
  property			se_object;
  property			shoot_effector_start     (number);
  property			shot_num;
+ property			silencer_x               (number);
+ property			silencer_y               (number);
  property			state;
+ property			updated_times            (number);
  property			zoom_enabled             (boolean);
  property			zoom_factor              (number);
  property			zoom_mode;
@@ -9011,20 +9311,21 @@ C++ class CWeaponAK74 : CWeaponMagazinedWGrenade {
     CWeaponAK74 ();
     
     function stop_shoothing();
-    function Visual();
     function _construct();
-    function net_Import(net_packet&);
-    function get_ammo_current(boolean) const;
     function getVisible() const;
     function net_Spawn(cse_abstract*);
     function load_config(string);
-    function start_fire();
-    function stop_fire();
-    function test_server_flag(number) const;
-    function getEnabled() const;
-    function start_fire2();
     function net_Export(net_packet&);
+    function get_ammo_current(boolean) const;
+    function Visual();
+    function net_Import(net_packet&);
+    function start_fire();
+    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function stop_fire2();
+    function start_fire2();
+    function getEnabled() const;
+    function stop_fire();
     function use(CGameObject*);
 };
 
@@ -9034,18 +9335,27 @@ C++ class CWeaponBM16 : CWeaponShotgun {
  property			class_id;
  property			class_name;
  property			cur_fire_mode            (number);
+ property			grenade_launcher_x       (number);
+ property			grenade_launcher_y       (number);
  property			iron_sight_zoom_factor   (number);
  property			item_flags;
  property			item_place;
  property			misfire;
  property			next_state;
  property			queue_size               (number);
+ property			schedule_max;
+ property			schedule_min;
  property			scope_dynamic_zoom       (boolean);
+ property			scope_x                  (number);
+ property			scope_y                  (number);
  property			scrope_zoom_factor       (number);
  property			se_object;
  property			shoot_effector_start     (number);
  property			shot_num;
+ property			silencer_x               (number);
+ property			silencer_y               (number);
  property			state;
+ property			updated_times            (number);
  property			zoom_enabled             (boolean);
  property			zoom_factor              (number);
  property			zoom_mode;
@@ -9054,20 +9364,21 @@ C++ class CWeaponBM16 : CWeaponShotgun {
     CWeaponBM16 ();
     
     function stop_shoothing();
-    function Visual();
     function _construct();
-    function net_Import(net_packet&);
-    function get_ammo_current(boolean) const;
     function getVisible() const;
     function net_Spawn(cse_abstract*);
     function load_config(string);
-    function start_fire();
-    function stop_fire();
-    function test_server_flag(number) const;
-    function getEnabled() const;
-    function start_fire2();
     function net_Export(net_packet&);
+    function get_ammo_current(boolean) const;
+    function Visual();
+    function net_Import(net_packet&);
+    function start_fire();
+    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function stop_fire2();
+    function start_fire2();
+    function getEnabled() const;
+    function stop_fire();
     function use(CGameObject*);
 };
 
@@ -9077,18 +9388,27 @@ C++ class CWeaponBinoculars : CWeaponMagazined {
  property			class_id;
  property			class_name;
  property			cur_fire_mode            (number);
+ property			grenade_launcher_x       (number);
+ property			grenade_launcher_y       (number);
  property			iron_sight_zoom_factor   (number);
  property			item_flags;
  property			item_place;
  property			misfire;
  property			next_state;
  property			queue_size               (number);
+ property			schedule_max;
+ property			schedule_min;
  property			scope_dynamic_zoom       (boolean);
+ property			scope_x                  (number);
+ property			scope_y                  (number);
  property			scrope_zoom_factor       (number);
  property			se_object;
  property			shoot_effector_start     (number);
  property			shot_num;
+ property			silencer_x               (number);
+ property			silencer_y               (number);
  property			state;
+ property			updated_times            (number);
  property			zoom_enabled             (boolean);
  property			zoom_factor              (number);
  property			zoom_mode;
@@ -9096,21 +9416,22 @@ C++ class CWeaponBinoculars : CWeaponMagazined {
     
     CWeaponBinoculars ();
     
-    function Visual();
     function stop_shoothing();
-    function _construct();
-    function net_Import(net_packet&);
-    function stop_fire2();
+    function getEnabled() const;
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
-    function start_fire();
     function load_config(string);
-    function stop_fire();
-    function getEnabled() const;
-    function start_fire2();
     function net_Export(net_packet&);
     function get_ammo_current(boolean) const;
+    function Visual();
+    function net_Import(net_packet&);
+    function start_fire();
+    function stop_fire();
+    function set_schedule(ISheduled*, number, number);
+    function test_server_flag(number) const;
+    function start_fire2();
+    function _construct();
+    function stop_fire2();
     function use(CGameObject*);
 };
 
@@ -9120,18 +9441,27 @@ C++ class CWeaponFN2000 : CWeaponMagazined {
  property			class_id;
  property			class_name;
  property			cur_fire_mode            (number);
+ property			grenade_launcher_x       (number);
+ property			grenade_launcher_y       (number);
  property			iron_sight_zoom_factor   (number);
  property			item_flags;
  property			item_place;
  property			misfire;
  property			next_state;
  property			queue_size               (number);
+ property			schedule_max;
+ property			schedule_min;
  property			scope_dynamic_zoom       (boolean);
+ property			scope_x                  (number);
+ property			scope_y                  (number);
  property			scrope_zoom_factor       (number);
  property			se_object;
  property			shoot_effector_start     (number);
  property			shot_num;
+ property			silencer_x               (number);
+ property			silencer_y               (number);
  property			state;
+ property			updated_times            (number);
  property			zoom_enabled             (boolean);
  property			zoom_factor              (number);
  property			zoom_mode;
@@ -9139,21 +9469,22 @@ C++ class CWeaponFN2000 : CWeaponMagazined {
     
     CWeaponFN2000 ();
     
-    function Visual();
     function stop_shoothing();
-    function _construct();
-    function net_Import(net_packet&);
-    function stop_fire2();
+    function getEnabled() const;
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
-    function start_fire();
     function load_config(string);
-    function stop_fire();
-    function getEnabled() const;
-    function start_fire2();
     function net_Export(net_packet&);
     function get_ammo_current(boolean) const;
+    function Visual();
+    function net_Import(net_packet&);
+    function start_fire();
+    function stop_fire();
+    function set_schedule(ISheduled*, number, number);
+    function test_server_flag(number) const;
+    function start_fire2();
+    function _construct();
+    function stop_fire2();
     function use(CGameObject*);
 };
 
@@ -9163,18 +9494,27 @@ C++ class CWeaponFORT : CWeaponMagazined {
  property			class_id;
  property			class_name;
  property			cur_fire_mode            (number);
+ property			grenade_launcher_x       (number);
+ property			grenade_launcher_y       (number);
  property			iron_sight_zoom_factor   (number);
  property			item_flags;
  property			item_place;
  property			misfire;
  property			next_state;
  property			queue_size               (number);
+ property			schedule_max;
+ property			schedule_min;
  property			scope_dynamic_zoom       (boolean);
+ property			scope_x                  (number);
+ property			scope_y                  (number);
  property			scrope_zoom_factor       (number);
  property			se_object;
  property			shoot_effector_start     (number);
  property			shot_num;
+ property			silencer_x               (number);
+ property			silencer_y               (number);
  property			state;
+ property			updated_times            (number);
  property			zoom_enabled             (boolean);
  property			zoom_factor              (number);
  property			zoom_mode;
@@ -9182,21 +9522,22 @@ C++ class CWeaponFORT : CWeaponMagazined {
     
     CWeaponFORT ();
     
-    function Visual();
     function stop_shoothing();
-    function _construct();
-    function net_Import(net_packet&);
-    function stop_fire2();
+    function getEnabled() const;
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
-    function start_fire();
     function load_config(string);
-    function stop_fire();
-    function getEnabled() const;
-    function start_fire2();
     function net_Export(net_packet&);
     function get_ammo_current(boolean) const;
+    function Visual();
+    function net_Import(net_packet&);
+    function start_fire();
+    function stop_fire();
+    function set_schedule(ISheduled*, number, number);
+    function test_server_flag(number) const;
+    function start_fire2();
+    function _construct();
+    function stop_fire2();
     function use(CGameObject*);
 };
 
@@ -9207,18 +9548,27 @@ C++ class CWeaponGroza : CWeaponMagazinedWGrenade {
  property			class_name;
  property			cur_fire_mode            (number);
  property			gren_mag_size            (number);
+ property			grenade_launcher_x       (number);
+ property			grenade_launcher_y       (number);
  property			iron_sight_zoom_factor   (number);
  property			item_flags;
  property			item_place;
  property			misfire;
  property			next_state;
  property			queue_size               (number);
+ property			schedule_max;
+ property			schedule_min;
  property			scope_dynamic_zoom       (boolean);
+ property			scope_x                  (number);
+ property			scope_y                  (number);
  property			scrope_zoom_factor       (number);
  property			se_object;
  property			shoot_effector_start     (number);
  property			shot_num;
+ property			silencer_x               (number);
+ property			silencer_y               (number);
  property			state;
+ property			updated_times            (number);
  property			zoom_enabled             (boolean);
  property			zoom_factor              (number);
  property			zoom_mode;
@@ -9227,20 +9577,21 @@ C++ class CWeaponGroza : CWeaponMagazinedWGrenade {
     CWeaponGroza ();
     
     function stop_shoothing();
-    function Visual();
     function _construct();
-    function net_Import(net_packet&);
-    function get_ammo_current(boolean) const;
     function getVisible() const;
     function net_Spawn(cse_abstract*);
     function load_config(string);
-    function start_fire();
-    function stop_fire();
-    function test_server_flag(number) const;
-    function getEnabled() const;
-    function start_fire2();
     function net_Export(net_packet&);
+    function get_ammo_current(boolean) const;
+    function Visual();
+    function net_Import(net_packet&);
+    function start_fire();
+    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function stop_fire2();
+    function start_fire2();
+    function getEnabled() const;
+    function stop_fire();
     function use(CGameObject*);
 };
 
@@ -9250,18 +9601,27 @@ C++ class CWeaponHPSA : CWeaponMagazined {
  property			class_id;
  property			class_name;
  property			cur_fire_mode            (number);
+ property			grenade_launcher_x       (number);
+ property			grenade_launcher_y       (number);
  property			iron_sight_zoom_factor   (number);
  property			item_flags;
  property			item_place;
  property			misfire;
  property			next_state;
  property			queue_size               (number);
+ property			schedule_max;
+ property			schedule_min;
  property			scope_dynamic_zoom       (boolean);
+ property			scope_x                  (number);
+ property			scope_y                  (number);
  property			scrope_zoom_factor       (number);
  property			se_object;
  property			shoot_effector_start     (number);
  property			shot_num;
+ property			silencer_x               (number);
+ property			silencer_y               (number);
  property			state;
+ property			updated_times            (number);
  property			zoom_enabled             (boolean);
  property			zoom_factor              (number);
  property			zoom_mode;
@@ -9269,21 +9629,22 @@ C++ class CWeaponHPSA : CWeaponMagazined {
     
     CWeaponHPSA ();
     
-    function Visual();
     function stop_shoothing();
-    function _construct();
-    function net_Import(net_packet&);
-    function stop_fire2();
+    function getEnabled() const;
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
-    function start_fire();
     function load_config(string);
-    function stop_fire();
-    function getEnabled() const;
-    function start_fire2();
     function net_Export(net_packet&);
     function get_ammo_current(boolean) const;
+    function Visual();
+    function net_Import(net_packet&);
+    function start_fire();
+    function stop_fire();
+    function set_schedule(ISheduled*, number, number);
+    function test_server_flag(number) const;
+    function start_fire2();
+    function _construct();
+    function stop_fire2();
     function use(CGameObject*);
 };
 
@@ -9292,15 +9653,24 @@ C++ class CWeaponKnife : CWeapon {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			grenade_launcher_x       (number);
+ property			grenade_launcher_y       (number);
  property			iron_sight_zoom_factor   (number);
  property			item_flags;
  property			item_place;
  property			misfire;
  property			next_state;
+ property			schedule_max;
+ property			schedule_min;
  property			scope_dynamic_zoom       (boolean);
+ property			scope_x                  (number);
+ property			scope_y                  (number);
  property			scrope_zoom_factor       (number);
  property			se_object;
+ property			silencer_x               (number);
+ property			silencer_y               (number);
  property			state;
+ property			updated_times            (number);
  property			zoom_enabled             (boolean);
  property			zoom_factor              (number);
  property			zoom_mode;
@@ -9309,20 +9679,21 @@ C++ class CWeaponKnife : CWeapon {
     CWeaponKnife ();
     
     function stop_shoothing();
-    function Visual();
     function _construct();
-    function net_Import(net_packet&);
-    function get_ammo_current(boolean) const;
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function stop_fire();
-    function start_fire();
-    function test_server_flag(number) const;
     function load_config(string);
-    function getEnabled() const;
-    function start_fire2();
     function net_Export(net_packet&);
+    function get_ammo_current(boolean) const;
+    function Visual();
+    function net_Import(net_packet&);
+    function start_fire();
     function stop_fire2();
+    function set_schedule(ISheduled*, number, number);
+    function stop_fire();
+    function start_fire2();
+    function getEnabled() const;
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -9332,18 +9703,27 @@ C++ class CWeaponLR300 : CWeaponMagazined {
  property			class_id;
  property			class_name;
  property			cur_fire_mode            (number);
+ property			grenade_launcher_x       (number);
+ property			grenade_launcher_y       (number);
  property			iron_sight_zoom_factor   (number);
  property			item_flags;
  property			item_place;
  property			misfire;
  property			next_state;
  property			queue_size               (number);
+ property			schedule_max;
+ property			schedule_min;
  property			scope_dynamic_zoom       (boolean);
+ property			scope_x                  (number);
+ property			scope_y                  (number);
  property			scrope_zoom_factor       (number);
  property			se_object;
  property			shoot_effector_start     (number);
  property			shot_num;
+ property			silencer_x               (number);
+ property			silencer_y               (number);
  property			state;
+ property			updated_times            (number);
  property			zoom_enabled             (boolean);
  property			zoom_factor              (number);
  property			zoom_mode;
@@ -9351,21 +9731,22 @@ C++ class CWeaponLR300 : CWeaponMagazined {
     
     CWeaponLR300 ();
     
-    function Visual();
     function stop_shoothing();
-    function _construct();
-    function net_Import(net_packet&);
-    function stop_fire2();
+    function getEnabled() const;
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
-    function start_fire();
     function load_config(string);
-    function stop_fire();
-    function getEnabled() const;
-    function start_fire2();
     function net_Export(net_packet&);
     function get_ammo_current(boolean) const;
+    function Visual();
+    function net_Import(net_packet&);
+    function start_fire();
+    function stop_fire();
+    function set_schedule(ISheduled*, number, number);
+    function test_server_flag(number) const;
+    function start_fire2();
+    function _construct();
+    function stop_fire2();
     function use(CGameObject*);
 };
 
@@ -9375,38 +9756,48 @@ C++ class CWeaponMagazined : CWeapon {
  property			class_id;
  property			class_name;
  property			cur_fire_mode            (number);
+ property			grenade_launcher_x       (number);
+ property			grenade_launcher_y       (number);
  property			iron_sight_zoom_factor   (number);
  property			item_flags;
  property			item_place;
  property			misfire;
  property			next_state;
  property			queue_size               (number);
+ property			schedule_max;
+ property			schedule_min;
  property			scope_dynamic_zoom       (boolean);
+ property			scope_x                  (number);
+ property			scope_y                  (number);
  property			scrope_zoom_factor       (number);
  property			se_object;
  property			shoot_effector_start     (number);
  property			shot_num;
+ property			silencer_x               (number);
+ property			silencer_y               (number);
  property			state;
+ property			updated_times            (number);
  property			zoom_enabled             (boolean);
  property			zoom_factor              (number);
  property			zoom_mode;
  property			zoom_rotate_time         (number);
     
     function stop_shoothing();
-    function Visual();
     function _construct();
-    function net_Import(net_packet&);
-    function get_ammo_current(boolean) const;
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function stop_fire();
-    function start_fire();
-    function test_server_flag(number) const;
     function load_config(string);
-    function getEnabled() const;
-    function start_fire2();
     function net_Export(net_packet&);
+    function get_ammo_current(boolean) const;
+    function Visual();
+    function net_Import(net_packet&);
+    function start_fire();
     function stop_fire2();
+    function set_schedule(ISheduled*, number, number);
+    function stop_fire();
+    function start_fire2();
+    function getEnabled() const;
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -9417,38 +9808,48 @@ C++ class CWeaponMagazinedWGrenade : CWeaponMagazined {
  property			class_name;
  property			cur_fire_mode            (number);
  property			gren_mag_size            (number);
+ property			grenade_launcher_x       (number);
+ property			grenade_launcher_y       (number);
  property			iron_sight_zoom_factor   (number);
  property			item_flags;
  property			item_place;
  property			misfire;
  property			next_state;
  property			queue_size               (number);
+ property			schedule_max;
+ property			schedule_min;
  property			scope_dynamic_zoom       (boolean);
+ property			scope_x                  (number);
+ property			scope_y                  (number);
  property			scrope_zoom_factor       (number);
  property			se_object;
  property			shoot_effector_start     (number);
  property			shot_num;
+ property			silencer_x               (number);
+ property			silencer_y               (number);
  property			state;
+ property			updated_times            (number);
  property			zoom_enabled             (boolean);
  property			zoom_factor              (number);
  property			zoom_mode;
  property			zoom_rotate_time         (number);
     
-    function Visual();
     function stop_shoothing();
-    function _construct();
-    function net_Import(net_packet&);
-    function stop_fire2();
+    function getEnabled() const;
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
-    function start_fire();
     function load_config(string);
-    function stop_fire();
-    function getEnabled() const;
-    function start_fire2();
     function net_Export(net_packet&);
     function get_ammo_current(boolean) const;
+    function Visual();
+    function net_Import(net_packet&);
+    function start_fire();
+    function stop_fire();
+    function set_schedule(ISheduled*, number, number);
+    function test_server_flag(number) const;
+    function start_fire2();
+    function _construct();
+    function stop_fire2();
     function use(CGameObject*);
 };
 
@@ -9458,18 +9859,27 @@ C++ class CWeaponPM : CWeaponMagazined {
  property			class_id;
  property			class_name;
  property			cur_fire_mode            (number);
+ property			grenade_launcher_x       (number);
+ property			grenade_launcher_y       (number);
  property			iron_sight_zoom_factor   (number);
  property			item_flags;
  property			item_place;
  property			misfire;
  property			next_state;
  property			queue_size               (number);
+ property			schedule_max;
+ property			schedule_min;
  property			scope_dynamic_zoom       (boolean);
+ property			scope_x                  (number);
+ property			scope_y                  (number);
  property			scrope_zoom_factor       (number);
  property			se_object;
  property			shoot_effector_start     (number);
  property			shot_num;
+ property			silencer_x               (number);
+ property			silencer_y               (number);
  property			state;
+ property			updated_times            (number);
  property			zoom_enabled             (boolean);
  property			zoom_factor              (number);
  property			zoom_mode;
@@ -9477,21 +9887,22 @@ C++ class CWeaponPM : CWeaponMagazined {
     
     CWeaponPM ();
     
-    function Visual();
     function stop_shoothing();
-    function _construct();
-    function net_Import(net_packet&);
-    function stop_fire2();
+    function getEnabled() const;
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
-    function start_fire();
     function load_config(string);
-    function stop_fire();
-    function getEnabled() const;
-    function start_fire2();
     function net_Export(net_packet&);
     function get_ammo_current(boolean) const;
+    function Visual();
+    function net_Import(net_packet&);
+    function start_fire();
+    function stop_fire();
+    function set_schedule(ISheduled*, number, number);
+    function test_server_flag(number) const;
+    function start_fire2();
+    function _construct();
+    function stop_fire2();
     function use(CGameObject*);
 };
 
@@ -9501,18 +9912,27 @@ C++ class CWeaponRG6 : CWeaponShotgun {
  property			class_id;
  property			class_name;
  property			cur_fire_mode            (number);
+ property			grenade_launcher_x       (number);
+ property			grenade_launcher_y       (number);
  property			iron_sight_zoom_factor   (number);
  property			item_flags;
  property			item_place;
  property			misfire;
  property			next_state;
  property			queue_size               (number);
+ property			schedule_max;
+ property			schedule_min;
  property			scope_dynamic_zoom       (boolean);
+ property			scope_x                  (number);
+ property			scope_y                  (number);
  property			scrope_zoom_factor       (number);
  property			se_object;
  property			shoot_effector_start     (number);
  property			shot_num;
+ property			silencer_x               (number);
+ property			silencer_y               (number);
  property			state;
+ property			updated_times            (number);
  property			zoom_enabled             (boolean);
  property			zoom_factor              (number);
  property			zoom_mode;
@@ -9521,20 +9941,21 @@ C++ class CWeaponRG6 : CWeaponShotgun {
     CWeaponRG6 ();
     
     function stop_shoothing();
-    function Visual();
     function _construct();
-    function net_Import(net_packet&);
-    function get_ammo_current(boolean) const;
     function getVisible() const;
     function net_Spawn(cse_abstract*);
     function load_config(string);
-    function start_fire();
-    function stop_fire();
-    function test_server_flag(number) const;
-    function getEnabled() const;
-    function start_fire2();
     function net_Export(net_packet&);
+    function get_ammo_current(boolean) const;
+    function Visual();
+    function net_Import(net_packet&);
+    function start_fire();
+    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function stop_fire2();
+    function start_fire2();
+    function getEnabled() const;
+    function stop_fire();
     function use(CGameObject*);
 };
 
@@ -9544,18 +9965,27 @@ C++ class CWeaponRPG7 : CWeaponMagazined {
  property			class_id;
  property			class_name;
  property			cur_fire_mode            (number);
+ property			grenade_launcher_x       (number);
+ property			grenade_launcher_y       (number);
  property			iron_sight_zoom_factor   (number);
  property			item_flags;
  property			item_place;
  property			misfire;
  property			next_state;
  property			queue_size               (number);
+ property			schedule_max;
+ property			schedule_min;
  property			scope_dynamic_zoom       (boolean);
+ property			scope_x                  (number);
+ property			scope_y                  (number);
  property			scrope_zoom_factor       (number);
  property			se_object;
  property			shoot_effector_start     (number);
  property			shot_num;
+ property			silencer_x               (number);
+ property			silencer_y               (number);
  property			state;
+ property			updated_times            (number);
  property			zoom_enabled             (boolean);
  property			zoom_factor              (number);
  property			zoom_mode;
@@ -9563,21 +9993,22 @@ C++ class CWeaponRPG7 : CWeaponMagazined {
     
     CWeaponRPG7 ();
     
-    function Visual();
     function stop_shoothing();
-    function _construct();
-    function net_Import(net_packet&);
-    function stop_fire2();
+    function getEnabled() const;
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
-    function start_fire();
     function load_config(string);
-    function stop_fire();
-    function getEnabled() const;
-    function start_fire2();
     function net_Export(net_packet&);
     function get_ammo_current(boolean) const;
+    function Visual();
+    function net_Import(net_packet&);
+    function start_fire();
+    function stop_fire();
+    function set_schedule(ISheduled*, number, number);
+    function test_server_flag(number) const;
+    function start_fire2();
+    function _construct();
+    function stop_fire2();
     function use(CGameObject*);
 };
 
@@ -9587,18 +10018,27 @@ C++ class CWeaponSVD : CWeaponMagazined {
  property			class_id;
  property			class_name;
  property			cur_fire_mode            (number);
+ property			grenade_launcher_x       (number);
+ property			grenade_launcher_y       (number);
  property			iron_sight_zoom_factor   (number);
  property			item_flags;
  property			item_place;
  property			misfire;
  property			next_state;
  property			queue_size               (number);
+ property			schedule_max;
+ property			schedule_min;
  property			scope_dynamic_zoom       (boolean);
+ property			scope_x                  (number);
+ property			scope_y                  (number);
  property			scrope_zoom_factor       (number);
  property			se_object;
  property			shoot_effector_start     (number);
  property			shot_num;
+ property			silencer_x               (number);
+ property			silencer_y               (number);
  property			state;
+ property			updated_times            (number);
  property			zoom_enabled             (boolean);
  property			zoom_factor              (number);
  property			zoom_mode;
@@ -9606,21 +10046,22 @@ C++ class CWeaponSVD : CWeaponMagazined {
     
     CWeaponSVD ();
     
-    function Visual();
     function stop_shoothing();
-    function _construct();
-    function net_Import(net_packet&);
-    function stop_fire2();
+    function getEnabled() const;
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
-    function start_fire();
     function load_config(string);
-    function stop_fire();
-    function getEnabled() const;
-    function start_fire2();
     function net_Export(net_packet&);
     function get_ammo_current(boolean) const;
+    function Visual();
+    function net_Import(net_packet&);
+    function start_fire();
+    function stop_fire();
+    function set_schedule(ISheduled*, number, number);
+    function test_server_flag(number) const;
+    function start_fire2();
+    function _construct();
+    function stop_fire2();
     function use(CGameObject*);
 };
 
@@ -9630,18 +10071,27 @@ C++ class CWeaponSVU : CWeaponMagazined {
  property			class_id;
  property			class_name;
  property			cur_fire_mode            (number);
+ property			grenade_launcher_x       (number);
+ property			grenade_launcher_y       (number);
  property			iron_sight_zoom_factor   (number);
  property			item_flags;
  property			item_place;
  property			misfire;
  property			next_state;
  property			queue_size               (number);
+ property			schedule_max;
+ property			schedule_min;
  property			scope_dynamic_zoom       (boolean);
+ property			scope_x                  (number);
+ property			scope_y                  (number);
  property			scrope_zoom_factor       (number);
  property			se_object;
  property			shoot_effector_start     (number);
  property			shot_num;
+ property			silencer_x               (number);
+ property			silencer_y               (number);
  property			state;
+ property			updated_times            (number);
  property			zoom_enabled             (boolean);
  property			zoom_factor              (number);
  property			zoom_mode;
@@ -9649,21 +10099,22 @@ C++ class CWeaponSVU : CWeaponMagazined {
     
     CWeaponSVU ();
     
-    function Visual();
     function stop_shoothing();
-    function _construct();
-    function net_Import(net_packet&);
-    function stop_fire2();
+    function getEnabled() const;
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
-    function start_fire();
     function load_config(string);
-    function stop_fire();
-    function getEnabled() const;
-    function start_fire2();
     function net_Export(net_packet&);
     function get_ammo_current(boolean) const;
+    function Visual();
+    function net_Import(net_packet&);
+    function start_fire();
+    function stop_fire();
+    function set_schedule(ISheduled*, number, number);
+    function test_server_flag(number) const;
+    function start_fire2();
+    function _construct();
+    function stop_fire2();
     function use(CGameObject*);
 };
 
@@ -9673,18 +10124,27 @@ C++ class CWeaponShotgun : CWeaponMagazined {
  property			class_id;
  property			class_name;
  property			cur_fire_mode            (number);
+ property			grenade_launcher_x       (number);
+ property			grenade_launcher_y       (number);
  property			iron_sight_zoom_factor   (number);
  property			item_flags;
  property			item_place;
  property			misfire;
  property			next_state;
  property			queue_size               (number);
+ property			schedule_max;
+ property			schedule_min;
  property			scope_dynamic_zoom       (boolean);
+ property			scope_x                  (number);
+ property			scope_y                  (number);
  property			scrope_zoom_factor       (number);
  property			se_object;
  property			shoot_effector_start     (number);
  property			shot_num;
+ property			silencer_x               (number);
+ property			silencer_y               (number);
  property			state;
+ property			updated_times            (number);
  property			zoom_enabled             (boolean);
  property			zoom_factor              (number);
  property			zoom_mode;
@@ -9692,21 +10152,22 @@ C++ class CWeaponShotgun : CWeaponMagazined {
     
     CWeaponShotgun ();
     
-    function Visual();
     function stop_shoothing();
-    function _construct();
-    function net_Import(net_packet&);
-    function stop_fire2();
+    function getEnabled() const;
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
-    function start_fire();
     function load_config(string);
-    function stop_fire();
-    function getEnabled() const;
-    function start_fire2();
     function net_Export(net_packet&);
     function get_ammo_current(boolean) const;
+    function Visual();
+    function net_Import(net_packet&);
+    function start_fire();
+    function stop_fire();
+    function set_schedule(ISheduled*, number, number);
+    function test_server_flag(number) const;
+    function start_fire2();
+    function _construct();
+    function stop_fire2();
     function use(CGameObject*);
 };
 
@@ -9716,18 +10177,27 @@ C++ class CWeaponUSP45 : CWeaponMagazined {
  property			class_id;
  property			class_name;
  property			cur_fire_mode            (number);
+ property			grenade_launcher_x       (number);
+ property			grenade_launcher_y       (number);
  property			iron_sight_zoom_factor   (number);
  property			item_flags;
  property			item_place;
  property			misfire;
  property			next_state;
  property			queue_size               (number);
+ property			schedule_max;
+ property			schedule_min;
  property			scope_dynamic_zoom       (boolean);
+ property			scope_x                  (number);
+ property			scope_y                  (number);
  property			scrope_zoom_factor       (number);
  property			se_object;
  property			shoot_effector_start     (number);
  property			shot_num;
+ property			silencer_x               (number);
+ property			silencer_y               (number);
  property			state;
+ property			updated_times            (number);
  property			zoom_enabled             (boolean);
  property			zoom_factor              (number);
  property			zoom_mode;
@@ -9735,21 +10205,22 @@ C++ class CWeaponUSP45 : CWeaponMagazined {
     
     CWeaponUSP45 ();
     
-    function Visual();
     function stop_shoothing();
-    function _construct();
-    function net_Import(net_packet&);
-    function stop_fire2();
+    function getEnabled() const;
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
-    function start_fire();
     function load_config(string);
-    function stop_fire();
-    function getEnabled() const;
-    function start_fire2();
     function net_Export(net_packet&);
     function get_ammo_current(boolean) const;
+    function Visual();
+    function net_Import(net_packet&);
+    function start_fire();
+    function stop_fire();
+    function set_schedule(ISheduled*, number, number);
+    function test_server_flag(number) const;
+    function start_fire2();
+    function _construct();
+    function stop_fire2();
     function use(CGameObject*);
 };
 
@@ -9759,18 +10230,27 @@ C++ class CWeaponVal : CWeaponMagazined {
  property			class_id;
  property			class_name;
  property			cur_fire_mode            (number);
+ property			grenade_launcher_x       (number);
+ property			grenade_launcher_y       (number);
  property			iron_sight_zoom_factor   (number);
  property			item_flags;
  property			item_place;
  property			misfire;
  property			next_state;
  property			queue_size               (number);
+ property			schedule_max;
+ property			schedule_min;
  property			scope_dynamic_zoom       (boolean);
+ property			scope_x                  (number);
+ property			scope_y                  (number);
  property			scrope_zoom_factor       (number);
  property			se_object;
  property			shoot_effector_start     (number);
  property			shot_num;
+ property			silencer_x               (number);
+ property			silencer_y               (number);
  property			state;
+ property			updated_times            (number);
  property			zoom_enabled             (boolean);
  property			zoom_factor              (number);
  property			zoom_mode;
@@ -9778,21 +10258,22 @@ C++ class CWeaponVal : CWeaponMagazined {
     
     CWeaponVal ();
     
-    function Visual();
     function stop_shoothing();
-    function _construct();
-    function net_Import(net_packet&);
-    function stop_fire2();
+    function getEnabled() const;
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
-    function start_fire();
     function load_config(string);
-    function stop_fire();
-    function getEnabled() const;
-    function start_fire2();
     function net_Export(net_packet&);
     function get_ammo_current(boolean) const;
+    function Visual();
+    function net_Import(net_packet&);
+    function start_fire();
+    function stop_fire();
+    function set_schedule(ISheduled*, number, number);
+    function test_server_flag(number) const;
+    function start_fire2();
+    function _construct();
+    function stop_fire2();
     function use(CGameObject*);
 };
 
@@ -9802,18 +10283,27 @@ C++ class CWeaponVintorez : CWeaponMagazined {
  property			class_id;
  property			class_name;
  property			cur_fire_mode            (number);
+ property			grenade_launcher_x       (number);
+ property			grenade_launcher_y       (number);
  property			iron_sight_zoom_factor   (number);
  property			item_flags;
  property			item_place;
  property			misfire;
  property			next_state;
  property			queue_size               (number);
+ property			schedule_max;
+ property			schedule_min;
  property			scope_dynamic_zoom       (boolean);
+ property			scope_x                  (number);
+ property			scope_y                  (number);
  property			scrope_zoom_factor       (number);
  property			se_object;
  property			shoot_effector_start     (number);
  property			shot_num;
+ property			silencer_x               (number);
+ property			silencer_y               (number);
  property			state;
+ property			updated_times            (number);
  property			zoom_enabled             (boolean);
  property			zoom_factor              (number);
  property			zoom_mode;
@@ -9821,21 +10311,22 @@ C++ class CWeaponVintorez : CWeaponMagazined {
     
     CWeaponVintorez ();
     
-    function Visual();
     function stop_shoothing();
-    function _construct();
-    function net_Import(net_packet&);
-    function stop_fire2();
+    function getEnabled() const;
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
-    function start_fire();
     function load_config(string);
-    function stop_fire();
-    function getEnabled() const;
-    function start_fire2();
     function net_Export(net_packet&);
     function get_ammo_current(boolean) const;
+    function Visual();
+    function net_Import(net_packet&);
+    function start_fire();
+    function stop_fire();
+    function set_schedule(ISheduled*, number, number);
+    function test_server_flag(number) const;
+    function start_fire2();
+    function _construct();
+    function stop_fire2();
     function use(CGameObject*);
 };
 
@@ -9845,18 +10336,27 @@ C++ class CWeaponWalther : CWeaponMagazined {
  property			class_id;
  property			class_name;
  property			cur_fire_mode            (number);
+ property			grenade_launcher_x       (number);
+ property			grenade_launcher_y       (number);
  property			iron_sight_zoom_factor   (number);
  property			item_flags;
  property			item_place;
  property			misfire;
  property			next_state;
  property			queue_size               (number);
+ property			schedule_max;
+ property			schedule_min;
  property			scope_dynamic_zoom       (boolean);
+ property			scope_x                  (number);
+ property			scope_y                  (number);
  property			scrope_zoom_factor       (number);
  property			se_object;
  property			shoot_effector_start     (number);
  property			shot_num;
+ property			silencer_x               (number);
+ property			silencer_y               (number);
  property			state;
+ property			updated_times            (number);
  property			zoom_enabled             (boolean);
  property			zoom_factor              (number);
  property			zoom_mode;
@@ -9864,21 +10364,22 @@ C++ class CWeaponWalther : CWeaponMagazined {
     
     CWeaponWalther ();
     
-    function Visual();
     function stop_shoothing();
-    function _construct();
-    function net_Import(net_packet&);
-    function stop_fire2();
+    function getEnabled() const;
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
-    function start_fire();
     function load_config(string);
-    function stop_fire();
-    function getEnabled() const;
-    function start_fire2();
     function net_Export(net_packet&);
     function get_ammo_current(boolean) const;
+    function Visual();
+    function net_Import(net_packet&);
+    function start_fire();
+    function stop_fire();
+    function set_schedule(ISheduled*, number, number);
+    function test_server_flag(number) const;
+    function start_fire2();
+    function _construct();
+    function stop_fire2();
     function use(CGameObject*);
 };
 
@@ -9886,7 +10387,10 @@ C++ class CZombie : CGameObject {
  property			class_id;
  property			class_name;
  property			item_flags;
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CZombie ();
     
@@ -9895,10 +10399,11 @@ C++ class CZombie : CGameObject {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -9913,7 +10418,10 @@ C++ class CZudaArtefact : CArtefact {
  property			power_restore_speed      (number);
  property			radiation_restore_speed  (number);
  property			satiety_restore_speed    (number);
+ property			schedule_max;
+ property			schedule_min;
  property			se_object;
+ property			updated_times            (number);
     
     CZudaArtefact ();
     
@@ -9922,10 +10430,11 @@ C++ class CZudaArtefact : CArtefact {
     function net_Import(net_packet&);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
-    function test_server_flag(number) const;
+    function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function net_Export(net_packet&);
     function getEnabled() const;
+    function net_Export(net_packet&);
+    function test_server_flag(number) const;
     function use(CGameObject*);
 };
 
@@ -10032,6 +10541,11 @@ C++ class IRenderable {
 };
 
 C++ class ISheduled {
+ property			schedule_max;
+ property			schedule_min;
+ property			updated_times            (number);
+    
+    function set_schedule(ISheduled*, number, number);
 };
 
 C++ class net_packet {
@@ -10421,7 +10935,6 @@ List of the namespaces exported to LUA
      function IsGameTypeSingle();
      function GetTextureInfo(string, string);
      function texture_get_name(CTexture*);
-     function get_torch_obj(game_object*);
      function game_graph();
      function set_global_fov(number);
      function dik_to_bind(number);
@@ -10435,60 +10948,61 @@ List of the namespaces exported to LUA
      function GetFontSmall();
      function user_name();
      function error_log(string);
+     function actor_camera(number);
+     function get_torch_obj(game_object*);
      function GetFontLetterica18Russian();
      function command_line();
      function get_actor_obj();
      function get_hud_fov(number);
-     function xrRender_test_r2_hw();
+     function bind_to_dik(enum EGameActions);
      function getFS();
      function valid_saved_game(string);
+     function set_hud_fov(number);
      function get_console();
-     function engine_object(lua_State*);
      function GetFontGraffiti50Russian();
      function app_ready();
      function GetTextureName(string);
      function texture_to_visual(IRender_Visual*, string);
-     function get_global_fov(number);
      function GetFontDI();
-     function texture_delete(CTexture*);
      function GetFontLetterica16Russian();
      function log(string);
+     function bit_not(number);
      function object_by_id(lua_State*);
      function system_ini();
      function show_condition(ini_file*, string);
+     function ef_storage();
      function get_main_window();
      function texture_load(CTexture*);
      function texture_to_object(game_object*, number, string);
      function get_resource_manager();
      function switch_zoom_osc(boolean);
      function setup_game_icon(number, number, number, number);
+     function cast_ptr_CTexture(lua_State*);
      function GetFontLetterica25();
      function log1(string);
+     function texture_delete(CTexture*);
      function script_object_class_name(lua_State*);
      function GetFontMedium();
+     function bit_xor(number, number);
      function texture_from_object(game_object*, number, number);
-     function set_hud_fov(number);
      function flush();
      function editor();
      function texture_create(string);
      function GetARGB(number, number, number, number);
      function GetFontGraffiti22Russian();
-     function bit_not(number);
-     function find_effector_zi();
      function texture_set_name(CTexture*, string);
+     function find_effector_zi();
      function texture_from_visual(IRender_Visual*, number);
-     function cast_ptr_CTexture(lua_State*);
      function time_global();
      function verify_if_thread_is_running();
-     function bit_xor(number, number);
      function prefetch(string);
+     function get_global_fov(number);
      function script_server_object_version();
+     function engine_object(lua_State*);
      function GetTextureRect(string);
      function get_application();
-     function bind_to_dik(enum EGameActions);
-     function ef_storage();
+     function xrRender_test_r2_hw();
      function texture_unload(CTexture*);
-     function actor_camera(number);
 
      namespace level {
          function add_complex_effector(string, number);

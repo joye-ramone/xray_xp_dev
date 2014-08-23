@@ -621,11 +621,10 @@ int APIENTRY WinMain_impl(HINSTANCE hInstance,
 
 #ifdef LUAICP_COMPAT
 	// alpet: на первом ядре процессора любят сидеть фоновые процессы винды, так что лучше выбрать эксклюзив попытаться 
-	SetThreadAffinityMask		(GetCurrentThread(), 2 + 8 + 16);	
+	SetThreadAffinityMask		(GetCurrentThread(), 2 + 4 + 8);	
 	SetThreadPriority			(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);  // чтобы вытеснить остальных из планировщика винды на занятом ядре
 	SetProcessPriorityBoost		(GetCurrentProcess(), FALSE);
 	SetPriorityClass			(GetCurrentProcess(), HIGH_PRIORITY_CLASS);          // при подвисании это конечно накажет, но есть быстрые клавиши суицида процесса игры. 
-
 #else
 	SetThreadAffinityMask		(GetCurrentThread(),1);
 #endif

@@ -122,7 +122,7 @@ void 			mt_Thread	(void *ptr)	{
 	HANDLE hp = GetCurrentProcess();
 	DWORD af_mask = 0, af_sys_mask = 0;
 	GetProcessAffinityMask(hp, &af_mask, &af_sys_mask);
-	int cc = floor(log2((double)af_mask + 1) / 2);  // count of cores / 2
+	int cc = iFloor(log2((float)af_mask + 1) / 2);  // count of cores / 2
 	af_mask <<= std::min (4, cc);   // на последние ядра
 	SetThreadAffinityMask(ht, af_mask);
 #endif
@@ -263,25 +263,29 @@ void CRenderDevice::Run			()
 				// Release start point - allow thread to run
 				mt_csLeave.Enter			();
 				mt_csEnter.Leave			();
-#ifdef ECO_RENDER
-				static u32 time_frame = 0;
-				u32 time_curr = timeGetTime();
-				u32 time_diff = time_curr - time_frame;
-				time_frame = time_curr;
-				u32 optimal = 10;
-				if ( Device.Paused() ||	IsMainMenuActive() )  
-					optimal = 32;
-
-				if (time_diff < optimal)   // если более 100 кадров в секунду, как в меню например
-					Sleep(optimal - time_diff);				
-#else
-				Sleep(0);				
-#endif // ECO_RENDER
-				
 
 #ifndef DEDICATED_SERVER
 				Statistic->RenderTOTAL_Real.FrameStart	();
 				Statistic->RenderTOTAL_Real.Begin		();
+// дефайн ECO_RENDER лучше определять в свойствах проектов, а не в build_config_defines
+#ifdef ECO_RENDER
+				static CTimer frame_timer; // для более точных измерений времени кадра				
+				u32 optimal = 0;
+				if (Device.Paused() || IsMainMenuActive())	optimal = 30;
+				while (optimal -- > 0)
+				{					
+					u32 time_diff = frame_timer.GetElapsed_ms();
+					if (time_diff < optimal)   // если более 100 кадров в секунду, как в меню например
+					{
+						SleepEx(1, (optimal - time_diff) > 10);	   // попытка обойти разно-платформные особенности	 
+						Statistic->RenderTOTAL.cycles++;      // idle cycles count
+					}
+				}
+				frame_timer.Start();
+#else
+				Sleep(0);
+#endif // ECO_RENDER			
+
 				if (b_is_Active)							{
 					if (Begin())				{
 
@@ -342,7 +346,8 @@ void CRenderDevice::Run			()
 			} else {
 				Sleep		(100);
 			}
-			if (!b_is_Active)	Sleep	(1);
+			if (!b_is_Active)	
+				 Sleep	(1);
         }
     }
 	seqAppEnd.Process		(rp_AppEnd);

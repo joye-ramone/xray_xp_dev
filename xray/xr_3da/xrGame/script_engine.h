@@ -102,3 +102,4 @@ add_to_type_list(CScriptEngine)
 #include "script_engine_inline.h"
 
 extern DLL_API void log_script_error(LPCSTR format, ...);
+extern DLL_API lua_State* game_lua();

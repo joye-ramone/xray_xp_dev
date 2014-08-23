@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: script_actor.cpp
 //	Created 	: 12.08.2014
-//  Modified 	: 14.08.2014
+//  Modified 	: 23.08.2014
 //	Author		: Alexander Petrov
 //	Description : Script Actor (params)
 ////////////////////////////////////////////////////////////////////////////
@@ -177,8 +177,7 @@ void CScriptActor::script_register(lua_State *L)
 			
 			.property("movement",						&get_movement)
 			.property("jump_speed",						&get_jump_speed, &set_jump_speed)					
-			.property("state",							&get_actor_state)			
-			
+			.property("state",							&get_actor_state)						
 			,
 			class_<CActorObject, bases<CActor, CEntityAlive>>("CActor")	// хак с наследованием нужен для переопределения свойств. Luabind не поддерживает property getters override			
 			

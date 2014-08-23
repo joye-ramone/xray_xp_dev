@@ -11,6 +11,10 @@
 IC	CSpaceRestrictor::CSpaceRestrictor		()
 {
 	m_space_restrictor_type = RestrictionSpace::eRestrictorTypeNone;
+#ifdef LUAICP_COMPAT
+	shedule.t_min = 50;
+	shedule.t_max = 900;
+#endif
 }
 
 IC	bool CSpaceRestrictor::actual			() const

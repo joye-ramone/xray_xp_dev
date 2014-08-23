@@ -20,6 +20,8 @@
 ///////////////////////////////////////////////////////////
 BOOL g_bDebugDumpPhysicsStep				=					0;
 
+#pragma optimize("gyt", on)
+
 void CPHMesh ::Create(dSpaceID space, dWorldID world){
 	Geom = dCreateTriList(space, 0, 0);
 	

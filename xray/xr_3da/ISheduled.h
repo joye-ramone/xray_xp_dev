@@ -10,6 +10,7 @@ public:
 		u32		b_locked	:	1;
 	}	shedule;
 
+	u32									updated_times;        // alpet: сколько раз обновлялся объект (для управления нагрузкой).
 #ifdef DEBUG
 	u32									dbg_startframe;
 	u32									dbg_update_shedule;

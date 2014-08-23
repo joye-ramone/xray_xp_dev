@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: derived_client_classes.h
 //	Created 	: 16.08.2014
-//  Modified 	: 16.08.2014
+//  Modified 	: 22.08.2014
 //	Author		: Alexander Petrov
 //	Description : XRay derived client classes script export
 ////////////////////////////////////////////////////////////////////////////
@@ -150,8 +150,18 @@ void CWeaponScript::script_register(lua_State *L)
 			.def_readwrite("zoom_rotate_time"			,			&CWeapon::m_fZoomRotateTime)
 			.def_readwrite("iron_sight_zoom_factor"		,			&CWeapon::m_fIronSightZoomFactor)
 			.def_readwrite("scrope_zoom_factor"			,			&CWeapon::m_fScopeZoomFactor)
+			// переменные для подстройки положения аддонов из скриптов:
+			
+			.def_readwrite("grenade_launcher_x"			,			&CWeapon::m_iGrenadeLauncherX)
+			.def_readwrite("grenade_launcher_y"			,			&CWeapon::m_iGrenadeLauncherY)
+			.def_readwrite("scope_x"					,			&CWeapon::m_iScopeX)
+			.def_readwrite("scope_y"					,			&CWeapon::m_iScopeY)
+			.def_readwrite("silencer_x"					,			&CWeapon::m_iSilencerX)
+			.def_readwrite("silencer_y"					,			&CWeapon::m_iSilencerY)
+
 			.def_readonly("misfire"						,			&CWeapon::bMisfire)
 			.def_readonly("zoom_mode"					,			&CWeapon::m_bZoomMode)
+			
 
 			.property("ammo_elapsed"					,			&CWeapon::GetAmmoElapsed, &CWeapon::SetAmmoElapsed)
 			.def("get_ammo_current"						,			&CWeapon::GetAmmoCurrent)

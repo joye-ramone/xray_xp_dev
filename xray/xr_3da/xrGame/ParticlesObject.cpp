@@ -61,8 +61,15 @@ void CParticlesObject::Init	(LPCSTR p_name, IRender_Sector* S, BOOL bAutoRemove)
 	spatial.sector			= S;
 	
 	// sheduled
+#ifdef LUAICP_COMPAT
+	shedule.t_min				= pSettings->r_u8 ("particles_schedule", "t_min" );
+	shedule.t_max				= pSettings->r_u8 ("particles_schedule", "t_max" );
+	shedule.t_min				= shedule.t_min > 20 ? shedule.t_min : 20;  
+	shedule.t_max				= shedule.t_max > 30 ? shedule.t_max : 30;
+#else
 	shedule.t_min			= 20;
 	shedule.t_max			= 50;
+#endif
 	shedule_register		();
 
 	dwLastTime				= Device.dwTimeGlobal;

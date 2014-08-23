@@ -17,6 +17,10 @@ CPhysicObject::CPhysicObject(void)
 	m_type					=	epotBox;
 	m_mass					=	10.f;
 	m_collision_hit_callback=	NULL;
+#ifdef LUAICP_COMPAT
+	shedule.t_min = 150;
+	shedule.t_max = 1000;
+#endif
 }
 
 CPhysicObject::~CPhysicObject(void)

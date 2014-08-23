@@ -415,8 +415,9 @@ CCar* CScriptGameObject::get_car	()
 {
 	CCar		*car = smart_cast<CCar*>(&object());
 	if (!car) {
-		ai().script_engine().script_log		(ScriptStorage::eLuaMessageTypeError,"CGameObject : cannot access class member get_car!");
-		NODEFAULT;
+		log_script_error("cannot cast %s to CCar ", object().CppClassName());
+		// ai().script_engine().script_log		(ScriptStorage::eLuaMessageTypeError,"CGameObject : cannot access class member get_car!");		
+		// NODEFAULT; 
 	}
 	return car;
 }

@@ -20,6 +20,8 @@
 #include "alife_registry_container.h"
 #include "xrserver.h"
 #include "level_graph.h"
+#include "script_engine.h"
+#include "../lua_tools.h"
 
 #pragma warning(push)
 #pragma warning(disable:4995)
@@ -131,6 +133,18 @@ CSE_Abstract *CALifeSimulatorBase::spawn_item	(LPCSTR section, const Fvector &po
 
 	if (registration)
 		register_object				(dynamic_object,true);
+#ifdef LUAICP_COMPAT
+	if (parent_id < 0xFFFF)
+	{
+		 CSE_Abstract *parent = (CSE_Abstract*) objects().object(parent_id,true);
+		 if (parent && parent->name() && strstr(parent->name(), "physic_"))
+		 {
+			 Msg("!WARN: object with section %-32s spawned into %s", section, parent->name());
+			 Msg(" %s", get_lua_traceback(game_lua(), 1));
+		 }
+			 
+	}
+#endif
 
 	dynamic_object->spawn_supplies	();
 	dynamic_object->on_spawn		();

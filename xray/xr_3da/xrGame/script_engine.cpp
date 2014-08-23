@@ -397,3 +397,8 @@ DLL_API void log_script_error(LPCSTR format, ...)
 
 	ai().script_engine().script_log(ScriptStorage::ELuaMessageType::eLuaMessageTypeError, line_buf);
 }
+ 
+DLL_API lua_State* game_lua()
+{
+	return ai().script_engine().lua();
+}

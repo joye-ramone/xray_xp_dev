@@ -325,7 +325,7 @@ class_<CScriptGameObject> &script_register_game_object3(class_<CScriptGameObject
 		,
 
 		def("script_object_class_name",		&script_object_class_name, raw(_1)),
-		def("engine_object",				&dynamic_engine_object, raw(_1)),
+		def("engine_object",				&dynamic_engine_object, raw(_1)),		
 		def("get_actor_obj",				&Actor)
 	; return instance;
 }

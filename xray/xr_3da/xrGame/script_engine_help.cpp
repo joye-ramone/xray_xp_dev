@@ -10,6 +10,11 @@
 #include "../../Luabind/luabind/detail/class_rep.hpp"
 
 
+static IWriter *dumper = NULL;
+string1024 line_buf;
+
+// дефайн LUABIND_NO_ERROR_CHECKING3 надо включать в config.hpp рядом с LUABIND_NO_ERROR_CHECKING2 
+
 #ifndef LUABIND_NO_ERROR_CHECKING3
 
 #ifndef BOOST_NO_STRINGSTREAM
@@ -17,9 +22,6 @@
 #else
 #	include <strstream>
 #endif
-
-static IWriter *dumper = NULL;
-string1024 line_buf;
 
 // redefinition for fast save
 void OpenDumper()
@@ -61,7 +63,6 @@ void FastMsg (LPCSTR format, ...)
 	}
 
 }
-
 
 xr_string to_string					(luabind::object const& o)
 {
@@ -479,7 +480,7 @@ void print_help							(lua_State *L)
 #else
 void print_help							(lua_State *L)
 {
-	FastMsg					("! Release build doesn't support lua-help :(");
+	Msg					("! Release build doesn't support lua-help :(");
 }
 #endif
 
