@@ -946,6 +946,7 @@ void CApplication::OnEvent(EVENT E, u64 P1, u64 P2)
 
 static	CTimer	phase_timer		;
 extern	ENGINE_API BOOL			g_appLoaded = FALSE;
+extern	ENGINE_API BOOL			g_bootComplete = FALSE;
 
 void CApplication::SetLoadTexture(LPCSTR _name)
 {
@@ -958,6 +959,7 @@ void CApplication::LoadBegin	()
 	if (1==ll_dwReference)	{
 
 		g_appLoaded			= FALSE;
+		g_bootComplete		= FALSE;
 
 #ifndef DEDICATED_SERVER
 		_InitializeFont		(pFontSystem,"ui_font_graffiti19_russian",0);
@@ -976,7 +978,7 @@ void CApplication::LoadBegin	()
 void CApplication::LoadEnd		()
 {
 	ll_dwReference--;
-	if (0==ll_dwReference)		{
+	if (0==ll_dwReference)		{		
 		Msg						("* phase time: %d ms",phase_timer.GetElapsed_ms());
 		Msg						("* phase cmem: %d K", Memory.mem_usage()/1024);
 		Console->Execute		("stat_memory");
@@ -989,6 +991,7 @@ void CApplication::destroy_loading_shaders()
 {
 	hLevelLogo.destroy		();
 	sh_progress.destroy		();
+	g_bootComplete = TRUE;
 //.	::Sound->mute			(false);
 }
 

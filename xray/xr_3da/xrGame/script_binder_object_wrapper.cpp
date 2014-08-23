@@ -56,7 +56,11 @@ bool CScriptBinderObjectWrapper::net_Spawn				(SpawnType DC)
 #ifdef PERF_CHECK
 		SetThreadAffinityMask(GetCurrentThread(), 0x0002);
 #endif
+		Device.Statistic->ScriptBinder.Begin();		
+		Device.Statistic->ScriptBinder_netSpawn.Begin();		
 		result = (luabind::call_member<bool>(this, "net_spawn", DC));
+		Device.Statistic->ScriptBinder_netSpawn.End();
+		Device.Statistic->ScriptBinder.End();		
 	}
 	__finally
 	{
@@ -114,7 +118,9 @@ void CScriptBinderObjectWrapper::shedule_Update			(u32 time_delta)
 		else
 			SetThreadAffinityMask(GetCurrentThread(), 0x0004);
 #endif		
+		Device.Statistic->ScriptBinder.Begin();		
 		luabind::call_member<void>(this, "update", time_delta);
+		Device.Statistic->ScriptBinder.End();		
 	}
 	__finally
 	{

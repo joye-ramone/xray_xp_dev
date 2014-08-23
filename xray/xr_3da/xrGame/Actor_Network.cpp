@@ -42,6 +42,8 @@
 #include "game_cl_base_weapon_usage_statistic.h"
 #include "clsid_game.h"
 
+#include "../x_ray.h" 
+
 #ifdef DEBUG
 #	include "debug_renderer.h"
 #endif
@@ -493,6 +495,8 @@ void	CActor::net_Import_Physic_proceed	( )
 
 BOOL CActor::net_Spawn		(CSE_Abstract* DC)
 {
+	g_pGamePersistent->LoadTitle		("st_actor_netspawn");   // alpet: для отображения дополнительной длительной фазы загрузки, после короткого этапа "Синхронизации"
+	pApp->LoadBegin();
 	m_holder_id				= ALife::_OBJECT_ID(-1);
 	m_feel_touch_characters = 0;
 	m_snd_noise			= 0.0f;
@@ -684,6 +688,8 @@ BOOL CActor::net_Spawn		(CSE_Abstract* DC)
 	{
 		setLocal(FALSE);
 	};
+
+	pApp->LoadEnd();
 	return					TRUE;
 }
 

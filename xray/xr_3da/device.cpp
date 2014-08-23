@@ -87,7 +87,7 @@ void CRenderDevice::End		(void)
 		pApp->load_draw_internal	();
 		if (0==dwPrecacheFrame)
 		{
-			Gamma.Update		();
+			Gamma.Update		();			
 
 			if(precache_light) precache_light->set_active	(false);
 			if(precache_light) precache_light.destroy		();
@@ -268,8 +268,7 @@ void CRenderDevice::Run			()
 				Statistic->RenderTOTAL_Real.FrameStart	();
 				Statistic->RenderTOTAL_Real.Begin		();
 // дефайн ECO_RENDER лучше определ€ть в свойствах проектов, а не в build_config_defines
-#ifdef ECO_RENDER
-				static CTimer frame_timer; // дл€ более точных измерений времени кадра				
+#ifdef ECO_RENDER				
 				u32 optimal = 0;
 				if (Device.Paused() || IsMainMenuActive())	optimal = 30;
 				while (optimal -- > 0)
@@ -280,11 +279,11 @@ void CRenderDevice::Run			()
 						SleepEx(1, (optimal - time_diff) > 10);	   // попытка обойти разно-платформные особенности	 
 						Statistic->RenderTOTAL.cycles++;      // idle cycles count
 					}
-				}
-				frame_timer.Start();
+				}				
 #else
 				Sleep(0);
 #endif // ECO_RENDER			
+				frame_timer.Start();	
 
 				if (b_is_Active)							{
 					if (Begin())				{

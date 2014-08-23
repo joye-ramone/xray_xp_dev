@@ -124,6 +124,9 @@ void CStats::Show()
 		TEST2.FrameEnd				();
 		TEST3.FrameEnd				();
 
+		ScriptBinder.FrameEnd		();
+		ScriptBinder_netSpawn.FrameEnd  ();
+
 		g_SpatialSpace->stat_insert.FrameEnd		();
 		g_SpatialSpace->stat_remove.FrameEnd		();
 		g_SpatialSpacePhysic->stat_insert.FrameEnd	();
@@ -270,6 +273,12 @@ void CStats::Show()
 		F.OutNext	("TEST 1:      %5.1fms, %d",TEST1.result,TEST1.count);
 		F.OutNext	("TEST 2:      %5.1fms, %d",TEST2.result,TEST2.count);
 		F.OutNext	("TEST 3:      %5.1fms, %d",TEST3.result,TEST3.count);
+		F.OutSkip	();
+
+		F.OutSkip	();
+		F.OutNext	("*** SCRIPT BINDER:  %5.1fms",			ScriptBinder.result);
+		F.OutNext	("  net_spawn:  %5.1fms",				ScriptBinder_netSpawn.result);
+
 #ifdef DEBUG_MEMORY_MANAGER
 		F.OutSkip	();
 		F.OutNext	("str: cmp[%3d], dock[%3d], qpc[%3d]",Memory.stat_strcmp,Memory.stat_strdock,CPU::qpc_counter);
@@ -409,6 +418,9 @@ void CStats::Show()
 		TEST1.FrameStart			();
 		TEST2.FrameStart			();
 		TEST3.FrameStart			();
+
+		ScriptBinder.FrameStart		();
+		ScriptBinder_netSpawn.FrameStart ();
 
 		g_SpatialSpace->stat_insert.FrameStart		();
 		g_SpatialSpace->stat_remove.FrameStart		();

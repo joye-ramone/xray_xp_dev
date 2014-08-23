@@ -86,6 +86,10 @@ public:
 	shared_str	eval_line_2;
 	shared_str	eval_line_3;
 
+	CStatTimer  ScriptBinder;
+	CStatTimer  ScriptBinder_netSpawn;
+
+
 	void			Show			(void);
 	virtual void 	OnRender		();
 	void			OnDeviceCreate	(void);

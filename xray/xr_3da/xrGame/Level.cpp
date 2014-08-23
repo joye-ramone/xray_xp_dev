@@ -52,6 +52,7 @@
 #endif
 
 ENGINE_API bool g_dedicated_server;
+ENGINE_API BOOL	g_bootComplete;
 
 extern BOOL	g_bDebugDumpPhysicsStep;
 
@@ -396,10 +397,11 @@ void CLevel::ProcessGameEvents		()
 			Msg("- d[%d],ts[%d] -- E[svT=%d],[evT=%d]",Device.dwTimeGlobal,timeServer(),svT,game_events->queue.begin()->timestamp);
 		*/
 
-		while	(game_events->available(svT))
+		while	(game_events->available(svT)) 
 		{
 			u16 ID,dest,type;
 			game_events->get	(ID,dest,type,P);
+			
 
 			switch (ID)
 			{
@@ -417,8 +419,17 @@ void CLevel::ProcessGameEvents		()
 				{
 					VERIFY(0);
 				}break;
-			}			
+			}		
+#ifdef   SPAWN_ANTITFREEZE
+			if (g_bootComplete && Device.frame_elapsed() > 40) // alpet: позволит плавнее выводить объекты в онлайн, без заметных фризов
+			{
+				Msg("* ProcessGameEvents, loop breaked by timeout. Events rest = %d", game_events->queue.size());
+				break;
+			}
+#endif
 		}
+
+		
 	}
 	if (OnServer() && GameID()!= GAME_SINGLE)
 		Game().m_WeaponUsageStatistic->Send_Check_Respond();

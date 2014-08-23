@@ -288,7 +288,12 @@ public:
 
 	virtual BOOL			net_Spawn			(CSE_Abstract* data)
 	{
-		return			(luabind::call_member<bool>(this,"net_Spawn",data));
+		Device.Statistic->ScriptBinder.Begin();		
+		Device.Statistic->ScriptBinder_netSpawn.Begin();
+		BOOL result = (luabind::call_member<bool>(this,"net_Spawn",data));
+		Device.Statistic->ScriptBinder_netSpawn.End();
+		Device.Statistic->ScriptBinder.End();
+		return	result;
 	}
 
 	static	bool			net_Spawn_static	(CGameObject *self, CSE_Abstract *abstract)

@@ -100,7 +100,16 @@ void CGroupHierarchyHolder::unregister_in_group			(CEntity *member)
 	VERIFY						(member);
 	MEMBER_REGISTRY::iterator	I = std::find(m_members.begin(),m_members.end(),member);
 	VERIFY3						(I != m_members.end(),"Specified group member cannot be found",*member->cName());
-	m_members.erase				(I);
+	__try
+	{
+		Msg("DEBUG: m_members.erase, member = %p ", member);		
+		m_members.erase(I); 
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER)
+	{
+		Msg(" m_members.erase(I) produce unhandled exception. ");
+		LogStackTrace("Oops!");
+	}
 }
 
 void CGroupHierarchyHolder::unregister_in_squad			(CEntity *member)
