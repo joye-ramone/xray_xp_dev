@@ -14,6 +14,7 @@ void	CStatTimer::FrameStart	()
 {
 	accum	= 0;
 	count	= 0;
+	cycles  = 0;
 }
 void	CStatTimer::FrameEnd	()
 {
