@@ -35,6 +35,7 @@
 #define LUABIND_DONT_COPY_STRINGS
 
 #include "../xrCore/xrCore.h"
+#include "../../build_config_defines.h"
 #include <boost/config.hpp>
 
 //namespace std {
@@ -90,11 +91,12 @@ namespace std
 	#define LUABIND_MAX_BASES 1
 #endif
 
-// LUABIND_NO_ERROR_CHECKING
-#ifndef LUAICP_COMPAT
-#define LUAICP_COMPAT
+#if _SECURE_SCL > 0 || _ITERATOR_DEBUG_LEVEL > 0
+#error "Это не работает в X-Ray!"
 #endif
 
+
+// LUABIND_NO_ERROR_CHECKING
 #define LUABIND_NO_ERROR_CHECKING2
 // define this to remove all error checks
 // this will improve performance and memory

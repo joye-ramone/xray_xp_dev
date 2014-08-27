@@ -69,6 +69,7 @@
 
 #include <luabind/prefix.hpp>
 #include <luabind/config.hpp>
+#include <../../build_config_defines.h>
 
 #include <string>
 #include <map>
@@ -118,7 +119,6 @@
 #pragma warning(push)
 #pragma warning(disable: 4355)
 #endif
-
 
 namespace luabind
 {	
