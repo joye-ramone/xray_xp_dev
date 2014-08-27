@@ -433,6 +433,20 @@ void __cdecl xrDebug::fatal(const char *file, int line, const char *function, co
 	backend		("fatal error","<no expression>",buffer,0,file,line,function,ignore_always);
 }
 
+void xrDebug::verify_error		(LPCSTR e1, LPCSTR file, int line, LPCSTR function)
+{	Msg("!VERIFY_FAILED: %s[%d] {%s}  %s", file, line, function, e1); }
+void xrDebug::verify_error		(LPCSTR e1, const std::string &e2, LPCSTR file, int line, LPCSTR function)
+{	Msg("!VERIFY_FAILED: %s[%d] {%s}  %s %s", file, line, function, e1, e2.c_str()); }
+void xrDebug::verify_error		(LPCSTR e1, LPCSTR e2, LPCSTR file, int line, LPCSTR function)
+{	Msg("!VERIFY_FAILED: %s[%d] {%s}  %s %s", file, line, function, e1, e2); }
+void xrDebug::verify_error		(LPCSTR e1, LPCSTR e2, LPCSTR e3, LPCSTR file, int line, LPCSTR function)
+{	Msg("!VERIFY_FAILED: %s[%d] {%s}  %s %s %s", file, line, function, e1, e2, e3); }
+void xrDebug::verify_error		(LPCSTR e1, LPCSTR e2, LPCSTR e3, LPCSTR e4, LPCSTR file, int line, LPCSTR function)
+{	Msg("!VERIFY_FAILED: %s[%d] {%s}  %s %s %s %s", file, line, function, e1, e2, e3, e4); }
+void xrDebug::verify_error		(LPCSTR e1, LPCSTR e2, LPCSTR e3, LPCSTR e4, LPCSTR e5, LPCSTR file, int line, LPCSTR function)
+{	Msg("!VERIFY_FAILED: %s[%d] {%s}  %s %s %s %s %s", file, line, function, e1, e2, e3, e4, e5); }
+
+
 int out_of_memory_handler	(size_t size)
 {
 	Memory.mem_compact		();

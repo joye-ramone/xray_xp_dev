@@ -146,7 +146,7 @@ CUIMainIngameWnd::CUIMainIngameWnd()
 	m_artefactPanel				= xr_new<CUIArtefactPanel>();
 	m_pMPChatWnd				= NULL;
 	m_pMPLogWnd					= NULL;	
-#ifdef LUAICP_COMPAT
+#ifdef SCRIPT_ICONS_CONTROL
 	warn_icon_list[ewiWeaponJammed]	= &UIWeaponJammedIcon;	
 	warn_icon_list[ewiRadiation]	= &UIRadiaitionIcon;
 	warn_icon_list[ewiWound]		= &UIWoundIcon;
@@ -1043,13 +1043,12 @@ void CUIMainIngameWnd::script_register(lua_State *L)
 		[
 
 			class_<CUIMainIngameWnd, CUIWindow>("CUIMainIngameWnd")
-			.def("GetStatic",		 &GetStaticRaw, raw(_2))
-			,
+			.def("GetStatic",		 &GetStaticRaw, raw(_2)),
 			// .def("turn_off_icon", &TurnOffWarningIcon),
-			def("get_main_window",   &GetMainIngameWindow), // get_mainingame_window better??
+			def("get_main_window",   &GetMainIngameWindow) // get_mainingame_window better??
 #ifdef SCRIPT_ICONS_CONTROL
-			def("setup_game_icon", &SetupGameIcon)
-#endif
+			, def("setup_game_icon", &SetupGameIcon)
+#endif			
 		];
 
 }

@@ -1362,10 +1362,23 @@ C++ class global_flags {
     const FdropManual = 1;
     const Fruck = 16;
     const Fuseful_for_NPC = 256;
+    const flCanSave = 512;
+    const flCheckForSeparator = 4096;
     const flExplodEventSent = 2;
     const flExploded = 8;
     const flExploding = 1;
+    const flGroupBehaviour = 256;
+    const flInteractive = 8;
+    const flOfflineNoMove = 64;
     const flReadyToExplode = 4;
+    const flSwitchOffline = 4;
+    const flSwitchOnline = 2;
+    const flUseSmartTerrains = 2048;
+    const flUseSwitches = 1;
+    const flUsedAI_Locations = 128;
+    const flUsefulForAI = 32;
+    const flVisibleForAI = 16;
+    const flVisibleForMap = 1024;
     
 };
 
@@ -2114,7 +2127,7 @@ C++ class Fbox {
 C++ class CAI_Bloodsucker : CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -2138,7 +2151,7 @@ C++ class CAI_Bloodsucker : CGameObject {
 C++ class CAI_Boar : CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -2162,7 +2175,7 @@ C++ class CAI_Boar : CGameObject {
 C++ class CAI_Dog : CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -2186,7 +2199,7 @@ C++ class CAI_Dog : CGameObject {
 C++ class CAI_Flesh : CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -2210,7 +2223,7 @@ C++ class CAI_Flesh : CGameObject {
 C++ class CAI_PseudoDog : CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -2234,7 +2247,7 @@ C++ class CAI_PseudoDog : CGameObject {
 C++ class CAI_Stalker : CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -2258,7 +2271,7 @@ C++ class CAI_Stalker : CGameObject {
 C++ class CAI_Trader : CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -2390,7 +2403,7 @@ C++ class CActorBase : CInventoryOwner,CGameObject {
  property			hit_slowmo               (number);
  property			immunities;
  property			inventory;
- property			item_flags;
+ property			item_flags               (number);
  property			jump_speed               (number);
  property			money                    (number);
  property			movement;
@@ -2541,7 +2554,7 @@ C++ class CActor : CActorBase,CEntityAlive {
  property			hit_slowmo               (number);
  property			immunities;
  property			inventory;
- property			item_flags;
+ property			item_flags               (number);
  property			jump_speed               (number);
  property			money                    (number);
  property			movement;
@@ -2583,8 +2596,13 @@ C++ class CArtefact : CInventoryItemObject {
  property			can_spawn_zone           (boolean);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			health_restore_speed     (number);
- property			item_flags;
+ property			inv_weight               (number);
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			power_restore_speed      (number);
  property			radiation_restore_speed  (number);
@@ -2592,6 +2610,8 @@ C++ class CArtefact : CInventoryItemObject {
  property			schedule_max;
  property			schedule_min;
  property			se_object;
+ property			slot                     (number);
+ property			slots                    (object);
  property			updated_times            (number);
     
     function Visual();
@@ -2618,7 +2638,7 @@ C++ class CBaseMonster : CInventoryOwner,CEntityAlive {
  property			damaged                  (boolean);
  property			grownlig                 (boolean);
  property			inventory;
- property			item_flags;
+ property			item_flags               (number);
  property			money                    (number);
  property			radiation                (number);
  property			raw_money                (number);
@@ -2650,8 +2670,13 @@ C++ class CBastArtefact : CArtefact {
  property			can_spawn_zone           (boolean);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			health_restore_speed     (number);
- property			item_flags;
+ property			inv_weight               (number);
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			power_restore_speed      (number);
  property			radiation_restore_speed  (number);
@@ -2659,6 +2684,8 @@ C++ class CBastArtefact : CArtefact {
  property			schedule_max;
  property			schedule_min;
  property			se_object;
+ property			slot                     (number);
+ property			slots                    (object);
  property			updated_times            (number);
     
     CBastArtefact ();
@@ -2681,8 +2708,13 @@ C++ class CBlackDrops : CArtefact {
  property			can_spawn_zone           (boolean);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			health_restore_speed     (number);
- property			item_flags;
+ property			inv_weight               (number);
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			power_restore_speed      (number);
  property			radiation_restore_speed  (number);
@@ -2690,6 +2722,8 @@ C++ class CBlackDrops : CArtefact {
  property			schedule_max;
  property			schedule_min;
  property			se_object;
+ property			slot                     (number);
+ property			slots                    (object);
  property			updated_times            (number);
     
     CBlackDrops ();
@@ -2712,8 +2746,13 @@ C++ class CBlackGraviArtefact : CArtefact {
  property			can_spawn_zone           (boolean);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			health_restore_speed     (number);
- property			item_flags;
+ property			inv_weight               (number);
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			power_restore_speed      (number);
  property			radiation_restore_speed  (number);
@@ -2721,6 +2760,8 @@ C++ class CBlackGraviArtefact : CArtefact {
  property			schedule_max;
  property			schedule_min;
  property			se_object;
+ property			slot                     (number);
+ property			slots                    (object);
  property			updated_times            (number);
     
     CBlackGraviArtefact ();
@@ -2741,10 +2782,18 @@ C++ class CBlackGraviArtefact : CArtefact {
 C++ class CBlend {
 };
 
+C++ class CBoneInstance {
+ property			mRenderTransform;
+ property			mTransform;
+    
+    function get_param(number);
+    function set_param(number, number);
+};
+
 C++ class CBurer : CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -2789,7 +2838,7 @@ C++ class CCar : CGameObject,holder {
     
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -2839,7 +2888,7 @@ C++ class CCar : CGameObject,holder {
 C++ class CCat : CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -2863,7 +2912,7 @@ C++ class CCat : CGameObject {
 C++ class CChimera : CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -2909,7 +2958,7 @@ C++ class CConsole {
 C++ class CController : CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -2933,6 +2982,50 @@ C++ class CController : CGameObject {
 C++ class cover_point {
     function level_vertex_id() const;
     function position() const;
+};
+
+C++ class CCustomOutfit : CInventoryItemObject {
+ property			additional_inventory_weight(number);
+ property			additional_inventory_weight2(number);
+ property			burn_protection          (number);
+ property			chemical_burn_protection (number);
+ property			class_id;
+ property			class_name;
+ property			cost                     (number);
+ property			explosion_protection     (number);
+ property			fire_wound_protection    (number);
+ property			inv_weight               (number);
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
+ property			item_place;
+ property			physic_strike_protection (number);
+ property			power_loss               (number);
+ property			radiation_protection     (number);
+ property			schedule_max;
+ property			schedule_min;
+ property			se_object;
+ property			shock_protection         (number);
+ property			slot                     (number);
+ property			slots                    (object);
+ property			strike_protection        (number);
+ property			telepatic_protection     (number);
+ property			updated_times            (number);
+ property			wound_2_protection       (number);
+ property			wound_protection         (number);
+    
+    function Visual();
+    function _construct();
+    function net_Import(net_packet&);
+    function getVisible() const;
+    function net_Spawn(cse_abstract*);
+    function set_schedule(ISheduled*, number, number);
+    function load_config(string);
+    function test_server_flag(number) const;
+    function net_Export(net_packet&);
+    function getEnabled() const;
+    function use(CGameObject*);
 };
 
 C++ class danger_object {
@@ -2969,8 +3062,13 @@ C++ class CDummyArtefact : CArtefact {
  property			can_spawn_zone           (boolean);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			health_restore_speed     (number);
- property			item_flags;
+ property			inv_weight               (number);
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			power_restore_speed      (number);
  property			radiation_restore_speed  (number);
@@ -2978,6 +3076,8 @@ C++ class CDummyArtefact : CArtefact {
  property			schedule_max;
  property			schedule_min;
  property			se_object;
+ property			slot                     (number);
+ property			slots                    (object);
  property			updated_times            (number);
     
     CDummyArtefact ();
@@ -3008,13 +3108,20 @@ C++ class cef_storage {
 
 C++ class CEatableItem : CInventoryItem {
  property			class_name;
+ property			cost                     (number);
  property			eat_health               (number);
  property			eat_max_power            (number);
  property			eat_portions_num         (number);
  property			eat_power                (number);
  property			eat_radiation            (number);
  property			eat_satiety              (number);
+ property			inv_weight               (number);
+ property			item_condition           (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
+ property			slot                     (number);
+ property			slots                    (object);
  property			wounds_heal_perc         (number);
     
 };
@@ -3022,17 +3129,24 @@ C++ class CEatableItem : CInventoryItem {
 C++ class CEatableItemObject : CEatableItem,CGameObject {
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			eat_health               (number);
  property			eat_max_power            (number);
  property			eat_portions_num         (number);
  property			eat_power                (number);
  property			eat_radiation            (number);
  property			eat_satiety              (number);
- property			item_flags;
+ property			inv_weight               (number);
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			schedule_max;
  property			schedule_min;
  property			se_object;
+ property			slot                     (number);
+ property			slots                    (object);
  property			updated_times            (number);
  property			wounds_heal_perc         (number);
     
@@ -3072,8 +3186,13 @@ C++ class CElectricBall : CArtefact {
  property			can_spawn_zone           (boolean);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			health_restore_speed     (number);
- property			item_flags;
+ property			inv_weight               (number);
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			power_restore_speed      (number);
  property			radiation_restore_speed  (number);
@@ -3081,6 +3200,8 @@ C++ class CElectricBall : CArtefact {
  property			schedule_max;
  property			schedule_min;
  property			se_object;
+ property			slot                     (number);
+ property			slots                    (object);
  property			updated_times            (number);
     
     CElectricBall ();
@@ -3101,7 +3222,7 @@ C++ class CElectricBall : CArtefact {
 C++ class CEntity : CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -3124,7 +3245,7 @@ C++ class CEntityAlive : CEntity {
  property			class_id;
  property			class_name;
  property			condition;
- property			item_flags;
+ property			item_flags               (number);
  property			radiation                (number);
  property			schedule_max;
  property			schedule_min;
@@ -3190,6 +3311,7 @@ C++ class CF1 : CGrenade {
  property			blast_r                  (number);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			current_parent           (number);
  property			destroy_time             (number);
  property			destroy_time_max         (number);
@@ -3202,7 +3324,11 @@ C++ class CF1 : CGrenade {
  property			frags_hit                (number);
  property			frags_hit_impulse        (number);
  property			frags_r                  (number);
- property			item_flags;
+ property			inv_weight               (number);
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			light_color;
  property			light_range              (number);
@@ -3210,6 +3336,8 @@ C++ class CF1 : CGrenade {
  property			schedule_max;
  property			schedule_min;
  property			se_object;
+ property			slot                     (number);
+ property			slots                    (object);
  property			updated_times            (number);
     
     CF1 ();
@@ -3233,8 +3361,13 @@ C++ class CFadedBall : CArtefact {
  property			can_spawn_zone           (boolean);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			health_restore_speed     (number);
- property			item_flags;
+ property			inv_weight               (number);
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			power_restore_speed      (number);
  property			radiation_restore_speed  (number);
@@ -3242,6 +3375,8 @@ C++ class CFadedBall : CArtefact {
  property			schedule_max;
  property			schedule_min;
  property			se_object;
+ property			slot                     (number);
+ property			slots                    (object);
  property			updated_times            (number);
     
     CFadedBall ();
@@ -3262,7 +3397,7 @@ C++ class CFadedBall : CArtefact {
 C++ class CFracture : CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -3288,8 +3423,13 @@ C++ class CGalantineArtefact : CArtefact {
  property			can_spawn_zone           (boolean);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			health_restore_speed     (number);
- property			item_flags;
+ property			inv_weight               (number);
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			power_restore_speed      (number);
  property			radiation_restore_speed  (number);
@@ -3297,6 +3437,8 @@ C++ class CGalantineArtefact : CArtefact {
  property			schedule_max;
  property			schedule_min;
  property			se_object;
+ property			slot                     (number);
+ property			slots                    (object);
  property			updated_times            (number);
     
     CGalantineArtefact ();
@@ -3332,7 +3474,7 @@ C++ class CGameGraph {
 C++ class CGameObject : DLL_Pure,ISheduled,ICollidable,IRenderable {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -3373,8 +3515,13 @@ C++ class CGraviArtefact : CArtefact {
  property			can_spawn_zone           (boolean);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			health_restore_speed     (number);
- property			item_flags;
+ property			inv_weight               (number);
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			power_restore_speed      (number);
  property			radiation_restore_speed  (number);
@@ -3382,6 +3529,8 @@ C++ class CGraviArtefact : CArtefact {
  property			schedule_max;
  property			schedule_min;
  property			se_object;
+ property			slot                     (number);
+ property			slots                    (object);
  property			updated_times            (number);
     
     CGraviArtefact ();
@@ -3405,6 +3554,7 @@ C++ class CGrenade : explosive,CMissile {
  property			blast_r                  (number);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			current_parent           (number);
  property			destroy_time             (number);
  property			destroy_time_max         (number);
@@ -3417,7 +3567,11 @@ C++ class CGrenade : explosive,CMissile {
  property			frags_hit                (number);
  property			frags_hit_impulse        (number);
  property			frags_r                  (number);
- property			item_flags;
+ property			inv_weight               (number);
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			light_color;
  property			light_range              (number);
@@ -3425,6 +3579,8 @@ C++ class CGrenade : explosive,CMissile {
  property			schedule_max;
  property			schedule_min;
  property			se_object;
+ property			slot                     (number);
+ property			slots                    (object);
  property			updated_times            (number);
     
     function Visual();
@@ -3444,7 +3600,7 @@ C++ class CGrenade : explosive,CMissile {
 C++ class CHairsZone : CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -3468,7 +3624,7 @@ C++ class CHairsZone : CGameObject {
 C++ class hanging_lamp : CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -3520,7 +3676,7 @@ C++ class CHelicopter : CGameObject {
     
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			m_dead;
  property			m_exploded;
  property			m_flame_started;
@@ -3620,22 +3776,39 @@ C++ class CInventory {
  property			target;
  property			total_weight;
     
+    function to_slot(CInventory*, lua_State*);
+    function to_belt(CInventory*, lua_State*);
+    function to_ruck(CInventory*, lua_State*);
 };
 
 C++ class CInventoryItem {
  property			class_name;
+ property			cost                     (number);
+ property			inv_weight               (number);
+ property			item_condition           (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
+ property			slot                     (number);
+ property			slots                    (object);
     
 };
 
 C++ class CInventoryItemObject : CInventoryItem,CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			cost                     (number);
+ property			inv_weight               (number);
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			schedule_max;
  property			schedule_min;
  property			se_object;
+ property			slot                     (number);
+ property			slots                    (object);
  property			updated_times            (number);
     
     function Visual();
@@ -3663,7 +3836,10 @@ C++ class CInventoryOwner {
 };
 
 C++ class CKinematicsAnimated {
+    function LL_BoneCount();
+    function LL_GetBoneInstance(number);
     function PlayCycle(CKinematicsAnimated*, string);
+    function LL_BoneID(CKinematicsAnimated*, string);
 };
 
 C++ class CLevelGraph {
@@ -3722,8 +3898,13 @@ C++ class CMercuryBall : CArtefact {
  property			can_spawn_zone           (boolean);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			health_restore_speed     (number);
- property			item_flags;
+ property			inv_weight               (number);
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			power_restore_speed      (number);
  property			radiation_restore_speed  (number);
@@ -3731,6 +3912,8 @@ C++ class CMercuryBall : CArtefact {
  property			schedule_max;
  property			schedule_min;
  property			se_object;
+ property			slot                     (number);
+ property			slots                    (object);
  property			updated_times            (number);
     
     CMercuryBall ();
@@ -3751,7 +3934,7 @@ C++ class CMercuryBall : CArtefact {
 C++ class CMincer : CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -3775,13 +3958,20 @@ C++ class CMincer : CGameObject {
 C++ class CMissile : CInventoryItemObject {
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			destroy_time             (number);
  property			destroy_time_max         (number);
- property			item_flags;
+ property			inv_weight               (number);
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			schedule_max;
  property			schedule_min;
  property			se_object;
+ property			slot                     (number);
+ property			slots                    (object);
  property			updated_times            (number);
     
     function Visual();
@@ -3800,7 +3990,7 @@ C++ class CMissile : CInventoryItemObject {
 C++ class CMosquitoBald : CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -3892,7 +4082,7 @@ C++ class CPhraseScript {
 C++ class CPhysicObject : CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -3971,7 +4161,7 @@ C++ class physics_shell {
 C++ class CPoltergeist : CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -4002,7 +4192,7 @@ C++ class property_storage {
 C++ class CPseudoGigant : CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -4026,7 +4216,7 @@ C++ class CPseudoGigant : CGameObject {
 C++ class CPsyDog : CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -4050,7 +4240,7 @@ C++ class CPsyDog : CGameObject {
 C++ class CPsyDogPhantom : CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -4080,6 +4270,7 @@ C++ class CRGD5 : CGrenade {
  property			blast_r                  (number);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			current_parent           (number);
  property			destroy_time             (number);
  property			destroy_time_max         (number);
@@ -4092,7 +4283,11 @@ C++ class CRGD5 : CGrenade {
  property			frags_hit                (number);
  property			frags_hit_impulse        (number);
  property			frags_r                  (number);
- property			item_flags;
+ property			inv_weight               (number);
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			light_color;
  property			light_range              (number);
@@ -4100,6 +4295,8 @@ C++ class CRGD5 : CGrenade {
  property			schedule_max;
  property			schedule_min;
  property			se_object;
+ property			slot                     (number);
+ property			slots                    (object);
  property			updated_times            (number);
     
     CRGD5 ();
@@ -4133,6 +4330,7 @@ C++ class render_device {
  property			width;
     
     function is_paused(render_device*);
+    function frame_elapsed();
     function get_fov();
     function time_global(const render_device*);
     function pause(render_device*, boolean);
@@ -4148,8 +4346,13 @@ C++ class CRustyHairArtefact : CArtefact {
  property			can_spawn_zone           (boolean);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			health_restore_speed     (number);
- property			item_flags;
+ property			inv_weight               (number);
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			power_restore_speed      (number);
  property			radiation_restore_speed  (number);
@@ -4157,6 +4360,8 @@ C++ class CRustyHairArtefact : CArtefact {
  property			schedule_max;
  property			schedule_min;
  property			se_object;
+ property			slot                     (number);
+ property			slots                    (object);
  property			updated_times            (number);
     
     CRustyHairArtefact ();
@@ -4176,6 +4381,10 @@ C++ class CRustyHairArtefact : CArtefact {
 
 C++ class cse_anomalous_zone : cse_custom_zone {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -4217,6 +4426,10 @@ C++ class cse_anomalous_zone : cse_custom_zone {
 
 C++ class cse_alife_car : cse_alife_dynamic_object_visual,cse_ph_skeleton {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -4258,6 +4471,10 @@ C++ class cse_alife_car : cse_alife_dynamic_object_visual,cse_ph_skeleton {
 C++ class cse_alife_creature_abstract : cse_alife_dynamic_object_visual {
  property			group                    (number);
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -4307,6 +4524,10 @@ C++ class cse_alife_creature_abstract : cse_alife_dynamic_object_visual {
 C++ class cse_alife_creature_actor : cse_alife_creature_abstract,cse_alife_trader_abstract,cse_ph_skeleton {
  property			group                    (number);
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -4360,6 +4581,10 @@ C++ class cse_alife_creature_actor : cse_alife_creature_abstract,cse_alife_trade
 C++ class cse_alife_creature_crow : cse_alife_creature_abstract {
  property			group                    (number);
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -4409,6 +4634,10 @@ C++ class cse_alife_creature_crow : cse_alife_creature_abstract {
 C++ class cse_alife_creature_phantom : cse_alife_creature_abstract {
  property			group                    (number);
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -4457,6 +4686,10 @@ C++ class cse_alife_creature_phantom : cse_alife_creature_abstract {
 
 C++ class cse_custom_zone : cse_alife_dynamic_object,cse_shape {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -4497,6 +4730,10 @@ C++ class cse_custom_zone : cse_alife_dynamic_object,cse_shape {
 
 C++ class cse_alife_dynamic_object : cse_alife_object {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -4537,6 +4774,10 @@ C++ class cse_alife_dynamic_object : cse_alife_object {
 
 C++ class cse_alife_dynamic_object_visual : cse_alife_dynamic_object,cse_visual {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -4600,6 +4841,10 @@ C++ class cse_alife_group_abstract {
 
 C++ class cse_alife_helicopter : cse_alife_dynamic_object_visual,cse_motion,cse_ph_skeleton {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -4641,6 +4886,10 @@ C++ class cse_alife_helicopter : cse_alife_dynamic_object_visual,cse_motion,cse_
 C++ class cse_alife_human_abstract : cse_alife_trader_abstract,cse_alife_monster_abstract {
  property			group                    (number);
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_smart_terrain_id       (number);
@@ -4703,6 +4952,10 @@ C++ class cse_alife_human_abstract : cse_alife_trader_abstract,cse_alife_monster
 C++ class cse_alife_human_stalker : cse_alife_human_abstract,cse_ph_skeleton {
  property			group                    (number);
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_smart_terrain_id       (number);
@@ -4767,6 +5020,10 @@ C++ class cse_alife_inventory_item {
 
 C++ class cse_alife_item : cse_alife_dynamic_object_visual,cse_alife_inventory_item {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -4807,6 +5064,10 @@ C++ class cse_alife_item : cse_alife_dynamic_object_visual,cse_alife_inventory_i
 
 C++ class cse_alife_item_ammo : cse_alife_item {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -4848,6 +5109,10 @@ C++ class cse_alife_item_ammo : cse_alife_item {
 
 C++ class cse_alife_item_artefact : cse_alife_item {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -4889,6 +5154,10 @@ C++ class cse_alife_item_artefact : cse_alife_item {
 
 C++ class cse_alife_item_bolt : cse_alife_item {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -4930,6 +5199,10 @@ C++ class cse_alife_item_bolt : cse_alife_item {
 
 C++ class cse_alife_item_custom_outfit : cse_alife_item {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -4971,6 +5244,10 @@ C++ class cse_alife_item_custom_outfit : cse_alife_item {
 
 C++ class cse_alife_item_detector : cse_alife_item {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -5012,6 +5289,10 @@ C++ class cse_alife_item_detector : cse_alife_item {
 
 C++ class cse_alife_item_document : cse_alife_item {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -5053,6 +5334,10 @@ C++ class cse_alife_item_document : cse_alife_item {
 
 C++ class cse_alife_item_explosive : cse_alife_item {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -5094,6 +5379,10 @@ C++ class cse_alife_item_explosive : cse_alife_item {
 
 C++ class cse_alife_item_grenade : cse_alife_item {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -5135,6 +5424,10 @@ C++ class cse_alife_item_grenade : cse_alife_item {
 
 C++ class cse_alife_item_pda : cse_alife_item {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -5176,6 +5469,10 @@ C++ class cse_alife_item_pda : cse_alife_item {
 
 C++ class cse_alife_item_torch : cse_alife_item {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -5217,6 +5514,10 @@ C++ class cse_alife_item_torch : cse_alife_item {
 
 C++ class cse_alife_item_weapon : cse_alife_item {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -5258,6 +5559,10 @@ C++ class cse_alife_item_weapon : cse_alife_item {
 
 C++ class cse_alife_item_weapon_magazined : cse_alife_item_weapon {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -5299,6 +5604,10 @@ C++ class cse_alife_item_weapon_magazined : cse_alife_item_weapon {
 
 C++ class cse_alife_item_weapon_magazined_w_gl : cse_alife_item_weapon_magazined {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -5340,6 +5649,10 @@ C++ class cse_alife_item_weapon_magazined_w_gl : cse_alife_item_weapon_magazined
 
 C++ class cse_alife_item_weapon_shotgun : cse_alife_item_weapon {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -5381,6 +5694,10 @@ C++ class cse_alife_item_weapon_shotgun : cse_alife_item_weapon {
 
 C++ class cse_alife_level_changer : cse_alife_space_restrictor {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -5422,6 +5739,10 @@ C++ class cse_alife_level_changer : cse_alife_space_restrictor {
 C++ class cse_alife_monster_abstract : cse_alife_creature_abstract,cse_alife_schedulable {
  property			group                    (number);
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_smart_terrain_id       (number);
@@ -5479,6 +5800,10 @@ C++ class cse_alife_monster_abstract : cse_alife_creature_abstract,cse_alife_sch
 C++ class cse_alife_monster_base : cse_alife_monster_abstract,cse_ph_skeleton {
  property			group                    (number);
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_smart_terrain_id       (number);
@@ -5536,6 +5861,10 @@ C++ class cse_alife_monster_base : cse_alife_monster_abstract,cse_ph_skeleton {
 C++ class cse_alife_monster_zombie : cse_alife_monster_abstract {
  property			group                    (number);
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_smart_terrain_id       (number);
@@ -5592,6 +5921,10 @@ C++ class cse_alife_monster_zombie : cse_alife_monster_abstract {
 
 C++ class cse_alife_mounted_weapon : cse_alife_dynamic_object_visual {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -5632,6 +5965,10 @@ C++ class cse_alife_mounted_weapon : cse_alife_dynamic_object_visual {
 
 C++ class cse_alife_object : cse_abstract {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -5667,6 +6004,10 @@ C++ class cse_alife_object : cse_abstract {
 
 C++ class cse_alife_object_breakable : cse_alife_dynamic_object_visual {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -5727,6 +6068,10 @@ C++ class cse_alife_object_climable : cse_shape,cse_abstract {
 
 C++ class cse_alife_object_hanging_lamp : cse_alife_dynamic_object_visual,cse_ph_skeleton {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -5767,6 +6112,10 @@ C++ class cse_alife_object_hanging_lamp : cse_alife_dynamic_object_visual,cse_ph
 
 C++ class cse_alife_object_physic : cse_alife_dynamic_object_visual,cse_ph_skeleton {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -5807,6 +6156,10 @@ C++ class cse_alife_object_physic : cse_alife_dynamic_object_visual,cse_ph_skele
 
 C++ class cse_alife_object_projector : cse_alife_dynamic_object_visual {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -5847,6 +6200,10 @@ C++ class cse_alife_object_projector : cse_alife_dynamic_object_visual {
 
 C++ class cse_alife_online_offline_group : cse_alife_dynamic_object,cse_alife_schedulable {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -5887,6 +6244,10 @@ C++ class cse_alife_online_offline_group : cse_alife_dynamic_object,cse_alife_sc
 
 C++ class cse_alife_ph_skeleton_object : cse_alife_dynamic_object_visual,cse_ph_skeleton {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -5928,6 +6289,10 @@ C++ class cse_alife_ph_skeleton_object : cse_alife_dynamic_object_visual,cse_ph_
 C++ class cse_alife_psydog_phantom : cse_alife_monster_base {
  property			group                    (number);
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_smart_terrain_id       (number);
@@ -5987,6 +6352,10 @@ C++ class cse_alife_schedulable : ipure_schedulable_object {
 
 C++ class cse_alife_smart_zone : cse_alife_space_restrictor,cse_alife_schedulable {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -6035,6 +6404,10 @@ C++ class cse_alife_smart_zone : cse_alife_space_restrictor,cse_alife_schedulabl
 
 C++ class cse_alife_space_restrictor : cse_alife_dynamic_object,cse_shape {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -6075,6 +6448,10 @@ C++ class cse_alife_space_restrictor : cse_alife_dynamic_object,cse_shape {
 
 C++ class cse_alife_team_base_zone : cse_alife_space_restrictor {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -6115,6 +6492,10 @@ C++ class cse_alife_team_base_zone : cse_alife_space_restrictor {
 
 C++ class cse_torrid_zone : cse_custom_zone,cse_motion {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -6155,6 +6536,10 @@ C++ class cse_torrid_zone : cse_custom_zone,cse_motion {
 
 C++ class cse_alife_trader : cse_alife_dynamic_object_visual,cse_alife_trader_abstract {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -6206,6 +6591,10 @@ C++ class cse_alife_trader_abstract {
 
 C++ class cse_zone_visual : cse_anomalous_zone,cse_visual {
  property			id;
+ property			is_alive;
+ property			level_id;
+ property			level_name;
+ property			m_flags                  (flags32);
  property			m_game_vertex_id;
  property			m_level_vertex_id;
  property			m_story_id;
@@ -6346,7 +6735,7 @@ C++ class CSavedGameWrapper {
 C++ class CScope : CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -6484,8 +6873,10 @@ C++ class game_object {
  property			conditions;
  property			health                   (number);
  property			immunities;
- property			interface                (void*);
+ property			interface                (object);
  property			inventory;
+ property			level_id;
+ property			level_name;
  property			max_power                (number);
  property			morale                   (number);
  property			power                    (number);
@@ -6585,6 +6976,7 @@ C++ class game_object {
     function get_info_time(string);
     function get_current_outfit() const;
     function animation_count() const;
+    function get_missile(game_object*);
     function memory_sound_objects() const;
     function is_inventory_item() const;
     function activate_slot(number);
@@ -6657,13 +7049,14 @@ C++ class game_object {
     function get_current_point_index();
     function is_explosive() const;
     function set_alien_control(boolean);
-    function set_patrol_path(string, enum PatrolPathManager::EPatrolStartType, enum PatrolPathManager::EPatrolRouteType, boolean);
     function load_hud_visual(string);
-    function belt_count() const;
+    function set_patrol_path(string, enum PatrolPathManager::EPatrolStartType, enum PatrolPathManager::EPatrolRouteType, boolean);
     function get_hud_visual() const;
+    function belt_count() const;
     function get_weapon_mwg(game_object*);
     function get_weapon(game_object*);
     function get_ammo_box_size() const;
+    function get_outfit(game_object*);
     function set_const_force(const vector&, number, number);
     function sell_condition(ini_file*, string);
     function sell_condition(number, number);
@@ -7290,7 +7683,7 @@ C++ class ce_smart_zone : DLL_Pure {
 C++ class CSnork : CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -7323,7 +7716,7 @@ C++ class sound_params {
 C++ class CSpaceRestrictor : CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -7344,14 +7737,36 @@ C++ class CSpaceRestrictor : CGameObject {
     function use(CGameObject*);
 };
 
-C++ class CStalkerOutfit : CGameObject {
+C++ class CStalkerOutfit : CCustomOutfit {
+ property			additional_inventory_weight(number);
+ property			additional_inventory_weight2(number);
+ property			burn_protection          (number);
+ property			chemical_burn_protection (number);
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			cost                     (number);
+ property			explosion_protection     (number);
+ property			fire_wound_protection    (number);
+ property			inv_weight               (number);
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
+ property			item_place;
+ property			physic_strike_protection (number);
+ property			power_loss               (number);
+ property			radiation_protection     (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
+ property			shock_protection         (number);
+ property			slot                     (number);
+ property			slots                    (object);
+ property			strike_protection        (number);
+ property			telepatic_protection     (number);
  property			updated_times            (number);
+ property			wound_2_protection       (number);
+ property			wound_protection         (number);
     
     CStalkerOutfit ();
     
@@ -7510,8 +7925,13 @@ C++ class CThornArtefact : CArtefact {
  property			can_spawn_zone           (boolean);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			health_restore_speed     (number);
- property			item_flags;
+ property			inv_weight               (number);
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			power_restore_speed      (number);
  property			radiation_restore_speed  (number);
@@ -7519,6 +7939,8 @@ C++ class CThornArtefact : CArtefact {
  property			schedule_max;
  property			schedule_min;
  property			se_object;
+ property			slot                     (number);
+ property			slots                    (object);
  property			updated_times            (number);
     
     CThornArtefact ();
@@ -7539,13 +7961,20 @@ C++ class CThornArtefact : CArtefact {
 C++ class CTorch : CInventoryItemObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			cost                     (number);
+ property			inv_weight               (number);
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			nvd_on;
  property			on;
  property			schedule_max;
  property			schedule_min;
  property			se_object;
+ property			slot                     (number);
+ property			slots                    (object);
  property			updated_times            (number);
     
     CTorch ();
@@ -7579,7 +8008,7 @@ C++ class CTorch : CInventoryItemObject {
 C++ class CTushkano : CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -9233,10 +9662,15 @@ C++ class CWeapon : CInventoryItemObject {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			grenade_launcher_x       (number);
  property			grenade_launcher_y       (number);
+ property			inv_weight               (number);
  property			iron_sight_zoom_factor   (number);
- property			item_flags;
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			misfire;
  property			next_state;
@@ -9249,6 +9683,8 @@ C++ class CWeapon : CInventoryItemObject {
  property			se_object;
  property			silencer_x               (number);
  property			silencer_y               (number);
+ property			slot                     (number);
+ property			slots                    (object);
  property			state;
  property			updated_times            (number);
  property			zoom_enabled             (boolean);
@@ -9280,12 +9716,18 @@ C++ class CWeaponAK74 : CWeaponMagazinedWGrenade {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			cur_fire_mode            (number);
+ property			fire_mode;
  property			gren_mag_size            (number);
  property			grenade_launcher_x       (number);
  property			grenade_launcher_y       (number);
+ property			inv_weight               (number);
  property			iron_sight_zoom_factor   (number);
- property			item_flags;
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			misfire;
  property			next_state;
@@ -9301,6 +9743,8 @@ C++ class CWeaponAK74 : CWeaponMagazinedWGrenade {
  property			shot_num;
  property			silencer_x               (number);
  property			silencer_y               (number);
+ property			slot                     (number);
+ property			slots                    (object);
  property			state;
  property			updated_times            (number);
  property			zoom_enabled             (boolean);
@@ -9334,11 +9778,17 @@ C++ class CWeaponBM16 : CWeaponShotgun {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			cur_fire_mode            (number);
+ property			fire_mode;
  property			grenade_launcher_x       (number);
  property			grenade_launcher_y       (number);
+ property			inv_weight               (number);
  property			iron_sight_zoom_factor   (number);
- property			item_flags;
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			misfire;
  property			next_state;
@@ -9354,6 +9804,8 @@ C++ class CWeaponBM16 : CWeaponShotgun {
  property			shot_num;
  property			silencer_x               (number);
  property			silencer_y               (number);
+ property			slot                     (number);
+ property			slots                    (object);
  property			state;
  property			updated_times            (number);
  property			zoom_enabled             (boolean);
@@ -9387,11 +9839,17 @@ C++ class CWeaponBinoculars : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			cur_fire_mode            (number);
+ property			fire_mode;
  property			grenade_launcher_x       (number);
  property			grenade_launcher_y       (number);
+ property			inv_weight               (number);
  property			iron_sight_zoom_factor   (number);
- property			item_flags;
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			misfire;
  property			next_state;
@@ -9407,6 +9865,8 @@ C++ class CWeaponBinoculars : CWeaponMagazined {
  property			shot_num;
  property			silencer_x               (number);
  property			silencer_y               (number);
+ property			slot                     (number);
+ property			slots                    (object);
  property			state;
  property			updated_times            (number);
  property			zoom_enabled             (boolean);
@@ -9440,11 +9900,17 @@ C++ class CWeaponFN2000 : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			cur_fire_mode            (number);
+ property			fire_mode;
  property			grenade_launcher_x       (number);
  property			grenade_launcher_y       (number);
+ property			inv_weight               (number);
  property			iron_sight_zoom_factor   (number);
- property			item_flags;
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			misfire;
  property			next_state;
@@ -9460,6 +9926,8 @@ C++ class CWeaponFN2000 : CWeaponMagazined {
  property			shot_num;
  property			silencer_x               (number);
  property			silencer_y               (number);
+ property			slot                     (number);
+ property			slots                    (object);
  property			state;
  property			updated_times            (number);
  property			zoom_enabled             (boolean);
@@ -9493,11 +9961,17 @@ C++ class CWeaponFORT : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			cur_fire_mode            (number);
+ property			fire_mode;
  property			grenade_launcher_x       (number);
  property			grenade_launcher_y       (number);
+ property			inv_weight               (number);
  property			iron_sight_zoom_factor   (number);
- property			item_flags;
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			misfire;
  property			next_state;
@@ -9513,6 +9987,8 @@ C++ class CWeaponFORT : CWeaponMagazined {
  property			shot_num;
  property			silencer_x               (number);
  property			silencer_y               (number);
+ property			slot                     (number);
+ property			slots                    (object);
  property			state;
  property			updated_times            (number);
  property			zoom_enabled             (boolean);
@@ -9546,12 +10022,18 @@ C++ class CWeaponGroza : CWeaponMagazinedWGrenade {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			cur_fire_mode            (number);
+ property			fire_mode;
  property			gren_mag_size            (number);
  property			grenade_launcher_x       (number);
  property			grenade_launcher_y       (number);
+ property			inv_weight               (number);
  property			iron_sight_zoom_factor   (number);
- property			item_flags;
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			misfire;
  property			next_state;
@@ -9567,6 +10049,8 @@ C++ class CWeaponGroza : CWeaponMagazinedWGrenade {
  property			shot_num;
  property			silencer_x               (number);
  property			silencer_y               (number);
+ property			slot                     (number);
+ property			slots                    (object);
  property			state;
  property			updated_times            (number);
  property			zoom_enabled             (boolean);
@@ -9600,11 +10084,17 @@ C++ class CWeaponHPSA : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			cur_fire_mode            (number);
+ property			fire_mode;
  property			grenade_launcher_x       (number);
  property			grenade_launcher_y       (number);
+ property			inv_weight               (number);
  property			iron_sight_zoom_factor   (number);
- property			item_flags;
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			misfire;
  property			next_state;
@@ -9620,6 +10110,8 @@ C++ class CWeaponHPSA : CWeaponMagazined {
  property			shot_num;
  property			silencer_x               (number);
  property			silencer_y               (number);
+ property			slot                     (number);
+ property			slots                    (object);
  property			state;
  property			updated_times            (number);
  property			zoom_enabled             (boolean);
@@ -9653,10 +10145,15 @@ C++ class CWeaponKnife : CWeapon {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			grenade_launcher_x       (number);
  property			grenade_launcher_y       (number);
+ property			inv_weight               (number);
  property			iron_sight_zoom_factor   (number);
- property			item_flags;
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			misfire;
  property			next_state;
@@ -9669,6 +10166,8 @@ C++ class CWeaponKnife : CWeapon {
  property			se_object;
  property			silencer_x               (number);
  property			silencer_y               (number);
+ property			slot                     (number);
+ property			slots                    (object);
  property			state;
  property			updated_times            (number);
  property			zoom_enabled             (boolean);
@@ -9702,11 +10201,17 @@ C++ class CWeaponLR300 : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			cur_fire_mode            (number);
+ property			fire_mode;
  property			grenade_launcher_x       (number);
  property			grenade_launcher_y       (number);
+ property			inv_weight               (number);
  property			iron_sight_zoom_factor   (number);
- property			item_flags;
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			misfire;
  property			next_state;
@@ -9722,6 +10227,8 @@ C++ class CWeaponLR300 : CWeaponMagazined {
  property			shot_num;
  property			silencer_x               (number);
  property			silencer_y               (number);
+ property			slot                     (number);
+ property			slots                    (object);
  property			state;
  property			updated_times            (number);
  property			zoom_enabled             (boolean);
@@ -9755,11 +10262,17 @@ C++ class CWeaponMagazined : CWeapon {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			cur_fire_mode            (number);
+ property			fire_mode;
  property			grenade_launcher_x       (number);
  property			grenade_launcher_y       (number);
+ property			inv_weight               (number);
  property			iron_sight_zoom_factor   (number);
- property			item_flags;
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			misfire;
  property			next_state;
@@ -9775,6 +10288,8 @@ C++ class CWeaponMagazined : CWeapon {
  property			shot_num;
  property			silencer_x               (number);
  property			silencer_y               (number);
+ property			slot                     (number);
+ property			slots                    (object);
  property			state;
  property			updated_times            (number);
  property			zoom_enabled             (boolean);
@@ -9806,12 +10321,18 @@ C++ class CWeaponMagazinedWGrenade : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			cur_fire_mode            (number);
+ property			fire_mode;
  property			gren_mag_size            (number);
  property			grenade_launcher_x       (number);
  property			grenade_launcher_y       (number);
+ property			inv_weight               (number);
  property			iron_sight_zoom_factor   (number);
- property			item_flags;
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			misfire;
  property			next_state;
@@ -9827,6 +10348,8 @@ C++ class CWeaponMagazinedWGrenade : CWeaponMagazined {
  property			shot_num;
  property			silencer_x               (number);
  property			silencer_y               (number);
+ property			slot                     (number);
+ property			slots                    (object);
  property			state;
  property			updated_times            (number);
  property			zoom_enabled             (boolean);
@@ -9858,11 +10381,17 @@ C++ class CWeaponPM : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			cur_fire_mode            (number);
+ property			fire_mode;
  property			grenade_launcher_x       (number);
  property			grenade_launcher_y       (number);
+ property			inv_weight               (number);
  property			iron_sight_zoom_factor   (number);
- property			item_flags;
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			misfire;
  property			next_state;
@@ -9878,6 +10407,8 @@ C++ class CWeaponPM : CWeaponMagazined {
  property			shot_num;
  property			silencer_x               (number);
  property			silencer_y               (number);
+ property			slot                     (number);
+ property			slots                    (object);
  property			state;
  property			updated_times            (number);
  property			zoom_enabled             (boolean);
@@ -9911,11 +10442,17 @@ C++ class CWeaponRG6 : CWeaponShotgun {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			cur_fire_mode            (number);
+ property			fire_mode;
  property			grenade_launcher_x       (number);
  property			grenade_launcher_y       (number);
+ property			inv_weight               (number);
  property			iron_sight_zoom_factor   (number);
- property			item_flags;
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			misfire;
  property			next_state;
@@ -9931,6 +10468,8 @@ C++ class CWeaponRG6 : CWeaponShotgun {
  property			shot_num;
  property			silencer_x               (number);
  property			silencer_y               (number);
+ property			slot                     (number);
+ property			slots                    (object);
  property			state;
  property			updated_times            (number);
  property			zoom_enabled             (boolean);
@@ -9964,11 +10503,17 @@ C++ class CWeaponRPG7 : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			cur_fire_mode            (number);
+ property			fire_mode;
  property			grenade_launcher_x       (number);
  property			grenade_launcher_y       (number);
+ property			inv_weight               (number);
  property			iron_sight_zoom_factor   (number);
- property			item_flags;
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			misfire;
  property			next_state;
@@ -9984,6 +10529,8 @@ C++ class CWeaponRPG7 : CWeaponMagazined {
  property			shot_num;
  property			silencer_x               (number);
  property			silencer_y               (number);
+ property			slot                     (number);
+ property			slots                    (object);
  property			state;
  property			updated_times            (number);
  property			zoom_enabled             (boolean);
@@ -10017,11 +10564,17 @@ C++ class CWeaponSVD : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			cur_fire_mode            (number);
+ property			fire_mode;
  property			grenade_launcher_x       (number);
  property			grenade_launcher_y       (number);
+ property			inv_weight               (number);
  property			iron_sight_zoom_factor   (number);
- property			item_flags;
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			misfire;
  property			next_state;
@@ -10037,6 +10590,8 @@ C++ class CWeaponSVD : CWeaponMagazined {
  property			shot_num;
  property			silencer_x               (number);
  property			silencer_y               (number);
+ property			slot                     (number);
+ property			slots                    (object);
  property			state;
  property			updated_times            (number);
  property			zoom_enabled             (boolean);
@@ -10070,11 +10625,17 @@ C++ class CWeaponSVU : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			cur_fire_mode            (number);
+ property			fire_mode;
  property			grenade_launcher_x       (number);
  property			grenade_launcher_y       (number);
+ property			inv_weight               (number);
  property			iron_sight_zoom_factor   (number);
- property			item_flags;
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			misfire;
  property			next_state;
@@ -10090,6 +10651,8 @@ C++ class CWeaponSVU : CWeaponMagazined {
  property			shot_num;
  property			silencer_x               (number);
  property			silencer_y               (number);
+ property			slot                     (number);
+ property			slots                    (object);
  property			state;
  property			updated_times            (number);
  property			zoom_enabled             (boolean);
@@ -10123,11 +10686,17 @@ C++ class CWeaponShotgun : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			cur_fire_mode            (number);
+ property			fire_mode;
  property			grenade_launcher_x       (number);
  property			grenade_launcher_y       (number);
+ property			inv_weight               (number);
  property			iron_sight_zoom_factor   (number);
- property			item_flags;
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			misfire;
  property			next_state;
@@ -10143,6 +10712,8 @@ C++ class CWeaponShotgun : CWeaponMagazined {
  property			shot_num;
  property			silencer_x               (number);
  property			silencer_y               (number);
+ property			slot                     (number);
+ property			slots                    (object);
  property			state;
  property			updated_times            (number);
  property			zoom_enabled             (boolean);
@@ -10176,11 +10747,17 @@ C++ class CWeaponUSP45 : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			cur_fire_mode            (number);
+ property			fire_mode;
  property			grenade_launcher_x       (number);
  property			grenade_launcher_y       (number);
+ property			inv_weight               (number);
  property			iron_sight_zoom_factor   (number);
- property			item_flags;
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			misfire;
  property			next_state;
@@ -10196,6 +10773,8 @@ C++ class CWeaponUSP45 : CWeaponMagazined {
  property			shot_num;
  property			silencer_x               (number);
  property			silencer_y               (number);
+ property			slot                     (number);
+ property			slots                    (object);
  property			state;
  property			updated_times            (number);
  property			zoom_enabled             (boolean);
@@ -10229,11 +10808,17 @@ C++ class CWeaponVal : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			cur_fire_mode            (number);
+ property			fire_mode;
  property			grenade_launcher_x       (number);
  property			grenade_launcher_y       (number);
+ property			inv_weight               (number);
  property			iron_sight_zoom_factor   (number);
- property			item_flags;
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			misfire;
  property			next_state;
@@ -10249,6 +10834,8 @@ C++ class CWeaponVal : CWeaponMagazined {
  property			shot_num;
  property			silencer_x               (number);
  property			silencer_y               (number);
+ property			slot                     (number);
+ property			slots                    (object);
  property			state;
  property			updated_times            (number);
  property			zoom_enabled             (boolean);
@@ -10282,11 +10869,17 @@ C++ class CWeaponVintorez : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			cur_fire_mode            (number);
+ property			fire_mode;
  property			grenade_launcher_x       (number);
  property			grenade_launcher_y       (number);
+ property			inv_weight               (number);
  property			iron_sight_zoom_factor   (number);
- property			item_flags;
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			misfire;
  property			next_state;
@@ -10302,6 +10895,8 @@ C++ class CWeaponVintorez : CWeaponMagazined {
  property			shot_num;
  property			silencer_x               (number);
  property			silencer_y               (number);
+ property			slot                     (number);
+ property			slots                    (object);
  property			state;
  property			updated_times            (number);
  property			zoom_enabled             (boolean);
@@ -10335,11 +10930,17 @@ C++ class CWeaponWalther : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			cur_fire_mode            (number);
+ property			fire_mode;
  property			grenade_launcher_x       (number);
  property			grenade_launcher_y       (number);
+ property			inv_weight               (number);
  property			iron_sight_zoom_factor   (number);
- property			item_flags;
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			misfire;
  property			next_state;
@@ -10355,6 +10956,8 @@ C++ class CWeaponWalther : CWeaponMagazined {
  property			shot_num;
  property			silencer_x               (number);
  property			silencer_y               (number);
+ property			slot                     (number);
+ property			slots                    (object);
  property			state;
  property			updated_times            (number);
  property			zoom_enabled             (boolean);
@@ -10386,7 +10989,7 @@ C++ class CWeaponWalther : CWeaponMagazined {
 C++ class CZombie : CGameObject {
  property			class_id;
  property			class_name;
- property			item_flags;
+ property			item_flags               (number);
  property			schedule_max;
  property			schedule_min;
  property			se_object;
@@ -10412,8 +11015,13 @@ C++ class CZudaArtefact : CArtefact {
  property			can_spawn_zone           (boolean);
  property			class_id;
  property			class_name;
+ property			cost                     (number);
  property			health_restore_speed     (number);
- property			item_flags;
+ property			inv_weight               (number);
+ property			item_condition           (number);
+ property			item_flags               (number);
+ property			item_name;
+ property			item_name_short;
  property			item_place;
  property			power_restore_speed      (number);
  property			radiation_restore_speed  (number);
@@ -10421,6 +11029,8 @@ C++ class CZudaArtefact : CArtefact {
  property			schedule_max;
  property			schedule_min;
  property			se_object;
+ property			slot                     (number);
+ property			slots                    (object);
  property			updated_times            (number);
     
     CZudaArtefact ();
@@ -10549,6 +11159,8 @@ C++ class ISheduled {
 };
 
 C++ class net_packet {
+ property			length;
+    
     net_packet ();
     
     function r_advance(number);
@@ -10943,66 +11555,66 @@ List of the namespaces exported to LUA
      function sell_condition(number, number);
      function buy_condition(ini_file*, string);
      function buy_condition(number, number);
-     function create_ini_file(string);
+     function texture_delete(CTexture*);
      function get_hud();
      function GetFontSmall();
-     function user_name();
      function error_log(string);
-     function actor_camera(number);
-     function get_torch_obj(game_object*);
      function GetFontLetterica18Russian();
+     function actor_camera(number);
      function command_line();
      function get_actor_obj();
      function get_hud_fov(number);
-     function bind_to_dik(enum EGameActions);
      function getFS();
      function valid_saved_game(string);
-     function set_hud_fov(number);
+     function ef_storage();
      function get_console();
      function GetFontGraffiti50Russian();
      function app_ready();
+     function bit_xor(number, number);
      function GetTextureName(string);
-     function texture_to_visual(IRender_Visual*, string);
      function GetFontDI();
      function GetFontLetterica16Russian();
      function log(string);
-     function bit_not(number);
      function object_by_id(lua_State*);
      function system_ini();
      function show_condition(ini_file*, string);
-     function ef_storage();
+     function cast_ptr_CTexture(lua_State*);
+     function engine_object(lua_State*);
+     function bit_not(number);
      function get_main_window();
-     function texture_load(CTexture*);
      function texture_to_object(game_object*, number, string);
      function get_resource_manager();
      function switch_zoom_osc(boolean);
      function setup_game_icon(number, number, number, number);
-     function cast_ptr_CTexture(lua_State*);
      function GetFontLetterica25();
      function log1(string);
-     function texture_delete(CTexture*);
+     function user_name();
      function script_object_class_name(lua_State*);
-     function GetFontMedium();
-     function bit_xor(number, number);
+     function texture_load(CTexture*);
+     function texture_unload(CTexture*);
+     function texture_to_visual(IRender_Visual*, string);
+     function create_ini_file(string);
      function texture_from_object(game_object*, number, number);
+     function set_hud_fov(number);
      function flush();
      function editor();
      function texture_create(string);
-     function GetARGB(number, number, number, number);
      function GetFontGraffiti22Russian();
-     function texture_set_name(CTexture*, string);
      function find_effector_zi();
+     function texture_set_name(CTexture*, string);
      function texture_from_visual(IRender_Visual*, number);
+     function xrRender_test_r2_hw();
+     function GetFontMedium();
+     function get_torch_obj(game_object*);
      function time_global();
      function verify_if_thread_is_running();
      function prefetch(string);
-     function get_global_fov(number);
-     function script_server_object_version();
-     function engine_object(lua_State*);
-     function GetTextureRect(string);
      function get_application();
-     function xrRender_test_r2_hw();
-     function texture_unload(CTexture*);
+     function get_global_fov(number);
+     function bind_to_dik(enum EGameActions);
+     function GetTextureRect(string);
+     function GetARGB(number, number, number, number);
+     function script_server_object_version();
 
      namespace level {
          function add_complex_effector(string, number);
@@ -11069,6 +11681,12 @@ List of the namespaces exported to LUA
          function ray_pick(const vector&, const vector&, number, enum collide::rq_target, rq_result&, game_object*);
      };
 
+     namespace relation_registry {
+         function community_goodwill(string, number);
+         function change_community_goodwill(string, number, number);
+         function set_community_goodwill(string, number, number);
+     };
+
      namespace ui {
          function stop_dialog(CUIDialogWnd*);
          function get_pda_wnd();
@@ -11085,12 +11703,6 @@ List of the namespaces exported to LUA
 
      namespace main_menu {
          function get_main_menu();
-     };
-
-     namespace relation_registry {
-         function community_goodwill(string, number);
-         function change_community_goodwill(string, number, number);
-         function set_community_goodwill(string, number, number);
      };
 
      namespace actor_stats {

@@ -1,9 +1,10 @@
 #pragma once
 #define INV_RUCK_UNLIMITED_FIX		// Real Wolf: позволяет безболезненно использовать атрибут unlimited в теге dragdrop_bag для создания лимитного инвентаря
 #define INV_NEW_SLOTS_SYSTEM			// Real Wolf, Red Virus: включает слоты.
-// #define LUAICP_COMPAT				// alpet: включает совместимость с перехватчиком Lua (luaicp.dll).
-// #define SCRIPT_ICONS_CONTROL		    // alpet: включает экспорт функции setup_game_icon в Lua
-#define SCRIPT_EZI_CONTROL			// alpet: включает экспорт класса CEffectorZoomInertion для управления движением прицела
+// #define LUAICP_COMPAT					// alpet: включает совместимость с перехватчиком Lua (luaicp.dll). Задавать надо в свойствах 
+#define SCRIPT_ICONS_CONTROL		    // alpet: включает экспорт функции setup_game_icon в Lua
+#define SCRIPT_EZI_CONTROL				// alpet: включает экспорт класса CEffectorZoomInertion для управления движением прицела 
+// #define SPAWN_ANTITFREEZE				// alpet: распределяет массовый спавн объектов по кадрам, чтобы исключить продолжительные фризы 
 #define ECO_RENDER						// alpet: добавляет небольшую задержку между рендерингом кадров, чтобы зря не насиловать видеокарту при больших FPS
 //#define MT_OPT							// alpet: задает выделенные ядра ЦП для второго потока
 //#define PERF_CHECK							// alpet: задает выделенные ядра ЦП в биндере, для выяснения пропорций нагрузки  
