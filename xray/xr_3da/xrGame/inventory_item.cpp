@@ -75,7 +75,7 @@ net_updateData* CInventoryItem::NetSync()
 CInventoryItem::CInventoryItem() 
 {
 	m_net_updateData	= NULL;
-	m_slot				= NO_ACTIVE_SLOT;
+	SetSlot(NO_ACTIVE_SLOT);
 	m_flags.set			(Fbelt,FALSE);
 	m_flags.set			(Fruck,TRUE);
 	m_flags.set			(FRuckDefault,TRUE);
@@ -93,11 +93,24 @@ CInventoryItem::CInventoryItem()
 	m_eItemPlace		= eItemPlaceUndefined;
 	m_Description		= "";
 	m_cell_item			= NULL;
+
 }
 
 CInventoryItem::~CInventoryItem() 
 {
-	delete_data			(m_net_updateData);
+	delete_data			(m_net_updateData);	
+	static int destr_no = 0;
+	u16 id = 0;
+	if (m_object)
+		id = m_object->ID();
+
+	destr_no++;
+	// Msg("* [%3d] destroying CInventoryItem 0x%08p #%5d '%s', m_object = %p ", destr_no, this, id, m_name.c_str(), m_object);			
+
+#ifdef INV_NEW_SLOTS_SYSTEM
+	R_ASSERT2((int)m_slots.size() >= 0, "m_slots.size() returned negative value inside destructor!"); // alpet: для детекта повреждения объекта
+#endif
+
 
 	bool B_GOOD			= (	!m_pCurrentInventory || 
 							(std::find(	m_pCurrentInventory->m_all.begin(),m_pCurrentInventory->m_all.end(), this)==m_pCurrentInventory->m_all.end()) );
@@ -137,16 +150,20 @@ void CInventoryItem::Load(LPCSTR section)
 	const	char	*str = READ_IF_EXISTS(pSettings, r_string, section, "slot", "");
 	if (*str)
 	{
-				char	buf[16];
+		char	buf[16];
 		const	int		count = _GetItemCount(str);
 		for (int i = 0; i < count; ++i)
 		{
-			int slot = atoi(_GetItem(str, i, buf) );
-			if (slot < SLOTS_TOTAL && std::find(m_slots.begin(), m_slots.end(), slot) == m_slots.end() )
-				m_slots.push_back((u8)slot);
+			SLOT_ID slot = atoi(_GetItem(str, i, buf) );
+			if (slot < SLOTS_TOTAL && std::find(m_slots.begin(), m_slots.end(), slot) == m_slots.end())
+			{
+				if (0 == i)
+					SetSlot(slot);
+				else
+					m_slots.push_back(slot);
+			}
 		}
-	}
-	m_slot = m_slots.size()? m_slots[0]: NO_ACTIVE_SLOT;
+	}	
 #else
 	m_slot				= READ_IF_EXISTS(pSettings,r_u32,section,"slot", NO_ACTIVE_SLOT);
 #endif
@@ -179,6 +196,25 @@ void  CInventoryItem::ChangeCondition(float fDeltaCondition)
 	m_fCondition += fDeltaCondition;
 	clamp(m_fCondition, 0.f, 1.f);
 }
+
+#ifdef INV_NEW_SLOTS_SYSTEM
+void	CInventoryItem::SetSlot(SLOT_ID slot)
+{
+
+	if (GetSlotsCount() < 1)
+		m_slots.push_back(slot);
+	else	
+		m_slots[0] = slot;
+}
+u32		CInventoryItem::GetSlot() const
+{
+	if (GetSlotsCount() < 1)
+		return NO_ACTIVE_SLOT;
+	else
+		return (u32) m_slots[0];
+}
+#endif
+
 
 
 void	CInventoryItem::Hit					(SHit* pHDS)
@@ -391,7 +427,8 @@ void CInventoryItem::save(NET_Packet &packet)
 {
 	packet.w_u8				((u8)m_eItemPlace);
 	packet.w_float			(m_fCondition);
-	packet.w_u8				((u8)m_slot);
+#pragma message("alpet: здесь можно сохранять все слоты, но это будет несовместимо по формату сейвов")
+	packet.w_u8				((u8)GetSlot());
 
 	if (object().H_Parent()) {
 		packet.w_u8			(0);
@@ -552,9 +589,9 @@ void CInventoryItem::load(IReader &packet)
 {
 	m_eItemPlace			= (EItemPlace)packet.r_u8();
 	m_fCondition			= packet.r_float();
-	m_slot					= (u32)packet.r_u8();
-	if (m_slot == 255)
-		m_slot = NO_ACTIVE_SLOT;
+	SetSlot (packet.r_u8());
+	if (GetSlot() == 255)
+		SetSlot (NO_ACTIVE_SLOT);
 
 	u8						tmp = packet.r_u8();
 	

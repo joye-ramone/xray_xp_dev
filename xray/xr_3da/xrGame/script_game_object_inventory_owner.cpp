@@ -301,22 +301,26 @@ void CScriptGameObject::DropItemAndTeleport	(CScriptGameObject* pItem, Fvector p
 void CScriptGameObject::TransferItem(CScriptGameObject* pItem, CScriptGameObject* pForWho)
 {
 	if (!pItem || !pForWho) {
-		ai().script_engine().script_log		(ScriptStorage::eLuaMessageTypeError,"cannot transfer NULL item");
+		ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "cannot transfer NULL item");
 		return;
 	}
 
 	CInventoryItem* pIItem = smart_cast<CInventoryItem*>(&pItem->object());
 
 	if (!pIItem) {
-		ai().script_engine().script_log		(ScriptStorage::eLuaMessageTypeError,"Cannot transfer not CInventoryItem item");
-		return ;
+		ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "Cannot transfer not CInventoryItem item");
+		return;
 	}
 
-	// выбросить у себя 
 	NET_Packet						P;
-	CGameObject::u_EventGen			(P,GE_OWNERSHIP_REJECT, object().ID());
-	P.w_u16							(pIItem->object().ID());
-	CGameObject::u_EventSend		(P);
+	// выбросить у себя 
+	if (NULL != pItem->object().H_Parent() && this != pItem) // из скриптов часто подбираются "независимые" предметы
+	{
+		
+		CGameObject::u_EventGen(P, GE_OWNERSHIP_REJECT, object().ID());
+		P.w_u16(pIItem->object().ID());
+		CGameObject::u_EventSend(P);
+	}
 
 	// отдать партнеру
 	CGameObject::u_EventGen			(P,GE_OWNERSHIP_TAKE, pForWho->object().ID());

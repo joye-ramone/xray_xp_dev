@@ -749,7 +749,11 @@ void			xrServer::entity_Destroy	(CSE_Abstract *&P)
 {
 #ifdef DEBUG
 	Msg							("xrServer::entity_Destroy : [%d][%s][%s]",P->ID,P->name(),P->name_replace());
+#elif defined(LUAICP_COMPAT)
+	MsgCB						("xrServer::entity_Destroy : [%d][%s][%s]",P->ID,P->name(),P->name_replace());	
 #endif
+
+
 	R_ASSERT					(P);
 	entities.erase				(P->ID);
 	m_tID_Generator.vfFreeID	(P->ID,Device.TimerAsync());

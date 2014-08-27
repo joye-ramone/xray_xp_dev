@@ -44,6 +44,7 @@ class CInventoryItem :
 	, public pureRender
 #endif
 {
+	friend class CInventoryScript;
 private:
 	typedef CAttachableItem inherited;
 public:
@@ -156,8 +157,8 @@ public:
 			float				GetCondition		() const					{return m_fCondition;}
 	virtual	float				GetConditionToShow	() const					{return GetCondition();}
 			void				ChangeCondition		(float fDeltaCondition);
-
-	virtual u32					GetSlot				()  const					{return m_slot;}
+			
+	
 
 			bool				Belt				()							{return !!m_flags.test(Fbelt);}
 			void				Belt				(bool on_belt)				{m_flags.set(Fbelt,on_belt);}
@@ -169,15 +170,23 @@ public:
 			bool				CanTrade			() const;
 	virtual bool 				IsNecessaryItem	    (CInventoryItem* item);
 	virtual bool				IsNecessaryItem	    (const shared_str& item_sect){return false;};
-	#if defined(INV_NEW_SLOTS_SYSTEM)
-			void				SetSlot				(u32 slot)					{m_slot = slot;};
-	const	xr_vector<u8>&		GetSlots			()							{return m_slots;}
-	#endif
+	typedef						u32					SLOT_ID;			
+#if defined(INV_NEW_SLOTS_SYSTEM)	
+	const	xr_vector<SLOT_ID>&	GetSlots			()							{return m_slots;}
+	void						SetSlot				(SLOT_ID slot);
+	virtual SLOT_ID				GetSlot				()  const;
+	SLOT_ID						GetSlotsCount		() const					{ return m_slots.size(); }
+#else							
+	virtual SLOT_ID				GetSlot				()  const					{return m_slot;}
+			void				SetSlot				(SLOT_ID slot)				{m_slot = slot;};	
+#endif
 protected:
 	
-	u32							m_slot;
-#ifdef INV_NEW_SLOTS_SYSTEM
-	xr_vector<u8>				m_slots;
+	
+#ifdef INV_NEW_SLOTS_SYSTEM	
+	xr_vector<SLOT_ID>			m_slots;
+#else
+	SLOT_ID						m_slot;
 #endif
 	float						m_fCondition;
 

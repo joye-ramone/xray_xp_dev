@@ -309,5 +309,12 @@ void CObjectHandlerPlanner::update			()
 	if ((psAI_Flags.test(aiGOAPObject) && !m_use_log) || (!psAI_Flags.test(aiGOAPObject) && m_use_log))
 		set_use_log			(!!psAI_Flags.test(aiGOAPObject));
 #endif
-	inherited::update		();
+	__try
+	{
+		inherited::update();
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER)
+	{
+		Msg("!Exception catched in CObjectHandlerPlanner::update() ");
+	}
 }

@@ -12,6 +12,11 @@
 
 using namespace luabind;
 
+u32 packet_length(NET_Packet *self)
+{
+	return  self->B.count;
+}
+
 bool r_eof(NET_Packet *self)
 {
 	return			(!!self->r_eof());
@@ -125,6 +130,6 @@ void CScriptNetPacket::script_register(lua_State *L)
 			.def("r_elapsed",		&NET_Packet::r_elapsed		)
 			.def("r_advance",		&NET_Packet::r_advance		)
 			.def("r_eof",			&r_eof						)
-
+			.property("length",	    &packet_length				)	
 	];
 }

@@ -242,7 +242,10 @@ float CParticlesObject::shedule_Scale		()
 
 void CParticlesObject::renderable_Render	()
 {
-	VERIFY					(renderable.visual);
+	VERIFY					(renderable.visual);	
+	u32 *vfptr = (u32*)renderable.visual;
+	R_ASSERT2 ( *vfptr > 0x1000, "vftable unassigned!");
+
 	u32 dt					= Device.dwTimeGlobal - dwLastTime;
 	if (dt){
 		IParticleCustom* V	= smart_cast<IParticleCustom*>(renderable.visual); VERIFY(V);

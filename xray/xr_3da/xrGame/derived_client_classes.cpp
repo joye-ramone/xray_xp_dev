@@ -14,12 +14,22 @@
 #include "script_game_object.h"
 #include "ui/UIDialogWnd.h"
 #include "ui/UIInventoryWnd.h"
+#include "../lua_tools.h"
+
+/* Декларация о стиле экспорта свойств и методов:
+     * Свойства объектов экспортируются по возможности так, как они выглядят в файлах конфигурации (*.ltx), а не так как они названы в исходниках движка
+	 * Методы объектов экспортируются согласно стилю экспорта для game_object, т.е без использования прописных букв. 
+	    Это позволяет сохранить единый стиль программирования в скриптах и отделить новые методы от исконно движковых версии 1.0006.
+   Alexander Petrov
+*/
 
 
 using namespace luabind;
 #pragma optimize("s", on)
 
 extern LPCSTR get_lua_class_name(luabind::object O);
+extern CGameObject *lua_togameobject(lua_State *L, int index);
+
 
 IC void alive_entity_set_radiation(CEntityAlive *E, float value)
 {
@@ -82,6 +92,58 @@ CScriptGameObject  *inventory_selected_item(CInventory *I)
 
 CScriptGameObject  *get_inventory_target(CInventory *I)		{ return item_lua_object(I->m_pTarget); }
 
+LPCSTR get_item_name				(CInventoryItem *I) { return I->Name(); }
+LPCSTR get_item_name_short			(CInventoryItem *I) { return I->NameShort(); }
+
+
+void item_to_belt(CInventory *I, lua_State *L)
+{   // 1st param: CInventory*, 2nd param: item?
+	CGameObject *obj = lua_togameobject(L, 2);
+	if (NULL == obj) return;
+	CInventoryItem *itm = smart_cast<CInventoryItem *>(obj);
+	if (I && itm)
+		I->Belt (itm);
+}
+
+void item_to_slot(CInventory *I, lua_State *L)
+{   // 1st param: CInventory*, 2nd param: item?
+	CGameObject *obj = lua_togameobject(L, 2);
+	if (NULL == obj) return;
+	CInventoryItem *itm = smart_cast<CInventoryItem *>(obj);
+	if (I && itm)
+		I->Slot(itm, !!lua_toboolean(L, 3));
+}
+
+void item_to_ruck(CInventory *I, lua_State *L)
+{   // 1st param: CInventory*, 2nd param: item?
+	CGameObject *obj = lua_togameobject(L, 2);
+	if (NULL == obj) return;
+	CInventoryItem *itm = smart_cast<CInventoryItem *>(obj);
+	if (I && itm)
+		I->Ruck(itm);
+}
+
+#ifdef INV_NEW_SLOTS_SYSTEM
+void get_slots(luabind::object O)
+{
+	lua_State *L = O.lua_state();
+	CInventoryItem *itm = luabind::object_cast<CInventoryItem*> (O);
+	lua_createtable (L, 0, 0);
+	int tidx = lua_gettop(L);
+	if (itm)
+	{
+		for (u32 i = 0; i < itm->GetSlotsCount(); i++)
+		{
+			lua_pushinteger(L, i + 1); // key
+			lua_pushinteger(L, itm->GetSlots()[i]);
+			lua_settable(L, tidx);
+		}
+	}
+
+}
+
+void fake_set_slots(CInventoryItem *I, luabind::object T) { } // модифицировать слоты можно, если GetSlots не будет возвращать константу
+#endif
 
 void CInventoryScript::script_register(lua_State *L)
 {
@@ -89,8 +151,18 @@ void CInventoryScript::script_register(lua_State *L)
 		[
 
 			class_<CInventoryItem>("CInventoryItem")
+			.def_readwrite("cost"						,			&CInventoryItem::m_cost)			
 			.def_readonly("item_place"					,			&CInventoryItem::m_eItemPlace)
-			.property("class_name"						,			&get_lua_class_name),
+			.def_readwrite("item_condition"				,			&CInventoryItem::m_fCondition)
+			.def_readwrite("inv_weight"					,			&CInventoryItem::m_weight)
+			.property("class_name"						,			&get_lua_class_name)
+			.property("item_name"						,			&get_item_name)
+			.property("item_name_short"					,			&get_item_name_short)
+			.property("slot"							,			&CInventoryItem::GetSlot, &CInventoryItem::SetSlot)
+#ifdef INV_NEW_SLOTS_SYSTEM
+			.property("slots"							,			&get_slots,    &fake_set_slots, raw(_2))	
+#endif
+			,
 			class_<CInventoryItemObject, bases<CInventoryItem, CGameObject>>("CInventoryItemObject"),
 
 			class_ <CInventory>("CInventory")
@@ -102,6 +174,9 @@ void CInventoryScript::script_register(lua_State *L)
 			.property	  ("selected_item"				,			&inventory_selected_item)
 			.property	  ("target"						,			&get_inventory_target)
 			.property	  ("class_name"					,			&get_lua_class_name)
+			.def		  ("to_belt"					,			&item_to_slot,   raw(_2))
+			.def		  ("to_slot"					,			&item_to_slot,   raw(_2))
+			.def		  ("to_ruck"					,			&item_to_ruck,   raw(_2))
 			,
 			class_<CInventoryOwner>("CInventoryOwner")
 			.def_readonly ("inventory"					,			&CInventoryOwner::m_inventory)
@@ -128,10 +203,36 @@ void CMonsterScript::script_register(lua_State *L)
 			.def_readwrite("run_turn_right"				,			&CBaseMonster::m_bRunTurnRight)
 			.def_readwrite("sleep"						,			&CBaseMonster::m_bSleep)
 			.def_readwrite("state_invisible"			,			&CBaseMonster::state_invisible)
-
-
-
 		];
+}
+
+
+int curr_fire_mode(CWeaponMagazined *wpn) { return wpn->GetCurrentFireMode(); }
+
+
+
+void COutfitScript::script_register(lua_State *L)
+{
+	module(L)
+		[
+			class_<CCustomOutfit, CInventoryItemObject>("CCustomOutfit")
+			.def_readwrite("additional_inventory_weight"		,		&CCustomOutfit::m_additional_weight)
+			.def_readwrite("additional_inventory_weight2"		,		&CCustomOutfit::m_additional_weight2)
+			.def_readwrite("power_loss"							,		&CCustomOutfit::m_fPowerLoss)
+			// alpet: извращения с шаблонами придуманы под действием пива.
+			.property("burn_protection"					,			&get_protection<u8[ALife::eHitTypeBurn	  + 1]>			, 	&set_protection<u8[ALife::eHitTypeBurn	  + 1]>)			
+			.property("strike_protection"				,			&get_protection<u8[ALife::eHitTypeStrike  + 1]>			,	&set_protection<u8[ALife::eHitTypeStrike  + 1]>)
+			.property("shock_protection"				,			&get_protection<u8[ALife::eHitTypeShock   + 1]>			,	&set_protection<u8[ALife::eHitTypeShock   + 1]>)
+			.property("wound_protection"				,			&get_protection<u8[ALife::eHitTypeWound   + 1]>			,	&set_protection<u8[ALife::eHitTypeWound   + 1]>)
+			.property("radiation_protection"			,			&get_protection<u8[ALife::eHitTypeRadiation+ 1]>		,	&set_protection<u8[ALife::eHitTypeRadiation + 1]>)
+			.property("telepatic_protection"			,			&get_protection<u8[ALife::eHitTypeTelepatic+ 1]>		,	&set_protection<u8[ALife::eHitTypeTelepatic + 1]>)
+			.property("chemical_burn_protection"		,			&get_protection<u8[ALife::eHitTypeChemicalBurn + 1]>	,	&set_protection<u8[ALife::eHitTypeChemicalBurn + 1]>)
+			.property("explosion_protection"			,			&get_protection<u8[ALife::eHitTypeExplosion + 1]>		,	&set_protection<u8[ALife::eHitTypeExplosion + 1]>)
+			.property("fire_wound_protection"			,			&get_protection<u8[ALife::eHitTypeFireWound + 1]>		,	&set_protection<u8[ALife::eHitTypeFireWound + 1]>)
+			.property("wound_2_protection"				,			&get_protection<u8[ALife::eHitTypeWound_2 + 1]>			,	&set_protection<u8[ALife::eHitTypeWound_2   + 1]>)			
+			.property("physic_strike_protection"		,			&get_protection<u8[ALife::eHitTypePhysicStrike + 1]>	,	&set_protection<u8[ALife::eHitTypePhysicStrike + 1]>)			
+		];
+
 }
 
 void CWeaponScript::script_register(lua_State *L)
@@ -178,6 +279,7 @@ void CWeaponScript::script_register(lua_State *L)
 			.def_readwrite("queue_size"					,			&CWeaponMagazined::m_iQueueSize)
 			.def_readwrite("shoot_effector_start"		,			&CWeaponMagazined::m_iShootEffectorStart)
 			.def_readwrite("cur_fire_mode"				,			&CWeaponMagazined::m_iCurFireMode)			
+			.property	  ("fire_mode"					,			&curr_fire_mode)
 			,
 			class_<CWeaponMagazinedWGrenade,			CWeaponMagazined>("CWeaponMagazinedWGrenade")
 			.def_readwrite("gren_mag_size"				,			&CWeaponMagazinedWGrenade::iMagazineSize2)			

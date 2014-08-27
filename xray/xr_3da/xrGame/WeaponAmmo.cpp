@@ -107,7 +107,7 @@ BOOL CWeaponAmmo::net_Spawn(CSE_Abstract* DC)
 	
 	if(m_boxCurr > m_boxSize)
 		l_pW->a_elapsed		= m_boxCurr = m_boxSize;
-
+	
 	return					bResult;
 }
 

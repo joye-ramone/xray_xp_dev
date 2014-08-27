@@ -112,11 +112,11 @@ void CLevel::g_sv_Spawn		(CSE_Abstract* E)
 			client_spawn_manager().clear(O->ID());
 		Objects.Destroy			(O);
 		Msg						("! Failed to spawn entity '%s'",*E->s_name);
-#ifdef DEBUG_MEMORY_MANAGER
+#if defined(DEBUG_MEMORY_MANAGER) && defined(DEBUG)
 		mem_alloc_gather_stats	(!!psAI_Flags.test(aiDebugOnFrameAllocs));
 #endif // DEBUG_MEMORY_MANAGER
 	} else {
-#ifdef DEBUG_MEMORY_MANAGER
+#if defined(DEBUG_MEMORY_MANAGER) && defined(DEBUG)
 		mem_alloc_gather_stats	(!!psAI_Flags.test(aiDebugOnFrameAllocs));
 #endif // DEBUG_MEMORY_MANAGER
 		if(!g_dedicated_server)

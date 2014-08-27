@@ -504,7 +504,8 @@ bool  CTorch::can_be_attached		() const
 	if (pA) 
 	{
 //		if(pA->inventory().Get(ID(), false))
-		if((const CTorch*)smart_cast<CTorch*>(pA->inventory().m_slots[GetSlot()].m_pIItem) == this )
+		u32 slot = GetSlot();
+		if((const CTorch*)smart_cast<CTorch*>(pA->inventory().m_slots[slot].m_pIItem) == this )
 			return true;
 		else
 			return false;

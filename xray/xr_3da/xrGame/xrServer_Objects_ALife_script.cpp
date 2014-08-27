@@ -9,8 +9,25 @@
 #include "pch_script.h"
 #include "xrServer_Objects_ALife.h"
 #include "xrServer_script_macroses.h"
+#include "xrServer_Objects_ALife_Monsters.h"
 
 using namespace luabind;
+
+extern u32 get_level_id(u32 gvid);
+extern LPCSTR get_level_name_by_id (u32 level_id);
+
+u32		se_obj_level_id   (CSE_ALifeObject *O) { return get_level_id(O->m_tGraphID); }
+LPCSTR  se_obj_level_name (CSE_ALifeObject *O) { return get_level_name_by_id (se_obj_level_id(O));  }
+
+bool  se_obj_is_alive(CSE_ALifeObject *O)
+{
+	CSE_ALifeCreatureAbstract *cr = smart_cast<CSE_ALifeCreatureAbstract *> (O);
+	if (cr)
+		return cr->g_Alive();
+	else
+		return  false;
+}
+
 
 #pragma optimize("s",on)
 void CSE_ALifeSchedulable::script_register(lua_State *L)
@@ -37,6 +54,7 @@ void CSE_ALifeGraphPoint::script_register(lua_State *L)
 	];
 }
 
+
 void CSE_ALifeObject::script_register(lua_State *L)
 {
 	module(L)[
@@ -55,6 +73,10 @@ void CSE_ALifeObject::script_register(lua_State *L)
 		.def_readonly	("m_level_vertex_id",	&CSE_ALifeObject::m_tNodeID)
 		.def_readonly	("m_game_vertex_id",	&CSE_ALifeObject::m_tGraphID)
 		.def_readonly	("m_story_id",			&CSE_ALifeObject::m_story_id)
+		.def_readwrite	("m_flags",				&CSE_ALifeObject::m_flags)
+		.property		("level_id",			&se_obj_level_id)
+		.property		("level_name",			&se_obj_level_name)
+		.property		("is_alive",			&se_obj_is_alive)
 	];
 }
 

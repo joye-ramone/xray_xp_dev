@@ -231,6 +231,7 @@ void	CWeaponMounted::cam_Update			(float dt, float fov)
 {
 	Fvector							P,Da;
 	Da.set							(0,0,0);
+	Camera()->f_fov = fov;
 
 	CKinematics* K					= smart_cast<CKinematics*>(Visual());
 	K->CalculateBones_Invalidate	();
@@ -310,8 +311,11 @@ bool	CWeaponMounted::Use					(const Fvector& pos,const Fvector& dir,const Fvecto
 {
 	return !Owner();
 }
+
+// extern float g_fov;
+
 bool	CWeaponMounted::attach_Actor		(CGameObject* actor)
-{
+{	
 	m_dAngle.set(0.0f,0.0f);
 	CHolderCustom::attach_Actor(actor);
 	CKinematics* K		= smart_cast<CKinematics*>(Visual());

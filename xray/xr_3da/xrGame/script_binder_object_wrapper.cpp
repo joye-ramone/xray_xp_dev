@@ -51,24 +51,17 @@ void CScriptBinderObjectWrapper::reload_static			(CScriptBinderObject *script_bi
 bool CScriptBinderObjectWrapper::net_Spawn				(SpawnType DC)
 {
 	bool result;
-	__try
-	{
 #ifdef PERF_CHECK
-		SetThreadAffinityMask(GetCurrentThread(), 0x0002);
+	SetThreadAffinityMask(GetCurrentThread(), 0x0002);
 #endif
-		Device.Statistic->ScriptBinder.Begin();		
-		Device.Statistic->ScriptBinder_netSpawn.Begin();		
-		result = (luabind::call_member<bool>(this, "net_spawn", DC));
-		Device.Statistic->ScriptBinder_netSpawn.End();
-		Device.Statistic->ScriptBinder.End();		
-	}
-	__finally
-	{
+	Device.Statistic->ScriptBinder.Begin();		
+	Device.Statistic->ScriptBinder_netSpawn.Begin();		
+	result = (luabind::call_member<bool>(this, "net_spawn", DC));
+	Device.Statistic->ScriptBinder_netSpawn.End();
+	Device.Statistic->ScriptBinder.End();			
 #ifdef PERF_CHECK
-		SetThreadAffinityMask(GetCurrentThread(), 0xFFFF);
-#endif
-	}
-	
+	SetThreadAffinityMask(GetCurrentThread(), 0xFFFF);
+#endif	
 	return result;
 }
 
@@ -109,25 +102,19 @@ void CScriptBinderObjectWrapper::net_Export_static		(CScriptBinderObject *script
 
 void CScriptBinderObjectWrapper::shedule_Update			(u32 time_delta)
 {	
-	__try
-	{
 #ifdef PERF_CHECK
-		CGameObject *obj = &this->m_object->object();
-		if (obj && obj->cast_actor())
-			SetThreadAffinityMask(GetCurrentThread(), 0x0008);
-		else
-			SetThreadAffinityMask(GetCurrentThread(), 0x0004);
+	CGameObject *obj = &this->m_object->object();
+	if (obj && obj->cast_actor())
+		SetThreadAffinityMask(GetCurrentThread(), 0x0008);
+	else
+		SetThreadAffinityMask(GetCurrentThread(), 0x0004);
 #endif		
-		Device.Statistic->ScriptBinder.Begin();		
-		luabind::call_member<void>(this, "update", time_delta);
-		Device.Statistic->ScriptBinder.End();		
-	}
-	__finally
-	{
+	Device.Statistic->ScriptBinder.Begin();		
+	luabind::call_member<void>(this, "update", time_delta);
+	Device.Statistic->ScriptBinder.End();		
 #ifdef PERF_CHECK
-		SetThreadAffinityMask(GetCurrentThread(), 0x0001);
+	SetThreadAffinityMask(GetCurrentThread(), 0x0001);
 #endif
-	}
 }
 
 void CScriptBinderObjectWrapper::shedule_Update_static	(CScriptBinderObject *script_binder_object, u32 time_delta)

@@ -112,9 +112,14 @@ void ICollidableScript::script_register	(lua_State *L)
 IC u32 get_inventory_item_flags(CGameObject* O)
 {
 	CInventoryItem *II = smart_cast<CInventoryItem*> (O);
-	if (II)
-		return II->m_flags.flags;
+	if (II) return II->m_flags.flags;
 	return 0;
+}
+
+IC void set_inventory_item_flags(CGameObject* O, u16 flags)
+{
+	CInventoryItem *II = smart_cast<CInventoryItem*> (O);
+	if (II) II->m_flags.assign ( (u16) flags);	
 }
 
 LPCSTR get_obj_class_name(CGameObject *obj) { return obj->CppClassName(); }
@@ -130,7 +135,7 @@ IC LPCSTR get_class_id(CGameObject *obj)
 DLL_API LPCSTR raw_lua_class_name(lua_State *L)
 {
 	using namespace luabind::detail;
-	for (int i = lua_gettop(L) - 1; i > 0; i--) // обычно аргумент (-2) = объект
+	for (int i = lua_gettop(L) - 1; i > 0; i--) // обычно аргумент (-2) ,    int(CSE_ALifeObject:: объект
 	if (lua_isuserdata(L, i))
 	{
 		object_rep *rep = is_class_object(L, i); 
@@ -206,14 +211,13 @@ void CObjectScript::script_register		(lua_State *L)
 			
 			.def("test_server_flag"			,					&CGameObject::TestServerFlag)			
 			.property	 ("se_object"		,					&CGameObject::alife_object)
-			.property	 ("item_flags"		,					&get_inventory_item_flags)     // ???! проблемы с кастингом, не позвол€ют оставить это свойство в CInventoryItem
+			.property	 ("item_flags"		,					&get_inventory_item_flags,  &set_inventory_item_flags)     // ???! проблемы с кастингом, не позвол€ют оставить это свойство в CInventoryItem
 			.property	 ("class_name"		,					&get_lua_class_name)
 			.property	 ("class_id"		,					&get_class_id)
 			
 			.def("load_config"				,					&CGameObject::Load)
 //			.def("setEnabled",			&CGameObject::setEnabled)
 			,
-// ======================================================================================================================			
 			
 			class_<CGlobalFlags>("global_flags")  // дл€ оптимальности доступа, предполагаетс€ в скриптах скопировать элементы этого "класса" в пространство имен _G 
 			.enum_("explosion")
@@ -242,7 +246,22 @@ void CObjectScript::script_register		(lua_State *L)
 				value("FIUngroupable"			,				int(CInventoryItem::EIIFlags::FIUngroupable)),
 				value("FIManualHighlighting"	,				int(CInventoryItem::EIIFlags::FIManualHighlighting))
 			]
-
+			.enum_("se_object_flags")
+			[
+				value("flUseSwitches"			,				int(CSE_ALifeObject:: flUseSwitches)),
+				value("flSwitchOnline"			,				int(CSE_ALifeObject:: flSwitchOnline)),
+				value("flSwitchOffline"			,				int(CSE_ALifeObject:: flSwitchOffline)),
+				value("flInteractive"			,				int(CSE_ALifeObject:: flInteractive)),
+				value("flVisibleForAI"			,				int(CSE_ALifeObject:: flVisibleForAI)),
+				value("flUsefulForAI"			,				int(CSE_ALifeObject:: flUsefulForAI)),
+				value("flOfflineNoMove"			,				int(CSE_ALifeObject:: flOfflineNoMove)),
+				value("flUsedAI_Locations"		,				int(CSE_ALifeObject:: flUsedAI_Locations)),
+				value("flGroupBehaviour"		,				int(CSE_ALifeObject:: flGroupBehaviour)),
+				value("flCanSave"				,				int(CSE_ALifeObject:: flCanSave)),
+				value("flVisibleForMap"			,				int(CSE_ALifeObject:: flVisibleForMap)),
+				value("flUseSmartTerrains"		,				int(CSE_ALifeObject:: flUseSmartTerrains)),
+				value("flCheckForSeparator"		,				int(CSE_ALifeObject:: flCheckForSeparator))
+			]
 
 
 //		,class_<CPhysicsShellHolder,CGameObject>("CPhysicsShellHolder")
@@ -372,14 +391,23 @@ void CKinematicsAnimated_PlayCycle(CKinematicsAnimated* sa, LPCSTR anim)
 	sa->PlayCycle(anim);
 }
 
-
+u16 get_bone_id(CKinematicsAnimated *K, LPCSTR bone_name) { return K->LL_BoneID(bone_name); }
 
 void CKinematicsAnimatedScript::script_register		(lua_State *L)
 {
 	module(L)
-	[
+	[   // базовые методы и свойства дл€ скриптовой анимации
+		class_<CBoneInstance>("CBoneInstance")
+		.def_readonly("mTransform"				,				&CBoneInstance::mTransform)
+		.def_readonly("mRenderTransform"		,				&CBoneInstance::mRenderTransform)
+		.def("get_param"						,				&CBoneInstance::get_param)
+		.def("set_param"						,				&CBoneInstance::set_param)
+		,
 		class_<CKinematicsAnimated>("CKinematicsAnimated")
-			.def("PlayCycle",		&CKinematicsAnimated_PlayCycle)
+		.def("PlayCycle"						,				&CKinematicsAnimated_PlayCycle)
+		.def("LL_BoneCount"						,				&CKinematicsAnimated::LL_BoneCount)
+		.def("LL_BoneID"						,				&get_bone_id)
+		.def("LL_GetBoneInstance"				,				&CKinematicsAnimated::LL_GetBlendInstance)
 	];
 }
 

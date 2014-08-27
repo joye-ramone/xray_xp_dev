@@ -174,6 +174,7 @@ public:
 	BOOL						m_bGameConfigStarted;
 	BOOL						game_configured;
 	NET_Queue_Event				*game_events;
+	NET_Queue_Event				*spawn_events;
 	xr_deque<CSE_Abstract*>		game_spawn_queue;
 	xrServer*					Server;
 	GlobalFeelTouch				m_feel_deny;

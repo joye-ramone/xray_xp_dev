@@ -265,7 +265,7 @@ bool CInventory::DropItem(CGameObject *pObj)
 			m_ruck.erase(std::find(m_ruck.begin(), m_ruck.end(), pIItem));
 		}break;
 	case eItemPlaceSlot:{
-			Msg("Drop item from slot %d", pIItem->GetSlot() );
+			Msg("Drop item %s from slot %d from owner %d", pObj->cName().c_str(), pIItem->GetSlot(), GetOwner()->object_id());
 			R_ASSERT			(InSlot(pIItem));
 			if(m_iActiveSlot == pIItem->GetSlot()) 
 				Activate	(NO_ACTIVE_SLOT);
@@ -1092,7 +1092,9 @@ bool CInventory::CanTakeItem(CInventoryItem *inventory_item) const
 
 	if(!inventory_item->CanTake()) return false;
 
-	for(TIItemContainer::const_iterator it = m_all.begin(); it != m_all.end(); it++)
+	TIItemContainer::const_iterator it;
+
+	for(it = m_all.begin(); it != m_all.end(); it++)
 		if((*it)->object().ID() == inventory_item->object().ID()) break;
 	VERIFY3(it == m_all.end(), "item already exists in inventory",*inventory_item->object().cName());
 

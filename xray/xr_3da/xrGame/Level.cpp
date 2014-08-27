@@ -75,6 +75,7 @@ CLevel::CLevel():IPureClient	(Device.GetTimerGlobal())
 	game						= NULL;
 //	game						= xr_new<game_cl_GameState>();
 	game_events					= xr_new<NET_Queue_Event>();
+	spawn_events				= xr_new<NET_Queue_Event>();
 
 	game_configured				= FALSE;
 	m_bGameConfigStarted		= FALSE;
@@ -246,7 +247,7 @@ CLevel::~CLevel()
 
 	xr_delete					(game);
 	xr_delete					(game_events);
-
+	xr_delete					(spawn_events);
 
 	//by Dandy
 	//destroy fog of war
@@ -395,13 +396,30 @@ void CLevel::ProcessGameEvents		()
 		/*
 		if (!game_events->queue.empty())	
 			Msg("- d[%d],ts[%d] -- E[svT=%d],[evT=%d]",Device.dwTimeGlobal,timeServer(),svT,game_events->queue.begin()->timestamp);
-		*/
+		*/			
+#ifdef   SPAWN_ANTITFREEZE
+		while (spawn_events->available(svT))
+		{
+			u16 ID,dest,type;			
+			spawn_events->get	(ID,dest,type,P);
+			game_events->insert (P);
+		}
+		u32 work_limit = Device.frame_elapsed() + 20;
 
+#endif
 		while	(game_events->available(svT)) 
 		{
 			u16 ID,dest,type;
-			game_events->get	(ID,dest,type,P);
-			
+			game_events->get	(ID,dest,type,P);		
+#ifdef   SPAWN_ANTITFREEZE
+			if (g_bootComplete && M_SPAWN == ID && Device.frame_elapsed() > work_limit) // alpet: позволит плавнее выводить объекты в онлайн, без заметных фризов
+			{
+				if (!spawn_events->available(svT))
+					Msg("* ProcessGameEvents, spawn event postponed. Events rest = %d", game_events->queue.size());
+				spawn_events->insert(P);
+				continue;
+			}
+#endif
 
 			switch (ID)
 			{
@@ -410,6 +428,7 @@ void CLevel::ProcessGameEvents		()
 					u16 dummy16;
 					P.r_begin(dummy16);
 					cl_Process_Spawn(P);
+
 				}break;
 			case M_EVENT:
 				{
@@ -420,13 +439,7 @@ void CLevel::ProcessGameEvents		()
 					VERIFY(0);
 				}break;
 			}		
-#ifdef   SPAWN_ANTITFREEZE
-			if (g_bootComplete && Device.frame_elapsed() > 40) // alpet: позволит плавнее выводить объекты в онлайн, без заметных фризов
-			{
-				Msg("* ProcessGameEvents, loop breaked by timeout. Events rest = %d", game_events->queue.size());
-				break;
-			}
-#endif
+
 		}
 
 		
@@ -440,9 +453,11 @@ void CLevel::ProcessGameEvents		()
 	extern float				debug_on_frame_gather_stats_frequency;
 
 struct debug_memory_guard {
-	inline debug_memory_guard	()
+	inline debug_memory_guard	()	
 	{
+#ifdef  DEBUG
 		mem_alloc_gather_stats				(!!psAI_Flags.test(aiDebugOnFrameAllocs));
+#endif
 		mem_alloc_gather_stats_frequency	(debug_on_frame_gather_stats_frequency);
 	}
 

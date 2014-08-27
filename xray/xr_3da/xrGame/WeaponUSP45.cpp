@@ -4,7 +4,7 @@
 CWeaponUSP45::CWeaponUSP45(void) : CWeaponPistol("USP")
 {
 	m_weight = .5f;
-	m_slot = 1;
+	SetSlot (PISTOL_SLOT);
 }
 
 CWeaponUSP45::~CWeaponUSP45(void)

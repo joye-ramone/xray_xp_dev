@@ -16,7 +16,7 @@ void CStalkerOutfit::script_register	(lua_State *L)
 {
 	module(L)
 	[
-		class_<CStalkerOutfit,CGameObject>("CStalkerOutfit")
+		class_<CStalkerOutfit,CCustomOutfit>("CStalkerOutfit")
 			.def(constructor<>())
 	];
 }

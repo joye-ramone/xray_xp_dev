@@ -47,6 +47,7 @@
 #include "script_engine.h"
 
 #include "xrServer_Objects_ALife.h"
+#include "ai_object_location.h"
 
 
 template <typename T>
@@ -141,6 +142,8 @@ void lua_pushgameobject(lua_State *L, CGameObject *obj)
 			test_pushobject<CArtefact>					(L, obj) ||			
 			test_pushobject<CEatableItemObject>			(L, obj) ||
 			test_pushobject<CGrenade>					(L, obj) ||
+			test_pushobject<CMissile>					(L, obj) ||
+			test_pushobject<CCustomOutfit>				(L, obj) ||
 			test_pushobject<CWeaponMagazinedWGrenade>	(L, obj) ||
 			test_pushobject<CWeaponMagazined>			(L, obj) ||
 			test_pushobject<CWeapon>					(L, obj) ||
@@ -281,24 +284,46 @@ void raw_get_interface(CScriptGameObject *script_obj, lua_State *L) // deprecate
 	VERIFY(type == LUA_TUSERDATA && top > 0);
 }
 
-void get_interface(luabind::object O)
+#pragma message(" get_interface raw function")
+using namespace luabind;
+
+void get_interface(object O)
 {	
 	lua_State *L = O.lua_state();
 	dynamic_engine_object(L);	
 }
 
+void fake_set_interface (CScriptGameObject *script_obj, object value) { }
+
+u32 get_level_id(u32 gvid)
+{
+	CGameGraph &gg = ai().game_graph(); 
+	if (gg.valid_vertex_id(gvid))	
+		return gg.vertex(gvid)->level_id();		
+	return (u32)-1; // ERROR signal
+}
+
+LPCSTR get_level_name_by_id (u32 level_id)
+{
+ 	return ai().game_graph().header().level((GameGraph::_LEVEL_ID) level_id).name().c_str();
+}
 
 
+u32 obj_level_id(CScriptGameObject *O)
+{
+	return get_level_id (O->object().ai_location().game_vertex_id());
+}
 
-void set_interface (CScriptGameObject *script_obj, void *param) { }
+LPCSTR obj_level_name(CScriptGameObject *O) { return get_level_name_by_id ( obj_level_id(O) ); }
 
-using namespace luabind;
+
 
 #pragma optimize("s",on)
 
 class_<CScriptGameObject> &script_register_game_object3(class_<CScriptGameObject> &instance)
 {
 	instance
+		#pragma message("+ game_object.extensions export begin")
 		// alpet: export object cast		 
 		.def("get_game_object",				&CScriptGameObject::object)
 		.def("get_alife_object",			&CScriptGameObject::alife_object)
@@ -309,7 +334,9 @@ class_<CScriptGameObject> &script_register_game_object3(class_<CScriptGameObject
 		.def("get_grenade",					&script_game_object_cast<CGrenade>)
 		.def("get_inventory_item",			&script_game_object_cast<CInventoryItemObject>)
 		.def("get_inventory_owner",			&script_game_object_cast<CInventoryOwner>)
-		.def("get_interface",				&raw_get_interface, raw(_2))    // более надежное и быстрое решение, при использовании LuaSafeCall
+		.def("get_interface",				&raw_get_interface, raw(_2))
+		.def("get_missile",					&script_game_object_cast<CMissile>)
+		.def("get_outfit",					&script_game_object_cast<CCustomOutfit>)
 		.def("get_torch",					&get_torch)
 		.def("get_weapon",					&script_game_object_cast<CWeapon>)
 		.def("get_weapon_m",				&script_game_object_cast<CWeaponMagazined>)
@@ -317,15 +344,19 @@ class_<CScriptGameObject> &script_register_game_object3(class_<CScriptGameObject
 
 		.def("get_hud_visual",				&CScriptGameObject::GetWeaponHUD_Visual)
 		.def("load_hud_visual",				&CScriptGameObject::LoadWeaponHUD_Visual)
-		.property("interface",				&get_interface,  &set_interface, raw(_2))	
+		.property("interface",				&get_interface,  &fake_set_interface, raw(_2))	
 		.property("inventory",				&get_obj_inventory)
 		.property("immunities",				&get_obj_immunities)
 		.property("conditions",				&get_obj_conditions)		
-		
+		.property("level_id",				&obj_level_id)
+		.property("level_name",				&obj_level_name)
 		,
 
 		def("script_object_class_name",		&script_object_class_name, raw(_1)),
 		def("engine_object",				&dynamic_engine_object, raw(_1)),		
-		def("get_actor_obj",				&Actor)
+		def("get_actor_obj",				&Actor),
+		def("get_level_id",					&get_level_id)
+
+		#pragma message("+ game_object.extensions export end")
 	; return instance;
 }

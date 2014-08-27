@@ -99,8 +99,12 @@ void register_mp_console_commands();
 		u32		g_dwDebugNodeDest		= 0;
 extern	BOOL	g_bDrawBulletHit;
 
+		
+#endif
+#ifdef  DEBUG_MEMORY_MANAGER
 		float	debug_on_frame_gather_stats_frequency	= 0.f;
 #endif
+
 #ifdef DEBUG 
 extern LPSTR	dbg_stalker_death_anim;
 extern BOOL		b_death_anim_velocity;

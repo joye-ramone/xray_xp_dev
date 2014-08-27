@@ -450,26 +450,35 @@ void print_help							(lua_State *L)
 	int top = lua_gettop(L);
 	SleepEx(10, FALSE);
 
+#ifndef DEBUG
 	__try
 	{
+#else
+	{
+#endif
 		FastMsg					("\nList of the classes exported to LUA\n");
 		luabind::detail::class_registry::get_registry(L)->iterate_classes(L,&print_class);
 		FastMsg					("End of list of the classes exported to LUA\n");
 		FastMsg					("\nList of the namespaces exported to LUA\n");
-				
+#ifndef DEBUG				
 		__try
 		{
+#endif
 			print_free_functions(L, luabind::get_globals(L), "", " ");
 			FastMsg("End of list of the namespaces exported to LUA\n");
+#ifndef DEBUG
 		}
 		__except (EXCEPTION_EXECUTE_HANDLER)
-		{			
+		{	
+#endif
 			Msg("Fatal: Exception catched in print_free_functions  ");
 			FastMsg("WARNING: incomplete list of the namespaces exported to LUA\n");
+#ifndef DEBUG
 		}
 	}
 	__finally
 	{
+#endif
 		dumper->flush();		
 		CloseDumper();
 		Device.Pause(paused, TRUE, FALSE, "lua_help");
