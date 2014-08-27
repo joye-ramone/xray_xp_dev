@@ -27,8 +27,11 @@ private:
 //	ref_shader				sh_progress2;
 	int						load_stage;
 	shared_str				load_texture;	
+	shared_str				curr_texture;
 
 	u32						ll_dwReference;
+
+	void					UpdateTexture		(BOOL bDestroyBefore);
 private:
 	EVENT					eQuit;
 	EVENT					eStart;

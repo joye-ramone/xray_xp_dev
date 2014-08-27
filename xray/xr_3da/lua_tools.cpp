@@ -1,9 +1,12 @@
 #include "stdafx.h"
 #include "lua_tools.h"
 
+lua_State* g_game_lua = NULL;
 
 ENGINE_API LPCSTR get_lua_traceback(lua_State *L, int depth)
 {
+	if (L) g_game_lua = L;
+
 	static char  buffer[32768]; // global buffer
 	int top = lua_gettop(L);
 	// alpet: Lua traceback added

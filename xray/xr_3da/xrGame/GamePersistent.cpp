@@ -18,6 +18,7 @@
 
 #include "../CameraManager.h"
 #include "actor.h"
+#include "script_engine.h"
 
 #ifndef MASTER_GOLD
 #	include "custommonster.h"
@@ -518,7 +519,9 @@ void CGamePersistent::LoadTitle(LPCSTR str)
 {
 	string512			buff;
 	sprintf_s				(buff, "%s...", CStringTable().translate(str).c_str());
+	try_call_luafunc("on_load_title", str); // позволяет дополнительно менять загрузочные экраны
 	pApp->LoadTitleInt	(buff);
+	
 }
 
 bool CGamePersistent::CanBePaused()

@@ -633,7 +633,7 @@ int APIENTRY WinMain_impl(HINSTANCE hInstance,
 	logoWindow					= CreateDialog(GetModuleHandle(NULL),	MAKEINTRESOURCE(IDD_STARTUP), 0, logDlgProc );
 	SetWindowPos				(
 		logoWindow,
-#ifndef NDEBUG
+#ifdef  TRUE_RELEASE
 		HWND_TOPMOST,
 #else
 		HWND_NOTOPMOST,
@@ -699,10 +699,11 @@ int APIENTRY WinMain_impl(HINSTANCE hInstance,
 			Console->Execute			("renderer renderer_r2");
 		else
 		{
+			Msg("Loading  config for renderer ");
 			CCC_LoadCFG_custom*	pTmp = xr_new<CCC_LoadCFG_custom>("renderer ");
 			pTmp->Execute				(Console->ConfigFile);
 			xr_delete					(pTmp);
-		}
+		}	
 
 
 		InitInput					( );
@@ -965,7 +966,8 @@ void CApplication::LoadBegin	()
 		_InitializeFont		(pFontSystem,"ui_font_graffiti19_russian",0);
 
 		ll_hGeom.create		(FVF::F_TL, RCache.Vertex.Buffer(), RCache.QuadIB);
-		sh_progress.create	("hud\\default", load_texture.c_str());
+		curr_texture = "$null";
+		UpdateTexture		(FALSE);
 		ll_hGeom2.create		(FVF::F_TL, RCache.Vertex.Buffer(),NULL);
 #endif
 		phase_timer.Start	();
@@ -991,6 +993,7 @@ void CApplication::destroy_loading_shaders()
 {
 	hLevelLogo.destroy		();
 	sh_progress.destroy		();
+	curr_texture = "$null";
 	g_bootComplete = TRUE;
 //.	::Sound->mute			(false);
 }
@@ -1030,6 +1033,9 @@ void CApplication::LoadTitleInt(LPCSTR str)
 		max_load_stage			= 17;
 	else
 		max_load_stage			= 14;
+#ifndef DEDICATED_SERVER
+	UpdateTexture				(TRUE);
+#endif
 
 	LoadDraw					();
 }
@@ -1127,6 +1133,20 @@ int CApplication::Level_ID(LPCSTR name)
 	return -1;
 }
 
+void CApplication::UpdateTexture(BOOL bDestroyBefore)
+{
+	if (load_texture != curr_texture)
+	__try{
+		if (bDestroyBefore) 
+			sh_progress.destroy();
+		sh_progress.create("hud\\default", load_texture.c_str());
+		curr_texture = load_texture;
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER)
+	{
+		Msg("!Exception catched in CApplication::UpdateTexture ");
+	}
+}
 
 //launcher stuff----------------------------
 extern "C"{

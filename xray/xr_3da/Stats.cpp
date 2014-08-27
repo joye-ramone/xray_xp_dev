@@ -274,10 +274,13 @@ void CStats::Show()
 		F.OutNext	("TEST 2:      %5.1fms, %d",TEST2.result,TEST2.count);
 		F.OutNext	("TEST 3:      %5.1fms, %d",TEST3.result,TEST3.count);
 		F.OutSkip	();
+#undef  PPP
 
+#define PPP(a) (100.f*float(a)/float(EngineTOTAL.result))
 		F.OutSkip	();
-		F.OutNext	("*** SCRIPT BINDER:  %5.1fms",			ScriptBinder.result);
-		F.OutNext	("  net_spawn:  %5.1fms",				ScriptBinder_netSpawn.result);
+		F.OutNext	("*** SCRIPT BINDER:  %5.1fms [%.1f%%]",	ScriptBinder.result, PPP(ScriptBinder.result));
+		F.OutNext	("  net_spawn:  %5.1fms",					ScriptBinder_netSpawn.result);
+#undef  PPP
 
 #ifdef DEBUG_MEMORY_MANAGER
 		F.OutSkip	();
@@ -421,6 +424,7 @@ void CStats::Show()
 
 		ScriptBinder.FrameStart		();
 		ScriptBinder_netSpawn.FrameStart ();
+		ScriptBinder_netSpawn.result = 0;  // против сглаживания
 
 		g_SpatialSpace->stat_insert.FrameStart		();
 		g_SpatialSpace->stat_remove.FrameStart		();

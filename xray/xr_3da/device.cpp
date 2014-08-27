@@ -112,7 +112,7 @@ void CRenderDevice::End		(void)
 #endif
 }
 
-
+static   u32	mt_access = 0;
 volatile u32	mt_Thread_marker		= 0x12345678;
 void 			mt_Thread	(void *ptr)	{
 	
@@ -138,9 +138,24 @@ void 			mt_Thread	(void *ptr)	{
 		}
 		// we has granted permission to execute
 		mt_Thread_marker			= Device.dwFrame;
- 
-		for (u32 pit=0; pit<Device.seqParallel.size(); pit++)
-			Device.seqParallel[pit]	();
+		u32 pit = 0;
+		__try
+		{
+			mt_access = GetCurrentThreadId();
+			u32 size = Device.seqParallel.size();
+			for (pit = 0; pit < size; pit++)
+			{
+				R_ASSERT(mt_Thread_marker == Device.dwFrame);
+				Device.seqParallel[pit]();
+			}
+			if (Device.seqParallel.size() != size)
+				Msg("!WARN: seqParallel.size() = %d, before execute = %d", Device.seqParallel.size(), size);
+
+		}
+		__except (EXCEPTION_EXECUTE_HANDLER)
+		{
+			Msg("!Exception catched in secondary thread. pit = %d, mt_access = %d", pit, mt_access);
+		}
 		Device.seqParallel.clear_not_free	();
 		Device.seqFrameMT.Process	(rp_Frame);
 
@@ -306,7 +321,8 @@ void CRenderDevice::Run			()
 
 				// Ensure, that second thread gets chance to execute anyway
 				if (dwFrame!=mt_Thread_marker)			{
-					for (u32 pit=0; pit<Device.seqParallel.size(); pit++)
+					mt_access = GetCurrentThreadId();
+					for (u32 pit=0; pit<Device.seqParallel.size(); pit++)					
 						Device.seqParallel[pit]			();
 					Device.seqParallel.clear_not_free	();
 					seqFrameMT.Process					(rp_Frame);

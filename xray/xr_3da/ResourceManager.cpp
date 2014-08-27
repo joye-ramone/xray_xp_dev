@@ -189,7 +189,12 @@ Shader*	CResourceManager::_cpp_Create	(IBlender* B, LPCSTR s_shader, LPCSTR s_te
 
 	// Compile element	(LOD0 - HQ)
 	{
-		C.iElement			= 0;
+		C.iElement			= 0;		
+#if defined(DEBUG) && _SECURE_SCL		
+#pragma message("alpet: вылету здесь удивляться не стоит")
+		R_ASSERT(C.L_textures._Myfirst);
+		R_ASSERT(C.L_textures._Myproxy);
+#endif		
 		C.bDetail			= m_textures_description.GetDetailTexture(C.L_textures[0],C.detail_texture,C.detail_scaler);
 //.		C.bDetail			= _GetDetailTexture(*C.L_textures[0],C.detail_texture,C.detail_scaler);
 		ShaderElement		E;

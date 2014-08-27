@@ -78,7 +78,9 @@ void CEnvAmbient::load(const shared_str& sect)
 			}
 		}
 	}
+#ifndef DEBUG
 	VERIFY(!sounds.empty() || !effects.empty());
+#endif
 }
 
 //-----------------------------------------------------------------------------

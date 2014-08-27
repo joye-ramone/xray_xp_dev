@@ -53,6 +53,7 @@ CScriptEngine::CScriptEngine			()
 
 CScriptEngine::~CScriptEngine			()
 {
+	g_game_lua = NULL;
 	while (!m_script_processes.empty())
 		remove_script_process(m_script_processes.begin()->first);
 
@@ -207,6 +208,7 @@ void CScriptEngine::init				()
 	load_common_scripts					();
 #endif
 	m_stack_level						= lua_gettop(lua());
+	g_game_lua = lua();
 }
 
 void CScriptEngine::remove_script_process	(const EScriptProcessors &process_id)
@@ -385,6 +387,37 @@ void CScriptEngine::collect_all_garbage	()
 	lua_gc					(lua(),LUA_GCCOLLECT,0);
 }
 
+ENGINE_API BOOL g_appLoaded;
+
+bool CScriptEngine::try_call(LPCSTR func_name, LPCSTR param)
+{   
+	if (NULL == this || NULL == lua()) 
+			return false;
+	// максимально быстрый вызов функции
+	int save_top = lua_gettop(lua());
+	lua_getglobal(lua(), func_name);
+	if (lua_isfunction(lua(), -1))
+	{
+		int args = 0;
+		if (param)
+		{
+			args++;
+			lua_pushstring(lua() , param);
+		}
+
+		if (0 != lua_pcall(lua(), args, LUA_MULTRET, 0))
+			lua_pcall_failed(lua());
+
+		lua_settop(lua(), save_top);
+		return true;
+	}
+	else
+	{
+		lua_pop(lua(), 1);
+		return false;
+	}
+}
+
 
 DLL_API void log_script_error(LPCSTR format, ...)
 {
@@ -400,5 +433,13 @@ DLL_API void log_script_error(LPCSTR format, ...)
  
 DLL_API lua_State* game_lua()
 {
-	return ai().script_engine().lua();
+	if (!g_game_lua)
+		 g_game_lua = ai().script_engine().lua();
+	return g_game_lua;
 }
+
+DLL_API bool try_call_luafunc(LPCSTR func_name, LPCSTR param)
+{
+	return ai().script_engine().try_call(func_name, param);
+}
+

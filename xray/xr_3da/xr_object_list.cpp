@@ -18,6 +18,22 @@ public:
 	IC bool operator() (CObject* O) { return cls==O->CLS_ID; }
 };
 
+#pragma optimize("gyts", off)
+
+xr_vector<CObject*>		deleted_objects;
+
+bool chk_already_deleted(CObject *O, str_c context)
+{
+	xr_vector<CObject*>::iterator i = std::find(deleted_objects.begin(), deleted_objects.end(), O);
+	if (i != deleted_objects.end())
+	{   // обычно ничего страшного, повторное использование блока памяти. 
+		// Msg("!WARN: %-15s touch already deleted object 0x%p, ID = %d, Name = %s ", context, O, O->ID(), O->cName().c_str());
+		return true;
+	}
+	else
+		return false;
+}
+
 CObjectList::CObjectList	( )
 {
 	objects_dup_memsz		= 512;
@@ -75,7 +91,8 @@ void	CObjectList::o_remove		( xr_vector<CObject*>&	v,  CObject* O)
 }
 
 void	CObjectList::o_activate		( CObject*		O		)
-{
+{	
+	// chk_already_deleted(O, "o_activate");
 	VERIFY						(O && O->processing_enabled());
 	o_remove					(objects_sleeping,O);
 	objects_active.push_back	(O);
@@ -83,6 +100,8 @@ void	CObjectList::o_activate		( CObject*		O		)
 }
 void	CObjectList::o_sleep		( CObject*		O		)
 {
+	// chk_already_deleted(O, "o_sleep");	
+
 	VERIFY	(O && !O->processing_enabled());
 	o_remove					(objects_active,O);
 	objects_sleeping.push_back	(O);
@@ -212,6 +231,7 @@ void CObjectList::Update		(bool bForce)
 
 void CObjectList::net_Register		(CObject* O)
 {
+	// chk_already_deleted(O, "net_Register");		
 	R_ASSERT		(O);
 	map_NETID.insert(mk_pair(O->ID(),O));
 	//Msg			("-------------------------------- Register: %s",O->cName());
@@ -357,18 +377,40 @@ CObject*	CObjectList::Create				( LPCSTR	name	)
 	return						O;
 }
 
+int  find_remove_object(xr_vector<CObject*> &from, CObject *O)
+{
+	xr_vector<CObject*>::iterator _i		= std::find(from.begin(),from.end(), O);
+	if (_i != from.end())
+	{
+		from.erase(_i);
+		return 1;
+	}
+	else
+		return 0;
+
+}
+
+
 void		CObjectList::Destroy			( CObject*	O		)
 {
 	if (0==O)								return;
+	
 	net_Unregister							(O);
 
-	// crows
-	xr_vector<CObject*>::iterator _i0		= std::find(crows_0.begin(),crows_0.end(),O);
-	if	(_i0!=crows_0.end())				crows_0.erase	(_i0);
+	
+	// crows	
+	find_remove_object	(crows_0, O);
+	find_remove_object	(crows_1, O);
+	// active/inactive
+	int remove_set = 0;
+	remove_set += find_remove_object(objects_active, O)   * 0x1001;	
+	remove_set += find_remove_object(objects_sleeping, O) * 0x1002;
+
+	/*
 	xr_vector<CObject*>::iterator _i1		= std::find(crows_1.begin(),crows_1.end(),O);
 	if	(_i1!=crows_1.end())				crows_1.erase	(_i1);
 
-	// active/inactive
+	
 	xr_vector<CObject*>::iterator _i		= std::find(objects_active.begin(),objects_active.end(),O);
 	if	(_i!=objects_active.end())			objects_active.erase	(_i);
 	else {
@@ -376,6 +418,15 @@ void		CObjectList::Destroy			( CObject*	O		)
 		if	(_ii!=objects_sleeping.end())	objects_sleeping.erase	(_ii);
 		else	FATAL						("! Unregistered object being destroyed");
 	}
+	*/
+
+	if (0 == remove_set)
+ 		FATAL						("! Unregistered object being destroyed");
+	if (remove_set > 0x2000)
+ 		Msg	 ("!ERROR: Destroying object '%s' remove_set = 0x%x ", O->cName().c_str(), remove_set);	
+
+
+	deleted_objects.push_back(O);
 	g_pGamePersistent->ObjectPool.destroy	(O);
 
 }
