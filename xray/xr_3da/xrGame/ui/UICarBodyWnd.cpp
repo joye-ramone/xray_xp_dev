@@ -148,6 +148,8 @@ void CUICarBodyWnd::InitCarBody(CInventoryOwner* pOur, CInventoryBox* pInvBox)
 	EnableAll										();
 	UpdateLists										();
 
+	// Real Wolf: колбек на открытие ящика. 02.08.2014.
+	pInvBox->callback(GameObject::eOnInvBoxOpen)();
 }
 
 void CUICarBodyWnd::InitCarBody(CInventoryOwner* pOur, CInventoryOwner* pOthers)

@@ -193,6 +193,8 @@ public:
 	LPCSTR					WindowName_script	()							{return *WindowName();}
 	CUIWindow*				FindChild			(const shared_str name,  u32 max_nested = 15);
 
+	CUIWindow*				FindChild			(LPCSTR s)					{return FindChild(shared_str(s) );}
+
 	IC bool					CursorOverWindow	() const					{ return m_bCursorOverWindow; }
 
 protected:

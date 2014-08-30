@@ -201,7 +201,7 @@ void CUIMainIngameWnd::Init()
 	AttachChild					(&UIPickUpItemIcon);
 	xml_init.InitStatic			(uiXml, "pick_up_item", 0, &UIPickUpItemIcon);
 	UIPickUpItemIcon.SetShader	(GetEquipmentIconsShader());
-	UIPickUpItemIcon.ClipperOn	();
+	UIPickUpItemIcon.Show		(false);
 
 	m_iPickUpItemIconWidth		= UIPickUpItemIcon.GetWidth();
 	m_iPickUpItemIconHeight		= UIPickUpItemIcon.GetHeight();
@@ -1184,20 +1184,58 @@ void CUIMainIngameWnd::AnimateContacts(bool b_snd)
 
 }
 
-
 void CUIMainIngameWnd::SetPickUpItem	(CInventoryItem* PickUpItem)
 {
-	m_pPickUpItem = PickUpItem;
+	if (m_pPickUpItem != PickUpItem)
+	{
+		m_pPickUpItem = PickUpItem;
+		UIPickUpItemIcon.Show(false);
+		UIPickUpItemIcon.DetachAll();
+	}
 };
+
+#include "UICellCustomItems.h"
+#include "../pch_script.h"
+#include "../game_object_space.h"
+#include "../script_callback_ex.h"
+#include "../script_game_object.h"
+#include "../Actor.h"
+
+typedef CUIWeaponCellItem::eAddonType eAddonType;
+
+CUIStatic* init_addon(
+	CUIWeaponCellItem *cell_item,
+	LPCSTR sect,
+	float scale,
+	float scale_x,
+	eAddonType idx)
+{
+	CUIStatic *addon = xr_new<CUIStatic>();
+	addon->SetAutoDelete(true);
+
+	auto pos		= cell_item->get_addon_offset(idx); pos.x *= scale*scale_x; pos.y *= scale;
+	auto width		= (float)pSettings->r_u32(sect, "inv_grid_width")*INV_GRID_WIDTH;
+	auto height		= (float)pSettings->r_u32(sect, "inv_grid_height")*INV_GRID_HEIGHT;
+	auto tex_x		= (float)pSettings->r_u32(sect, "inv_grid_x")*INV_GRID_WIDTH;
+	auto tex_y		= (float)pSettings->r_u32(sect, "inv_grid_y")*INV_GRID_HEIGHT;
+
+	addon->SetStretchTexture	(true);
+	addon->InitTexture			("ui\\ui_icon_equipment");
+	addon->SetOriginalRect		(tex_x, tex_y, width, height);
+	addon->SetWndRect			(pos.x, pos.y, width*scale*scale_x, height*scale);
+	addon->SetColor				(color_rgba(255,255,255,192));
+
+	return addon;
+}
 
 void CUIMainIngameWnd::UpdatePickUpItem	()
 {
 	if (!m_pPickUpItem || !Level().CurrentViewEntity() || Level().CurrentViewEntity()->CLS_ID != CLSID_OBJECT_ACTOR) 
 	{
-		UIPickUpItemIcon.Show(false);
 		return;
 	};
 
+	if (UIPickUpItemIcon.IsShown() ) return; // Real Wolf: Какой смысл постоянно обновлять? 10.08.2014.
 
 	shared_str sect_name	= m_pPickUpItem->object().cNameSect();
 
@@ -1227,7 +1265,10 @@ void CUIMainIngameWnd::UpdatePickUpItem	()
 
 	UIPickUpItemIcon.SetStretchTexture(true);
 
-	UIPickUpItemIcon.SetWidth(m_iGridWidth*INV_GRID_WIDTH*scale);
+	// Real Wolf: Исправляем растягивание. 10.08.2014.
+	scale_x = Device.fASPECT/0.75f;
+
+	UIPickUpItemIcon.SetWidth(m_iGridWidth*INV_GRID_WIDTH*scale*scale_x);
 	UIPickUpItemIcon.SetHeight(m_iGridHeight*INV_GRID_HEIGHT*scale);
 
 	UIPickUpItemIcon.SetWndPos(m_iPickUpItemIconX + 
@@ -1236,6 +1277,35 @@ void CUIMainIngameWnd::UpdatePickUpItem	()
 		(m_iPickUpItemIconHeight - UIPickUpItemIcon.GetHeight())/2);
 
 	UIPickUpItemIcon.SetColor(color_rgba(255,255,255,192));
+
+	// Real Wolf: Добавляем к иконке аддоны оружия. 10.08.2014.
+	if (auto wpn = m_pPickUpItem->cast_weapon() )
+	{
+		auto cell_item = xr_new<CUIWeaponCellItem>(wpn);
+
+		if (wpn->SilencerAttachable() && wpn->IsSilencerAttached() )
+		{
+			auto sil = init_addon(cell_item, *wpn->GetSilencerName(), scale, scale_x, eAddonType::eSilencer);
+			UIPickUpItemIcon.AttachChild(sil);
+		}
+
+		if (wpn->ScopeAttachable() && wpn->IsScopeAttached() )
+		{
+			auto scope = init_addon(cell_item, *wpn->GetScopeName(), scale, scale_x, eAddonType::eScope);
+			UIPickUpItemIcon.AttachChild(scope);
+		}
+
+		if (wpn->GrenadeLauncherAttachable() && wpn->IsGrenadeLauncherAttached() )
+		{
+			auto launcher = init_addon(cell_item, *wpn->GetGrenadeLauncherName(), scale, scale_x, eAddonType::eLauncher);
+			UIPickUpItemIcon.AttachChild(launcher);
+		}
+		delete_data(cell_item);
+	}
+
+	// Real Wolf: Колбек для скриптового добавления своих иконок. 10.08.2014.
+	g_actor->callback(GameObject::eUIPickUpItemShowing)(m_pPickUpItem->object().lua_game_object(), &UIPickUpItemIcon);
+
 	UIPickUpItemIcon.Show(true);
 };
 

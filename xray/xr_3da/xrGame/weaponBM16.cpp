@@ -18,9 +18,12 @@ void CWeaponBM16::Load	(LPCSTR section)
 	animGet	(mhud_zoomed_idle1,		pSettings->r_string(*hud_sect,"anim_zoomed_idle_1"));
 	animGet	(mhud_zoomed_idle2,		pSettings->r_string(*hud_sect,"anim_zoomedidle_2"));
 
-
+// Real Wolf. 03.08.2014.
+#if defined(BM16_ANIMS_FIX)
+	animGet	(mhud_draw_empty_both,		pSettings->r_string(*hud_sect,"anim_draw_empty_both"));
+	animGet	(mhud_draw_empty_right,		pSettings->r_string(*hud_sect,"anim_draw_empty_right"));
+#endif
 	HUD_SOUND::LoadSound(section, "snd_reload_1", m_sndReload1, m_eSoundShot);
-
 }
 
 void CWeaponBM16::PlayReloadSound()
@@ -82,3 +85,19 @@ void CWeaponBM16::PlayAnimIdle()
 		};
 	}
 }
+
+// Real Wolf. 03.08.2014.
+#if defined(BM16_ANIMS_FIX)
+void CWeaponBM16::switch2_Showing()
+{
+	PlaySound(sndShow, get_LastFP());
+	m_bPending = true;
+
+	if (this->GetAmmoCurrent() == 1)
+		m_pHUD->animPlay(random_anim(mhud_draw_empty_right), FALSE, this, GetState());
+	else if (this->GetAmmoCurrent() == 0)
+		m_pHUD->animPlay(random_anim(mhud_draw_empty_both), FALSE, this, GetState());
+	else
+		m_pHUD->animPlay(random_anim(mhud.mhud_show), FALSE, this, GetState());
+}
+#endif

@@ -129,7 +129,18 @@ void CScriptGameObject::script_register(lua_State *L)
 					// Cribbledirge End
 
 					value("on_cell_item_focus", int(GameObject::eCellItemFocus)),
-					value("on_cell_item_focus_lost", int(GameObject::eCellItemFocusLost))
+					value("on_cell_item_focus_lost", int(GameObject::eCellItemFocusLost)),
+					value("on_attach_vehicle", int(GameObject::eAttachVehicle)),
+					value("on_detach_vehicle", int(GameObject::eDetachVehicle)),
+					value("on_use_vehicle", int(GameObject::eUseVehicle)),
+					value("on_postsave", int(GameObject::ePostSave)),
+					value("on_inv_box_item_take", int(GameObject::eOnInvBoxItemTake) ),
+					value("on_inv_box_item_drop", int(GameObject::eOnInvBoxItemDrop) ),
+					value("on_inv_box_open", int(GameObject::eOnInvBoxOpen) ),
+					value("on_level_map_click", int(GameObject::eUIMapClick) ),
+					value("on_map_spot_click", int(GameObject::eUIMapSpotClick) ),
+					value("on_pickup_item_showing", int(GameObject::eUIPickUpItemShowing) ),
+					value("on_group_items", int(GameObject::eUIGroupItems) )
 				],
 
 				def("buy_condition", (void(*)(CScriptIniFile*, LPCSTR))(&::buy_condition)),

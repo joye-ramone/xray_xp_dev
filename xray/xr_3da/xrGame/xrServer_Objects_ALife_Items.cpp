@@ -73,8 +73,13 @@ CSE_ALifeInventoryItem::~CSE_ALifeInventoryItem	()
 {
 }
 
+#include "Level.h"
+#include "inventory_item.h"
 void CSE_ALifeInventoryItem::STATE_Write	(NET_Packet &tNetPacket)
 {
+	if (auto item = smart_cast<CInventoryItem*>(Level().Objects.net_Find(base()->ID) ) )
+		m_fCondition = item->GetCondition();
+
 	tNetPacket.w_float			(m_fCondition);
 	State.position				= base()->o_Position;
 }

@@ -918,29 +918,49 @@ void CScriptGameObject::SetWeight(float weight)
 		obj->m_weight = weight;
 }
 
-float CScriptGameObject::GetWeight() const
-{
-	if (auto obj = smart_cast<CInventoryItem*>(&object() ) )
-		return obj->m_weight;
-	return 0.0;
-}
-
 void CScriptGameObject::SetCost(u32 cost)
 {
 	if (auto obj = smart_cast<CInventoryItem*>(&object() ) )
 		obj->m_cost = cost;
 }
 
-u32 CScriptGameObject::GetCost() const
-{
-	if (auto obj = smart_cast<CInventoryItem*>(&object() ) )
-		return obj->m_cost;
-	return 0;
-}
 
 CUIStatic* CScriptGameObject::GetCellItem() const
 {
 	if (auto obj = smart_cast<CInventoryItem*>(&object() ) )
 		return (CUIStatic*)obj->m_cell_item;
 	return NULL;
+}
+
+#include "HUDManager.h"
+#include "UIGameSP.h"
+#include "InventoryBox.h"
+void CScriptGameObject::OpenInventoryBox(CScriptGameObject *obj) const
+{
+	auto owner = smart_cast<CInventoryOwner*>(&object() );
+	if (!owner)
+	{
+		Msg("Error! CScriptGameObject::OpenInventoryBox: called not for inventory owner!");
+		return;
+	}
+
+	auto box = smart_cast<CInventoryBox*>(&obj->object() );
+	if (!box)
+	{
+		Msg("Error! CScriptGameObject::OpenInventoryBox: arg is not inventory box!");
+		return;
+	}
+
+	if (HUD().GetUI() && HUD().GetUI()->UIGame() )
+	{
+		CUIGameSP* game_sp = smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame());
+		game_sp->StartCarBody(owner, box);
+	}
+}
+
+LPCSTR CScriptGameObject::GetBoneName(u16 id) const
+{
+	if (auto K = smart_cast<CKinematics*>(object().Visual()) )
+		return K->LL_BoneName_dbg(id);
+	return 0;
 }

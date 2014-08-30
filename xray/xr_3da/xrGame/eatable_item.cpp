@@ -85,6 +85,13 @@ void CEatableItem::OnH_B_Independent(bool just_before_destroy)
 	inherited::OnH_B_Independent(just_before_destroy);
 }
 
+
+#include "ui/UICellItemFactory.h"
+#include "ui/UICellCustomItems.h"
+#include "ui/UIDragDropListEx.h"
+#include "InventoryOwner.h"
+#include "Inventory.h"
+#include "ui/UIInventoryUtilities.h"
 void CEatableItem::UseBy (CEntityAlive* entity_alive)
 {
 	CInventoryOwner* IO	= smart_cast<CInventoryOwner*>(entity_alive);
@@ -105,5 +112,26 @@ void CEatableItem::UseBy (CEntityAlive* entity_alive)
 	else
 		m_iPortionsNum = 0;
 
+	// Real Wolf: После использования предмета, удалеяем его иконку и добавляем заново.
+	// Таким образом вызовется колбек на группировку, где пользователь решит, группировать или нет предмета. 13.08.2014.
+	if (!Empty() && m_cell_item && m_cell_item->ChildsCount() )
+	{
+		auto owner = m_cell_item->OwnerList();
+		auto itm = m_cell_item->PopChild();
+		owner->SetItem(itm);
+		
+		// TODO: После сортировки надо удалять все старые иконки и создавать новые, чтобы было отсортировано.
 
+		//TIItemContainer place;
+		//switch (this->m_eItemPlace)
+		//{
+		//case eItemPlaceBelt:
+		//	place = inventory_owner().inventory().m_belt; break;
+		//case eItemPlaceRuck:
+		//	place = inventory_owner().inventory().m_ruck; break;
+		//default:
+		//	R_ASSERT(0);
+		//}
+		//std::sort(place.begin(),place.end(),InventoryUtilities::GreaterRoomInRuck);
+	}
 }

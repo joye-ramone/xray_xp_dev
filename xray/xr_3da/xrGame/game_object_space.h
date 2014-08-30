@@ -89,6 +89,18 @@ namespace GameObject {
 		eCellItemFocus,
 		eCellItemFocusLost,
 
+		eAttachVehicle,
+		eDetachVehicle,
+		eUseVehicle,
+		ePostSave,
+		eOnInvBoxItemTake,
+		eOnInvBoxItemDrop,
+		eOnInvBoxOpen,
+		eUIMapClick,
+		eUIMapSpotClick,
+		eUIPickUpItemShowing,
+		eUIGroupItems,
+
 		// Cribbledirge End
 		eDummy = u32(-1),
 	};

@@ -381,10 +381,8 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("get_description",				&CScriptGameObject::GetDescription)
 		.def("get_name",					&CScriptGameObject::GetName)
 		.def("get_name_short",				&CScriptGameObject::GetNameShort)
-		.def("get_weight",					&CScriptGameObject::GetWeight)
-		.def("get_cost",					&CScriptGameObject::GetCost)
 		.def("get_cell_item",				&CScriptGameObject::GetCellItem)
-
-
+		.def("open_inventory_box",			&CScriptGameObject::OpenInventoryBox)
+		.def("get_bone_name",				&CScriptGameObject::GetBoneName)
 	;return	(instance);
 }

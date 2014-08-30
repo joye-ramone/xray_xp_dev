@@ -62,6 +62,12 @@ void CALifeObjectRegistry::save				(IWriter &memory_stream, CSE_ALifeDynamicObje
 	}
 }
 
+#include "pch_script.h"
+#include "game_object_space.h"
+#include "script_callback_ex.h"
+#include "script_game_object.h"
+#include "Actor.h"
+
 void CALifeObjectRegistry::save				(IWriter &memory_stream)
 {
 	Msg							("* Saving objects...");
@@ -91,6 +97,10 @@ void CALifeObjectRegistry::save				(IWriter &memory_stream)
 	memory_stream.close_chunk	();
 	
 	Msg							("* %d objects are successfully saved",object_count);
+
+	// Real Wolf: колбек после сохранения всех объектов. 01.08.2014.
+	if (g_actor)
+		g_actor->callback(GameObject::ePostSave)();
 }
 
 CSE_ALifeDynamicObject *CALifeObjectRegistry::get_object		(IReader &file_stream)

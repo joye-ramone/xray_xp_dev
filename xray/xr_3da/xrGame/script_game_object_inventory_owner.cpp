@@ -276,7 +276,10 @@ void CScriptGameObject::DropItem			(CScriptGameObject* pItem)
 {
 	CInventoryOwner* owner = smart_cast<CInventoryOwner*>(&object());
 	CInventoryItem* item = smart_cast<CInventoryItem*>(&pItem->object());
-	if(!owner||!item){
+
+	// Real Wolf: Для ящиков тоже пусть работает. 02.08.2014.
+	auto box = smart_cast<CInventoryBox*>(&object());
+	if( (!box && !owner) || !item){
 		ai().script_engine().script_log		(ScriptStorage::eLuaMessageTypeError,"CScriptGameObject::DropItem non-CInventoryOwner object !!!");
 		return;
 	}
@@ -949,6 +952,8 @@ void CScriptGameObject::SetAdditionalMaxWalkWeight(float add_max_walk_weight)
 	}
 	outfit->m_additional_weight = add_max_walk_weight;
 }
+
+#include "InventoryBox.h"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // получить суммарный вес инвентаря
 float CScriptGameObject::GetTotalWeight() const
@@ -1146,18 +1151,18 @@ void CScriptGameObject::InvalidateInventory	()
 	inventory_owner->inventory().InvalidateState();
 }
 // functions for CInventoryItem class
-u16 CScriptGameObject::GetIIFlags	()
+flags16 CScriptGameObject::GetIIFlags	()
 {
 	CInventoryItem	*inventory_item = smart_cast<CInventoryItem*>(&object());
 	if (!inventory_item) {
 		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CInventoryItem : cannot access class member GetIIFlags!");
-		return (0);
+		return flags16();
 	}
 
-	return inventory_item->m_flags.flags;
+	return inventory_item->m_flags;
 }
 
-void CScriptGameObject::SetIIFlags	(Flags16 fl)
+void CScriptGameObject::SetIIFlags	(flags16 flags)
 {
 	CInventoryItem	*inventory_item = smart_cast<CInventoryItem*>(&object());
 	if (!inventory_item) {
@@ -1165,7 +1170,7 @@ void CScriptGameObject::SetIIFlags	(Flags16 fl)
 		return;
 	}
 
-	inventory_item->m_flags = fl;
+	inventory_item->m_flags = flags;
 }
 
 // KD

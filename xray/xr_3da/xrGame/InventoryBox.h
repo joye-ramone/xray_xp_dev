@@ -14,4 +14,8 @@ public:
 	virtual		void	net_Relcase						(CObject* O	);
 				void	AddAvailableItems				(TIItemContainer& items_container) const;
 				bool	IsEmpty							() {return m_items.empty();}
+				u32		GetSize							() {return m_items.size();}
+				CScriptGameObject* GetObjectByName		(LPCSTR);
+				CScriptGameObject* GetObjectByIndex		(u32);
+
 };

@@ -19,6 +19,8 @@
 #include "ui/UICarBodyWnd.h"
 #include "ui/UIMessageBox.h"
 
+#include "../../build_config_defines.h"
+
 CUIGameSP::CUIGameSP()
 {
 	m_game			= NULL;
@@ -70,7 +72,7 @@ void CUIGameSP::SetClGame (game_cl_GameState* g)
 	R_ASSERT							(m_game);
 }
 
-
+#include "Inventory.h"
 bool CUIGameSP::IR_OnKeyboardPress(int dik) 
 {
 	if(inherited::IR_OnKeyboardPress(dik)) return true;
@@ -83,13 +85,16 @@ bool CUIGameSP::IR_OnKeyboardPress(int dik)
 
 	switch ( get_binded_action(dik) )
 	{
-	case kINVENTORY: 
+	case kINVENTORY:
 		if( !MainInputReceiver() || MainInputReceiver()==InventoryMenu){
 			m_game->StartStopMenu(InventoryMenu,true);
 			return true;
 		}break;
 
 	case kACTIVE_JOBS:
+#if defined(UI_LOCK_PDA_WITHOUT_PDA_IN_SLOT)
+		if (pActor->inventory().m_slots[PDA_SLOT].m_pIItem)
+#endif
 		if( !MainInputReceiver() || MainInputReceiver()==PdaMenu){
 			PdaMenu->SetActiveSubdialog(eptQuests);
 			m_game->StartStopMenu(PdaMenu,true);
@@ -97,6 +102,9 @@ bool CUIGameSP::IR_OnKeyboardPress(int dik)
 		}break;
 
 	case kMAP:
+#if defined(UI_LOCK_PDA_WITHOUT_PDA_IN_SLOT)
+		if (pActor->inventory().m_slots[PDA_SLOT].m_pIItem)
+#endif
 		if( !MainInputReceiver() || MainInputReceiver()==PdaMenu){
 			PdaMenu->SetActiveSubdialog(eptMap);
 			m_game->StartStopMenu(PdaMenu,true);
@@ -104,6 +112,9 @@ bool CUIGameSP::IR_OnKeyboardPress(int dik)
 		}break;
 
 	case kCONTACTS:
+#if defined(UI_LOCK_PDA_WITHOUT_PDA_IN_SLOT)
+		if (pActor->inventory().m_slots[PDA_SLOT].m_pIItem)
+#endif
 		if( !MainInputReceiver() || MainInputReceiver()==PdaMenu){
 			PdaMenu->SetActiveSubdialog(eptContacts);
 			m_game->StartStopMenu(PdaMenu,true);
@@ -151,6 +162,8 @@ void CUIGameSP::StartCarBody(CInventoryOwner* pOurInv, CInventoryBox* pBox)
 	if( MainInputReceiver() )		return;
 	UICarBodyMenu->InitCarBody		(pOurInv,  pBox);
 	m_game->StartStopMenu			(UICarBodyMenu,true);
+
+
 }
 
 void CUIGameSP::ReInitShownUI() 

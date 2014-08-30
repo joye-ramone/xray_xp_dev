@@ -561,12 +561,18 @@ void CScriptGameObject::set_sight		(const CMemoryInfo *memory_object, bool	torso
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 
+#include "InventoryBox.h"
 u32	CScriptGameObject::GetInventoryObjectCount() const
 {
 	CInventoryOwner		*l_tpInventoryOwner = smart_cast<CInventoryOwner*>(&object());
 	if (l_tpInventoryOwner)
 		return			(l_tpInventoryOwner->inventory().dwfGetObjectCount());
-	else {
+	else 
+	{
+		// Real Wolf. 03.08.2014.
+		if (auto box = smart_cast<CInventoryBox*>(&object() ) )
+			return box->GetSize();
+
 		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CScriptGameObject : cannot access class member obj_count!");
 		return			(0);
 	}
@@ -597,7 +603,12 @@ CScriptGameObject	*CScriptGameObject::GetObjectByName	(LPCSTR caObjectName) cons
 		else
 			return		(l_tpGameObject->lua_game_object());
 	}
-	else {
+	else 
+	{
+		// Real Wolf. 03.08.2014.
+		if (auto box = smart_cast<CInventoryBox*>(&object() ) )
+			return box->GetObjectByName(caObjectName);
+
 		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CScriptGameObject : cannot access class member object!");
 		return			(0);
 	}
@@ -614,7 +625,12 @@ CScriptGameObject	*CScriptGameObject::GetObjectByIndex	(int iIndex) const
 		else
 			return		(l_tpGameObject->lua_game_object());
 	}
-	else {
+	else 
+	{
+		// Real Wolf. 03.08.2014.
+		if (auto box = smart_cast<CInventoryBox*>(&object() ) )
+			return box->GetObjectByIndex(iIndex);
+
 		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CScriptGameObject : cannot access class member object!");
 		return			(0);	
 	}

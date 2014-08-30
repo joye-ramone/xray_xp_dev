@@ -4,6 +4,13 @@
 #include "../Weapon.h"
 #include "UIDragDropListEx.h"
 
+#include "../pch_script.h"
+#include "../game_object_space.h"
+#include "../script_callback_ex.h"
+#include "../script_game_object.h"
+#include "../Actor.h"
+
+
 #define INV_GRID_WIDTHF			50.0f
 #define INV_GRID_HEIGHTF		50.0f
 
@@ -31,17 +38,26 @@ bool CUIInventoryCellItem::EqualTo(CUICellItem* itm)
 {
 	CUIInventoryCellItem* ci = smart_cast<CUIInventoryCellItem*>(itm);
 	if(!itm)				return false;
+	// Real Wolf: Колбек на группировку и само регулирование группировкой предметов. 12.08.2014.
+	auto item1 = (CInventoryItem*)m_pData;
+	auto item2 = (CInventoryItem*)itm->m_pData;
+
+	g_actor->callback(GameObject::eUIGroupItems)(item1->object().lua_game_object(), item2->object().lua_game_object() );
+
+	auto fl1 = item1->m_flags;
+	auto fl2 = item2->m_flags;
+
+	item1->m_flags.set(CInventoryItem::FIUngroupable, false);
+	item2->m_flags.set(CInventoryItem::FIUngroupable, false);
+
+	if (fl1.test(CInventoryItem::FIUngroupable) || fl2.test(CInventoryItem::FIUngroupable) )
+		return false;
+
 	return					(
 								fsimilar(object()->GetCondition(), ci->object()->GetCondition(), 0.01f) &&
 								(object()->object().cNameSect() == ci->object()->object().cNameSect())
 							);
 }
-
-#include "../pch_script.h"
-#include "../game_object_space.h"
-#include "../script_callback_ex.h"
-#include "../script_game_object.h"
-#include "../Actor.h"
 
 CUIInventoryCellItem::~CUIInventoryCellItem()
 {

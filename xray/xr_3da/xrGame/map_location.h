@@ -27,13 +27,7 @@ enum ELocationFlags
 protected:
 	flags32					m_flags;
 	shared_str				m_hint;
-	CMapSpot*				m_level_spot;
-	CMapSpotPointer*		m_level_spot_pointer;
-	CMiniMapSpot*			m_minimap_spot;
-	CMapSpotPointer*		m_minimap_spot_pointer;
 
-	CMapSpot*				m_level_map_spot_border;
-	CMapSpot*				m_mini_map_spot_border;
 
 	u16						m_objectID;
 	u16						m_refCount;
@@ -93,6 +87,17 @@ public:
 	virtual void			load							(IReader &stream);
 	virtual bool			CanBeSelected					()						{return true;}
 	virtual bool			CanBeUserRemoved				()						{return false;}
+
+	// Real Wolf: Для использования типа в дальнейшем. 03.08.2014.
+	shared_str				m_type;
+
+	CMapSpot*				m_level_spot;
+	CMapSpotPointer*		m_level_spot_pointer;
+	CMiniMapSpot*			m_minimap_spot;
+	CMapSpotPointer*		m_minimap_spot_pointer;
+
+	CMapSpot*				m_level_map_spot_border;
+	CMapSpot*				m_mini_map_spot_border;
 
 #ifdef DEBUG
 	virtual void			Dump							(){};

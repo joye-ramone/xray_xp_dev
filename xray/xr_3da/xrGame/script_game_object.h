@@ -603,8 +603,8 @@ public:
 			void				InvalidateInventory				();
 
 			// functions for CInventoryItem class
-			void				SetIIFlags						(Flags16 flag);
-			u16					GetIIFlags						();
+			void				SetIIFlags						(flags16);
+			flags16				GetIIFlags						();
 
 			// functions for object testing
 			_DECLARE_FUNCTION10	(IsGameObject			,			bool);
@@ -675,11 +675,11 @@ public:
 			void SetNameShort(LPCSTR);
 			LPCSTR GetNameShort() const;
 			void SetWeight(float);
-			float GetWeight() const;
 			void SetCost(u32);
-			u32 GetCost() const;
 			CUIStatic* GetCellItem() const;
-			
+			void OpenInventoryBox(CScriptGameObject*) const;
+
+			LPCSTR GetBoneName(u16) const;
 
 			// alpet: visual functions for CWeapon descedants 
 			_DECLARE_FUNCTION10 (alife_object			,			CSE_ALifeDynamicObject*);
