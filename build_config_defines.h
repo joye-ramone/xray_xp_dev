@@ -1,10 +1,15 @@
 #pragma once
-#define INV_RUCK_UNLIMITED_FIX			// Real Wolf: позволяет безболезненно использовать атрибут unlimited в теге dragdrop_bag для создания лимитного инвентаря
-#define INV_NEW_SLOTS_SYSTEM			// Real Wolf, Red Virus: включает слоты.
+// ==================================== Правки от alpet ======================================= 
+// #define LUAICP_COMPAT					// alpet: включает совместимость с перехватчиком Lua (luaicp.dll). Задавать надо в свойствах 
+#define SCRIPT_ICONS_CONTROL		    // alpet: включает экспорт функции setup_game_icon в Lua
+#define SCRIPT_EZI_CONTROL				// alpet: включает экспорт класса CEffectorZoomInertion для управления движением прицела 
 #define SPAWN_ANTITFREEZE				// alpet: распределяет массовый спавн объектов по кадрам, чтобы исключить продолжительные фризы 
 #define ECO_RENDER						// alpet: добавляет небольшую задержку между рендерингом кадров, чтобы зря не насиловать видеокарту при больших FPS
-//#define MT_OPT						// alpet: задает выделенные ядра ЦП для второго потока
-//#define PERF_CHECK					// alpet: задает выделенные ядра ЦП в биндере, для выяснения пропорций нагрузки  
+// #define MT_OPT							// alpet: задает выделенные ядра ЦП для второго потока
+
+// ==================================== Правки от Real Wolf ======================================= 
+#define INV_RUCK_UNLIMITED_FIX		// Real Wolf: позволяет безболезненно использовать атрибут unlimited в теге dragdrop_bag для создания лимитного инвентаря
+#define INV_NEW_SLOTS_SYSTEM			// Real Wolf, Red Virus: включает слоты.
 #define SUN_DIR_NOT_DEBUG			    // Real Wolf: отключение вывода в лог информации вида CurrentEnv.sun_dir...
 #define ARTEFACTS_FROM_RUCK				// Real Wolf: артефакты будут работать из всего инвентаря (слотов, пояса, рюкзака).
 #define KNIFE_SPRINT_FIX				// Real Wolf: остановка спринта при при ударе2.
@@ -14,6 +19,9 @@
 #define LOCK_RELOAD_IN_SPRINT			// Real Wolf: блокировка перезарядки по время спринта.
 #define HIDE_WEAPON_IN_CAR				// Real Wolf: прятать все оружие в машине.
 #define BM16_ANIMS_FIX					// Real Wolf: расширение анимаций для BM16.
+#define INV_OUTFIT_FULL_ICON_HIDE		// Real Wolf: иконка игрока в костюме заменена на иконку костюма.
+#define UI_LOCK_PDA_WITHOUT_PDA_IN_SLOT // Real Wolf: блокировать работу ПДА, если самого предмета нету в слоте.
+
+// ==================================== Правки от Red Virus ======================================= 
 #define INV_NO_ACTIVATE_APPARATUS_SLOT  // Red Virus: убирает невозможность сменить оружие клавишами при активных слотах:  фонарика, детектора и тд
 #define INV_MOVE_ITM_INTO_QUICK_SLOTS	// Red Virus: позволяет менять местами предметы в быстрых слотах
-#define UI_LOCK_PDA_WITHOUT_PDA_IN_SLOT // Real Wolf: блокировать работу ПДА, если самого предмета нету в слоте.
