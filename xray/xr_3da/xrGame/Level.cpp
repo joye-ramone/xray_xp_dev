@@ -404,7 +404,10 @@ void CLevel::ProcessGameEvents		()
 			spawn_events->get	(ID,dest,type,P);
 			game_events->insert (P);
 		}
-		u32 work_limit = Device.frame_elapsed() + 20;
+		u32 avail_time = 5;
+		u32 elps = Device.frame_elapsed();
+		if (elps < 30) avail_time = 33 - elps;
+		u32 work_limit = elps + avail_time;
 
 #endif
 		while	(game_events->available(svT)) 

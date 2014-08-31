@@ -554,6 +554,9 @@ CSE_ALifeDynamicObject::CSE_ALifeDynamicObject(LPCSTR caSection) : CSE_ALifeObje
 
 CSE_ALifeDynamicObject::~CSE_ALifeDynamicObject()
 {
+#if defined(LUAICP_COMPAT)
+	MsgCB						("se destroying : [%d][%s]", ID, name());	
+#endif
 }
 
 void CSE_ALifeDynamicObject::STATE_Write	(NET_Packet &tNetPacket)
