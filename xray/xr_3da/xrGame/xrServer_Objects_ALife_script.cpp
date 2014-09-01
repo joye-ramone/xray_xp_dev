@@ -54,6 +54,8 @@ void CSE_ALifeGraphPoint::script_register(lua_State *L)
 	];
 }
 
+flags32 &get_flags_ref(CSE_ALifeObject *sobj) { return sobj->m_flags; }
+
 
 void CSE_ALifeObject::script_register(lua_State *L)
 {
@@ -73,7 +75,8 @@ void CSE_ALifeObject::script_register(lua_State *L)
 		.def_readonly	("m_level_vertex_id",	&CSE_ALifeObject::m_tNodeID)
 		.def_readonly	("m_game_vertex_id",	&CSE_ALifeObject::m_tGraphID)
 		.def_readonly	("m_story_id",			&CSE_ALifeObject::m_story_id)
-		.def_readwrite	("m_flags",				&CSE_ALifeObject::m_flags)
+		// .def_readwrite	("m_flags",				&CSE_ALifeObject::m_flags)
+		.property		("m_flags",				&get_flags_ref)
 		.property		("level_id",			&se_obj_level_id)
 		.property		("level_name",			&se_obj_level_name)
 		.property		("is_alive",			&se_obj_is_alive)
