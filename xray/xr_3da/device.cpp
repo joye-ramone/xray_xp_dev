@@ -195,6 +195,20 @@ ENGINE_API xr_list<LOADING_EVENT>			g_loading_events;
 
 extern bool IsMainMenuActive();
 
+ENGINE_API u32 TargetRenderLoad ()
+{
+	u32 result = 100;
+	if (IsMainMenuActive())
+		result = 30;
+	if (Device.Paused())
+		result = 10;
+	if (!Device.b_is_Active)
+		result = 0;
+
+	return result;
+}
+
+
 void CRenderDevice::Run			()
 {
 //	DUMP_PHASE;
@@ -285,7 +299,7 @@ void CRenderDevice::Run			()
 // дефайн ECO_RENDER лучше определять в свойствах проектов, а не в build_config_defines
 #ifdef ECO_RENDER				
 				u32 optimal = 0;
-				if (Device.Paused() || IsMainMenuActive())	optimal = 30;
+				if (TargetRenderLoad() < 50)	optimal = 30;
 				while (optimal -- > 0)
 				{					
 					u32 time_diff = frame_timer.GetElapsed_ms();

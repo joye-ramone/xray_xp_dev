@@ -2,6 +2,7 @@
 #pragma		hdrstop
 
 #include	"xrRender_console.h"
+#include    "../../../build_config_defines.h"
 
 u32			ps_Preset				=	2	;
 xr_token							qpreset_token							[ ]={
@@ -112,16 +113,18 @@ float		ps_r2_slight_fade			= 1.f;				// 1.f
 Flags32		ps_common_flags				= { 0 };		// r1-only
 u32			ps_steep_parallax			= 0;
 int			ps_r__detail_radius			= 49;
-u32			dm_size						= 24;
-u32 		dm_cache1_line				= 12;	//dm_size*2/dm_cache1_count
-u32			dm_cache_line				= 49;	//dm_size+1+dm_size
-u32			dm_cache_size				= 2401;	//dm_cache_line*dm_cache_line
-float		dm_fade						= 47.5;	//float(2*dm_size)-.5f;
-u32			dm_current_size				= 24;
-u32 		dm_current_cache1_line		= 12;	//dm_current_size*2/dm_cache1_count
-u32			dm_current_cache_line		= 49;	//dm_current_size+1+dm_current_size
-u32			dm_current_cache_size		= 2401;	//dm_current_cache_line*dm_current_cache_line
-float		dm_current_fade				= 47.5;	//float(2*dm_current_size)-.5f;
+#ifdef KD_DETAIL_RADIUS // управление радиусом отрисовки травы
+	u32			dm_size						= 24;
+	u32 		dm_cache1_line				= 12;	//dm_size*2/dm_cache1_count
+	u32			dm_cache_line				= 49;	//dm_size+1+dm_size
+	u32			dm_cache_size				= 2401;	//dm_cache_line*dm_cache_line
+	float		dm_fade						= 47.5;	//float(2*dm_size)-.5f;
+	u32			dm_current_size				= 24;
+	u32 		dm_current_cache1_line		= 12;	//dm_current_size*2/dm_cache1_count
+	u32			dm_current_cache_line		= 49;	//dm_current_size+1+dm_current_size
+	u32			dm_current_cache_size		= 2401;	//dm_current_cache_line*dm_current_cache_line
+	float		dm_current_fade				= 47.5;	//float(2*dm_current_size)-.5f;
+#endif
 float		ps_current_detail_density = 0.6;
 
 xr_token							ext_quality_token							[ ]={
@@ -142,6 +145,7 @@ float		ps_r2_gloss_factor			= 1.0f;
 #include	"..\xr_ioconsole.h"
 #include	"..\xr_ioc_cmd.h"
 
+#ifdef KD_DETAIL_RADIUS
 // KD
 class CCC_detail_radius		: public CCC_Integer
 {
@@ -165,6 +169,7 @@ public:
 	}
 };
 // KD
+#endif
 
 //-----------------------------------------------------------------------
 class CCC_tf_Aniso		: public CCC_Integer
@@ -380,9 +385,10 @@ void		xrRender_initconsole	()
 	//- Mad Max
 
 #ifdef DEBUG
-	CMD3(CCC_Mask,		"r2_use_nvdbt",			&ps_r2_ls_flags,			R2FLAG_USE_NVDBT);
-	CMD3(CCC_Mask,		"r2_mt",				&ps_r2_ls_flags,			R2FLAG_EXP_MT_CALC);
+	CMD3(CCC_Mask,		"r2_use_nvdbt",			&ps_r2_ls_flags,			R2FLAG_USE_NVDBT);	
 #endif // DEBUG
+
+	CMD3(CCC_Mask,		"r2_mt",				&ps_r2_ls_flags,			R2FLAG_EXP_MT_CALC);  // alpet: performance testing ST/MT
 
 	CMD3(CCC_Mask,		"r2_sun",				&ps_r2_ls_flags,			R2FLAG_SUN		);
 	CMD3(CCC_Mask,		"r2_sun_details",		&ps_r2_ls_flags,			R2FLAG_SUN_DETAILS);
@@ -442,7 +448,9 @@ void		xrRender_initconsole	()
 	CMD3(CCC_Mask,			"r2_soft_water",		&ps_r2_ls_flags,			R2FLAG_SOFT_WATER		);
 	CMD3(CCC_Mask,			"r2_soft_particles",	&ps_r2_ls_flags,			R2FLAG_SOFT_PARTICLES	);
 	CMD3(CCC_Token,			"r2_steep_parallax",	&ps_steep_parallax,			ext_quality_token	);
+#ifdef KD_DETAIL_RADIUS
 	CMD4(CCC_detail_radius,	"r__detail_radius",		&ps_r__detail_radius,		49,	250	);
+#endif
 	CMD3(CCC_Mask,			"r__actor_shadow",		&ps_common_flags,			RFLAG_ACTOR_SHADOW	);
 }
 
