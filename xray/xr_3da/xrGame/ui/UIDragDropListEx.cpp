@@ -3,7 +3,7 @@
 #include "UIScrollBar.h"
 #include "../object_broker.h"
 #include "UICellItem.h"
-
+#include "../GameObject.h"
 
 CUIDragItem* CUIDragDropListEx::m_drag_item = NULL;
 
@@ -635,16 +635,20 @@ CUICell& CUICellContainer::GetCellAt(const Ivector2& pos)
 
 Ivector2 CUICellContainer::GetItemPos(CUICellItem* itm)
 {
+	R_ASSERT2(itm, "itm == NULL");
 	for(int x=0; x<m_cellsCapacity.x ;++x)
 		for(int y=0; y<m_cellsCapacity.y ;++y){
 			Ivector2 p;
 			p.set(x,y);
-		if(GetCellAt(p).m_item==itm)
-			return p;
+			if(GetCellAt(p).m_item==itm)
+				return p;
 		}
+	CGameObject *item = (CGameObject*) itm->m_pData;
 
-		R_ASSERT(0);
-		return Ivector2().set(-1,-1);
+	Msg("#ERROR: cannot find item %p (%s) position in container %s ",
+		  item, item->Name(), itm, this->WindowName_script());
+	R_ASSERT(0);
+	return Ivector2().set(-1,-1);
 }
 
 u32 CUICellContainer::GetCellsInRange(const Irect& rect, UI_CELLS_VEC& res)

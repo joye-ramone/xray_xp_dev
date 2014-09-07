@@ -80,10 +80,9 @@ CObject*	CObjectList::FindObjectByCLS_ID	( CLASS_ID cls )
 
 void	CObjectList::o_remove		( xr_vector<CObject*>&	v,  CObject* O)
 {
-//.	if(O->ID()==1026)
-//.	{
-//.		Log("ahtung");
-//.	}
+#ifdef LUAICP_COMPAT
+	MsgCB(" cl remove [%d][%p] %s", O->ID(), O, O->cName().c_str());
+#endif
 	xr_vector<CObject*>::iterator _i	= std::find(v.begin(),v.end(),O);
 	VERIFY					(_i!=v.end());
 	v.erase					(_i);

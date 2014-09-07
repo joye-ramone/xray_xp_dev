@@ -206,10 +206,17 @@ void CInventory::Take(CGameObject *pObj, bool bNotActivate, bool strict_placemen
 
 		break;
 	default:
-#if defined(GRENADE_FROM_BELT)
-		if(CanPutInSlot(pIItem) && pIItem->GetSlot() != GRENADE_SLOT)
+
+#ifdef RUCK_FLAG_PREFERRED
+		bool def_to_slot = !pIItem->RuckDefault();
 #else
-		if(CanPutInSlot(pIItem))
+		bool def_to_slot = true;
+#endif
+
+#if defined(GRENADE_FROM_BELT)
+		if(CanPutInSlot(pIItem) && pIItem->GetSlot() != GRENADE_SLOT && def_to_slot)
+#else
+		if(CanPutInSlot(pIItem) && def_to_slot)
 #endif
 		{
 			result						= Slot(pIItem, bNotActivate); VERIFY(result);

@@ -43,6 +43,7 @@ void CUIStatic::script_register(lua_State *L)
 		.def("ClipperOn",			&CUIStatic::ClipperOn)
 		.def("ClipperOff",			(void(CUIStatic::*)(void))&CUIStatic::ClipperOff )
 		.def("GetClipperState",		&CUIStatic::GetClipperState)
+		.def("SetClipRect",			&CUIStatic::SetClipRect)	
 
 		.def("SetTextComplexMode",	&CUIStatic::SetTextComplexMode)
 	];

@@ -40,6 +40,7 @@
 #include "../string_table.h"
 #include "../clsid_game.h"
 #include "UIArtefactPanel.h"
+#include "UIMap.h"
 #include <functional>  // добавлено alpet для успешной сборки в VS 2013
 
 #ifdef DEBUG
@@ -1024,6 +1025,23 @@ void GetStaticRaw(CUIMainIngameWnd *wnd, lua_State *L)
 	// wnd->GetChildWndList();
 	shared_str name = lua_tostring(L, 2);
 	CUIWindow *child = wnd->FindChild(name, 2); 	
+	if (!child)
+	{
+		CUIStatic *src = &wnd->GetUIZoneMap()->Background();		
+		child = src->FindChild(name, 5);
+		
+		if (!child)
+		{
+			src = &wnd->GetUIZoneMap()->ClipFrame();
+			child = src->FindChild(name, 5);
+		}
+		if (!child)
+		{
+			src = &wnd->GetUIZoneMap()->Compass();
+			child = src->FindChild(name, 5);
+		}
+	}
+
 	if (child)
 	{	
 		// if (test_push_window<CUIMotionIcon>  (L, child)) return;		

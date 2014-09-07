@@ -64,6 +64,7 @@ protected:
 		
 public:
 	CUIStatic*			GetPDAOnline					() { return &UIPdaOnline; };
+	CUIZoneMap*			GetUIZoneMap					() { return UIZoneMap; }
 protected:
 
 
