@@ -417,10 +417,27 @@ void CLevel::ProcessGameEvents		()
 #ifdef   SPAWN_ANTITFREEZE
 			if (g_bootComplete && M_SPAWN == ID && Device.frame_elapsed() > work_limit) // alpet: позволит плавнее выводить объекты в онлайн, без заметных фризов
 			{
-				if (!spawn_events->available(svT))
-					Msg("* ProcessGameEvents, spawn event postponed. Events rest = %d", game_events->queue.size());
-				spawn_events->insert(P);
-				continue;
+				u16 dummy16;
+				P.r_begin(dummy16);
+				shared_str			s_name;
+				P.r_stringZ			(s_name);				
+				
+				CSE_Abstract*	E	= F_entity_Create	(*s_name);				
+				E->Spawn_Read		(P);
+				if (E->s_flags.is(M_SPAWN_UPDATE))
+					E->UPDATE_Read	(P);
+				//-------------------------------------------------
+				P.r_pos = 0;
+				if (E->ID_Parent < 0xffff) // откладывать спавн только объектов в контейнеры
+				{
+					if (!spawn_events->available(svT))
+						Msg("* ProcessGameEvents, spawn event postponed. Events rest = %d", game_events->queue.size());					
+					Msg("# Postpone spawn - %-25s in to %d ", *s_name, E->ID_Parent);	
+					spawn_events->insert(P);
+					F_entity_Destroy			(E);
+					continue;
+				}
+				F_entity_Destroy			(E);				
 			}
 #endif
 
@@ -431,7 +448,6 @@ void CLevel::ProcessGameEvents		()
 					u16 dummy16;
 					P.r_begin(dummy16);
 					cl_Process_Spawn(P);
-
 				}break;
 			case M_EVENT:
 				{
