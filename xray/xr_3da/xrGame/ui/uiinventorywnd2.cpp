@@ -493,10 +493,6 @@ bool CUIInventoryWnd::OnItemDrop(CUICellItem* itm)
 			else if (new_owner == m_pUISlotQuickAccessList_3)	
 				CurrentIItem()->SetSlot(SLOT_QUICK_ACCESS_3);
 
-		#if !defined(INV_MOVE_ITM_INTO_QUICK_SLOTS)
-			old_slot = CurrentIItem()->GetSlot();
-		#endif
-
 			auto slots = CurrentIItem()->GetSlots();
 			if(	std::find(slots.begin(), slots.end(), CurrentIItem()->GetSlot() ) == slots.end()
 
@@ -528,17 +524,18 @@ bool CUIInventoryWnd::OnItemDrop(CUICellItem* itm)
 	return true;
 }
 
+#include "../eatable_item.h"
 bool CUIInventoryWnd::OnItemDbClick(CUICellItem* itm)
 {
-	PIItem __item = (PIItem)itm->m_pData;
-	u32 __slot = __item->GetSlot();
+	PIItem	__item		= (PIItem)itm->m_pData;
+	u32		__slot		= __item->GetSlot();
+	auto	old_owner	= itm->OwnerList();
 #if  defined(INV_NEW_SLOTS_SYSTEM)
-	if (__slot < SLOT_QUICK_ACCESS_0 || __slot > SLOT_QUICK_ACCESS_3)	
+	if (__slot < SLOT_QUICK_ACCESS_0 || __slot > SLOT_QUICK_ACCESS_3)
 #endif
-		if(TryUseItem((PIItem)itm->m_pData))		
-			return true;
-
-	CUIDragDropListEx*	old_owner		= itm->OwnerList();
+	if(TryUseItem(__item))
+		return true;
+	
 	EListType t_old						= GetType(old_owner);
 
 	switch(t_old){
