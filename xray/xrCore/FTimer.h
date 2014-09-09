@@ -157,12 +157,15 @@ public:
 };
 
 extern XRCORE_API BOOL			g_bEnableStatGather;
+extern XRCORE_API float CalcEMA(float &avg, float src, float period, float treshold = 0.1);
+
 class XRCORE_API CStatTimer
 {
 public:
 	CTimer		T;
 	u64			accum;
 	float		result;
+	float		xrs[8];  // alpet: расширенные результаты, в т.ч. сглаженые
 	u32			count;
 	u32			cycles;
 public:

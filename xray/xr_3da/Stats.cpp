@@ -140,10 +140,14 @@ void CStats::Show()
 		float fOne = 0.3f;
 		float fInv = 1.f-fOne;
 		fFPS = fInv*fFPS + fOne*fps;
+		CalcEMA(fAvgFPS, fFPS, 100, 1); // EMA
+		float mft_prev = fMaxFrameTime * 0.998f;
+		fMaxFrameTime = Device.fTimeDelta > mft_prev ? Device.fTimeDelta : mft_prev;
 
 		if (RenderTOTAL.result>EPS_S) {
 			fTPS = fInv*fTPS + fOne*float(RCache.stat.polys)/(RenderTOTAL.result*1000.f);
 			fRFPS= fInv*fRFPS+ fOne*1000.f/RenderTOTAL.result;
+			CalcEMA(fAvgRFPS, fRFPS, 100, 1);
 		}
 	}
 	{
@@ -194,7 +198,7 @@ void CStats::Show()
 		F.SetColor	(0xFFFFFFFF	);
 
 		F.OutSet	(0,0);
-		F.OutNext	("FPS/RFPS:    %3.1f/%3.1f",fFPS,fRFPS);
+		F.OutNext	("FPS/RFPS:    %3.0f/%3.0f AVG: %4.1f/%4.1f, MFT: %4.1fms", fFPS, fRFPS, fAvgFPS, fAvgRFPS, fMaxFrameTime * 1000);
 		F.OutNext	("TPS:         %2.2f M",	fTPS);
 		// такие величины отражать лучше в миллионах штук
 		F.OutNext	("VERT:        %.3fM/%d",	(float)RCache.stat.verts / 1e6,	RCache.stat.calls?RCache.stat.verts/RCache.stat.calls:0);
@@ -212,7 +216,7 @@ void CStats::Show()
 		F.OutSkip	();
 
 #define PPP(a) (100.f*float(a)/float(EngineTOTAL.result))
-		F.OutNext	("*** ENGINE:  %5.1fms",EngineTOTAL.result);	
+		F.OutNext	("*** ENGINE:  %4.0fms, AVG:%5.1fms", EngineTOTAL.result, EngineTOTAL.xrs[1]);	
 		F.OutNext	("Memory:      %5.0fa",fMem_calls);
 		F.OutNext	("uClients:    %5.1fms, %2.0f%%, crow(%3d)/active(%3d)/total(%4d)",UpdateClient.result,PPP(UpdateClient.result),UpdateClient_crows,UpdateClient_active,UpdateClient_total);
 		F.OutNext	("uSheduler:   %5.1fms, %2.0f%%, updated objects %5d", Sheduler.result, PPP(Sheduler.result), Sheduler.cycles);
@@ -234,7 +238,7 @@ void CStats::Show()
 								   
 #undef  PPP
 #define PPP(a) (100.f*float(a)/float(RenderTOTAL.result))
-		F.OutNext	("*** RENDER:  %5.1fms, IDLE CYCLES: %3d", RenderTOTAL.result, RenderTOTAL.cycles);
+		F.OutNext	("*** RENDER:  %4.0fms, AVG:%5.1fms, IDLE CYCLES: %3d", RenderTOTAL.result, RenderTOTAL.xrs[1], RenderTOTAL.cycles);
 		F.OutNext	("R_CALC:      %5.1fms, %2.1f%%",RenderCALC.result,	PPP(RenderCALC.result));	
 		F.OutNext	("  HOM:       %5.1fms, %d",RenderCALC_HOM.result,	RenderCALC_HOM.count);
 		F.OutNext	("  Skeletons: %5.1fms, %d",Animation.result,		Animation.count);
