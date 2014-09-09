@@ -51,7 +51,9 @@ CGameObject::CGameObject()
 
 	m_callbacks = xr_new<CALLBACK_MAP>();
 	m_anim_mov_ctrl = 0;
-	m_class_name = get_class_name<CGameObject>(this);
+	m_class_name = typeid((*this)).name();
+	if ("" == m_class_name)
+		m_class_name = get_class_name<CGameObject>(this);
 #ifdef LUAICP_COMPAT
 	static bool _saved = false;
 	if (!_saved)
@@ -105,6 +107,13 @@ void CGameObject::Load(LPCSTR section)
 		// self->spatial.type	|=	STYPE_VISIBLEFORAI;
 		self->spatial.type &= ~STYPE_REACTTOSOUND;
 	}
+
+	
+#ifdef OBJECTS_RADIOACTIVE
+	m_fRadiationAccumFactor		=	READ_IF_EXISTS ( pSettings, r_float, section,	"radiation_accum_factor",  0.f );	
+	m_fRadiationAccumLimit		=	READ_IF_EXISTS ( pSettings, r_float, section,	"radiation_accum_limit",   0.f );	
+	m_fRadiationRestoreSpeed	=	READ_IF_EXISTS ( pSettings, r_float, section,	"radiation_restore_speed", 0.f );
+#endif
 }
 
 void CGameObject::reinit()

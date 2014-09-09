@@ -2,6 +2,9 @@
 #include "ui_af_params.h"
 #include "UIStatic.h"
 #include "../object_broker.h"
+#include "../Artifact.h"
+#include "../Actor.h"
+#include "../ActorCondition.h"
 #include "UIXmlInit.h"
 
 CUIArtefactParams::CUIArtefactParams()
@@ -61,6 +64,18 @@ LPCSTR af_actor_param_names[]={
 	"satiety_power_v",
 	"wound_incarnation_v",
 };
+#ifdef AF_SHOW_DYNAMIC_PARAMS
+float CArtefact::* af_prop_offsets[] = {
+	&CArtefact::m_fHealthRestoreSpeed,
+	&CArtefact::m_fRadiationRestoreSpeed,
+	&CArtefact::m_fSatietyRestoreSpeed,
+	&CArtefact::m_fPowerRestoreSpeed,
+	&CArtefact::m_fBleedingRestoreSpeed
+};
+#endif
+
+
+
 void CUIArtefactParams::InitFromXml(CUIXml& xml_doc)
 {
 	LPCSTR _base				= "af_params";
@@ -84,8 +99,13 @@ bool CUIArtefactParams::Check(const shared_str& af_section)
 	return !!pSettings->line_exist(af_section, "af_actor_properties");
 }
 #include "../string_table.h"
-void CUIArtefactParams::SetInfo(const shared_str& af_section)
-{
+void CUIArtefactParams::SetInfo(CGameObject *obj)
+{	
+	CArtefact *art = smart_cast<CArtefact*> (obj);
+	R_ASSERT2(art, "object is not CArtefact");
+	const shared_str& af_section = art->cNameSect();
+	CActor *pActor = Actor();
+	if (!pActor) return;
 
 	string128					_buff;
 	float						_h = 0.0f;
@@ -97,16 +117,26 @@ void CUIArtefactParams::SetInfo(const shared_str& af_section)
 		float					_val;
 		if(i<_max_item_index1)
 		{
-			float _actor_val	= pSettings->r_float	("actor_condition", af_actor_param_names[i]);
+#ifdef AF_SHOW_DYNAMIC_PARAMS
+			float _actor_val	= pActor->conditions().GetParamByName(af_actor_param_names[i]);			
+			float CArtefact::* pRestoreSpeed = af_prop_offsets[i];
+			_val = (art->*pRestoreSpeed); // alpet: используется указатель на данные класса
+#else
 			_val				= pSettings->r_float	(af_section, af_item_sect_names[i]);
-
+			float _actor_val	= pSettings->r_float	("actor_condition", af_actor_param_names[i]);
+#endif
 			if					(fis_zero(_val))				continue;
 			
 			_val				= (_val/_actor_val)*100.0f;
 		}else
 		{
+#ifdef AF_SHOW_DYNAMIC_PARAMS			
+			u32 idx = i - _max_item_index1;  // absorbation index			 
+			_val = art->m_ArtefactHitImmunities.immunities()[idx]; // real absorbation values			
+#else
 			shared_str _sect	= pSettings->r_string(af_section, "hit_absorbation_sect");
 			_val				= pSettings->r_float(_sect, af_item_sect_names[i]);
+#endif
 			if					(fsimilar(_val, 1.0f))				continue;
 			_val				= (1.0f - _val);
 			_val				*= 100.0f;

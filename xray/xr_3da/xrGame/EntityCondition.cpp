@@ -542,11 +542,36 @@ void CEntityCondition::load	(IReader &input_packet)
 	}
 }
 
+const LPCSTR CCV_NAMES[7]  = {
+	"radiation_v",  "radiation_health_v",	"morale_v", "psy_health_v",
+	"bleeding_v",	"wound_incarnation_v",  "health_restore_v" };
+
+
+float &CEntityCondition::SConditionChangeV::value(LPCSTR name)
+{
+	// CEntityCondition::SConditionChangeV::
+	float *values[] = {
+		&m_fV_Radiation,  &m_fV_RadiationHealth,  &m_fV_EntityMorale, &m_fV_PsyHealth, 
+		&m_fV_Bleeding,   &m_fV_WoundIncarnation, &m_fV_HealthRestore		
+	};
+	for (int i = 0; i < PARAMS_COUNT; i++)
+		if (strstr(name, CCV_NAMES[i]))
+			return *values[i];
+
+	static float fake = 0;
+	return fake;
+}
 void CEntityCondition::SConditionChangeV::load(LPCSTR sect, LPCSTR prefix)
 {
 	string256				str;
 	m_fV_Circumspection		= 0.01f;
-
+	for (int i = 0; i < PARAMS_COUNT; i++)
+	{
+		strconcat				(sizeof(str),str, CCV_NAMES[i],prefix);
+		float v = READ_IF_EXISTS(pSettings,r_float,sect, str,0.0f);
+		value(CCV_NAMES[i]) = v;
+	}
+	/*
 	strconcat				(sizeof(str),str,"radiation_v",prefix);
 	m_fV_Radiation			= pSettings->r_float(sect,str);
 	strconcat				(sizeof(str),str,"radiation_health_v",prefix);
@@ -561,6 +586,24 @@ void CEntityCondition::SConditionChangeV::load(LPCSTR sect, LPCSTR prefix)
 	m_fV_WoundIncarnation	= pSettings->r_float(sect,str);
 	strconcat				(sizeof(str),str,"health_restore_v",prefix);
 	m_fV_HealthRestore		= READ_IF_EXISTS(pSettings,r_float,sect, str,0.0f);
+	*/
+}
+
+float CEntityCondition::GetParamByName(LPCSTR name)
+{
+	const static LPCSTR PARAM_NAMES[] = {
+		"health",		"power",			"radiation",		"psy_health",			"morale",		
+		"max_health",	"power_max",		"radiation_max",	"psy_health_max",		"morale_max"
+	};
+	float *values[] = {
+		&health(),		&m_fPower,			&m_fRadiation,		&m_fPsyHealth,			&m_fEntityMorale,
+		&max_health(),  &m_fPowerMax,		&m_fRadiationMax,	&m_fPsyHealthMax,		&m_fEntityMoraleMax
+	};
+	for (int i = 0; i < 10; i++)
+		if (strstr(name, PARAM_NAMES[i]))
+			return *values[i];
+
+	return m_change_v.value(name);
 }
 
 void CEntityCondition::remove_links	(const CObject *object)

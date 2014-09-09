@@ -71,6 +71,13 @@ void	CPhysicsShellHolder::PHHit(float P,Fvector &dir, CObject *who,s16 element,F
 void	CPhysicsShellHolder::Hit					(SHit* pHDS)
 {
 	PHHit(pHDS->damage(),pHDS->dir,pHDS->who,pHDS->boneID,pHDS->p_in_bone_space,pHDS->impulse,pHDS->hit_type);
+#ifdef OBJECTS_RADIOACTIVE
+	if (ALife::eHitTypeRadiation == pHDS->hit_type)
+	{
+		m_fRadiationRestoreSpeed += m_fRadiationAccumFactor * pHDS->power;
+		clamp<float> (m_fRadiationRestoreSpeed, -m_fRadiationAccumLimit, m_fRadiationAccumLimit);
+	}
+#endif
 }
 
 void CPhysicsShellHolder::create_physic_shell	()

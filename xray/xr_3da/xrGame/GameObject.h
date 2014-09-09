@@ -290,6 +290,12 @@ private:
 	CALLBACK_MAP			*m_callbacks;
 
 public:
+#ifdef OBJECTS_RADIOACTIVE
+	float 							m_fRadiationAccumFactor;          // alpet: скорость появления вторичной радиактивности
+	float 							m_fRadiationAccumLimit;			  // alpet: предел вторичной радиоактивности 
+	float 							m_fRadiationRestoreSpeed;	
+#endif
+
 	CScriptCallbackExVoid	&callback(GameObject::ECallbackType type) const;
 	virtual	LPCSTR			visual_name(CSE_Abstract *server_entity);
 

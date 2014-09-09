@@ -69,6 +69,7 @@ public:
 #endif
 	u32									dwFrame_UpdateCL;
 	u32									dwFrame_AsCrow;
+	bool								config_loaded;
 
 	// Crow-MODE
 	// if (object_is_visible)

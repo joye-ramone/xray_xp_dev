@@ -141,6 +141,8 @@ protected:
 
 	struct SConditionChangeV
 	{
+const	static int		PARAMS_COUNT = 7;
+
 		float			m_fV_Radiation;
 		float			m_fV_PsyHealth;
 		float			m_fV_Circumspection;
@@ -149,6 +151,7 @@ protected:
 		float			m_fV_Bleeding;
 		float			m_fV_WoundIncarnation;
 		float			m_fV_HealthRestore;
+		float			&value(LPCSTR name);
 		void			load(LPCSTR sect, LPCSTR prefix);
 	};
 	
@@ -193,4 +196,5 @@ public:
 	IC float&						wound_bone_scale	()			{return		(m_fWoundBoneScale);	}
 	virtual	CEntityCondition*		cast_entity_condition()					{ return this; }
 	static  void					script_register(lua_State *L);
+	virtual float					GetParamByName		(LPCSTR name);
 };

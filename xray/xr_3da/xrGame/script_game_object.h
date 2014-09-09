@@ -712,3 +712,5 @@ IC bool test_pushobject(lua_State *L, CGameObject* obj)
 	}
 	return false;
 }
+
+#include "script_game_object_impl.h" // alpet: исправление error LNK2019: unresolved external symbol "public: class CGameObject & __thiscall CScriptGameObject::object(void)const "

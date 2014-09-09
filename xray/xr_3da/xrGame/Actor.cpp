@@ -1541,19 +1541,30 @@ void CActor::UpdateArtefactsOnBelt()
 #if defined(ARTEFACTS_FROM_RUCK)
 	for(TIItemContainer::iterator it = inventory().m_all.begin(); inventory().m_all.end() != it; ++it)
 #else
-	for(TIItemContainer::iterator it = inventory().m_belt.begin(); inventory().m_belt.end() != it; ++it)
+	for (TIItemContainer::iterator it = inventory().m_belt.begin(); inventory().m_belt.end() != it; ++it)
 #endif
 	{
 		CArtefact*	artefact = smart_cast<CArtefact*>(*it);
-		if(artefact)
+		if (artefact)
 		{
-			conditions().ChangeBleeding			(artefact->m_fBleedingRestoreSpeed*f_update_time);
-			conditions().ChangeHealth			(artefact->m_fHealthRestoreSpeed*f_update_time);
-			conditions().ChangePower			(artefact->m_fPowerRestoreSpeed*f_update_time);
-			conditions().ChangeSatiety			(artefact->m_fSatietyRestoreSpeed*f_update_time);
+			conditions().ChangeBleeding(artefact->m_fBleedingRestoreSpeed*f_update_time);
+			conditions().ChangeHealth(artefact->m_fHealthRestoreSpeed*f_update_time);
+			conditions().ChangePower(artefact->m_fPowerRestoreSpeed*f_update_time);
+			conditions().ChangeSatiety(artefact->m_fSatietyRestoreSpeed*f_update_time);
+#ifndef OBJECTS_RADIOACTIVE // alpet: отключается для избежания двойного хита
 			conditions().ChangeRadiation		(artefact->m_fRadiationRestoreSpeed*f_update_time);
+#endif
 		}
+
+	} // for belt items
+#ifdef OBJECTS_RADIOACTIVE
+	for (TIItemContainer::iterator it = inventory().m_all.begin(); inventory().m_all.end() != it; ++it)
+	{
+		CGameObject *obj = smart_cast<CGameObject*>(*it);
+		conditions().ChangeRadiation		(obj->m_fRadiationRestoreSpeed*f_update_time);
 	}
+#endif
+
 }
 
 float	CActor::HitArtefactsOnBelt		(float hit_power, ALife::EHitType hit_type)

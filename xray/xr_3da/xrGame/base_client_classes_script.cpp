@@ -216,6 +216,11 @@ void CObjectScript::script_register		(lua_State *L)
 			.property	 ("class_id"		,					&get_class_id)
 			
 			.def("load_config"				,					&CGameObject::Load)
+#ifdef   OBJECTS_RADIOACTIVE
+		.def_readwrite("radiation_accum_factor"			,			&CGameObject::m_fRadiationAccumFactor)
+		.def_readwrite("radiation_accum_limit"			,			&CGameObject::m_fRadiationAccumLimit)
+		.def_readwrite("radiation_restore_speed"		,			&CGameObject::m_fRadiationRestoreSpeed)
+#endif
 //			.def("setEnabled",			&CGameObject::setEnabled)
 			,
 			

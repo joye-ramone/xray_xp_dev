@@ -9306,7 +9306,7 @@
     <ClCompile Include="ui\UICharacterInfo.cpp">
       <Filter>AI\AScript\ScriptClasses\UI\Common\CharacterInfo</Filter>
     </ClCompile>
-    <ClCompile Include="ui\IUWpnParams.cpp">
+    <ClCompile Include="ui\UIWpnParams.cpp">
       <Filter>AI\AScript\ScriptClasses\UI\Common\ItemInfo</Filter>
     </ClCompile>
     <ClCompile Include="ui\ui_af_params.cpp">

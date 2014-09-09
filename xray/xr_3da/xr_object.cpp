@@ -122,6 +122,7 @@ CObject::CObject		( )		: ISpatial(g_SpatialSpace)
 	dbg_update_shedule			= u32(-1)/2;
 	dbg_update_cl				= u32(-1)/2;
 #endif
+	config_loaded = false;
 }
 
 CObject::~CObject				( )
@@ -149,6 +150,7 @@ void CObject::Load				(LPCSTR section )
 		cNameVisual_set				(tmp);
 	}
 	setVisible					(false);
+	config_loaded				= true;
 }
 
 BOOL CObject::net_Spawn			(CSE_Abstract* data)
