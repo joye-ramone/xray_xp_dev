@@ -242,6 +242,7 @@ public:
 	virtual void				OnRender				( );
 	void						cl_Process_Event		(u16 dest, u16 type, NET_Packet& P);
 	void						cl_Process_Spawn		(NET_Packet& P);
+	bool						PostponedSpawn			(u16 id);
 	void						ProcessGameEvents		( );
 	void						ProcessGameSpawns		( );
 

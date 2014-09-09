@@ -59,6 +59,24 @@ extern BOOL	g_bDebugDumpPhysicsStep;
 CPHWorld	*ph_world			= 0;
 float		g_cl_lvInterp		= 0;
 u32			lvInterpSteps		= 0;
+
+u16	GetSpawnInfo(NET_Packet &P, u16 &parent_id)
+{
+	u16 dummy16, id;
+	P.r_begin(dummy16);
+	shared_str	s_name;
+	P.r_stringZ(s_name);
+	CSE_Abstract*	E = F_entity_Create(*s_name);
+	E->Spawn_Read(P);
+	if (E->s_flags.is(M_SPAWN_UPDATE))
+		E->UPDATE_Read(P);
+	id = E->ID;
+	parent_id = E->ID_Parent;
+	F_entity_Destroy			(E);
+	P.r_pos = 0;
+	return id;
+}
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -386,6 +404,22 @@ void CLevel::cl_Process_Event				(u16 dest, u16 type, NET_Packet& P)
 	}
 };
 
+bool CLevel::PostponedSpawn(u16 id)
+{	
+	for (auto it = spawn_events->queue.begin(); it != spawn_events->queue.end(); ++it)
+	{
+		const NET_Event& E = *it;
+		NET_Packet P;
+		if (M_SPAWN != E.ID) continue;
+		E.implication		(P);
+		u16 parent_id;
+		if (id == GetSpawnInfo(P, parent_id))
+			return true;
+	}
+	
+	return false;
+}
+
 void CLevel::ProcessGameEvents		()
 {
 	// Game events
@@ -415,29 +449,25 @@ void CLevel::ProcessGameEvents		()
 			u16 ID,dest,type;
 			game_events->get	(ID,dest,type,P);		
 #ifdef   SPAWN_ANTITFREEZE
+			// не отправлять события не заспавненным объектам
+			if (g_bootComplete && M_EVENT == ID && PostponedSpawn(dest))
+			{
+				spawn_events->insert(P);
+				continue;
+			}
 			if (g_bootComplete && M_SPAWN == ID && Device.frame_elapsed() > work_limit) // alpet: позволит плавнее выводить объекты в онлайн, без заметных фризов
 			{
-				u16 dummy16;
-				P.r_begin(dummy16);
-				shared_str			s_name;
-				P.r_stringZ			(s_name);				
-				
-				CSE_Abstract*	E	= F_entity_Create	(*s_name);				
-				E->Spawn_Read		(P);
-				if (E->s_flags.is(M_SPAWN_UPDATE))
-					E->UPDATE_Read	(P);
-				//-------------------------------------------------
-				P.r_pos = 0;
-				if (E->ID_Parent < 0xffff) // откладывать спавн только объектов в контейнеры
+				u16 parent_id;
+				GetSpawnInfo(P, parent_id);				
+				//-------------------------------------------------				
+				if (parent_id < 0xffff) // откладывать спавн только объектов в контейнеры
 				{
 					if (!spawn_events->available(svT))
 						Msg("* ProcessGameEvents, spawn event postponed. Events rest = %d", game_events->queue.size());					
-					Msg("# Postpone spawn - %-25s in to %d ", *s_name, E->ID_Parent);	
-					spawn_events->insert(P);
-					F_entity_Destroy			(E);
+					
+					spawn_events->insert(P);					
 					continue;
-				}
-				F_entity_Destroy			(E);				
+				}				
 			}
 #endif
 
@@ -450,7 +480,7 @@ void CLevel::ProcessGameEvents		()
 					cl_Process_Spawn(P);
 				}break;
 			case M_EVENT:
-				{
+				{					
 					cl_Process_Event(dest, type, P);
 				}break;
 			default:
