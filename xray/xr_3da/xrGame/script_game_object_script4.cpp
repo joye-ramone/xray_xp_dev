@@ -308,6 +308,15 @@ LPCSTR get_level_name_by_id (u32 level_id)
  	return ai().game_graph().header().level((GameGraph::_LEVEL_ID) level_id).name().c_str();
 }
 
+bool	get_obj_alive(CScriptGameObject *O)
+{
+	CGameObject *obj = &O->object();
+	CEntityAlive *ent = smart_cast<CEntityAlive*> (obj);
+	if (ent)
+		return ent->g_Alive();
+	else
+		return false;
+}
 
 u32 obj_level_id(CScriptGameObject *O)
 {
@@ -347,6 +356,7 @@ class_<CScriptGameObject> &script_register_game_object3(class_<CScriptGameObject
 		.property("interface",				&get_interface,  &fake_set_interface, raw(_2))	
 		.property("inventory",				&get_obj_inventory)
 		.property("immunities",				&get_obj_immunities)
+		.property("is_alive",				&get_obj_alive)
 		.property("conditions",				&get_obj_conditions)		
 		.property("level_id",				&obj_level_id)
 		.property("level_name",				&obj_level_name)
