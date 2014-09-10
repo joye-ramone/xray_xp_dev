@@ -5,6 +5,7 @@
 #include "../game_base_space.h"
 #include "../ai_space.h"
 #include "../script_engine.h"
+#include "../script_game_object.h"
 
 struct SLuaWpnParams{
 	luabind::functor<float>		m_functorRPM;
@@ -75,11 +76,22 @@ void CUIWpnParams::InitFromXml(CUIXml& xml_doc){
 
 }
 
-void CUIWpnParams::SetInfo(const shared_str& wpn_section)
+void CUIWpnParams::SetInfo(CGameObject *wpn)
 {
+	const shared_str &wpn_section = wpn->cNameSect();	
 
 	if(!g_lua_wpn_params)
 		g_lua_wpn_params = xr_new<SLuaWpnParams>();
+
+	lua_State *L = game_lua();
+	VERIFY(L);
+	lua_getglobal(L, "ui_wpn_params");
+	if (lua_istable(L, -1))
+	{
+		lua_pushgameobject(L, wpn);
+		lua_setfield(L, -2, "wpn_object"); // alpet: позволит динамически выбрать параметры из скрипта
+	}
+	lua_pop(L, 1);	
 
 	m_progressRPM.SetProgressPos		(g_lua_wpn_params->m_functorRPM(*wpn_section));
 	m_progressAccuracy.SetProgressPos	(g_lua_wpn_params->m_functorAccuracy(*wpn_section));

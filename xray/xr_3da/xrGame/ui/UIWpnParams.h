@@ -1,6 +1,6 @@
 #pragma once
+#include "../GameObject.h"
 #include "UIWindow.h"
-
 #include "UIProgressBar.h"
 
 class CUIXml;
@@ -16,7 +16,7 @@ public:
 	virtual						~CUIWpnParams			();
 
 	void 						InitFromXml				(CUIXml& xml_doc);
-	void 						SetInfo					(const shared_str& wnp_section);
+	void 						SetInfo					(CGameObject *wpn);
 	bool 						Check					(const shared_str& wpn_section);
 
 protected:

@@ -210,7 +210,7 @@ void CUIItemInfo::InitItem(CInventoryItem* pInvItem)
 void CUIItemInfo::TryAddWpnInfo (const shared_str& wpn_section){
 	if (UIWpnParams->Check(wpn_section))
 	{
-		UIWpnParams->SetInfo(wpn_section);
+		UIWpnParams->SetInfo(&m_pInvItem->object());
 		UIDesc->AddWindow(UIWpnParams,false);
 	}
 }
@@ -219,7 +219,7 @@ void CUIItemInfo::TryAddArtefactInfo	(const shared_str& af_section)
 {
 	if (UIArtefactParams->Check(af_section))
 	{
-		UIArtefactParams->SetInfo(af_section);
+		UIArtefactParams->SetInfo(&m_pInvItem->object());
 		UIDesc->AddWindow(UIArtefactParams, false);
 	}
 }
