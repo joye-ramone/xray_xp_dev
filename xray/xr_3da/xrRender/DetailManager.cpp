@@ -7,7 +7,7 @@
 
 #include "DetailManager.h"
 #include "cl_intersect.h"
-#include "../../../build_config_defines.h"
+
 
 #ifdef _EDITOR
 #	include "ESceneClassList.h"

@@ -7,6 +7,7 @@
 #pragma once
 
 #include "../../xrCore/xrpool.h"
+#include "../../../build_config_defines.h"
 #include "detailformat.h"
 #include "detailmodel.h"
 

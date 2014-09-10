@@ -202,8 +202,7 @@ public:
 			CHK_DX(HW.pDevice->SetSamplerState( i, D3DSAMP_MIPMAPLODBIAS, *((LPDWORD) value)));
 	}
 
-//	CCC_tf_MipBias(LPCSTR N, float*	v) : CCC_Float(N, v, -0.5f, +0.5f)	{ };
-	CCC_tf_MipBias(LPCSTR N, float*	v) : CCC_Float(N, v, -3.0f, +3.0f)	{ };		// KD: extended from -0.5;0.5 to -3.0;3.0
+	CCC_tf_MipBias(LPCSTR N, float*	v) : CCC_Float(N, v, -0.5f, +0.5f)	{ };
 	virtual void Execute(LPCSTR args)
 	{
 		CCC_Float::Execute	(args);
