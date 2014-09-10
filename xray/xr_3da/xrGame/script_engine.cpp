@@ -389,10 +389,10 @@ void CScriptEngine::collect_all_garbage	()
 
 ENGINE_API BOOL g_appLoaded;
 
-bool CScriptEngine::try_call(LPCSTR func_name, LPCSTR param)
+LPCSTR CScriptEngine::try_call(LPCSTR func_name, LPCSTR param)
 {   
 	if (NULL == this || NULL == lua()) 
-			return false;
+		return "#ERROR: Script engine not ready";
 	// максимально быстрый вызов функции
 	int save_top = lua_gettop(lua());
 	lua_getglobal(lua(), func_name);
@@ -408,13 +408,17 @@ bool CScriptEngine::try_call(LPCSTR func_name, LPCSTR param)
 		if (0 != lua_pcall(lua(), args, LUA_MULTRET, 0))
 			lua_pcall_failed(lua());
 
+		static string1024 result;
+		strcpy_s(result, "#OK");
+		if (lua_isstring(lua(), -1))
+			strcpy_s(result, 1023, lua_tostring(lua(), -1));
 		lua_settop(lua(), save_top);
-		return true;
+		return result;
 	}
 	else
 	{
 		lua_pop(lua(), 1);
-		return false;
+		return "#ERROR: function not found";
 	}
 }
 
@@ -438,7 +442,7 @@ DLL_API lua_State* game_lua()
 	return g_game_lua;
 }
 
-DLL_API bool try_call_luafunc(LPCSTR func_name, LPCSTR param)
+DLL_API LPCSTR try_call_luafunc(LPCSTR func_name, LPCSTR param)
 {
 	return ai().script_engine().try_call(func_name, param);
 }

@@ -555,7 +555,8 @@ CSE_ALifeDynamicObject::CSE_ALifeDynamicObject(LPCSTR caSection) : CSE_ALifeObje
 CSE_ALifeDynamicObject::~CSE_ALifeDynamicObject()
 {
 #if defined(LUAICP_COMPAT)
-	MsgCB						("se destroying : [%d][%s]", ID, name());	
+	if (m_alife_simulator)
+		MsgCB						("se destroying : [%d][%s]", ID, name());	
 #endif
 }
 

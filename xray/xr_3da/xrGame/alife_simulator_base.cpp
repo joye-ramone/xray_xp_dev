@@ -280,6 +280,9 @@ void CALifeSimulatorBase::release	(CSE_Abstract *abstract, bool alife_query)
 #endif
 	CSE_ALifeDynamicObject			*object = objects().object(abstract->ID);
 	VERIFY							(object);
+#ifdef LUAICP_COMPAT
+	MsgCB("se object release [%d]  0x%p", object->ID, object);
+#endif
 
 	if (!object->children.empty()) {
 		u32							children_count = object->children.size();
