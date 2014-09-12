@@ -81,6 +81,7 @@ CWeapon::CWeapon(LPCSTR name)
 	m_set_next_ammoType_on_reload = u32(-1);
 	m_bZoomingIn = false;
 	m_class_name = get_class_name<CWeapon>(this);
+	need_slot = true;
 }
 
 CWeapon::~CWeapon()
@@ -362,7 +363,7 @@ void CWeapon::Load(LPCSTR section)
 	m_eSilencerStatus = (ALife::EWeaponAddonStatus)pSettings->r_s32(section, "silencer_status");
 	m_eGrenadeLauncherStatus = (ALife::EWeaponAddonStatus)pSettings->r_s32(section, "grenade_launcher_status");
 
-	m_bScopeDynamicZoom = READ_IF_EXISTS(pSettings, r_bool, section, "scope_dynamic_zoom", false);
+	m_bScopeDynamicZoom = !!READ_IF_EXISTS(pSettings, r_bool, section, "scope_dynamic_zoom", false);
 	m_bZoomEnabled = !!pSettings->r_bool(section, "zoom_enabled");
 	m_fZoomRotateTime = ROTATION_TIME;
 	if (m_bZoomEnabled && m_pHUD) LoadZoomOffset(*hud_sect, "");

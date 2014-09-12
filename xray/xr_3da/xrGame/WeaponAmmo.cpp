@@ -65,7 +65,7 @@ void CCartridge::Load(LPCSTR section, u8 LocalAmmoType)
 CWeaponAmmo::CWeaponAmmo(void) 
 {
 	m_weight				= .2f;
-	m_flags.set				(Fbelt, TRUE);
+	m_flags.set				(Fbelt, TRUE);	
 }
 
 CWeaponAmmo::~CWeaponAmmo(void)

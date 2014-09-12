@@ -170,12 +170,15 @@ public:
 			bool				CanTrade			() const;
 	virtual bool 				IsNecessaryItem	    (CInventoryItem* item);
 	virtual bool				IsNecessaryItem	    (const shared_str& item_sect){return false;};
-	typedef						u32					SLOT_ID;			
-#if defined(INV_NEW_SLOTS_SYSTEM)	
+	typedef						u32					SLOT_ID;		
+	bool						need_slot;			// alpet: для предотвращения использования индекса NO_ACTIVE_SLOT
+#if defined(INV_NEW_SLOTS_SYSTEM)		
+	u32							selected_slot;		
 	const	xr_vector<SLOT_ID>&	GetSlots			()							{return m_slots;}
-	void						SetSlot				(SLOT_ID slot);
+	void						SetSlot				(SLOT_ID slot); // alpet: реально это SelectSlot
 	virtual SLOT_ID				GetSlot				()  const;
 	SLOT_ID						GetSlotsCount		() const					{ return m_slots.size(); }
+	bool						IsPlaceable			(SLOT_ID min_slot, SLOT_ID max_slot);
 #else							
 	virtual SLOT_ID				GetSlot				()  const					{return m_slot;}
 			void				SetSlot				(SLOT_ID slot)				{m_slot = slot;};	

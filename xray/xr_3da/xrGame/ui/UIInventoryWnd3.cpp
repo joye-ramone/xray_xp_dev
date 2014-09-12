@@ -32,22 +32,11 @@ bool is_quick_slot(u32 slot, PIItem item, CInventory *inv)
 {
 	if (slot >= SLOT_QUICK_ACCESS_0 && slot <= SLOT_QUICK_ACCESS_3)
 	{
-		if( inv->m_slots[SLOT_QUICK_ACCESS_0].m_pIItem 
-		&&	inv->m_slots[SLOT_QUICK_ACCESS_0].m_pIItem->object().cNameSect() == item->object().cNameSect() )
+		const shared_str &sect = item->object().cNameSect();
+		for (u32 s = SLOT_QUICK_ACCESS_0; s <= SLOT_QUICK_ACCESS_3; s ++)
+		if( inv->m_slots[s].m_pIItem 
+		&&	inv->m_slots[s].m_pIItem->object().cNameSect() == sect )
 			return false;
-
-		if(	inv->m_slots[SLOT_QUICK_ACCESS_1].m_pIItem 
-		&&	inv->m_slots[SLOT_QUICK_ACCESS_1].m_pIItem->object().cNameSect() == item->object().cNameSect() )
-			return false;
-
-		if(	inv->m_slots[SLOT_QUICK_ACCESS_2].m_pIItem 
-		&&	inv->m_slots[SLOT_QUICK_ACCESS_2].m_pIItem->object().cNameSect() == item->object().cNameSect() )
-			return false;
-
-		if(	inv->m_slots[SLOT_QUICK_ACCESS_3].m_pIItem 
-		&&	inv->m_slots[SLOT_QUICK_ACCESS_3].m_pIItem->object().cNameSect() == item->object().cNameSect() )
-			return false;
-
 		return true;
 	}
 	return false;

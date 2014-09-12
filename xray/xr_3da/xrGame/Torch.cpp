@@ -55,6 +55,8 @@ CTorch::CTorch(void)
 
 	m_prev_hp.set				(0,0);
 	m_delta_h					= 0;
+	SetSlot						(TORCH_SLOT);
+	need_slot					= true;
 }
 
 CTorch::~CTorch(void) 
@@ -503,9 +505,9 @@ bool  CTorch::can_be_attached		() const
 	const CActor *pA = smart_cast<const CActor *>(H_Parent());
 	if (pA) 
 	{
-//		if(pA->inventory().Get(ID(), false))
 		u32 slot = GetSlot();
-		if((const CTorch*)smart_cast<CTorch*>(pA->inventory().m_slots[slot].m_pIItem) == this )
+		PIItem item = pA->inventory().m_slots[slot].m_pIItem;
+		if( (const CTorch*)smart_cast<CTorch*>(item) == this )
 			return true;
 		else
 			return false;

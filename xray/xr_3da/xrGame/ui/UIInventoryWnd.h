@@ -108,7 +108,8 @@ protected:
 	CUIDragDropListEx*			m_pUISlotQuickAccessList_3;
 	CUIProgressBar				UIProgressBarSatiety;
 #endif
-	
+	CUIDragDropListEx*			m_slots_array [SLOTS_TOTAL];  // alpet: для индексированного доступа
+
 #if defined(INV_OUTFIT_FULL_ICON_HIDE)
 	CUIDragDropListEx*		m_pUIOutfitList;
 #else

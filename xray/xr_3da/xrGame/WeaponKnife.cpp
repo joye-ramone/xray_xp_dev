@@ -22,6 +22,7 @@ CWeaponKnife::CWeaponKnife() : CWeapon("KNIFE")
 	SetState				( eHidden );
 	SetNextState			( eHidden );
 	knife_material_idx		= (u16)-1;
+	SetSlot					(KNIFE_SLOT);
 }
 CWeaponKnife::~CWeaponKnife()
 {

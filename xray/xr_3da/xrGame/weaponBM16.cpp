@@ -20,8 +20,11 @@ void CWeaponBM16::Load	(LPCSTR section)
 
 // Real Wolf. 03.08.2014.
 #if defined(BM16_ANIMS_FIX)
-	animGet	(mhud_draw_empty_both,		pSettings->r_string(*hud_sect,"anim_draw_empty_both"));
-	animGet	(mhud_draw_empty_right,		pSettings->r_string(*hud_sect,"anim_draw_empty_right"));
+	LPCSTR anim;
+	anim = pSettings->r_string(*hud_sect, "anim_draw_empty_both");
+	animGet	(mhud_draw_empty_both, anim ? anim : "draw"	);
+	anim = pSettings->r_string(*hud_sect, "anim_draw_empty_right");
+	animGet	(mhud_draw_empty_right, anim ? anim : "draw" );
 #endif
 	HUD_SOUND::LoadSound(section, "snd_reload_1", m_sndReload1, m_eSoundShot);
 }

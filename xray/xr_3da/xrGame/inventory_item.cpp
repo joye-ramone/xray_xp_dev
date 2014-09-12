@@ -22,6 +22,7 @@
 #include "ai_object_location.h"
 #include "object_broker.h"
 #include "../igame_persistent.h"
+#include "eatable_item.h"
 
 #ifdef DEBUG
 #	include "debug_renderer.h"
@@ -93,7 +94,7 @@ CInventoryItem::CInventoryItem()
 	m_eItemPlace		= eItemPlaceUndefined;
 	m_Description		= "";
 	m_cell_item			= NULL;
-
+	need_slot			= false;
 }
 
 CInventoryItem::~CInventoryItem() 
@@ -152,18 +153,25 @@ void CInventoryItem::Load(LPCSTR section)
 	{
 		char	buf[16];
 		const	int		count = _GetItemCount(str);
+		if (count)
+			m_slots.clear(); // full override!
+
 		for (int i = 0; i < count; ++i)
 		{
-			SLOT_ID slot = atoi(_GetItem(str, i, buf) );
-			if (slot < SLOTS_TOTAL && std::find(m_slots.begin(), m_slots.end(), slot) == m_slots.end())
-			{
-				if (0 == i)
-					SetSlot(slot);
-				else
-					m_slots.push_back(slot);
-			}
+			SLOT_ID slot = atoi(_GetItem(str, i, buf) ); 
+			// вместо std::find(m_slots.begin(), m_slots.end(), slot) == m_slots.end() используется !IsPlaceable
+			if (slot < SLOTS_TOTAL && !IsPlaceable(slot, slot))
+				m_slots.push_back(slot);			
 		}
 	}	
+	
+	if (smart_cast<CEatableItem*>(&object())) // alpet: разрешение некоторым объектам попадать в слоты быстрого доступа независимо от настроек
+	{
+		m_slots.push_back(SLOT_QUICK_ACCESS_0);
+		m_slots.push_back(SLOT_QUICK_ACCESS_1);
+		m_slots.push_back(SLOT_QUICK_ACCESS_2);
+		m_slots.push_back(SLOT_QUICK_ACCESS_3);
+	}
 #else
 	m_slot				= READ_IF_EXISTS(pSettings,r_u32,section,"slot", NO_ACTIVE_SLOT);
 #endif
@@ -200,18 +208,58 @@ void  CInventoryItem::ChangeCondition(float fDeltaCondition)
 #ifdef INV_NEW_SLOTS_SYSTEM
 void	CInventoryItem::SetSlot(SLOT_ID slot)
 {
+	if (0 == GetSlotsCount() && slot < (u8)NO_ACTIVE_SLOT)
+		m_slots.push_back(slot); // in-constructor initialization
 
-	if (GetSlotsCount() < 1)
-		m_slots.push_back(slot);
-	else	
-		m_slots[0] = slot;
+	for (u32 i = 0; i < GetSlotsCount(); i ++)
+	if (m_slots[i] == slot)
+	{
+		selected_slot = i;	
+		return;
+	}
+	if (slot >= (u8)NO_ACTIVE_SLOT)  // u8 used for code compatibility
+		selected_slot = NO_ACTIVE_SLOT;
+	else
+	{
+		xr_string sl = "";
+		string16 tmp;
+		for (u32 i = 0; i < GetSlotsCount(); i++)
+		{
+			sl += itoa (m_slots[i], tmp, 10);
+			sl += " ";
+		}
+
+		Msg("!#ERROR: slot %d not acceptable for object %s (%s) with slots { %s}",
+					slot, object().cName().c_str(), Name(), sl.c_str());
+		// R_ASSERT2(0, "invalid slot for inventory item");
+		return;
+	}	
 }
 u32		CInventoryItem::GetSlot() const
 {
-	if (GetSlotsCount() < 1)
+	if (GetSlotsCount() < 1 || selected_slot >= GetSlotsCount())
+	{
+		if (need_slot)
+		{
+			Msg("!#WARN: no active slot for object %s  class %s",
+				object().cName().c_str(), typeid((*this)).name());
+			R_ASSERT(0, "slot not configured for inventory item");
+		}
 		return NO_ACTIVE_SLOT;
+	}
 	else
-		return (u32) m_slots[0];
+		return (u32) m_slots[selected_slot];
+}
+
+bool	CInventoryItem::IsPlaceable(SLOT_ID min_slot, SLOT_ID max_slot)
+{
+	for (u32 i = 0; i < GetSlotsCount(); i++)
+	{
+		SLOT_ID s = m_slots[i];
+		if (min_slot <= s && s <= max_slot)
+			return true;
+	}
+	return false;
 }
 #endif
 

@@ -23,6 +23,7 @@ CWeaponMagazinedWGrenade::CWeaponMagazinedWGrenade(LPCSTR name,ESoundTypes eSoun
 {
 	m_ammoType2 = 0;
     m_bGrenadeMode = false;
+	SetSlot(RIFLE_SLOT); // alpet: предполагается что пистолетов с такими аддонами не будет )
 }
 
 CWeaponMagazinedWGrenade::~CWeaponMagazinedWGrenade(void)

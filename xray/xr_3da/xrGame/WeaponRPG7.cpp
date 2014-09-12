@@ -9,6 +9,7 @@
 
 CWeaponRPG7::CWeaponRPG7(void) : CWeaponCustomPistol("RPG7") 
 {
+	SetSlot(RIFLE_SLOT); 
 }
 
 CWeaponRPG7::~CWeaponRPG7(void) 

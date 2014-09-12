@@ -272,12 +272,20 @@ bool CInventory::DropItem(CGameObject *pObj)
 			m_ruck.erase(std::find(m_ruck.begin(), m_ruck.end(), pIItem));
 		}break;
 	case eItemPlaceSlot:{
-			Msg("Drop item %s from slot %d from owner %d", pObj->cName().c_str(), pIItem->GetSlot(), GetOwner()->object_id());
+			u32 slot = pIItem->GetSlot();
+			Msg("Drop item %s from slot %d from owner %d", pObj->cName().c_str(), slot, GetOwner()->object_id());
+			PIItem item = m_slots[slot].m_pIItem;
+			if (item && item->object().H_Parent())
+				Msg(" in slot now item %s [%d] owner = %s ", 
+								item->object().cName().c_str(), item->object().ID(), 
+								item->object().H_Parent()->cName().c_str());
+
+			R_ASSERT			(item == pIItem);
 			R_ASSERT			(InSlot(pIItem));
-			if(m_iActiveSlot == pIItem->GetSlot()) 
+			if(m_iActiveSlot == slot) 
 				Activate	(NO_ACTIVE_SLOT);
 
-			m_slots[pIItem->GetSlot()].m_pIItem = NULL;							
+			m_slots[slot].m_pIItem = NULL;							
 			pIItem->object().processing_deactivate();
 		}break;
 	default:

@@ -3,6 +3,7 @@
 
 CWeaponLR300::CWeaponLR300		() : CWeaponMagazined("LR300",SOUND_TYPE_WEAPON_SUBMACHINEGUN)
 {
+	SetSlot(RIFLE_SLOT);
 }
 
 CWeaponLR300::~CWeaponLR300		()

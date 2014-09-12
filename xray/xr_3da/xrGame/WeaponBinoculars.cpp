@@ -12,6 +12,7 @@ CWeaponBinoculars::CWeaponBinoculars() : CWeaponCustomPistol("BINOCULARS")
 {
 	m_binoc_vision	= NULL;
 	m_bVision		= false;
+	SetSlot (APPARATUS_SLOT);
 }
 
 CWeaponBinoculars::~CWeaponBinoculars()

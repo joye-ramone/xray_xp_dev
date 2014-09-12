@@ -163,6 +163,7 @@ void CUIInventoryWnd::Init()
 #endif
 	xml_init.InitDragDropListEx			(uiXml, "dragdrop_outfit", 0, m_pUIOutfitList);
 	BindDragDropListEnents				(m_pUIOutfitList);
+	ZeroMemory(&m_slots_array, sizeof(m_slots_array));
 
 #ifdef INV_NEW_SLOTS_SYSTEM	
 	m_pUIPistolList = xr_new<CUIDragDropListEx>(); AttachChild(m_pUIPistolList); m_pUIPistolList->SetAutoDelete(true);
@@ -213,6 +214,19 @@ void CUIInventoryWnd::Init()
 		m_pUISlotQuickAccessList_3			= xr_new<CUIDragDropListEx>(); AttachChild(m_pUISlotQuickAccessList_3); m_pUISlotQuickAccessList_3->SetAutoDelete(true);
 		xml_init.InitDragDropListEx			(uiXml, "dragdrop_slot_quick_access_3", 0, m_pUISlotQuickAccessList_3);
 		BindDragDropListEnents				(m_pUISlotQuickAccessList_3);
+		
+		m_slots_array[KNIFE_SLOT]				= m_pUIKnifeList;
+		m_slots_array[APPARATUS_SLOT]			= m_pUIBinocularList;
+		m_slots_array[PDA_SLOT]					= m_pUIPDAList;
+		m_slots_array[DETECTOR_SLOT]			= m_pUIDetectorList;
+		m_slots_array[TORCH_SLOT]				= m_pUITorchList;
+		m_slots_array[OUTFIT_SLOT]				= m_pUIOutfitList;
+		m_slots_array[HELMET_SLOT]				= m_pUIHelmetList;
+		m_slots_array[SLOT_QUICK_ACCESS_0]		= m_pUISlotQuickAccessList_0;
+		m_slots_array[SLOT_QUICK_ACCESS_1]		= m_pUISlotQuickAccessList_1;
+		m_slots_array[SLOT_QUICK_ACCESS_2]		= m_pUISlotQuickAccessList_2;
+		m_slots_array[SLOT_QUICK_ACCESS_3]		= m_pUISlotQuickAccessList_3;
+		
 	}
 #else
 	m_pUIPistolList = xr_new<CUIDragDropListEx>(); AttachChild(m_pUIPistolList); m_pUIPistolList->SetAutoDelete(true);
@@ -222,7 +236,12 @@ void CUIInventoryWnd::Init()
 	m_pUIAutomaticList = xr_new<CUIDragDropListEx>(); AttachChild(m_pUIAutomaticList); m_pUIAutomaticList->SetAutoDelete(true);
 	xml_init.InitDragDropListEx(uiXml, "dragdrop_automatic", 0, m_pUIAutomaticList);
 	BindDragDropListEnents(m_pUIAutomaticList);
-#endif
+#endif	
+	m_slots_array[PISTOL_SLOT]				= m_pUIPistolList;
+	m_slots_array[RIFLE_SLOT]				= m_pUIAutomaticList;
+	m_slots_array[GRENADE_SLOT]				= NULL;	
+	m_slots_array[BOLT_SLOT]				= NULL;		
+	m_slots_array[ARTEFACT_SLOT]		    = NULL; // m_pUIBeltList;
 
 	//pop-up menu
 	AttachChild							(&UIPropertiesBox);
@@ -262,6 +281,11 @@ EListType CUIInventoryWnd::GetType(CUIDragDropListEx* l)
 	if(l==m_pUIBagList)			return iwBag;
 	if(l==m_pUIBeltList)		return iwBelt;
 
+	for (u32 i = 0; i < SLOTS_TOTAL; i++)
+		if (m_slots_array[i] == l)
+			return iwSlot;
+#pragma todo("alpet: после теста удалить")
+/* 
 	if(l==m_pUIAutomaticList)	return iwSlot;
 	if(l==m_pUIPistolList)		return iwSlot;
 	if(l==m_pUIOutfitList)		return iwSlot;
@@ -278,7 +302,7 @@ EListType CUIInventoryWnd::GetType(CUIDragDropListEx* l)
 	if(l==m_pUISlotQuickAccessList_2)	return iwSlot;
 	if(l==m_pUISlotQuickAccessList_3)	return iwSlot;
 #endif
-
+	*/
 	NODEFAULT;
 #ifdef DEBUG
 	return iwSlot;

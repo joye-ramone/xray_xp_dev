@@ -3,6 +3,7 @@
 
 CWeaponSVU::CWeaponSVU(void) : CWeaponCustomPistol("SVU")
 {
+	SetSlot(RIFLE_SLOT); 
 }
 
 CWeaponSVU::~CWeaponSVU(void)
