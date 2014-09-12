@@ -51,11 +51,17 @@ void CObjectActionShow::initialize		()
 	inherited::initialize			();
 	
 	VERIFY							(m_item);
-	if (object().inventory().m_slots[m_item->GetSlot()].m_pIItem)
-		object().inventory().Ruck	(object().inventory().m_slots[m_item->GetSlot()].m_pIItem);
+
+	u32 slot = m_item->GetSlot();
+	R_ASSERT2 (slot < (u8)NO_ACTIVE_SLOT, m_item->Name());
+
+	CInventory &inv = object().inventory();
+	PIItem item = inv.m_slots[slot].m_pIItem;
+	if (item)
+		inv.Ruck (item);
 
 //.	object().inventory().SetActiveSlot(NO_ACTIVE_SLOT);
-	object().inventory().Slot		(m_item);
+	inv.Slot		(m_item);
 /*
 	bool							result = object().inventory().Activate	(m_item->GetSlot());
 	VERIFY							(result);

@@ -127,6 +127,13 @@ void CSE_ALifePHSkeletonObject::script_register(lua_State *L)
 	];
 }
 
+u8  cse_get_restrictor_type(CSE_ALifeDynamicObject *se_obj)
+{
+	CSE_ALifeSpaceRestrictor *SR = smart_cast<CSE_ALifeSpaceRestrictor*> (se_obj);
+	if (SR) return SR->m_space_restrictor_type;
+	return 0;
+}
+
 void CSE_ALifeSpaceRestrictor::script_register(lua_State *L)
 {
 	module(L)[
@@ -135,7 +142,8 @@ void CSE_ALifeSpaceRestrictor::script_register(lua_State *L)
 			"cse_alife_space_restrictor",
 			CSE_ALifeDynamicObject,
 			CSE_Shape
-		)
+		),
+		def ("cse_get_restrictor_type"		,		&cse_get_restrictor_type)
 	];
 }
 

@@ -24,6 +24,7 @@
 #include "InventoryOwner.h"
 #include "Missile.h"
 #include "StalkerOutfit.h"
+#include "space_restrictor.h"
 #include "Torch.h"
 #include "Weapon.h"
 #include "WeaponMagazined.h"

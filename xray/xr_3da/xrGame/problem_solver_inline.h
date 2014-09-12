@@ -225,20 +225,52 @@ IC	bool CProblemSolverAbstract::is_accessible	(const _index_type &vertex_index) 
 TEMPLATE_SPECIALIZATION
 IC	const typename CProblemSolverAbstract::_index_type &CProblemSolverAbstract::value(const _index_type &vertex_index, const_iterator &i, bool reverse_search) const
 {
+	const_iterator it = i; // local copy for watch
+#ifdef DEBUG_RESTRICTORS
+	/* alpet: история одного сбоя:
+	   В моде использовались рестрикторы с типом 2. Из-за чего вероятно, присваивались дважды на каждую непись. 
+	   Последствием этого беспредела стало затирание содержимого итератора (а точнее всего списка), с последующим исключением AV на чтение памяти.
+	   Само затирание происходит при проверке рестрикторов, в методе CSpaceRestrictionComposition::merge, при эвалюации из скриптов вызываемой в методе applicable
+	   Зло было побеждено.
+	*/
+ 	string256 backup;	
+	u32 b_size = sizeof(*it);
+	memcpy(backup, &(*it).m_operator_id, b_size);
+	u32  _id = (*it).m_operator_id;
+#endif	
+	auto _op = (*it).m_operator;
 	if (reverse_search) {
-		if ((*i).m_operator->applicable_reverse((*i).m_operator->effects(),(*i).m_operator->conditions(),vertex_index))
-			m_applied			= (*i).m_operator->apply_reverse(vertex_index,(*i).m_operator->effects(),m_temp,(*i).m_operator->conditions());
+		if (_op->applicable_reverse( _op->effects(), _op->conditions(),vertex_index))
+			m_applied			= _op->apply_reverse(vertex_index, _op->effects(),m_temp, _op->conditions());
 		else
 			m_applied			= false;
 	}
-	else {
-		if ((*i).m_operator->applicable(vertex_index,current_state(),(*i).m_operator->conditions(),*this)) {
-			(*i).m_operator->apply(vertex_index,(*i).m_operator->effects(),m_temp,m_current_state,*this);
+	else {	
+
+		if (_op->applicable(vertex_index, current_state(), _op->conditions(),*this)) {			
+			
+			_op->apply(vertex_index, _op->effects(), m_temp, m_current_state,*this);
 			m_applied			= true;
 		}
 		else
 			m_applied			= false;
 	}
+#ifdef DEBUG_RESTRICTORS
+	if (_id != (*it).m_operator_id ||  _op != (*it).m_operator)
+	{
+		Msg("!#WARN: const_interator content was damaged!  operator id %d => %d pointer %p => %p ",
+			   _id, (*it).m_operator_id, _op, (*it).m_operator);     
+		const void* ptr = &(*it).m_operator_id; 
+
+		memcpy( (void*) ptr, backup, b_size);
+		// here we can debug this problem. Content damaged for several items, this is first
+		// CSAStar::step, path_manager?
+		return this->value(vertex_index, it, reverse_search);
+
+	}
+#endif
+
+
 	return					(m_temp);
 }
 

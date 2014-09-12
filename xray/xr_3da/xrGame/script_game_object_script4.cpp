@@ -162,6 +162,7 @@ void lua_pushgameobject(lua_State *L, CGameObject *obj)
 	if ( test_pushobject<CCar>						(L, obj) ||
 		 test_pushobject<CHangingLamp>				(L, obj) ||
 	 	 test_pushobject<CHelicopter>				(L, obj) ||
+		 test_pushobject<CSpaceRestrictor>			(L, obj) ||
 		 test_pushobject<CCustomZone>				(L, obj) ||
 		 test_pushobject<CEntityAlive>				(L, obj) ||
 		 test_pushobject<CEntity>					(L, obj)	 
@@ -348,6 +349,7 @@ class_<CScriptGameObject> &script_register_game_object3(class_<CScriptGameObject
 		.def("get_interface",				&raw_get_interface, raw(_2))
 		.def("get_missile",					&script_game_object_cast<CMissile>)
 		.def("get_outfit",					&script_game_object_cast<CCustomOutfit>)
+		.def("get_space_restrictor",		&script_game_object_cast<CSpaceRestrictor>)
 		.def("get_torch",					&get_torch)
 		.def("get_weapon",					&script_game_object_cast<CWeapon>)
 		.def("get_weapon_m",				&script_game_object_cast<CWeaponMagazined>)

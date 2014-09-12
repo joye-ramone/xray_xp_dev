@@ -277,7 +277,9 @@ void CObjectHandlerPlanner::setup	(CAI_Stalker *object)
 void CObjectHandlerPlanner::add_item			(CInventoryItem *inventory_item)
 {
 	CWeapon						*weapon		= smart_cast<CWeapon*>		(inventory_item);
+	
 	if (weapon) {
+		R_ASSERT (weapon->config_loaded);
 		add_evaluators			(weapon);
 		add_operators			(weapon);
 		return;

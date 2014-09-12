@@ -30,17 +30,31 @@ using namespace luabind;
 extern LPCSTR get_lua_class_name(luabind::object O);
 extern CGameObject *lua_togameobject(lua_State *L, int index);
 
+// ================================ ANOMALY ZONE SCRIPT EXPORT =================== //
+Fvector get_restrictor_center(CSpaceRestrictor *SR)
+{
+	Fvector result;
+	SR->Center(result);
+	return result;
+}
+
 u32 get_zone_state(CCustomZone *obj)  { return (u32)obj->ZoneState(); }
 void CAnomalyZoneScript::set_zone_state(CCustomZone *obj, u32 new_state)
 { 
 	obj->SwitchZoneState ( (CCustomZone::EZoneState) new_state); 
 }
 
+
 void CAnomalyZoneScript::script_register(lua_State *L)
 {
 	module(L)
-		[			
-			class_<CCustomZone, CGameObject>("CCustomZone")
+		[	
+			class_<CSpaceRestrictor, CGameObject>("CSpaceRestrictor")
+			.property("restrictor_center"				,				&get_restrictor_center)
+			.property("restrictor_type"					,				&CSpaceRestrictor::restrictor_type)
+			.property("radius"							,				&CSpaceRestrictor::Radius)						
+			,
+			class_<CCustomZone, CSpaceRestrictor>("CustomZone")
 			.def  ("get_state_time"						,				&CCustomZone::GetStateTime) 
 			.def  ("power"								,				&CCustomZone::Power)
 			.def  ("relative_power"						,				&CCustomZone::RelativePower)
@@ -53,10 +67,7 @@ void CAnomalyZoneScript::script_register(lua_State *L)
 			.def_readwrite("state_time"					,				&CCustomZone::m_iStateTime) 
 			.def_readwrite("start_time"					,				&CCustomZone::m_StartTime) 
 			.def_readwrite("time_to_live"				,				&CCustomZone::m_ttl) 
-			.def_readwrite("zone_active"				,				&CCustomZone::m_bZoneActive) 
-			 
-
-			.property("radius"							,				&CCustomZone::Radius)			
+			.def_readwrite("zone_active"				,				&CCustomZone::m_bZoneActive) 			
 			.property("zone_state"						,				&get_zone_state, &CAnomalyZoneScript::set_zone_state)
 
 		];
