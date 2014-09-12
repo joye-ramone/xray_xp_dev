@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: xrServer_Objects_ALife_Items.cpp
 //	Created 	: 19.09.2002
-//  Modified 	: 04.06.2003
+//  Modified 	: 09.09.2014
 //	Author		: Oles Shyshkovtsov, Alexander Maksimchuk, Victor Reutskiy and Dmitriy Iassenev
 //	Description : Server objects items for ALife simulator
 ////////////////////////////////////////////////////////////////////////////
@@ -1074,4 +1074,53 @@ void CSE_ALifeItemCustomOutfit::FillProps			(LPCSTR pref, PropItemVec& items)
 BOOL CSE_ALifeItemCustomOutfit::Net_Relevant		()
 {
 	return							(true);
+}
+
+
+#include "eatable_item.h"
+////////////////////////////////////////////////////////////////////////////
+// CSE_AlifeItemEatable by Real Wolf. 09.09.2014.
+////////////////////////////////////////////////////////////////////////////
+CSE_AlifeItemEatable::CSE_AlifeItemEatable(LPCSTR caSection) : CSE_ALifeItem(caSection)
+{
+	m_portions_num = pSettings->r_s32(caSection, "eat_portions_num");
+}
+
+CSE_AlifeItemEatable::~CSE_AlifeItemEatable()
+{
+}
+
+BOOL CSE_AlifeItemEatable::Net_Relevant()
+{
+	return inherited::Net_Relevant();
+}
+
+
+void CSE_AlifeItemEatable::STATE_Read(NET_Packet	&tNetPacket, u16 size)
+{
+	inherited::STATE_Read(tNetPacket, size);
+}
+
+void CSE_AlifeItemEatable::STATE_Write(NET_Packet	&tNetPacket)
+{
+	inherited::STATE_Write(tNetPacket);
+}
+
+void CSE_AlifeItemEatable::UPDATE_Read(NET_Packet	&tNetPacket)
+{
+	inherited::UPDATE_Read(tNetPacket);
+
+	m_portions_num = tNetPacket.r_s32();
+}
+
+void CSE_AlifeItemEatable::UPDATE_Write(NET_Packet	&tNetPacket)
+{
+	inherited::UPDATE_Write(tNetPacket);
+
+	tNetPacket.w_s32(m_portions_num);
+}
+
+void CSE_AlifeItemEatable::FillProps(LPCSTR pref, PropItemVec& values)
+{
+	inherited::FillProps(pref, values);
 }

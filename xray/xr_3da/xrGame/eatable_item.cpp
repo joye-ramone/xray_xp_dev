@@ -16,6 +16,8 @@
 #include "EntityCondition.h"
 #include "InventoryOwner.h"
 
+#include "xrServer_Objects_ALife_Items.h"
+
 CEatableItem::CEatableItem()
 {
 	m_fHealthInfluence = 0;
@@ -58,7 +60,16 @@ BOOL CEatableItem::net_Spawn				(CSE_Abstract* DC)
 {
 	if (!inherited::net_Spawn(DC)) return FALSE;
 
-	m_iPortionsNum = m_iStartPortionsNum;
+	if (auto se_eat = smart_cast<CSE_AlifeItemEatable*>(DC))
+	{
+		m_iPortionsNum = se_eat->m_portions_num;
+#if defined(EAT_PORTIONS_INFLUENCE)
+		m_weight	-= m_weight / m_iStartPortionsNum * m_iPortionsNum;
+		m_cost		-= m_cost	/ m_iStartPortionsNum * m_iPortionsNum;
+#endif
+	}
+	else
+		m_iPortionsNum = m_iStartPortionsNum;
 
 	return TRUE;
 };
@@ -112,8 +123,18 @@ void CEatableItem::UseBy (CEntityAlive* entity_alive)
 	else
 		m_iPortionsNum = 0;
 
-	// Real Wolf: После использования предмета, удалеяем его иконку и добавляем заново.
-	// Таким образом вызовется колбек на группировку, где пользователь решит, группировать или нет предмета. 13.08.2014.
+#if defined(EAT_PORTIONS_INFLUENCE)
+	// Real Wolf: Уменьшаем вес и цену после использования.
+	auto sect	= object().cNameSect().c_str();
+	auto weight = READ_IF_EXISTS(pSettings, r_float, sect, "inv_weight",	0.0f);
+	auto cost	= READ_IF_EXISTS(pSettings, r_float, sect, "cost",			0.0f);
+
+	m_weight	-= weight / m_iStartPortionsNum;
+	m_cost		-= cost / m_iStartPortionsNum;
+#endif
+
+	/* Real Wolf: После использования предмета, удаляем его иконку и добавляем заново.
+	Таким образом вызовется колбек на группировку, где пользователь решит, группировать или нет предмета. 13.08.2014.*/
 	if (!Empty() && m_cell_item && m_cell_item->ChildsCount() )
 	{
 		auto owner = m_cell_item->OwnerList();
@@ -134,4 +155,16 @@ void CEatableItem::UseBy (CEntityAlive* entity_alive)
 		//}
 		//std::sort(place.begin(),place.end(),InventoryUtilities::GreaterRoomInRuck);
 	}
+}
+
+void CEatableItem::net_Export(NET_Packet& P)
+{
+	inherited::net_Export(P);
+	P.w_s32(m_iPortionsNum);
+}
+
+void CEatableItem::net_Import(NET_Packet& P)
+{
+	inherited::net_Import(P);
+	m_iPortionsNum = P.r_s32();
 }

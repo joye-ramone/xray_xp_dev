@@ -102,9 +102,19 @@ SERVER_ENTITY_DECLARE_BEGIN(CSE_ALifeItemTorch,CSE_ALifeItem)
     virtual							~CSE_ALifeItemTorch	();
 	virtual BOOL					Net_Relevant			();
 
-SERVER_ENTITY_DECLARE_END
-add_to_type_list(CSE_ALifeItemTorch)
+	SERVER_ENTITY_DECLARE_END
+		add_to_type_list(CSE_ALifeItemTorch)
 #define script_type_list save_type_list(CSE_ALifeItemTorch)
+
+		SERVER_ENTITY_DECLARE_BEGIN(CSE_AlifeItemEatable, CSE_ALifeItem)
+							CSE_AlifeItemEatable(LPCSTR);
+		virtual				~CSE_AlifeItemEatable();
+		virtual		BOOL	Net_Relevant();
+public:
+					s32		m_portions_num;
+SERVER_ENTITY_DECLARE_END
+add_to_type_list(CSE_AlifeItemEatable)
+#define script_type_list save_type_list(CSE_AlifeItemEatable)
 
 SERVER_ENTITY_DECLARE_BEGIN(CSE_ALifeItemAmmo,CSE_ALifeItem)
 	u16								a_elapsed;

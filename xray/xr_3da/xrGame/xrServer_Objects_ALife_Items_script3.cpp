@@ -23,3 +23,14 @@ void CSE_ALifeItemWeaponMagazinedWGL::script_register(lua_State *L)
 			)
 	];
 }
+
+void CSE_AlifeItemEatable::script_register(lua_State *L)
+{
+	module(L)[
+		luabind_class_item1(
+			CSE_AlifeItemEatable,
+			"cse_alife_item_eatable",
+			CSE_ALifeItem
+			)
+	];
+}

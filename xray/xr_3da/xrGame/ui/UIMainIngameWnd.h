@@ -40,6 +40,7 @@ public:
 	virtual void Update();
 
 	bool OnKeyboardPress(int dik);
+	void HudAdjustMode(int);
 
 protected:
 
