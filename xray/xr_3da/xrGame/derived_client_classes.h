@@ -10,6 +10,16 @@
 // alpet : в этом файле при добавлении экспортеров с зависимост€ми наследовани€, необходимо соблюдать пор€док - сначала экспортируютс€ базовые классы
 // NOTE  : требуетс€ именно класс вместо структуры, чтобы объ€вить его френдом 
 
+class CAnomalyZoneScript
+{
+	static void	 set_zone_state(CCustomZone *obj, u32 new_state);
+	DECLARE_SCRIPT_REGISTER_FUNCTION
+};
+add_to_type_list(CAnomalyZoneScript)
+#undef script_type_list
+#define script_type_list save_type_list(CAnomalyZoneScript)
+
+
 class CInventoryScript
 {
 	DECLARE_SCRIPT_REGISTER_FUNCTION

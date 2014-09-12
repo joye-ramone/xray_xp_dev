@@ -6,6 +6,7 @@
 #include "Car.h"
 #include "CustomMonster.h"
 #include "CustomOutfit.h"
+#include "CustomZone.h"
 #include "eatable_item.h"
 #include "eatable_item_object.h"
 #include "Entity.h"

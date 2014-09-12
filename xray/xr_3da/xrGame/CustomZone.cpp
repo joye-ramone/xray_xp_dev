@@ -16,6 +16,7 @@
 #include "../skeletoncustom.h"
 #include "zone_effector.h"
 #include "breakableobject.h"
+#include "../../build_config_defines.h"
 
 //////////////////////////////////////////////////////////////////////////
 #define PREFETCHED_ARTEFACTS_NUM 1	//количество предварительно проспавненых артефактов
@@ -684,6 +685,20 @@ float CCustomZone::Power(float dist)
 	return  m_fMaxPower * RelativePower(dist);
 }
 
+void CCustomZone::SetMaxPower(float p)
+{
+	m_fMaxPower = p;	
+#ifdef LUAICP_COMPAT
+	// сохранение значения в серверном объекте
+	CSE_ALifeDynamicObject     *e = alife_object();
+	if (e)
+	{
+		CSE_ALifeCustomZone			*Z = smart_cast<CSE_ALifeCustomZone*>(e);
+		Z->m_maxPower = p;
+	}
+#endif
+}
+ 
 void CCustomZone::PlayIdleParticles()
 {
 	m_idle_sound.play_at_pos(0, Position(), true);

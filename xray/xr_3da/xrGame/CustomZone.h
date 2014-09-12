@@ -37,6 +37,7 @@ class CCustomZone :
 	public CSpaceRestrictor,
 	public Feel::Touch
 {
+	friend class CAnomalyZoneScript;
 private:
     typedef	CSpaceRestrictor inherited;
 
@@ -71,7 +72,7 @@ public:
 				void	OnOwnershipTake					(u16 id);
 
 				float	GetMaxPower						()							{return m_fMaxPower;}
-				void	SetMaxPower						(float p)					{m_fMaxPower = p;}
+				void	SetMaxPower						(float p);
 
 	//вычисление силы хита в зависимости от расстояния до центра зоны
 	//относительный размер силы (от 0 до 1)
@@ -157,11 +158,12 @@ protected:
 				void		UpdateOnOffState			();
 	virtual		void		GoEnabledState				();
 	virtual		void		GoDisabledState				();
-public:
+public:	
+				int			GetStateTime				(EZoneState zs) { return m_StateTime[zs]; }
 				bool		IsEnabled					()	{return m_eZoneState != eZoneStateDisabled; };
 				void		ZoneEnable					();	
 				void		ZoneDisable					();
-	EZoneState				ZoneState					() {return m_eZoneState;}
+	EZoneState				ZoneState					() {return m_eZoneState;}		
 protected:
 
 
@@ -178,8 +180,6 @@ protected:
 //	bool					m_bZoneReady;
 	//если в зоне есть не disabled объекты
 	bool					m_bZoneActive;
-
-
 	//параметры для выброса, с какой задержкой 
 	//включать эффекты и логику
 	u32						m_dwBlowoutParticlesTime;

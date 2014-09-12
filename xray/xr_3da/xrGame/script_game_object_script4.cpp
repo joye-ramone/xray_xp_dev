@@ -159,9 +159,10 @@ void lua_pushgameobject(lua_State *L, CGameObject *obj)
 	}
 
 
-	if ( test_pushobject<CCar>						(L, obj) ||		 
-		 test_pushobject<CHangingLamp>				(L, obj) || 
-	 	 test_pushobject<CHelicopter>				(L, obj) ||		 		 
+	if ( test_pushobject<CCar>						(L, obj) ||
+		 test_pushobject<CHangingLamp>				(L, obj) ||
+	 	 test_pushobject<CHelicopter>				(L, obj) ||
+		 test_pushobject<CCustomZone>				(L, obj) ||
 		 test_pushobject<CEntityAlive>				(L, obj) ||
 		 test_pushobject<CEntity>					(L, obj)	 
 	   ) return;
@@ -337,7 +338,8 @@ class_<CScriptGameObject> &script_register_game_object3(class_<CScriptGameObject
 		.def("get_game_object",				&CScriptGameObject::object)
 		.def("get_alife_object",			&CScriptGameObject::alife_object)
 		.def("get_actor",					&script_game_object_cast<CActorObject>)
-		.def("get_artefact",				&script_game_object_cast<CArtefact>)
+		.def("get_anomaly",					&script_game_object_cast<CCustomZone>)
+		.def("get_artefact",				&script_game_object_cast<CArtefact>)		
 		.def("get_base_monster",			&script_game_object_cast<CBaseMonster>)
 		.def("get_eatable_item",			&script_game_object_cast<CEatableItemObject>)
 		.def("get_grenade",					&script_game_object_cast<CGrenade>)

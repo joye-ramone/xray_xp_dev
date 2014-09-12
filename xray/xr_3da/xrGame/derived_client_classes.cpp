@@ -30,6 +30,37 @@ using namespace luabind;
 extern LPCSTR get_lua_class_name(luabind::object O);
 extern CGameObject *lua_togameobject(lua_State *L, int index);
 
+u32 get_zone_state(CCustomZone *obj)  { return (u32)obj->ZoneState(); }
+void CAnomalyZoneScript::set_zone_state(CCustomZone *obj, u32 new_state)
+{ 
+	obj->SwitchZoneState ( (CCustomZone::EZoneState) new_state); 
+}
+
+void CAnomalyZoneScript::script_register(lua_State *L)
+{
+	module(L)
+		[			
+			class_<CCustomZone, CGameObject>("CCustomZone")
+			.def  ("get_state_time"						,				&CCustomZone::GetStateTime) 
+			.def  ("power"								,				&CCustomZone::Power)
+			.def  ("relative_power"						,				&CCustomZone::RelativePower)
+
+
+			.def_readwrite("attenuation"				,				&CCustomZone::m_fAttenuation) 
+			.def_readwrite("effective_radius"			,				&CCustomZone::m_fEffectiveRadius) 
+			.def_readwrite("hit_impulse_scale"			,				&CCustomZone::m_fHitImpulseScale) 
+			.def_readwrite("max_power"					,				&CCustomZone::m_fMaxPower) 
+			.def_readwrite("state_time"					,				&CCustomZone::m_iStateTime) 
+			.def_readwrite("start_time"					,				&CCustomZone::m_StartTime) 
+			.def_readwrite("time_to_live"				,				&CCustomZone::m_ttl) 
+			.def_readwrite("zone_active"				,				&CCustomZone::m_bZoneActive) 
+			 
+
+			.property("radius"							,				&CCustomZone::Radius)			
+			.property("zone_state"						,				&get_zone_state, &CAnomalyZoneScript::set_zone_state)
+
+		];
+}
 
 IC void alive_entity_set_radiation(CEntityAlive *E, float value)
 {
@@ -43,8 +74,8 @@ void CEntityScript::script_register(lua_State *L)
 			class_<CEntity, CGameObject>("CEntity")
 			,
 			class_<CEntityAlive, CEntity>("CEntityAlive")
-			.property("radiation"			,					&CEntityAlive::g_Radiation, &alive_entity_set_radiation) // доза в %
-			.property("condition"           ,                   &CEntityAlive::conditions)
+			.property("radiation"						,			&CEntityAlive::g_Radiation, &alive_entity_set_radiation) // доза в %
+			.property("condition"						,           &CEntityAlive::conditions)
 		];
 }
 
