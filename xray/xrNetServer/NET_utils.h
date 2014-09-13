@@ -3,10 +3,11 @@
 #pragma once
 
 #include "client_id.h"
-
+#include "../xr_3da/stdafx.h"
 #pragma pack(push,1)
 
 
+DLL_API extern void LogPacketError(LPCSTR format, ...);
 
 //for presentation
 const	u32			NET_PacketSizeLimit	= 8192; //16384;//8192;
@@ -166,7 +167,9 @@ public:
 
 	IC void r_seek	(u32 pos)
 	{
-		VERIFY		(pos < B.count);
+		// VERIFY		(pos < B.count);
+		if (r_pos >= B.count)
+			LogPacketError("!#ERROR: NET_PACKET::r_seek() buffer overrun, r_pos = %d , size = %d", r_pos, B.count);			
 		r_pos		= pos;
 	}
 	IC u32		r_tell			()	{ return r_pos; }
@@ -176,7 +179,9 @@ public:
 		VERIFY		(p && count);
 		CopyMemory(p,&B.data[r_pos],count);
 		r_pos		+= count;
-		VERIFY		(r_pos<=B.count);
+		if (r_pos > B.count)
+			LogPacketError("!#ERROR: NET_PACKET::r() buffer overrun, r_pos = %d , size = %d", r_pos, B.count);			
+		// VERIFY		(r_pos<=B.count); // alpet: много флуда из-за такого пустяка
 	}
 	IC BOOL		r_eof			()
 	{
@@ -189,7 +194,9 @@ public:
 	IC void		r_advance		(u32 size)
 	{
 		r_pos		+= size;
-		VERIFY		(r_pos<=B.count);
+		if (r_pos > B.count)
+			LogPacketError("!#ERROR:  NET_PACKET::r_advance() buffer overrun, r_pos = %d , size = %d", r_pos, B.count);			
+		// VERIFY2		(r_pos<=B.count, "r_advance prepare buffer overrun");
 	}
 
 	// reading - utilities
