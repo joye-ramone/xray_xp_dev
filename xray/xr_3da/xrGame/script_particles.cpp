@@ -14,7 +14,7 @@ CScriptParticlesCustom::CScriptParticlesCustom(CScriptParticles* owner, LPCSTR c
 {
 //	Msg							("CScriptParticlesCustom: 0x%08x",*(int*)&owner);
 	m_owner						= owner;
-	m_animator					= 0;
+	m_animator					= 0;	
 }
 
 CScriptParticlesCustom::~CScriptParticlesCustom()
@@ -74,6 +74,7 @@ void CScriptParticlesCustom::StopPath()
 CScriptParticles::CScriptParticles(LPCSTR caParticlesName)
 {
 	m_particles					= xr_new<CScriptParticlesCustom>(this, caParticlesName);
+	m_transform.identity();
 }
 
 CScriptParticles::~CScriptParticles()
@@ -95,7 +96,10 @@ void CScriptParticles::Play()
 void CScriptParticles::PlayAtPos(const Fvector &position)
 {
 	VERIFY						(m_particles);
-	m_particles->play_at_pos	(position);
+	m_transform.translate_over  (position);
+	m_particles->UpdateParent	(m_transform, zero_vel);	
+	m_particles->Play();	
+	m_particles->UpdateParent	(m_transform, zero_vel);
 }
 
 void CScriptParticles::Stop		()
@@ -112,12 +116,30 @@ void CScriptParticles::StopDeffered()
 
 void CScriptParticles::MoveTo	(const Fvector &pos, const Fvector& vel)
 {
-	VERIFY						(m_particles);
-	Fmatrix						XF;
-	XF.translate				(pos);
-	m_particles->UpdateParent	(XF,vel);
+	VERIFY						(m_particles);	
+	m_transform.translate_over (pos);
+	m_particles->UpdateParent	(m_transform,vel);	
 }
 
+void CScriptParticles::SetDirection (const Fvector &dir)
+{
+	Fmatrix	matrix; 
+	matrix.identity			();
+	matrix.k.set			(dir);
+	Fvector::generate_orthonormal_basis_normalized (matrix.k,matrix.j,matrix.i);
+	matrix.translate_over	(m_transform.c);
+	m_transform.set (matrix);
+	m_particles->UpdateParent	(matrix, zero_vel);
+}
+
+void CScriptParticles::SetOrientation(float yaw, float pitch, float roll)
+{
+	Fmatrix matrix;	
+	matrix.setHPB(yaw, pitch, roll); // затирается matrix.c
+	matrix.translate_over	(m_transform.c);
+	m_transform.set (matrix);
+	m_particles->UpdateParent	(matrix, zero_vel);
+}
 bool CScriptParticles::IsPlaying() const
 {
 	VERIFY						(m_particles);

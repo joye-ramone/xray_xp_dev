@@ -175,6 +175,9 @@ public:
 
 	virtual	CVisualMemoryManager*visual_memory				() const {return(0);}
 	virtual	void				net_Relcase					(CObject *O);
+
+	virtual float				GetHealth					() const   { return conditions().GetHealth(); }
+	virtual void				SetHealth					(float h)  { conditions().ChangeHealth(h); }
 };
 
 #include "entity_alive_inline.h"

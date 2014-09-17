@@ -90,6 +90,11 @@ CActorConditionObject *get_actor_condition(CActor *pActor)
 	return  (CActorConditionObject *) ( &pActor->conditions() ); 
 }
 
+SRotation& get_actor_orientation(CActor *pActor)
+{
+	return pActor->Orientation();
+}
+
 extern LPCSTR get_lua_class_name(luabind::object O);
 
 void CScriptActor::script_register(lua_State *L)
@@ -177,7 +182,8 @@ void CScriptActor::script_register(lua_State *L)
 			
 			.property("movement",						&get_movement)
 			.property("jump_speed",						&get_jump_speed, &set_jump_speed)					
-			.property("state",							&get_actor_state)						
+			.property("state",							&get_actor_state)	
+			.property("orientation",					&get_actor_orientation)
 			,
 			class_<CActorObject, bases<CActor, CEntityAlive>>("CActor")	// хак с наследованием нужен для переопределения свойств. Luabind не поддерживает property getters override			
 			

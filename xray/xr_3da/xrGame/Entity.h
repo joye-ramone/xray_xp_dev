@@ -73,8 +73,11 @@ public:
 	bool					IsMyCamera			()const;
 
 //	virtual float			g_Health			()const	{ return GetfHealth();}
-/*	virtual*/ IC float			GetMaxHealth		()const	{ return m_entity_condition->max_health();	}
+/*	virtual*/ IC float			GetMaxHealth		() const	{ return m_entity_condition->max_health();	}
 /*	virtual*/ IC void			SetMaxHealth		(float v)	{ m_entity_condition->max_health()=v;}
+    // alpet: виртуальные функции могут вызываться из скриптов(!)
+	virtual float				GetHealth		()	const		{ return m_entity_condition->GetHealth(); }
+	virtual void				SetHealth		(float h)		{ m_entity_condition->health () = h; }
 
 	/*virtual*/ IC BOOL		g_Alive				()const	{ return GetfHealth()>0; }
 	virtual BOOL			g_State				(SEntityState&) const	{return FALSE;}

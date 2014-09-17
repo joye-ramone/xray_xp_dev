@@ -8,6 +8,7 @@
 
 #include "pch_script.h"
 #include "script_fmatrix.h"
+#include "xrServer_Space.h"
 
 using namespace luabind;
 void get_matrix_hpb(Fmatrix* self, float* h, float* p, float* b)
@@ -17,6 +18,17 @@ void get_matrix_hpb(Fmatrix* self, float* h, float* p, float* b)
 void matrix_transform (Fmatrix* self, Fvector* v)
 {
 	self->transform (*v);
+}
+
+SRotation get_matrix_rotation(Fmatrix *self)
+{
+	SRotation result;
+	self->getHPB(result.yaw, result.pitch, result.roll);
+	return result;
+}
+void set_matrix_rotation(Fmatrix *self, SRotation *R)
+{
+	self->setHPB(R->yaw, R->pitch, R->roll);
 }
 
 #pragma optimize("s",on)
@@ -99,6 +111,8 @@ void CScriptFmatrix::script_register(lua_State *L)
 			.def("setXYZi",						(Fmatrix & (Fmatrix::*)(float, float, float))(&Fmatrix::setXYZi),														return_reference_to(_1))
 //			.def("getHPB",						(void	   (Fmatrix::*)(Fvector &) const)(&Fmatrix::getHPB),																							out_value(_2))
 			.def("getHPB",						&get_matrix_hpb)
+			.def("getRotation",					&get_matrix_rotation)
+			.def("setRotation",					&set_matrix_rotation)
 //			.def("getXYZ",						(void	   (Fmatrix::*)(Fvector &) const)(&Fmatrix::getXYZ),																							out_value(_2))
 //			.def("getXYZ",						(void	   (Fmatrix::*)(float &, float &, float &) const)(&Fmatrix::getXYZ))
 //			.def("getXYZi",						(void	   (Fmatrix::*)(Fvector &) const)(&Fmatrix::getXYZi),																						out_value(_2))

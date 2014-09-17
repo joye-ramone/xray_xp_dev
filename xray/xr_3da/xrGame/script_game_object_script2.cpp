@@ -30,6 +30,8 @@ using namespace luabind;
 
 extern CScriptActionPlanner *script_action_planner(CScriptGameObject *obj);
 
+float get_object_health(CScriptGameObject *O)		   { return O->object().GetHealth(); }
+void  set_object_health(CScriptGameObject *O, float h) { O->object().SetHealth(h); }
 
 class_<CScriptGameObject> &script_register_game_object1(class_<CScriptGameObject> &instance)
 {
@@ -62,8 +64,8 @@ class_<CScriptGameObject> &script_register_game_object1(class_<CScriptGameObject
 //		.property("visible",				&CScriptGameObject::getVisible,			&CScriptGameObject::setVisible)
 //		.property("enabled",				&CScriptGameObject::getEnabled,			&CScriptGameObject::setEnabled)
 
-//		.def_readonly("health",				&CScriptGameObject::GetHealth,			&CScriptGameObject::SetHealth)
-		.property("health",					&CScriptGameObject::GetHealth,			&CScriptGameObject::SetHealth)
+//		.def_readonly("health",				&CScriptGameObject::Get_Health,			&CScriptGameObject::Set_Health)
+		.property("health",					&get_object_health,						&set_object_health)
 		.property("psy_health",				&CScriptGameObject::GetPsyHealth,		&CScriptGameObject::SetPsyHealth)
 		.property("power",					&CScriptGameObject::GetPower,			&CScriptGameObject::SetPower)
 		.property("satiety",				&CScriptGameObject::GetSatiety,			&CScriptGameObject::SetSatiety)	// KD		

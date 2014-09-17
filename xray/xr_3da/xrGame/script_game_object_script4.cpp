@@ -103,13 +103,20 @@ CSE_ALifeDynamicObject* CScriptGameObject::alife_object() const
 	return object().alife_object();
 }
 
-IRender_Visual* CScriptGameObject::GetWeaponHUD_Visual() const
+CWeaponHUD*  CScriptGameObject::GetWeaponHUD() const
 {
 	CGameObject *obj = &this->object();
 	CWeapon *wpn = dynamic_cast<CWeapon*> (obj);
 	if (!wpn) return NULL;
 
-	return wpn->GetHUD()->Visual();
+	return wpn->GetHUD();
+}
+
+IRender_Visual* CScriptGameObject::GetWeaponHUD_Visual() const
+{
+	CWeaponHUD *hud = GetWeaponHUD();
+	if (!hud) return NULL;
+	return hud->Visual();
 }
 
 void CScriptGameObject::LoadWeaponHUD_Visual(LPCSTR wpn_hud_section)
@@ -354,7 +361,7 @@ class_<CScriptGameObject> &script_register_game_object3(class_<CScriptGameObject
 		.def("get_weapon",					&script_game_object_cast<CWeapon>)
 		.def("get_weapon_m",				&script_game_object_cast<CWeaponMagazined>)
 		.def("get_weapon_mwg",				&script_game_object_cast<CWeaponMagazinedWGrenade>)
-
+		.def("get_weapon_hud",				&CScriptGameObject::GetWeaponHUD)
 		.def("get_hud_visual",				&CScriptGameObject::GetWeaponHUD_Visual)
 		.def("load_hud_visual",				&CScriptGameObject::LoadWeaponHUD_Visual)
 		.property("interface",				&get_interface,  &fake_set_interface, raw(_2))	

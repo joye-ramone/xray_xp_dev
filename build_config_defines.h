@@ -1,11 +1,12 @@
 #pragma once
 // ==================================== Правки от alpet ======================================= 
-// #define LUAICP_COMPAT					// alpet: включает совместимость с перехватчиком Lua (luaicp.dll). Задавать надо в свойствах 
-#define SCRIPT_ICONS_CONTROL		    // alpet: включает экспорт функции setup_game_icon в Lua
-#define SCRIPT_EZI_CONTROL				// alpet: включает экспорт класса CEffectorZoomInertion для управления движением прицела 
-#define SPAWN_ANTITFREEZE				// alpet: распределяет массовый спавн объектов по кадрам, чтобы исключить продолжительные фризы 
-#define ECO_RENDER						// alpet: добавляет небольшую задержку между рендерингом кадров, чтобы зря не насиловать видеокарту при больших FPS
-// #define MT_OPT							// alpet: задает выделенные ядра ЦП для второго потока
+HLAMP_AFFECT_IMMUNITIES					// включает обработку иммунитетов для висячих ламп (CHangingLamp)
+// #define LUAICP_COMPAT					// включает совместимость с перехватчиком Lua (luaicp.dll). Задавать надо в свойствах 
+#define SCRIPT_ICONS_CONTROL		    // включает экспорт функции setup_game_icon в Lua
+#define SCRIPT_EZI_CONTROL				// включает экспорт класса CEffectorZoomInertion для управления движением прицела 
+#define SPAWN_ANTITFREEZE				// распределяет массовый спавн объектов по кадрам, чтобы исключить продолжительные фризы 
+#define ECO_RENDER						// добавляет небольшую задержку между рендерингом кадров, чтобы зря не насиловать видеокарту при больших FPS
+// #define MT_OPT							// задает выделенные ядра ЦП для второго потока
 // #define AF_SHOW_DYNAMIC_PARAMS			// для артефактов будут выводиться действующие свойства, а не из файла конфигурации
 // #define OBJECTS_RADIOACTIVE				// активирует потенциальную радиоактивность всех объектов, а не только артефактов.
 

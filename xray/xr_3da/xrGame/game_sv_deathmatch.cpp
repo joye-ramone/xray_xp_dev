@@ -423,7 +423,7 @@ void	game_sv_Deathmatch::Update()
 					if (pObject && pObject->CLS_ID == CLSID_OBJECT_ACTOR)
 					{
 						string1024					Text;
-						sprintf_s						(Text, "Following %s", pObject->cName().c_str());
+						sprintf_s						(Text, "Following %s", pObject->Name_script());
 
 						GameDM->SetSpectrModeMsgCaption(Text);
 					}else

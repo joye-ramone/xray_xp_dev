@@ -63,7 +63,9 @@ CGameObject::CGameObject()
 		LogXrayOffset("GameObject.b_spawned",		this, &this->m_spawned);
 		LogXrayOffset("GameObject.clsid",			this, &this->m_script_clsid);
 		LogXrayOffset("GameObject.story_id",		this, &this->m_story_id);
-		LogXrayOffset("GameObject.ai_location",		this, &this->m_ai_location);		
+		LogXrayOffset("GameObject.ai_location",		this, &this->m_ai_location);	
+		LogXrayOffset("GameObject.xform",			this, &this->XFORM());
+		LogXrayOffset("GameObject.position",		this, &this->Position());
 	}
 #endif
 }
@@ -234,8 +236,8 @@ void CGameObject::OnEvent(NET_Packet& P, u16 type)
 		if (H_Parent())
 		{
 			Msg("GE_DESTROY arrived, but H_Parent() exist. object[%d][%s] parent[%d][%s] [%d]",
-				ID(), cName().c_str(),
-				H_Parent()->ID(), H_Parent()->cName().c_str(),
+				ID(), Name_script(),
+				H_Parent()->ID(), H_Parent()->Name_script(),
 				Device.dwFrame);
 		}
 		setDestroy(TRUE);

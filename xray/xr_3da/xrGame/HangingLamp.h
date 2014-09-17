@@ -10,6 +10,8 @@
 #include "physicsshellholder.h"
 #include "PHSkeleton.h"
 #include "script_export_space.h"
+#include "damage_manager.h"
+#include "hit_immunity.h"
 // refs
 class CLAItem;
 class CPhysicsElement;
@@ -18,7 +20,8 @@ class CPHElement;
 
 class CHangingLamp: 
 public CPhysicsShellHolder,
-public CPHSkeleton
+public CPHSkeleton,
+public CHitImmunity
 {//need m_pPhysicShell
 	typedef	CPhysicsShellHolder		inherited;
 private:
@@ -39,7 +42,7 @@ private:
 	void			CreateBody		(CSE_ALifeObjectHangingLamp	*lamp);
 	void			Init();
 	void			RespawnInit		();
-	bool			Alive			(){return fHealth>0.f;}
+	bool			Alive			() {return GetHealth() > 0.f;}
 
 
 public:
@@ -86,6 +89,8 @@ public:
 
 	virtual void	Center			(Fvector& C)	const;
 	virtual float	Radius			()				const;
+	virtual float	GetHealth		()	const		{ return fHealth; }
+	virtual void	SetHealth		(float h)		{ fHealth = h; clamp<float>(fHealth, 0, 100); }
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };
 

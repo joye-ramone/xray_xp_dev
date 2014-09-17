@@ -27,6 +27,8 @@ public:
 	virtual void						shedule_Update				(u32 dt)						;
 	virtual bool						CanRemoveObject				()								;
 	virtual void						OnChangeVisual				();
+	virtual float						GetHealth					()	const						{ return m_fHealth; }
+	virtual void						SetHealth					(float h)						{ m_fHealth = h; clamp<float>(m_fHealth, 0, 100); }	
 protected:
 			void						Destroy						()								;
 private:

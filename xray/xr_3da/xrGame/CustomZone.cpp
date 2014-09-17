@@ -571,9 +571,13 @@ void CCustomZone::shedule_Update(u32 dt)
 
 	UpdateOnOffState	();
 
-	if( !IsGameTypeSingle() && Local() )
+	
+#ifndef  SHORT_LIVED_ANOMS		
+	if ( !IsGameTypeSingle() &&  Local() )
+#endif  
+		
 	{
-		if(Device.dwTimeGlobal > m_ttl)
+		if (Device.dwTimeGlobal > m_ttl)
 			DestroyObject ();
 	}
 }
@@ -1111,7 +1115,7 @@ void CCustomZone::OnOwnershipTake(u16 id)
 	CGameObject* GO  = smart_cast<CGameObject*>(Level().Objects.net_Find(id));  VERIFY(GO);
 	if(!smart_cast<CArtefact*>(GO))
 	{
-		Msg("zone_name[%s] object_name[%s]",cName().c_str(), GO->cName().c_str() );
+		Msg("zone_name[%s] object_name[%s]",Name_script(), GO->Name_script() );
 	}
 	CArtefact *artefact = smart_cast<CArtefact*>(Level().Objects.net_Find(id));  VERIFY(artefact);
 	artefact->H_SetParent(this);

@@ -10,6 +10,7 @@
 #include "base_client_classes.h"
 #include "derived_client_classes.h"
 #include "HUDManager.h"
+#include "WeaponHUD.h"
 #include "exported_classes_def.h"
 #include "script_game_object.h"
 #include "ui/UIDialogWnd.h"
@@ -232,6 +233,11 @@ void CInventoryScript::script_register(lua_State *L)
 		];
 }
 
+CParticlesObject* monster_play_particles(CBaseMonster *monster, LPCSTR name, const Fvector &position, const Fvector &dir, BOOL auto_remove, BOOL xformed)
+{
+	return monster->PlayParticles(name, position, dir, auto_remove, xformed);
+}
+
 void CMonsterScript::script_register(lua_State *L)
 {
 	module(L)
@@ -244,7 +250,7 @@ void CMonsterScript::script_register(lua_State *L)
 			.def_readwrite("run_turn_left"				,			&CBaseMonster::m_bRunTurnLeft)
 			.def_readwrite("run_turn_right"				,			&CBaseMonster::m_bRunTurnRight)
 			.def_readwrite("sleep"						,			&CBaseMonster::m_bSleep)
-			.def_readwrite("state_invisible"			,			&CBaseMonster::state_invisible)
+			.def_readwrite("state_invisible"			,			&CBaseMonster::state_invisible)			
 		];
 }
 
@@ -277,10 +283,26 @@ void COutfitScript::script_register(lua_State *L)
 
 }
 
+int			get_fire_bone(CWeaponHUD *hud)  { return hud->FireBone();  }
+const Fvector&	get_fire_point1 (CWeaponHUD *hud) { return hud->FirePoint(); }
+const Fvector&	get_fire_point2 (CWeaponHUD *hud) { return hud->FirePoint2(); }
+IRender_Visual* get_hud_visual(CWeaponHUD *hud)   { return hud->Visual(); }
+
+
 void CWeaponScript::script_register(lua_State *L)
 {
 	module(L)
 		[
+			class_<CWeaponHUD>("CWeaponHUD")
+			.property("fire_bone"						,			&get_fire_bone)
+			.property("fire_point"						,			&get_fire_point1)
+			.property("fire_point2"						,			&get_fire_point2)
+			
+			.property("visual"							,			&get_hud_visual)
+			.def_readonly("transform"					,			&CWeaponHUD::m_Transform)
+			.def_readonly("visible"						,			&CWeaponHUD::m_bVisible)
+			,
+
 			class_<CWeapon,	CInventoryItemObject>		("CWeapon")
 			// из неэкспортируемого класса CHudItemObject:
 			.property("state", &CHudItemObject::GetState)
@@ -314,6 +336,10 @@ void CWeaponScript::script_register(lua_State *L)
 			.def("start_fire2"							,			&CWeapon::Fire2Start)			// огонь ножом - правой кнопкой? )
 			.def("stop_fire2"							,			&CWeapon::Fire2End)
 			.def("stop_shoothing"						,			&CWeapon::StopShooting)
+			.def("get_particles_xform"					,			&CWeapon::get_ParticlesXFORM)
+			.def("get_fire_point"						,			&CWeapon::get_CurrentFirePoint)
+			.def("get_fire_point2"						,			&CWeapon::get_CurrentFirePoint2)
+
 
 			,
 			class_<CWeaponMagazined, CWeapon>			("CWeaponMagazined")

@@ -21,6 +21,7 @@
 #include "Explosive.h"
 #include "inventory_item.h"
 #include "script_game_object.h"
+#include "xrServer_Space.h"
 #include "xrServer_Objects_ALife.h"
 #include "../lua_tools.h"
 #include <typeinfo>
@@ -155,6 +156,52 @@ LPCSTR get_lua_class_name(luabind::object O)
 }
 
 
+Fvector rotation_get_dir(SRotation *R, bool v_inverse)
+{
+	Fvector result;
+	if (v_inverse)
+		result.setHP(R->yaw, -R->pitch);
+	else
+		result.setHP(R->yaw, R->pitch);
+	return result;
+}
+
+void	rotation_set_dir(SRotation *R, const Fvector &dir, bool v_inverse)
+{
+	R->yaw   = dir.getH(); 
+	if (v_inverse)
+		R->pitch = -dir.getP();
+	else
+		R->pitch =  dir.getP();
+	R->roll  = 0;
+}
+
+void    rotation_copy(SRotation *R, SRotation *src) { memcpy(R, src, sizeof(SRotation)); }
+void	rotation_init(SRotation *R, float y, float p, float r)
+{
+	R->pitch = p;
+	R->roll = r;
+	R->yaw = y;
+}
+
+void CRotationScript::script_register(lua_State *L)
+{
+	module(L)
+		[
+			class_<SRotation>("SRotation")
+			.def ( constructor<>() )
+			.def ( constructor<float, float, float>() )
+			.def_readwrite("pitch"				,				&SRotation::pitch)	
+			.def_readwrite("yaw"				,				&SRotation::yaw)	
+			.def_readwrite("roll"				,				&SRotation::roll)				
+			.def("get_dir"						,				&rotation_get_dir)
+			.def("set_dir"						,				&rotation_set_dir)
+			.def("set"							,				&rotation_copy)
+			.def("set"							,				&rotation_init)
+		];
+}
+
+
 void CObjectScript::script_register		(lua_State *L)
 {
 	module(L)
@@ -286,9 +333,9 @@ void CObjectScript::script_register		(lua_State *L)
 //		,class_<CAI_Stalker,CCustomMonster>("CAI_Stalker")
 	];
 }
-		
-// alpet ======================== SCRIPT_TEXTURE_CONTROL BEGIN =========== 
 
+
+// alpet ======================== SCRIPT_TEXTURE_CONTROL BEGIN =========== 
 
 IRender_Visual	*visual_get_child(IRender_Visual	*v, u32 n_child)
 {
@@ -376,6 +423,7 @@ void IRender_VisualScript::script_register(lua_State *L)
 			class_<IRender_Visual>("IRender_Visual")
 			.def(constructor<>())
 			.def("dcast_PKinematicsAnimated", &IRender_Visual::dcast_PKinematicsAnimated)
+			.def("dcast_PKinematics",		  &IRender_Visual::dcast_PKinematics)
 			.def("child",					  &visual_get_child)
 			.def("configure",				  &visual_configure)
 			
@@ -396,7 +444,25 @@ void CKinematicsAnimated_PlayCycle(CKinematicsAnimated* sa, LPCSTR anim)
 	sa->PlayCycle(anim);
 }
 
-u16 get_bone_id(CKinematicsAnimated *K, LPCSTR bone_name) { return K->LL_BoneID(bone_name); }
+u16 get_bone_id(CKinematics *K, LPCSTR bone_name) { return K->LL_BoneID(bone_name); }
+
+
+Fvector CalcBonePosition(CKinematics *K, const Fvector &pos, LPCSTR bone_name)
+{
+	u16					bone_id;
+	if (xr_strlen(bone_name))
+		bone_id			= K->LL_BoneID(bone_name);
+	else
+		bone_id			= K->LL_GetBoneRoot();
+
+	Fmatrix				matrix;
+	Fmatrix				XF;
+	XF.identity();
+	XF.translate_over (pos);
+	matrix.mul_43		(XF,  K->LL_GetTransform(bone_id));
+	return				(matrix.c);
+}
+
 
 void CKinematicsAnimatedScript::script_register		(lua_State *L)
 {
@@ -406,13 +472,18 @@ void CKinematicsAnimatedScript::script_register		(lua_State *L)
 		.def_readonly("mTransform"				,				&CBoneInstance::mTransform)
 		.def_readonly("mRenderTransform"		,				&CBoneInstance::mRenderTransform)
 		.def("get_param"						,				&CBoneInstance::get_param)
-		.def("set_param"						,				&CBoneInstance::set_param)
+		.def("set_param"						,				&CBoneInstance::set_param)		
 		,
-		class_<CKinematicsAnimated>("CKinematicsAnimated")
-		.def("PlayCycle"						,				&CKinematicsAnimated_PlayCycle)
-		.def("LL_BoneCount"						,				&CKinematicsAnimated::LL_BoneCount)
+		class_<CKinematics>("CKinematics")
+		.def("LL_BoneCount"						,				&CKinematics::LL_BoneCount)
 		.def("LL_BoneID"						,				&get_bone_id)
-		.def("LL_GetBoneInstance"				,				&CKinematicsAnimated::LL_GetBlendInstance)
+		.def("LL_BoneName"						,				&CKinematics::LL_BoneName_dbg)
+		.def("LL_GetBoneInstance"				,				&CKinematics::LL_GetBoneInstance)		
+		.def("LL_GetBoneRoot"					,				&CKinematics::LL_GetBoneRoot)	
+		.def("bone_position"					,				&CalcBonePosition)
+		,
+		class_<CKinematicsAnimated, CKinematics>("CKinematicsAnimated")
+		.def("PlayCycle"						,				&CKinematicsAnimated_PlayCycle)		
 	];
 }
 

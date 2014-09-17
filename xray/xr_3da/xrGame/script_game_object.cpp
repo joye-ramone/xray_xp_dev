@@ -67,7 +67,7 @@ BIND_FUNCTION10	(&object(),	CScriptGameObject::Squad,				CEntity,		g_Squad,			in
 BIND_FUNCTION10	(&object(),	CScriptGameObject::Group,				CEntity,		g_Group,			int,							-1);
 BIND_FUNCTION10	(&object(),	CScriptGameObject::GetFOV,				CEntityAlive,	ffGetFov,			float,							-1);
 BIND_FUNCTION10	(&object(),	CScriptGameObject::GetRange,			CEntityAlive,	ffGetRange,			float,							-1);
-BIND_FUNCTION10	(&object(),	CScriptGameObject::GetHealth,			CEntityAlive,	conditions().GetHealth,			float,							-1);
+// BIND_FUNCTION10	(&object(),	CScriptGameObject::Get_Health,			CEntityAlive,	conditions().GetHealth,			float,							-1);
 BIND_FUNCTION10	(&object(),	CScriptGameObject::GetPsyHealth,		CEntityAlive,	conditions().GetPsyHealth,		float,							-1);
 BIND_FUNCTION10	(&object(),	CScriptGameObject::GetPower,			CEntityAlive,	conditions().GetPower,			float,							-1);
 BIND_FUNCTION10	(&object(),	CScriptGameObject::GetRadiation,		CEntityAlive,	conditions().GetRadiation,		float,							-1);
@@ -76,7 +76,7 @@ BIND_FUNCTION10	(&object(),	CScriptGameObject::GetMorale,			CEntityAlive,	condit
 BIND_FUNCTION10	(&object(),	CScriptGameObject::GetMaxPower,			CEntityAlive,	conditions().GetMaxPower,		float,							-1);
 BIND_FUNCTION10	(&object(),	CScriptGameObject::GetSatiety,			CEntityAlive,	conditions().GetSatiety,		float,							-1);
 BIND_FUNCTION10	(&object(),	CScriptGameObject::GetAlcohol,			CEntityAlive,	conditions().GetAlcohol,		float,							-1);
-BIND_FUNCTION01	(&object(),	CScriptGameObject::SetHealth,			CEntityAlive,	conditions().ChangeHealth,		float,							float);
+// BIND_FUNCTION01	(&object(),	CScriptGameObject::Set_Health,			CEntityAlive,	conditions().ChangeHealth,		float,							float);
 BIND_FUNCTION01	(&object(),	CScriptGameObject::SetPsyHealth,		CEntityAlive,	conditions().ChangePsyHealth,	float,							float);
 BIND_FUNCTION01	(&object(),	CScriptGameObject::SetPower,			CEntityAlive,	conditions().ChangePower,		float,							float);
 BIND_FUNCTION01	(&object(),	CScriptGameObject::SetMaxPower,			CEntityAlive,	conditions().SetMaxPower,		float,							float);

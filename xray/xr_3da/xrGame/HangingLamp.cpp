@@ -65,6 +65,9 @@ float CHangingLamp::Radius	() const
 void CHangingLamp::Load		(LPCSTR section)
 {
 	inherited::Load			(section);
+	LPCSTR imm_sect = READ_IF_EXISTS (pSettings, r_string, section, "immunities_sect", NULL);
+	if (imm_sect)
+		CHitImmunity::LoadImmunities(imm_sect, pSettings);
 }
 
 void CHangingLamp::net_Destroy()
@@ -95,6 +98,9 @@ BOOL CHangingLamp::net_Spawn(CSE_Abstract* DC)
 		light_bone			= K->LL_BoneID	(*lamp->light_main_bone);	VERIFY(light_bone!=BI_NONE);
 		ambient_bone		= K->LL_BoneID	(*lamp->light_ambient_bone);VERIFY(ambient_bone!=BI_NONE);
 		collidable.model	= xr_new<CCF_Skeleton>				(this);
+		// alpet: загрузка иммунитетов из спавн-конфига
+		CInifile* ini=K->LL_UserData();
+		if(ini && ini->section_exist("immunities"))		CHitImmunity::LoadImmunities("immunities",ini);
 	}
 	fBrightness				= lamp->brightness;
 	clr.set					(lamp->color);						clr.a = 1.f;
@@ -334,13 +340,26 @@ void	CHangingLamp::Hit					(SHit* pHDS)
 		smart_cast<const CGameObject*>(HDS.who)->lua_game_object(),
 		HDS.bone()
 		);
-	BOOL	bWasAlive		= Alive		();
 
-	if(m_pPhysicsShell) m_pPhysicsShell->applyHit(pHDS->p_in_bone_space,pHDS->dir,pHDS->impulse,pHDS->boneID,pHDS->hit_type);
+#ifdef HLAMP_AFFECT_IMMUNITIES
+	HDS.power = CHitImmunity::AffectHit(HDS.power,HDS.hit_type);	
+	inherited::Hit(pHDS);
+#endif
+	BOOL	bWasAlive		= Alive		() || light_render->get_active();
 
-	if (pHDS->boneID==light_bone)fHealth =	0.f;
-	else	fHealth -=	pHDS->damage()*100.f;
+	if(m_pPhysicsShell) 
+	   m_pPhysicsShell->applyHit(pHDS->p_in_bone_space,pHDS->dir,pHDS->impulse,pHDS->boneID,pHDS->hit_type);
+	
+	if (!bWasAlive) return;
 
+	if (pHDS->boneID==light_bone)
+	    SetHealth ( 0.f );
+	else
+	{
+		float damage = pHDS->damage() * 100.f;
+		Msg("DEBUG: %s health = %.3f, damage = %.3f", Name_script(), GetHealth(), damage);
+		SetHealth(GetHealth() - damage);
+	}
 	if (bWasAlive && (!Alive()))		TurnOff	();
 }
 
@@ -414,7 +433,7 @@ void CHangingLamp::script_register(lua_State *L)
 {
 	luabind::module(L)
 	[
-		luabind::class_<CHangingLamp,CGameObject>("hanging_lamp")
+		luabind::class_<CHangingLamp,CGameObject,CHitImmunity>("hanging_lamp")
 			.def(luabind::constructor<>())
 			.def("turn_on",		&CHangingLamp::TurnOn)
 			.def("turn_off",	&CHangingLamp::TurnOff)

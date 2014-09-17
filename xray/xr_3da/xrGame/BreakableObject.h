@@ -48,6 +48,10 @@ public:
 	virtual void	net_Export			(NET_Packet& P);
 	virtual void	net_Import			(NET_Packet& P);
 	virtual BOOL	UsedAI_Locations	();
+
+	virtual float	GetHealth		()	const		{ return fHealth; }
+	virtual void	SetHealth		(float h)		{ fHealth = h; clamp<float>(fHealth, 0, 100); }
+
 private:
 	void			Init				();
 	void			CreateUnbroken		();

@@ -13,7 +13,7 @@
 #include "script_export_space.h"
 #include "xr_time.h"
 #include "character_info_defs.h"
-
+#include "WeaponHUD.h"
 #include "ui/UIStatic.h"
 
 enum EPdaMsg;
@@ -169,7 +169,7 @@ public:
 	// CEntityAlive
 	_DECLARE_FUNCTION10	(GetFOV				,			float);
 	_DECLARE_FUNCTION10	(GetRange			,			float);
-	_DECLARE_FUNCTION10	(GetHealth			,			float);
+//	_DECLARE_FUNCTION10	(Get_Health			,			float);
 	_DECLARE_FUNCTION10	(GetPsyHealth		,			float);
 	_DECLARE_FUNCTION10	(GetPower			,			float);
 	_DECLARE_FUNCTION10	(GetRadiation		,			float);
@@ -179,7 +179,7 @@ public:
 	_DECLARE_FUNCTION10	(GetAlcohol			,			float);
 	_DECLARE_FUNCTION10	(GetSatiety			,			float);
 
-	_DECLARE_FUNCTION11	(SetHealth,			void, float);
+//	_DECLARE_FUNCTION11	(Set_Health,			void, float);
 	_DECLARE_FUNCTION11	(SetPsyHealth,		void, float);
 	_DECLARE_FUNCTION11	(SetPower,			void, float);
 	_DECLARE_FUNCTION11	(SetSatiety,		void, float);
@@ -684,6 +684,7 @@ public:
 			// alpet: visual functions for CWeapon descedants 
 			_DECLARE_FUNCTION10 (alife_object			,			CSE_ALifeDynamicObject*);
 			_DECLARE_FUNCTION10 (GetWeaponHUD_Visual	,			IRender_Visual*);
+			_DECLARE_FUNCTION10 (GetWeaponHUD			,			CWeaponHUD*);
 			void				LoadWeaponHUD_Visual	(LPCSTR wpn_hud_section);
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
