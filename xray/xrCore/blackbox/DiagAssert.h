@@ -298,10 +298,11 @@ void  __stdcall
 #define TRACE   (void)0
 #endif
 
-#define TRACE0(fmt)
-#define TRACE1(fmt,arg1)
-#define TRACE2(fmt,arg1,arg2)
-#define TRACE3(fmt,arg1,arg2,arg3)
+
+#define TRACE0(fmt)					Log(_T(fmt))
+#define TRACE1(fmt,arg1)			Msg(_T(fmt), arg1)
+#define TRACE2(fmt,arg1,arg2)		Msg(_T(fmt), arg1, arg2)
+#define TRACE3(fmt,arg1,arg2,arg3)	Msg(_T(fmt), arg1, arg2, arg3)
 
 #endif  // _DEBUG
 

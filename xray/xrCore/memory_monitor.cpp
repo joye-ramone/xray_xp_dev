@@ -51,7 +51,16 @@ union _allocation_size {
 
 STATIC bool use_monitor					()
 {
-	return						(!!strstr(GetCommandLine(),"-memory_monitor"));
+	static bool m_flag		= false;
+	static bool use_flag    = false;
+	if (use_flag)
+		return m_flag;
+	else
+	{
+		m_flag = (!!strstr(GetCommandLine(), "-memory_monitor"));
+		use_flag = true;
+		return m_flag;
+	}
 }
 }
 
@@ -90,9 +99,13 @@ void memory_monitor::monitor_alloc		(const void *allocation_address, const u32 &
 	_allocation_size			temp;
 	temp.allocation				= 1;
 	temp.size					= allocation_size;
+#ifdef DEFAULT_FORMAT
 	fwrite						(&allocation_address,sizeof(allocation_address),1,file());
 	fwrite						(&temp,sizeof(temp),1,file());
 	fwrite						(allocation_description,(xr_strlen(allocation_description) + 1)*sizeof(char),1,file());
+#else	
+	fprintf (file(), "+%08p %5x %s\n", allocation_address, allocation_size, allocation_description);
+#endif
 
 	if (!detaching)
 //		LeaveCriticalSection	(&critical_section)
@@ -110,10 +123,14 @@ void memory_monitor::monitor_free		(const void *deallocation_address)
 //		EnterCriticalSection	(&critical_section);
 
 	if (deallocation_address) {
+#ifdef  DEFAULT_FORMAT
 		_allocation_size		temp;
 		temp.allocation_size	= 0;
 		fwrite					(&deallocation_address,sizeof(deallocation_address),1,file());
 		fwrite					(&temp,sizeof(temp),1,file());
+#else
+		fprintf (file(), "-%p\n", deallocation_address);
+#endif
 	}
 
 	if (!detaching)

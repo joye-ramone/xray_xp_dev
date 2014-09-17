@@ -135,13 +135,33 @@ void __cdecl Msg		( const char *format, ...)
 
 void 	__cdecl	MsgCB (LPCSTR format, ...) // alpet: вывод сообщений только в колбек (для отладки и передачи данных в перехватчик)
 {
-	if (NULL == LogCB) return;
+	static string1024 ctx_ring[16];   // кольцевой буфер для сохранения данных контекста выполнения (выводится при сбое, или по необходимости)
+	static u32 ctx_index = 0;
+
 	va_list mark;
 	string1024	buf;
 	va_start(mark, format);
 	int sz = _vsnprintf(buf, sizeof(buf)-1, format, mark); buf[sizeof(buf)-1] = 0;
 	va_end(mark);
-	if (sz)		LogCB(buf);
+	// функция двойного назначения: может использоваться для вотчинга произвольных переменных в местах потенциальных сбоев
+	if (strstr(buf, "#CONTEXT:"))
+	{
+		SYSTEMTIME lt;
+		GetLocalTime(&lt);
+		LPSTR dest = ctx_ring[ctx_index & 15];
+		ctx_index++;
+		// copy-paste forever	
+		sprintf_s(dest, 1023, "[%02d:%02d:%02d.%03d]. %s", lt.wHour, lt.wMinute, lt.wSecond, lt.wMilliseconds, buf);						
+		return;
+	}
+	if (strstr(buf, "#DUMP_CONTEXT"))
+	{
+		Log("#DEBUG CONTEXT DUMP:");
+		for (u32 i = 15; i > 0; i--)
+			Msg("# %s", ctx_ring[(ctx_index + i) & 15]);
+	}
+
+	if (NULL != LogCB && sz)		LogCB(buf);
 }
 
 

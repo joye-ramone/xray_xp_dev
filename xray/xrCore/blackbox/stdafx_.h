@@ -15,6 +15,7 @@
 #include <tchar.h>
 #include "PSAPI.h"
 #include "WarningsOn.h"
+#include "../xrCore.h"
 
 namespace BlackBox {
 
@@ -26,7 +27,8 @@ long atol( const char* nptr );
 
 };
 
-#ifdef _EDITOR
+// #ifdef _EDITOR
+#ifndef min
 #   define min(a,b) ((a) < (b) ? (a) : (b))
 #endif // _EDITOR
 

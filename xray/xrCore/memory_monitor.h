@@ -3,9 +3,11 @@
 
 #ifdef DEBUG
     #ifndef	_EDITOR
-        #define	USE_MEMORY_MONITOR
+        // #define	USE_MEMORY_MONITOR
     #endif // _EDITOR
 #endif // DEBUG
+
+// #define USE_MEMORY_MONITOR
 
 #ifdef USE_MEMORY_MONITOR
 

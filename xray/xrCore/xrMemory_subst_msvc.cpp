@@ -41,6 +41,8 @@ void*	xrMemory::mem_alloc		(size_t size
 								 )
 {
 	stat_calls++;
+	_ASSERT (size > 0);
+	R_ASSERT (size < 0x7fffFFFF);
 
 #ifdef PURE_ALLOC
 	static bool g_use_pure_alloc_initialized = false;
@@ -119,7 +121,7 @@ void*	xrMemory::mem_alloc		(size_t size
 #endif // DEBUG_MEMORY_MANAGER
 #ifdef USE_MEMORY_MONITOR
 	memory_monitor::monitor_alloc	(_ptr,size,_name);
-#endif // USE_MEMORY_MONITOR
+#endif // USE_MEMORY_MONITOR	
 	return	_ptr;
 }
 

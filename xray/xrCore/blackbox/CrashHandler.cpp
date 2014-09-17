@@ -11,10 +11,11 @@ CONDITIONAL COMPILATION :
                               who might need to use the old IMAGEHLP.DLL
                               versions.
 ----------------------------------------------------------------------*/
-
 #include "stdafx_.h"
 #include "BugslayerUtil.h"
 #include "CrashHandler.h"
+
+#pragma optimize("gyt", off)
 
 #ifdef _WIN64
 #define _AMD64_		// for winnt.h
@@ -725,7 +726,8 @@ LPCTSTR __stdcall
                                   NULL                               ) ;
         if ( ( FALSE == bSWRet ) || ( 0 == g_stFrame.AddrFrame.Offset ))
         {
-            szRet = NULL ;
+			TRACE0("*** break by StackWalk ***");
+            szRet = NULL;
             return ( szRet ) ;
         }
 
@@ -738,8 +740,10 @@ LPCTSTR __stdcall
                                         g_stFrame.AddrPC.Offset       );
         if ( 0 == dwModBase )
         {
-            szRet = NULL ;
-            return ( szRet ) ;
+			// TRACE0("*** break by SymGetModuleBase ***");
+			sprintf_s(g_szBuff, 1023, " [no module info for 0x%p] ", g_stFrame.AddrPC.Offset);
+            szRet = g_szBuff;
+            // return ( szRet ) ;
         }
 
         int iCurr = 0 ;
@@ -899,6 +903,7 @@ LPCTSTR __stdcall
     }
     __except ( EXCEPTION_EXECUTE_HANDLER )
     {
+		TRACE0("FATAL: inner exception in  InternalGetStackTraceString");
         ASSERT ( !"Crashed in InternalGetStackTraceString" ) ;
         szRet = NULL ;
     }
@@ -1197,7 +1202,7 @@ void InitSymEng ( void )
 
         // Turn on line loading and deferred loading.
         SymSetOptions ( dwOpts                |
-                        SYMOPT_DEFERRED_LOADS |
+                        SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_ANYTHING | SYMOPT_UNDNAME |
                         SYMOPT_LOAD_LINES      ) ;
 
         // Force the invade process flag no matter what operating system

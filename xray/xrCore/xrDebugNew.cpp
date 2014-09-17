@@ -196,6 +196,41 @@ void LogStackTrace(LPCSTR header)
 	
 }
 
+extern void BuildStackTrace(struct _EXCEPTION_POINTERS *g_BlackBoxUIExPtrs);
+
+XRCORE_API void LogStackTraceEx(struct _EXCEPTION_POINTERS *pExPtrs)
+{	
+	// функция для внешнего вызова (!)
+	bool ss_init = shared_str_initialized; // alpet: при некоторых сбоях это все-равно дает исключение в shared_str::doc
+	
+
+	if (pExPtrs->ContextRecord)
+	__try	
+	{		
+		force_flush_log = true;
+		shared_str_initialized = false;
+		CONTEXT rec = *pExPtrs->ContextRecord; // сохранить перед изменением
+ 		//  Msg("##DEBUG: sizeof(CONTEXT) = %d bytes ", sizeof(rec));
+		// pExPtrs->ExceptionRecord = NULL;
+		BuildStackTrace(pExPtrs); // данная функция модифицирует  ContextRecord.EIP
+		if (g_stackTraceCount > 0)
+			Msg("!Exception stack trace %d lines, EIP = 0x%08x, ESP = 0x%08x: \n* 0 %s",
+					g_stackTraceCount, rec.Eip, rec.Esp, g_stackTrace[0]);
+		else
+			Msg("!BuildStackTrace produced %d lines. Exception EIP = 0x%08x, ESP = 0x%08x:\n* %s", 
+					g_stackTraceCount, rec.Eip, rec.Esp, g_stackTrace[0]);
+
+		for (int line = 1; line < g_stackTraceCount; line ++)
+			 Msg("# %d %s", line, g_stackTrace[line]);
+
+		Sleep(500);
+	}
+	__finally
+	{
+		shared_str_initialized = ss_init;
+	}
+}
+
 void gather_info		(const char *expression, const char *description, const char *argument0, const char *argument1, const char *file, int line, const char *function, LPSTR assertion_info)
 {
 	force_flush_log = true;
@@ -249,8 +284,9 @@ void gather_info		(const char *expression, const char *description, const char *
 #ifdef USE_MEMORY_MONITOR
 	memory_monitor::flush_each_time	(true);
 	memory_monitor::flush_each_time	(false);
-#endif // USE_MEMORY_MONITOR
+#endif // USE_MEMORY_MONITOR	
 
+	MsgCB("$#DUMP_CONTEXT"); // alpet: вывод контекста, перед построением стека вызовов
 	if (!strstr(GetCommandLine(),"-no_call_stack_assert")) {
 
 #ifdef USE_OWN_ERROR_MESSAGE_WINDOW
@@ -561,31 +597,62 @@ typedef BOOL (WINAPI *MINIDUMPWRITEDUMP)(HANDLE hProcess, DWORD dwPid, HANDLE hF
 
 void FlushLog				(LPCSTR file_name);
 
+
+HMODULE LoadDebugHlp()
+{
+	HMODULE hDll = GetModuleHandle ("dbghelp.dll");
+	if (hDll)
+		return hDll;
+
+	string_path		szDbgHelpPath;
+
+	if (GetModuleFileName(NULL, szDbgHelpPath, _MAX_PATH))
+	{
+		char *pSlash = strchr(szDbgHelpPath, '\\');
+		if (pSlash)
+		{
+			strcpy(pSlash + 1, "DBGHELP.DLL");
+			// alpet: проверка версии необходима, т.к. старый файл очень часто лажает с выводом стека вызовов
+			DWORD nope;
+			DWORD size = GetFileVersionInfoSize(szDbgHelpPath, &nope);
+			if (size > 0)
+			{
+				LPVOID ver_data = xr_malloc(size);
+				if (GetFileVersionInfo(szDbgHelpPath, NULL, size, ver_data))
+				{
+					VS_FIXEDFILEINFO *info = NULL;
+					UINT len;
+					VerQueryValue(ver_data, "\\", (LPVOID*)&info, &len);
+					if (info && info->dwFileVersionMS >= 6)
+						hDll = ::LoadLibrary(szDbgHelpPath);
+					else
+						Msg("!#ERROR: dbghelp.dll version is old for this build.");
+				}
+
+				xr_free(ver_data);
+			}
+
+
+
+		}
+	}
+
+	if (hDll == NULL)
+	{
+		// load any version we can
+		hDll = ::LoadLibrary("DBGHELP.DLL");
+	}
+
+	return hDll;
+}
+
 void save_mini_dump			(_EXCEPTION_POINTERS *pExceptionInfo)
 {
 	// firstly see if dbghelp.dll is around and has the function we need
 	// look next to the EXE first, as the one in System32 might be old 
 	// (e.g. Windows 2000)
-	HMODULE hDll	= NULL;
-	string_path		szDbgHelpPath;
-
-	if (GetModuleFileName( NULL, szDbgHelpPath, _MAX_PATH ))
-	{
-		char *pSlash = strchr( szDbgHelpPath, '\\' );
-		if (pSlash)
-		{
-			strcpy	(pSlash+1, "DBGHELP.DLL" );
-			hDll = ::LoadLibrary( szDbgHelpPath );
-		}
-	}
-
-	if (hDll==NULL)
-	{
-		// load any version we can
-		hDll = ::LoadLibrary( "DBGHELP.DLL" );
-	}
-
 	LPCTSTR szResult = NULL;
+	HMODULE hDll = LoadDebugHlp();
 
 	if (hDll)
 	{
@@ -709,6 +776,7 @@ LONG WINAPI UnhandledFilter	(_EXCEPTION_POINTERS *pExceptionInfo)
 		BuildStackTrace		(pExceptionInfo);
 		*pExceptionInfo->ContextRecord = save;
 				
+		MsgCB			("$#DUMP_CONTEXT");
 		Msg				("Unhandled exception stack trace:\n");
 		copy_to_clipboard	("stack trace:\r\n\r\n");
 

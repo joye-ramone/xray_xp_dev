@@ -200,6 +200,7 @@ typedef BOOL (WINAPI *MINIDUMPWRITEDUMP)(HANDLE hProcess, DWORD dwPid, HANDLE hF
 										 CONST PMINIDUMP_CALLBACK_INFORMATION CallbackParam
 										 );
 
+extern HMODULE LoadDebugHlp();
 
 LONG WINAPI UnhandledFilter	( struct _EXCEPTION_POINTERS *pExceptionInfo )
 {
@@ -209,25 +210,7 @@ LONG WINAPI UnhandledFilter	( struct _EXCEPTION_POINTERS *pExceptionInfo )
 	// firstly see if dbghelp.dll is around and has the function we need
 	// look next to the EXE first, as the one in System32 might be old 
 	// (e.g. Windows 2000)
-	HMODULE hDll	= NULL;
-	string_path		szDbgHelpPath;
-
-	if (GetModuleFileName( NULL, szDbgHelpPath, _MAX_PATH ))
-	{
-		char *pSlash = strchr( szDbgHelpPath, '\\' );
-		if (pSlash)
-		{
-			strcpy	(pSlash+1, "DBGHELP.DLL" );
-			hDll = ::LoadLibrary( szDbgHelpPath );
-		}
-	}
-
-	if (hDll==NULL)
-	{
-		// load any version we can
-		hDll = ::LoadLibrary( "DBGHELP.DLL" );
-	}
-
+	HMODULE hDll	= LoadDebugHlp();
 	LPCTSTR szResult = NULL;
 
 	if (hDll)

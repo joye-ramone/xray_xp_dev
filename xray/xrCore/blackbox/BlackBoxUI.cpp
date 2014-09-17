@@ -14,28 +14,30 @@ void BuildStackTrace(struct _EXCEPTION_POINTERS *g_BlackBoxUIExPtrs)
 	FillMemory(g_stackTrace[0], MAX_STACK_TRACE * LINE_STACK_TRACE, 0);
 
 	const TCHAR* traceDump = 
-		GetFirstStackTraceString( GSTSO_MODULE | GSTSO_SYMBOL | GSTSO_SRCLINE,
+		GetFirstStackTraceString( GSTSO_MODULE | GSTSO_SYMBOL | GSTSO_SRCLINE | GSTSO_PARAMS,
 									g_BlackBoxUIExPtrs );
 	g_stackTraceCount = 0;
 
 	int incr = 85;
-	while ( NULL != traceDump ) {
+	
+	while (g_stackTraceCount < MAX_STACK_TRACE && traceDump) {
+	
 		int				length = strlen(traceDump);
 		if (length < 4096)
-			lstrcpy		(g_stackTrace[g_stackTraceCount], traceDump);
+			lstrcpy(g_stackTrace[g_stackTraceCount], traceDump);
 		else {
-			memcpy		(g_stackTrace[g_stackTraceCount],traceDump,4092);
+			memcpy(g_stackTrace[g_stackTraceCount], traceDump, 4092);
 			char		*i = g_stackTrace[g_stackTraceCount] + 4092;
-			*i++		= '.';
-			*i++		= '.';
-			*i++		= '.';
-			*i			= 0;
+			*i++ = '.';
+			*i++ = '.';
+			*i++ = '.';
+			*i = 0;
 		}
-	
-		g_stackTraceCount++;
 
+		g_stackTraceCount++;
+	
 		incr += 2;
-		traceDump = GetNextStackTraceString( GSTSO_MODULE | GSTSO_SYMBOL | GSTSO_SRCLINE,
+		traceDump = GetNextStackTraceString( GSTSO_MODULE | GSTSO_SYMBOL | GSTSO_SRCLINE | GSTSO_PARAMS,
 			g_BlackBoxUIExPtrs );
 	}
 		
@@ -70,7 +72,7 @@ void BuildStackTrace(struct _EXCEPTION_POINTERS *g_BlackBoxUIExPtrs)
 
 // alpet: экспорт не влияет на работу движка, но позволит копировать трейс подключаемым dll
 LPCSTR __declspec(dllexport) BuildStackTrace()
-{
+{	
     CONTEXT					context;
 	context.ContextFlags	= CONTEXT_FULL;
 
