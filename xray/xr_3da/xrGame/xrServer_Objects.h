@@ -64,21 +64,21 @@
 // 48 - CSE_ALifeObjectSearchlight		appended with property 'cone_bone'
 // 49 - CSE_ALifeObjectHangingLamp		remove some property
 // 50 - CSE_ALifeObject					appended with ALife flags property
-// 51 - CSE_ALifeItemBolt				new class based on CSE_ALifeDynamicObject and CSE_AlifeInventoryItem
+// 51 - CSE_ALifeItemBolt				new class based on CSE_ALifeDynamicObject and CSE_ALifeInventoryItem
 // 52 - CSE_ALifeItemExplosive			new class based on CSE_ALifeItem
-// 53 - CSE_AlifeInventoryItem			appended with property 'condition'
-// 54 - CSE_AlifeLevelChanger			property 'angles' changed from float to fvector
-// 55 - CSE_AlifeItemCar->CSE_ALifeCar	heritage changed
+// 53 - CSE_ALifeInventoryItem			appended with property 'condition'
+// 54 - CSE_ALifeLevelChanger			property 'angles' changed from float to fvector
+// 55 - CSE_ALifeItemCar->CSE_ALifeCar	heritage changed
 // 56 - CSE_ALifeObjectHangingLamp		restore removed props + appended some new
 // 57 - CSE_ALifeObjectPhysic			appended with source_id
 // 58 - CSE_ALifeObject					appended with ini_string
 // 59 - CSE_ALifeItemPDA				appended with m_original_owner
-// 60 - CSE_AlifeInventoryItem			appended with property m_eItemPlace
-// 61 - CSE_AlifeObjectPhysic			appended with bones_mask, root_bone
-// 62 - CSE_AlifeObject					appended with m_story_id
-// 63 - CSE_AlifeTraderAbstract			remove bug with money
-// 64 - CSE_ALifeObjectPhysic			flags, source_id, saved_bones moved to CSE_AlifePHSkeletonObject
-// 65 - CSE_ALifeObjectPhysic			startup_anim moved to CSE_AlifePHSkeletonObject
+// 60 - CSE_ALifeInventoryItem			appended with property m_eItemPlace
+// 61 - CSE_ALifeObjectPhysic			appended with bones_mask, root_bone
+// 62 - CSE_ALifeObject					appended with m_story_id
+// 63 - CSE_ALifeTraderAbstract			remove bug with money
+// 64 - CSE_ALifeObjectPhysic			flags, source_id, saved_bones moved to CSE_ALifePHSkeletonObject
+// 65 - CSE_ALifeObjectPhysic			startup_anim moved to CSE_ALifePHSkeletonObject
 // 66 - CSE_ALifeObjectPhysic			CSE_ALifeCar - heritage changed
 // 67 - CSE_ALifeCustomZone				new class appended, heritage changed
 // 68 - CSE_ALifeHumanStalker,				
@@ -88,35 +88,35 @@
 //		CSE_ALifeHelicopter				heritage changed
 // 70 -	CSE_Abstract					appended with m_script_version, script version support
 // 71 -	CSE_Abstract					appended with m_client_data, ability to save/load client data
-// 72 -	CSE_AlifeInventoryItem			removed property m_eItemPlace, added flag
-// 73 -	CSE_AlifeMonsterAbstract		appended with property m_space_restrictors
-// 74 -	CSE_AlifeMonsterAbstract		appended with property m_in_space_restrictors
-// 75 -	CSE_AlifeSpaceRestrictor		new class added, hierarchy changed
-// 76 - CSE_AlifeTraderAbstract			appended with m_iSpecificCharacter
-// 77 - CSE_AlifeTraderAbstract			added CSE_ObjectClimable
-// 78 - CSE_AlifeTraderAbstract			appended with flags for infinite ammo
-// 79 - CSE_AlifeAnomalousZone			appended with power properties (3)
+// 72 -	CSE_ALifeInventoryItem			removed property m_eItemPlace, added flag
+// 73 -	CSE_ALifeMonsterAbstract		appended with property m_space_restrictors
+// 74 -	CSE_ALifeMonsterAbstract		appended with property m_in_space_restrictors
+// 75 -	CSE_ALifeSpaceRestrictor		new class added, hierarchy changed
+// 76 - CSE_ALifeTraderAbstract			appended with m_iSpecificCharacter
+// 77 - CSE_ALifeTraderAbstract			added CSE_ObjectClimable
+// 78 - CSE_ALifeTraderAbstract			appended with flags for infinite ammo
+// 79 - CSE_ALifeAnomalousZone			appended with power properties (3)
 // 80 - CSE_Abstract					m_tSpawnID property moved from CSE_ALifeObject to CSE_Abstract
 // 81 - CSE_SpawnGroup					appended with 4 properties
-// 82 - CSE_AlifeTraderAbstract			load/save m_iCharacterProfile on state read/write
-// 83 - CSE_AlifeObject					m_fProbability moved to CSE_Abstract, m_dwSpawnGroup is removed completely
+// 82 - CSE_ALifeTraderAbstract			load/save m_iCharacterProfile on state read/write
+// 83 - CSE_ALifeObject					m_fProbability moved to CSE_Abstract, m_dwSpawnGroup is removed completely
 // 84 - CSE_SpawnGroup					appended with a property
 // 85 - CSE_SpawnGroup					all the properties moved to CSE_Abstract
-// 86 - CSE_AlifeTraderAbstract			appended with m_community_index
-// 87 - CSE_AlifeTraderAbstract			appended with m_rank, m_reputation
+// 86 - CSE_ALifeTraderAbstract			appended with m_community_index
+// 87 - CSE_ALifeTraderAbstract			appended with m_rank, m_reputation
 // 88 - CSE_ALifeCreatureAbstract		appended with m_dynamic_restrictions property
-// 89 - CSE_AlifeCreatureActor			appended with m_holderID
+// 89 - CSE_ALifeCreatureActor			appended with m_holderID
 // 90 - CSE_ALifeItemPDA				appended with m_specific_character, m_info_portion
 // 91 - CSE_ALifeHumanStalker			appended with property demo_mode
-// 92 - CSE_AlifeCreatureActor			added base class CSE_PHSkeleton
-// 93 - CSE_AlifeCar					health added in STATE_Read STATE_Write
+// 92 - CSE_ALifeCreatureActor			added base class CSE_PHSkeleton
+// 93 - CSE_ALifeCar					health added in STATE_Read STATE_Write
 // 94 - CSE_Abstract					client_data size increased
 // 95 - CSE_ALifeCreatureAbstract		appended with m_killer_id property
 // 96 - CSE_ALifeTraderAbstract			changed m_iCharacterProfile(int) to m_sCharacterProfile(shared_str)
 // 97 - CSE_ALifeItemPDA				changed m_info_portion(int) to m_info_portion(shared_str) +m_specific_character +CSE_ALifeItemDocument m_wDoc (int-> shared_str)
 // 98 - CSE_ALifeItemPDA				changed m_info_portion(int) to m_info_portion(shared_str) +m_specific_character +CSE_ALifeItemDocument m_wDoc (int-> shared_str)
-// 99 - CSE_ALifeObjectClimable			inheritance changed CSE_Abstruct -> CSE_AlifeObject
-// 100 - CSE_ALifeObjectClimable		inheritance changed CSE_AlifeObject -> CSE_AlifeDynamicObject
+// 99 - CSE_ALifeObjectClimable			inheritance changed CSE_Abstruct -> CSE_ALifeObject
+// 100 - CSE_ALifeObjectClimable		inheritance changed CSE_ALifeObject -> CSE_ALifeDynamicObject
 // 101 - CSE_ALifeCreaturePhantom		new class based on CSE_ALifeCreatureAbstract
 // 102 - CSE_ALifeAnomalousZone			appended m_owner_id
 // 103 - CSE_ALifeCustomZone			appended m_owner_id,removed from CSE_ALifeAnomalousZone
@@ -150,8 +150,9 @@
 // 116 - CSE_ALifeCreatureAbstract		appended with property m_game_death_time
 // 117 - CSE_ALifeLevelChanger			appended with property m_bSilentMode
 // 118 - CALifeHumanBrain				removed property m_tpKnownCustomers, sad but true
+// 119 - CSE_ALifeItemEatable			added class and m_portions_num field
 //------------------------------------------------------------------------------
-#define SPAWN_VERSION	u16(118)
+#define SPAWN_VERSION	u16(119)
 
 SERVER_ENTITY_DECLARE_BEGIN2(CSE_Shape,ISE_Shape,CShapeData)
 public:

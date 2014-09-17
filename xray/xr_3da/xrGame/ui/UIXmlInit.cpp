@@ -461,6 +461,9 @@ bool CUIXmlInit::InitDragDropListEx(CUIXml& xml_doc, const char* path, int index
 	pWnd->SetCustomPlacement(tmp!=0);
 	tmp						= xml_doc.ReadAttribInt(path, index, "vertical_placement", 0);
 	pWnd->SetVerticalPlacement(tmp!=0); 
+	tmp						= xml_doc.ReadAttribInt(path, index, "show_grid", 1);
+	pWnd->SetDrawGrid		(tmp != 0);
+	
 
 	if (xr_strlen(path))
 		pWnd->SetWindowName (path, TRUE);

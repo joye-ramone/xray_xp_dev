@@ -114,12 +114,12 @@ CSE_Abstract::CSE_Abstract					(LPCSTR caSection)
 	if (!_saved)
 	{
 		_saved = true;
-		LogXrayOffset("CSE_AlifeObject.id",			this, &this->ID);
-		LogXrayOffset("CSE_AlifeObject.parent_id",  this, &this->ID_Parent);
-		LogXrayOffset("CSE_AlifeObject.spawn_id",   this, &this->m_tSpawnID);
-		LogXrayOffset("CSE_AlifeObject.name",		this, &this->s_name_replace);
-		LogXrayOffset("CSE_AlifeObject.section",	this, &this->s_name);
-		LogXrayOffset("CSE_AlifeObject.clsid",		this, &this->m_script_clsid);
+		LogXrayOffset("CSE_ALifeObject.id",			this, &this->ID);
+		LogXrayOffset("CSE_ALifeObject.parent_id",  this, &this->ID_Parent);
+		LogXrayOffset("CSE_ALifeObject.spawn_id",   this, &this->m_tSpawnID);
+		LogXrayOffset("CSE_ALifeObject.name",		this, &this->s_name_replace);
+		LogXrayOffset("CSE_ALifeObject.section",	this, &this->s_name);
+		LogXrayOffset("CSE_ALifeObject.clsid",		this, &this->m_script_clsid);
 	}
 #endif
 	if (pSettings->line_exist(caSection,"custom_data")) {

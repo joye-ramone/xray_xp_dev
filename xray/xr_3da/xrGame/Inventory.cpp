@@ -165,7 +165,7 @@ void CInventory::Take(CGameObject *pObj, bool bNotActivate, bool strict_placemen
 
 		CObject* p	= pObj->H_Parent();
 		if(p)
-			Msg("! object parent is [%s] [%d]", p->cName().c_str(), p->ID());
+			Msg("! object parent is [%s] [%d]", p->Name_script(), p->ID());
 	}
 
 	R_ASSERT							(CanTakeItem(pIItem));
@@ -273,12 +273,12 @@ bool CInventory::DropItem(CGameObject *pObj)
 		}break;
 	case eItemPlaceSlot:{
 			u32 slot = pIItem->GetSlot();
-			Msg("Drop item %s from slot %d from owner %d", pObj->cName().c_str(), slot, GetOwner()->object_id());
+			Msg("Drop item %s from slot %d from owner %d", pObj->Name_script(), slot, GetOwner()->object_id());
 			PIItem item = m_slots[slot].m_pIItem;
 			if (item && item->object().H_Parent())
 				Msg(" in slot now item %s [%d] owner = %s ", 
-								item->object().cName().c_str(), item->object().ID(), 
-								item->object().H_Parent()->cName().c_str());
+								item->object().Name_script(), item->object().ID(), 
+								item->object().H_Parent()->Name_script());
 
 			R_ASSERT			(item == pIItem);
 			R_ASSERT			(InSlot(pIItem));

@@ -27,7 +27,7 @@ bool chk_already_deleted(CObject *O, str_c context)
 	xr_vector<CObject*>::iterator i = std::find(deleted_objects.begin(), deleted_objects.end(), O);
 	if (i != deleted_objects.end())
 	{   // обычно ничего страшного, повторное использование блока памяти. 
-		// Msg("!WARN: %-15s touch already deleted object 0x%p, ID = %d, Name = %s ", context, O, O->ID(), O->cName().c_str());
+		// Msg("!WARN: %-15s touch already deleted object 0x%p, ID = %d, Name = %s ", context, O, O->ID(), O->Name_script());
 		return true;
 	}
 	else
@@ -77,16 +77,28 @@ CObject*	CObjectList::FindObjectByCLS_ID	( CLASS_ID cls )
 	return	NULL;
 }
 
+#pragma optimize("gyt", off)
 
 void	CObjectList::o_remove		( xr_vector<CObject*>&	v,  CObject* O)
 {
 #ifdef LUAICP_COMPAT
-	MsgCB(" cl remove [%d][%p] %s", O->ID(), O, O->cName().c_str());
+	R_ASSERT(O);
+	MsgCB("$#CONTEXT: cl remove [%d][%p] %s, from v = %p, v.size = %d", O->ID(), O, O->Name_script(), &v, v.size());
 #endif
 	xr_vector<CObject*>::iterator _i	= std::find(v.begin(),v.end(),O);
-	VERIFY					(_i!=v.end());
-	v.erase					(_i);
-//.	Msg("---o_remove[%s][%d]", O->cName().c_str(), O->ID() );
+	if (_i != v.end())
+	__try
+	{
+		v.erase(_i);
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER)
+	{
+		Msg("!#EXCEPTION: strange, but expected in CObjectList::o_remove");
+		MsgCB("#DUMP_CONTEXT");
+	}
+	else
+		Msg("!#ERROR: object %s not registered in object list.", O->Name_script());
+//.	Msg("---o_remove[%s][%d]", O->Name_script(), O->ID() );
 }
 
 void	CObjectList::o_activate		( CObject*		O		)
@@ -120,7 +132,7 @@ void	CObjectList::SingleUpdate	(CObject* O)
 //		if (O->getDestroy())
 //		{
 //			destroy_queue.push_back(O);
-//.			Msg				("- destroy_queue.push_back %s[%d] frame [%d]",O->cName().c_str(), O->ID(), Device.dwFrame);
+//.			Msg				("- destroy_queue.push_back %s[%d] frame [%d]",O->Name_script(), O->ID(), Device.dwFrame);
 //		}
 //		else
 		if (O->H_Parent() && (O->H_Parent()->getDestroy() || O->H_Root()->getDestroy()) )	
@@ -134,7 +146,7 @@ void	CObjectList::SingleUpdate	(CObject* O)
 	if (O->getDestroy() && (Device.dwFrame != O->dwFrame_UpdateCL))
 	{
 //		destroy_queue.push_back(O);
-		Msg				("- !!!processing_enabled ->destroy_queue.push_back %s[%d] frame [%d]",O->cName().c_str(), O->ID(), Device.dwFrame);
+		Msg				("- !!!processing_enabled ->destroy_queue.push_back %s[%d] frame [%d]",O->Name_script(), O->ID(), Device.dwFrame);
 	}
 }
 
@@ -422,7 +434,7 @@ void		CObjectList::Destroy			( CObject*	O		)
 	if (0 == remove_set)
  		FATAL						("! Unregistered object being destroyed");
 	if (remove_set > 0x2000)
- 		Msg	 ("!ERROR: Destroying object '%s' remove_set = 0x%x ", O->cName().c_str(), remove_set);	
+ 		Msg	 ("!ERROR: Destroying object '%s' remove_set = 0x%x ", O->Name_script(), remove_set);	
 
 
 	deleted_objects.push_back(O);
@@ -458,9 +470,9 @@ void dump_list(xr_vector<CObject*>& v, LPCSTR reason)
 	for(;it!=it_e;++it)
 		Msg("%x - name [%s] ID[%d] parent[%s] getDestroy()=[%s]", 
 			(*it),
-			(*it)->cName().c_str(), 
+			(*it)->Name_script(), 
 			(*it)->ID(), 
-			((*it)->H_Parent())?(*it)->H_Parent()->cName().c_str():"", 
+			((*it)->H_Parent())?(*it)->H_Parent()->Name_script():"", 
 			((*it)->getDestroy())?"yes":"no" );
 }
 

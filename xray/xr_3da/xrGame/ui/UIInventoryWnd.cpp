@@ -226,7 +226,6 @@ void CUIInventoryWnd::Init()
 		m_slots_array[SLOT_QUICK_ACCESS_1]		= m_pUISlotQuickAccessList_1;
 		m_slots_array[SLOT_QUICK_ACCESS_2]		= m_pUISlotQuickAccessList_2;
 		m_slots_array[SLOT_QUICK_ACCESS_3]		= m_pUISlotQuickAccessList_3;
-		
 	}
 #else
 	m_pUIPistolList = xr_new<CUIDragDropListEx>(); AttachChild(m_pUIPistolList); m_pUIPistolList->SetAutoDelete(true);

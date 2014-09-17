@@ -1079,48 +1079,48 @@ BOOL CSE_ALifeItemCustomOutfit::Net_Relevant		()
 
 #include "eatable_item.h"
 ////////////////////////////////////////////////////////////////////////////
-// CSE_AlifeItemEatable by Real Wolf. 09.09.2014.
+// CSE_ALifeItemEatable by Real Wolf. 09.09.2014.
 ////////////////////////////////////////////////////////////////////////////
-CSE_AlifeItemEatable::CSE_AlifeItemEatable(LPCSTR caSection) : CSE_ALifeItem(caSection)
+CSE_ALifeItemEatable::CSE_ALifeItemEatable(LPCSTR caSection) : CSE_ALifeItem(caSection)
 {
 	m_portions_num = pSettings->r_s32(caSection, "eat_portions_num");
 }
 
-CSE_AlifeItemEatable::~CSE_AlifeItemEatable()
+CSE_ALifeItemEatable::~CSE_ALifeItemEatable()
 {
 }
 
-BOOL CSE_AlifeItemEatable::Net_Relevant()
+BOOL CSE_ALifeItemEatable::Net_Relevant()
 {
 	return inherited::Net_Relevant();
 }
 
 
-void CSE_AlifeItemEatable::STATE_Read(NET_Packet	&tNetPacket, u16 size)
+void CSE_ALifeItemEatable::STATE_Read(NET_Packet	&tNetPacket, u16 size)
 {
 	inherited::STATE_Read(tNetPacket, size);
 }
 
-void CSE_AlifeItemEatable::STATE_Write(NET_Packet	&tNetPacket)
+void CSE_ALifeItemEatable::STATE_Write(NET_Packet	&tNetPacket)
 {
 	inherited::STATE_Write(tNetPacket);
 }
 
-void CSE_AlifeItemEatable::UPDATE_Read(NET_Packet	&tNetPacket)
+void CSE_ALifeItemEatable::UPDATE_Read(NET_Packet	&tNetPacket)
 {
 	inherited::UPDATE_Read(tNetPacket);
-
-	m_portions_num = tNetPacket.r_s32();
+	if (m_wVersion > 118 || tNetPacket.r_elapsed() >= 4)
+		m_portions_num = tNetPacket.r_s32();
 }
 
-void CSE_AlifeItemEatable::UPDATE_Write(NET_Packet	&tNetPacket)
+void CSE_ALifeItemEatable::UPDATE_Write(NET_Packet	&tNetPacket)
 {
-	inherited::UPDATE_Write(tNetPacket);
-
-	tNetPacket.w_s32(m_portions_num);
+	inherited::UPDATE_Write(tNetPacket);	
+	// if (m_wVersion > 118)
+		tNetPacket.w_s32(m_portions_num);
 }
 
-void CSE_AlifeItemEatable::FillProps(LPCSTR pref, PropItemVec& values)
+void CSE_ALifeItemEatable::FillProps(LPCSTR pref, PropItemVec& values)
 {
 	inherited::FillProps(pref, values);
 }

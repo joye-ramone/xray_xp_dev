@@ -116,6 +116,16 @@ string512	g_sBenchmarkName;
 
 ENGINE_API	string512		g_sLaunchOnExit_params;
 ENGINE_API	string512		g_sLaunchOnExit_app;
+XRCORE_API  void		    LogStackTraceEx(struct _EXCEPTION_POINTERS*);
+
+
+u32 test_filter(PEXCEPTION_POINTERS pExPtrs)
+{
+	LogStackTraceEx ( pExPtrs ); 
+	return EXCEPTION_EXECUTE_HANDLER;
+}
+
+
 // -------------------------------------------
 // startup point
 void InitEngine		()
@@ -137,6 +147,15 @@ void InitEngine		()
 				if (init)
 					init(NULL);
 			}
+	//if (IsDebuggerPresent()) // для проверки адекватности трассировки стека вызовов
+	//__try
+	//{
+	//	Msg((LPCSTR)0x100);
+	//}
+	//__except ( test_filter(GetExceptionInformation()) )
+	//{		 
+	//	Msg("in __except");		
+	//}
 #endif
 	Engine.Initialize			( );
 	while (!g_bIntroFinished)	Sleep	(100);

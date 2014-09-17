@@ -300,11 +300,11 @@ void CObjectFactory::register_classes	()
 
 	// Inventory
 	ADD(CBolt					,CSE_ALifeItemBolt				,CLSID_IITEM_BOLT				,"obj_bolt");
-	ADD(CMedkit					,CSE_AlifeItemEatable			,CLSID_IITEM_MEDKIT				,"obj_medkit");
-	ADD(CMedkit					,CSE_AlifeItemEatable			,CLSID_IITEM_BANDAGE			,"obj_bandage");
-	ADD(CAntirad				,CSE_AlifeItemEatable			,CLSID_IITEM_ANTIRAD			,"obj_antirad");
-	ADD(CFoodItem				,CSE_AlifeItemEatable			,CLSID_IITEM_FOOD				,"obj_food");
-	ADD(CBottleItem				,CSE_AlifeItemEatable			,CLSID_IITEM_BOTTLE				,"obj_bottle");
+	ADD(CMedkit					,CSE_ALifeItemEatable			,CLSID_IITEM_MEDKIT				,"obj_medkit");
+	ADD(CMedkit					,CSE_ALifeItemEatable			,CLSID_IITEM_BANDAGE			,"obj_bandage");
+	ADD(CAntirad				,CSE_ALifeItemEatable			,CLSID_IITEM_ANTIRAD			,"obj_antirad");
+	ADD(CFoodItem				,CSE_ALifeItemEatable			,CLSID_IITEM_FOOD				,"obj_food");
+	ADD(CBottleItem				,CSE_ALifeItemEatable			,CLSID_IITEM_BOTTLE				,"obj_bottle");
 	ADD(CExplosiveItem			,CSE_ALifeItemExplosive			,CLSID_IITEM_EXPLOSIVE			,"obj_explosive");
 	
 	//Info Document

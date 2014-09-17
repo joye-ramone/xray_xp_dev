@@ -28,15 +28,16 @@ void CUIInventoryWnd::EatItem(PIItem itm)
 }
 
 #if defined(INV_NEW_SLOTS_SYSTEM)
+// вернет true если слот назначения быстрый, и не занят аналогичным предметом
 bool is_quick_slot(u32 slot, PIItem item, CInventory *inv)
 {
 	if (slot >= SLOT_QUICK_ACCESS_0 && slot <= SLOT_QUICK_ACCESS_3)
 	{
 		const shared_str &sect = item->object().cNameSect();
 		for (u32 s = SLOT_QUICK_ACCESS_0; s <= SLOT_QUICK_ACCESS_3; s ++)
-		if( inv->m_slots[s].m_pIItem 
-		&&	inv->m_slots[s].m_pIItem->object().cNameSect() == sect )
-			return false;
+		if  ( inv->m_slots[s].m_pIItem 
+			  && inv->m_slots[s].m_pIItem->object().cNameSect() == sect )
+				return false;
 		return true;
 	}
 	return false;

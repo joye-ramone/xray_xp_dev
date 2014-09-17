@@ -452,86 +452,63 @@ bool CUIInventoryWnd::OnItemDrop(CUICellItem* itm)
 	{
 		PIItem item = CurrentIItem();
 #ifdef INV_NEW_SLOTS_SYSTEM
-#if !defined(INV_MOVE_ITM_INTO_QUICK_SLOTS)
-		u32 old_slot = CurrentIItem()->GetSlot();
-#endif
+		//#if !defined(INV_MOVE_ITM_INTO_QUICK_SLOTS)
+		//		u32 old_slot = CurrentIItem()->GetSlot();
+		//#endif
 		bool can_put = false;
-		for (u32 i = 0; i < SLOTS_TOTAL; i ++)
-			if (new_owner == m_slots_array[i])
-			{
-				if (item->IsPlaceable(i, i))
-				{
-					item->SetSlot(i);
-					can_put = true;
-				}
-				else
-					Msg("!WARN: cannot put item %s into slot %d", item->object().cName().c_str(), i);
-				break;
-			}
-/*
-		if (new_owner == m_pUIKnifeList)
-			CurrentIItem()->SetSlot(KNIFE_SLOT);
+		Ivector2 max_size = new_owner->CellSize();
 
-		else if (new_owner == m_pUIPistolList)
-			CurrentIItem()->SetSlot(PISTOL_SLOT);
+		LPCSTR name = item->object().Name_script();
+		int item_w = item->GetGridWidth();
+		int item_h = item->GetGridHeight();
 
-		else if (new_owner == m_pUIAutomaticList)
-			CurrentIItem()->SetSlot(RIFLE_SLOT);
+		if (new_owner->GetVerticalPlacement())
+			std::swap(max_size.x, max_size.y); 
 
-		else if (new_owner == m_pUIBinocularList)
-			CurrentIItem()->SetSlot(APPARATUS_SLOT);
-
-		else if (new_owner == m_pUIDetectorList)
-			CurrentIItem()->SetSlot(DETECTOR_SLOT);
-
-		else if (new_owner == m_pUIOutfitList)
-			CurrentIItem()->SetSlot(OUTFIT_SLOT);
-
-		else if (new_owner == m_pUITorchList)
-			CurrentIItem()->SetSlot(TORCH_SLOT);
-
-		else if (new_owner == m_pUIPDAList)
-			CurrentIItem()->SetSlot(PDA_SLOT);
-
-		else if (new_owner == m_pUIHelmetList)
-			CurrentIItem()->SetSlot(HELMET_SLOT);
-
-								
+		if (item_w <= max_size.x && item_h <= max_size.y)
+		{
+			for (u32 i = 0; i < SLOTS_TOTAL; i++)
+				if (new_owner == m_slots_array[i])
+				{				
+					if (item->IsPlaceable(i, i))
+					{
+						item->SetSlot(i);
+						can_put = true;
+						Msg("# Drag-drop item %s to slot %d accepted ", name, i);
+					}
+					else
+					{
+						string256 tmp = { 0 };
+						for (u32 ii = 0; ii < item->GetSlotsCount(); ii++)
+						{
+							u32 len = xr_strlen(tmp);
+							u32 slot = item->GetSlots()[ii];
+							sprintf_s(&tmp[len], 256 - len, "%d ", slot);
+						}
+						Msg("!WARN: cannot put item %s into slot %d, allowed slots { %s}", name, i, tmp);
+					}
+					break;
+				}   // for-if 
+		}
 		else
-			if (CurrentIItem()->IsPlaceable(SLOT_QUICK_ACCESS_0, SLOT_QUICK_ACCESS_3))
-			{
-				if (new_owner == m_pUISlotQuickAccessList_0)	
-					CurrentIItem()->SetSlot(SLOT_QUICK_ACCESS_0);
+			Msg("!#ERROR: item %s to large for slot: (%d x %d) vs (%d x %d) ", name, item_w, item_h, max_size.x, max_size.y );
 
-				else if (new_owner == m_pUISlotQuickAccessList_1)	
-					CurrentIItem()->SetSlot(SLOT_QUICK_ACCESS_1);
-
-				else if (new_owner == m_pUISlotQuickAccessList_2)	
-					CurrentIItem()->SetSlot(SLOT_QUICK_ACCESS_2);
-
-				else if (new_owner == m_pUISlotQuickAccessList_3)
-					CurrentIItem()->SetSlot(SLOT_QUICK_ACCESS_3);
-			}
-
-*/
 			
-			// теперь GetSlot не может в принципе вернуть неподходящий слот
-			// auto slots = CurrentIItem()->GetSlots();
-			// std::find(slots.begin(), slots.end(), CurrentIItem()->GetSlot() ) == slots.end()
-			if( !can_put 
+		if( !can_put // при невозможности поместить в выбранный слот
 		#if defined(INV_MOVE_ITM_INTO_QUICK_SLOTS)
 			) 
-			break;
+			break; // не помещать в слот, просто дропнуть из слота источника?
 		#else
-			||	!is_quick_slot(item->GetSlot(), item, m_pInv) 
+			// ||	!is_quick_slot(item->GetSlot(), item, m_pInv) 
 			) 
 			{
-				item->SetSlot(old_slot);
+				// восстановление не требуется, слот не был назначен
+				// item->SetSlot(old_slot); 
 				return true;
 			}
 		#endif
 #endif				
-			if(GetSlotList(CurrentIItem()->GetSlot()) == new_owner)
+			if(GetSlotList(item->GetSlot()) == new_owner)
 				ToSlot	(itm, true);
 		}break;
 		case iwBag:{
@@ -617,7 +594,12 @@ bool CUIInventoryWnd::OnItemRButtonClick(CUICellItem* itm)
 
 CUIDragDropListEx* CUIInventoryWnd::GetSlotList(u32 slot_idx)
 {
+	
 	if(slot_idx == NO_ACTIVE_SLOT || GetInventory()->m_slots[slot_idx].m_bPersistent)	return NULL;
+
+	return m_slots_array[slot_idx];
+#pragma todo("alpet: удалить после проверки")
+	/*
 	switch (slot_idx)
 	{
 		case PISTOL_SLOT:
@@ -666,6 +648,8 @@ CUIDragDropListEx* CUIInventoryWnd::GetSlotList(u32 slot_idx)
 #endif
 	};
 	return NULL;
+	*/
+	
 }
 
 

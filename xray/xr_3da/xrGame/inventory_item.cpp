@@ -120,11 +120,11 @@ CInventoryItem::~CInventoryItem()
 		CObject* p	= object().H_Parent();
 		Msg("inventory ptr is [%s]",m_pCurrentInventory?"not-null":"null");
 		if(p)
-			Msg("parent name is [%s]",p->cName().c_str());
+			Msg("parent name is [%s]",p->Name_script());
 
 			Msg("! ERROR item_id[%d] H_Parent=[%s][%d] [%d]",
 				object().ID(),
-				p ? p->cName().c_str() : "none",
+				p ? p->Name_script() : "none",
 				p ? p->ID() : -1,
 				Device.dwFrame);
 	}
@@ -165,7 +165,10 @@ void CInventoryItem::Load(LPCSTR section)
 		}
 	}	
 	
-	if (smart_cast<CEatableItem*>(&object())) // alpet: разрешение некоторым объектам попадать в слоты быстрого доступа независимо от настроек
+	// alpet: разрешение некоторым объектам попадать в слоты быстрого доступа независимо от настроек
+	if ( smart_cast<CEatableItem*>(&object()) &&
+		 GetGridWidth () <= SLOT_QUICK_CELLS_X && 
+		 GetGridHeight() <= SLOT_QUICK_CELLS_Y) 
 	{
 		m_slots.push_back(SLOT_QUICK_ACCESS_0);
 		m_slots.push_back(SLOT_QUICK_ACCESS_1);
@@ -230,7 +233,7 @@ void	CInventoryItem::SetSlot(SLOT_ID slot)
 		}
 
 		Msg("!#ERROR: slot %d not acceptable for object %s (%s) with slots { %s}",
-					slot, object().cName().c_str(), Name(), sl.c_str());
+					slot, object().Name_script(), Name(), sl.c_str());
 		// R_ASSERT2(0, "invalid slot for inventory item");
 		return;
 	}	
@@ -242,7 +245,7 @@ u32		CInventoryItem::GetSlot() const
 		if (need_slot)
 		{
 			Msg("!#WARN: no active slot for object %s  class %s",
-				object().cName().c_str(), typeid((*this)).name());
+				object().Name_script(), typeid((*this)).name());
 			R_ASSERT(0, "slot not configured for inventory item");
 		}
 		return NO_ACTIVE_SLOT;

@@ -261,8 +261,8 @@ CSE_ALifeObject::CSE_ALifeObject			(LPCSTR caSection) : CSE_Abstract(caSection)
 	if (!_saved)
 	{
 		_saved = true;
-		LogXrayOffset("CSE_AlifeObject.story_id",	this, &this->m_story_id);
-		LogXrayOffset("CSE_AlifeObject.spawn_sid",  this, &this->m_spawn_story_id);
+		LogXrayOffset("CSE_ALifeObject.story_id",	this, &this->m_story_id);
+		LogXrayOffset("CSE_ALifeObject.spawn_sid",  this, &this->m_spawn_story_id);
 	}
 #endif
 

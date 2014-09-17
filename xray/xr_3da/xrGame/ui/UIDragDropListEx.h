@@ -40,7 +40,8 @@ private:
 		flAutoGrow			=	(1<<1),
 		flCustomPlacement	=	(1<<2),
 		flVerticalPlacement =   (1<<3),
-		flAlwaysShowScroll	=	(1<<4)
+		flAlwaysShowScroll	=	(1<<4),
+		flDrawGrid			=   (1<<5)
 	};
 	Flags8					m_flags;
 	CUICellItem*			m_selected_item;
@@ -92,6 +93,9 @@ public:
 			bool			GetCustomPlacement	();
 			void			SetVerticalPlacement(bool b)    { m_flags.set(flVerticalPlacement,b); }
 			bool			GetVerticalPlacement()		    { return !!m_flags.test(flVerticalPlacement); }
+
+			void			SetDrawGrid			(bool b)	{ m_flags.set(flDrawGrid,b); }
+			bool			GetDrawGrid			()			{ return !!m_flags.test(flDrawGrid); }
 public:
 			// items management
 			virtual void	SetItem				(CUICellItem* itm); //auto
@@ -127,7 +131,7 @@ private:
 	ref_geom					hGeom;	
 	UI_CELLS_VEC				m_cells_to_draw;
 protected:
-	CUIDragDropListEx*			m_pParentDragDropList;
+	CUIDragDropListEx*			m_pParentDragDropList;	
 
 	Ivector2					m_cellsCapacity;			//count		(col,	row)
 	Ivector2					m_cellSize;					//pixels	(width, height)

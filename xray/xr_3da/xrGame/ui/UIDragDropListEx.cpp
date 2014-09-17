@@ -22,6 +22,7 @@ CUIDragDropListEx::CUIDragDropListEx()
 	m_vScrollBar				= xr_new<CUIScrollBar>();
 	m_vScrollBar->SetAutoDelete	(true);
 	m_selected_item				= NULL;
+	
 
 	SetCellSize					(Ivector2().set(50,50));
 	SetCellsCapacity			(Ivector2().set(0,0));
@@ -37,6 +38,7 @@ CUIDragDropListEx::CUIDragDropListEx()
 	AddCallback					("cell_item",	DRAG_DROP_ITEM_SELECTED,		CUIWndCallback::void_function		(this, &CUIDragDropListEx::OnItemSelected)			);
 	AddCallback					("cell_item",	DRAG_DROP_ITEM_RBUTTON_CLICK,	CUIWndCallback::void_function	(this, &CUIDragDropListEx::OnItemRButtonClick)			);
 	AddCallback					("cell_item",	DRAG_DROP_ITEM_DB_CLICK,		CUIWndCallback::void_function		(this, &CUIDragDropListEx::OnItemDBClick)			);
+	SetDrawGrid					(true);
 }
 
 CUIDragDropListEx::~CUIDragDropListEx()
@@ -765,35 +767,38 @@ void CUICellContainer::Draw()
 	Fvector2 f_len;
 	UI()->ClientToScreenScaled(f_len, float(cell_sz.x), float(cell_sz.y) );
 
+	
 	// fill cell buffer
-	u32 vOffset					= 0;
-	FVF::TL* start_pv			= (FVF::TL*)RCache.Vertex.Lock	((tgt_cells.width()+1)*(tgt_cells.height()+1)*6,hGeom.stride(),vOffset);
-	FVF::TL* pv					= start_pv;
-	for (int x=0; x<=tgt_cells.width(); ++x){
-		for (int y=0; y<=tgt_cells.height(); ++y){
+	u32 vOffset = 0;
+	FVF::TL* start_pv = (FVF::TL*)RCache.Vertex.Lock((tgt_cells.width() + 1)*(tgt_cells.height() + 1) * 6, hGeom.stride(), vOffset);
+	FVF::TL* pv = start_pv;
+	for (int x = 0; x <= tgt_cells.width(); ++x){
+		for (int y = 0; y <= tgt_cells.height(); ++y){
 			Fvector2			tp;
-			GetTexUVLT			(tp,tgt_cells.x1+x,tgt_cells.y1+y);
-			for (u32 k=0; k<6; ++k,++pv){
-				const Fvector2& p	= pts[k];
-				const Fvector2& uv	= uvs[k];
-				pv->set			(iFloor(drawLT.x + p.x*(f_len.x) + f_len.x*x)-0.5f, 
-								 iFloor(drawLT.y + p.y*(f_len.y) + f_len.y*y)-0.5f, 
-								 0xFFFFFFFF,tp.x+uv.x,tp.y+uv.y);
+			GetTexUVLT(tp, tgt_cells.x1 + x, tgt_cells.y1 + y);
+			for (u32 k = 0; k < 6; ++k, ++pv){
+				const Fvector2& p = pts[k];
+				const Fvector2& uv = uvs[k];
+				pv->set(iFloor(drawLT.x + p.x*(f_len.x) + f_len.x*x) - 0.5f,
+					iFloor(drawLT.y + p.y*(f_len.y) + f_len.y*y) - 0.5f,
+					0xFFFFFFFF, tp.x + uv.x, tp.y + uv.y);
 			}
 		}
 	}
-	std::ptrdiff_t p_cnt		= (pv-start_pv)/3;
-	RCache.Vertex.Unlock		(u32(pv-start_pv),hGeom.stride());
+	std::ptrdiff_t p_cnt = (pv - start_pv) / 3;
+	RCache.Vertex.Unlock(u32(pv - start_pv), hGeom.stride());
 
-	UI()->PushScissor					(clientArea);
+	UI()->PushScissor(clientArea);
 
-	if (p_cnt!=0){
+		
+	if (p_cnt != 0 && m_pParentDragDropList->GetDrawGrid())
+	{
 		// draw grid
-		RCache.set_Shader		(hShader);
-		RCache.set_Geometry		(hGeom);
-		RCache.Render			(D3DPT_TRIANGLELIST,vOffset,u32(p_cnt));
+		RCache.set_Shader(hShader);
+		RCache.set_Geometry(hGeom);
+		RCache.Render(D3DPT_TRIANGLELIST, vOffset, u32(p_cnt));
 	}
-
+	
 	//draw shown items in range
 	if( GetCellsInRange(tgt_cells,m_cells_to_draw) ){
 		UI_CELLS_VEC_IT it = m_cells_to_draw.begin();

@@ -128,7 +128,12 @@ void CUITaskRootItem::SetGameTask(CGameTask* gt, u16 obj_idx)
 		m_switchDescriptionBtn->InitTexture	("ui_icons_newPDA_showmap");
 
 	m_remTimeStatic->Show			(	GameTask()->Objective(0).TaskState()==eTaskStateInProgress && 
-										(GameTask()->m_ReceiveTime!=GameTask()->m_TimeToComplete) );
+#ifdef SHOW_LIMITED_TIME_TASKS
+#define ONE_WEEK_MS  7 * 24 * 3600 * 1000
+										(GameTask()->m_TimeToComplete - Level().GetGameTime() < ONE_WEEK_MS)  &&
+#endif
+										(GameTask()->m_ReceiveTime!=GameTask()->m_TimeToComplete) 																	
+										);
 	
 	if( m_remTimeStatic->IsShown() )
 	{

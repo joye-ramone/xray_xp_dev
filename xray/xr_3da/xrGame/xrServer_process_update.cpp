@@ -29,12 +29,14 @@ void xrServer::Process_update(NET_Packet& P, ClientID sender)
 			E->net_Ready	= TRUE;
 			E->UPDATE_Read	(P);
 
-			if (g_Dump_Update_Read) Msg("* %s : %d - %d", E->name(), size, P.r_tell() - _pos);
+			u32 cp = P.r_tell();
+			if (g_Dump_Update_Read) Msg("* %s : %d - %d", E->name(), size, cp - _pos);
 
-			if ((P.r_tell()-_pos) != size)	{
+			if ((cp - _pos) != size)	{
 				string16	tmp;
 				CLSID2TEXT	(E->m_tClassID,tmp);
-				Debug.fatal	(DEBUG_INFO,"Beer from the creator of '%s'",tmp);
+				Msg("* size = %d, start read = %d, end read = %d", size, _pos, cp);
+				Debug.fatal	(DEBUG_INFO,"Beer from the creator of '%s', version of object = %d", tmp, E->m_wVersion);				
 			}
 		}
 		else

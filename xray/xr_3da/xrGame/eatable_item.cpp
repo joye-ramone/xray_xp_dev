@@ -60,7 +60,7 @@ BOOL CEatableItem::net_Spawn				(CSE_Abstract* DC)
 {
 	if (!inherited::net_Spawn(DC)) return FALSE;
 
-	if (auto se_eat = smart_cast<CSE_AlifeItemEatable*>(DC))
+	if (auto se_eat = smart_cast<CSE_ALifeItemEatable*>(DC))
 	{
 		m_iPortionsNum = se_eat->m_portions_num;
 #if defined(EAT_PORTIONS_INFLUENCE)
