@@ -119,12 +119,6 @@ ENGINE_API	string512		g_sLaunchOnExit_app;
 XRCORE_API  void		    LogStackTraceEx(struct _EXCEPTION_POINTERS*);
 
 
-u32 test_filter(PEXCEPTION_POINTERS pExPtrs)
-{
-	LogStackTraceEx ( pExPtrs ); 
-	return EXCEPTION_EXECUTE_HANDLER;
-}
-
 
 // -------------------------------------------
 // startup point
@@ -132,11 +126,11 @@ void InitEngine		()
 {
 
 #define LUACAP_ALWAYS_LOAD
-#ifdef LUACAP_ALWAYS_LOAD
+#if defined(LUAICP_COMPAT) && defined (LUACAP_ALWAYS_LOAD)
 	CHAR dllName[MAX_PATH];
 	GetModuleFileName (0, dllName, MAX_PATH);
 	if (NULL == GetModuleHandle("luaicp.dll"))
-		for (int i = strlen(dllName) - 1; i > 0; i --) 
+		for (int i = xr_strlen(dllName) - 1; i > 0; i --) 
 			if (dllName[i] == 0x5C)  {
 				dllName[i + 1] = 0;
 				strcat_s(dllName, "luaicp.dll");
@@ -152,7 +146,7 @@ void InitEngine		()
 	//{
 	//	Msg((LPCSTR)0x100);
 	//}
-	//__except ( test_filter(GetExceptionInformation()) )
+	//__except ( SIMPLE_FILTER )
 	//{		 
 	//	Msg("in __except");		
 	//}
@@ -299,7 +293,7 @@ void Startup					( )
 
 	// Main cycle
 	CheckCopyProtection			( );
-Memory.mem_usage();
+	Memory.mem_usage();
 	Device.Run					( );
 
 	// Destroy APP
@@ -603,6 +597,8 @@ void foo	()
 
 ENGINE_API	bool g_dedicated_server	= false;
 
+#pragma optimize("gyt", off)  // for watches in debugger
+
 int APIENTRY WinMain_impl(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
                      char *    lpCmdLine,
@@ -676,6 +672,23 @@ int APIENTRY WinMain_impl(HINSTANCE hInstance,
 		int						sz = xr_strlen(fsgame_ltx_name);
 		sscanf					(strstr(lpCmdLine,fsgame_ltx_name)+sz,"%[^ ] ",fsgame);
 	}
+
+	// alpet: получение фильтров для условного логгирования
+	LPCSTR						verb_filters_name = "-verb_filters ";
+	string4096					verb_filters;
+	if (LPCSTR arg = strstr(lpCmdLine, verb_filters_name)) {
+		ZeroMemory				(&verb_filters, 4096);
+		arg						+= xr_strlen(verb_filters_name);
+		sscanf_s				(arg,"%[^ ] ", verb_filters, 4096);
+		InitVerbosity			(verb_filters);
+	}
+	LPCSTR						verb_level_name = "-verbosity ";
+	if (LPCSTR arg = strstr(lpCmdLine, verb_level_name)) {
+		arg						+= xr_strlen(verb_level_name);
+		sscanf_s				(arg,"%d", &verbosity_level, 4);		
+		clamp<u32>				(verbosity_level, 0, 9);
+	}
+
 
 	g_temporary_stuff			= &trivial_encryptor::decode;
 	
@@ -1161,7 +1174,7 @@ void CApplication::UpdateTexture(BOOL bDestroyBefore)
 		sh_progress.create("hud\\default", load_texture.c_str());
 		curr_texture = load_texture;
 	}
-	__except (EXCEPTION_EXECUTE_HANDLER)
+	__except (SIMPLE_FILTER)
 	{
 		Msg("!Exception catched in CApplication::UpdateTexture ");
 	}
@@ -1256,7 +1269,7 @@ void doBenchmark(LPCSTR name)
 		Startup	 				();
 	}
 }
-#pragma optimize("g", off)
+
 void CApplication::load_draw_internal()
 {
 	if(!sh_progress){

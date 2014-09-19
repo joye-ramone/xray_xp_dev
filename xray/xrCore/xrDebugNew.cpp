@@ -231,6 +231,13 @@ XRCORE_API void LogStackTraceEx(struct _EXCEPTION_POINTERS *pExPtrs)
 	}
 }
 
+u32 SimpleExceptionFilter (PEXCEPTION_POINTERS pExPtrs)
+{
+	LogStackTraceEx ( pExPtrs ); 
+	return EXCEPTION_EXECUTE_HANDLER;
+}
+
+
 void gather_info		(const char *expression, const char *description, const char *argument0, const char *argument1, const char *file, int line, const char *function, LPSTR assertion_info)
 {
 	force_flush_log = true;

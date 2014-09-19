@@ -440,7 +440,7 @@ _BUMP:
 	*/
 _BUMP_from_base:
 	{
-		Msg			("! auto-generated bump map: %s",fname);
+		MsgV			("5AUTOGEN_BUMP", "! auto-generated bump map: %s",fname);
 //////////////////
 		if (strstr(fname,"_bump#"))			
 		{

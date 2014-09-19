@@ -6,10 +6,12 @@
 #include "log.h"
 #include "../../build_config_defines.h"
 
-extern BOOL					LogExecCB		= TRUE;
+BOOL						LogExecCB		= TRUE;
 static string_path			logFName		= "engine.log";
 static BOOL 				no_log			= TRUE;
 
+str_container				verbosity_filters; // набор фильтров дл€ вывода регул€рных сообщений
+ u32						verbosity_level = 3;
 
 #define	LOG_TIME_PRECISE
 bool __declspec(dllexport) force_flush_log = false;	// alpet: выставить в true если лог все-же записываетс€ плохо при вылете. —лишком часта€ запись лога вредит SSD и снижает произволительность.
@@ -38,6 +40,22 @@ void FlushLog			()
 	FlushLog		(logFName);
 }
 
+#pragma optimize("gyt", off)
+
+void __cdecl InitVerbosity (const char *filters)
+{
+	string4096 tmp;
+	strcpy_s(tmp, 4095, filters);
+	tmp[sizeof(tmp) - 1] = 0;
+	char *t = strtok(tmp, ",");
+	while (NULL != t)
+	{
+		if (xr_strlen(t) > 0)
+			verbosity_filters.dock(t)->dwReference++;
+		t = strtok(NULL, ",");
+	}
+
+}
 
 extern bool shared_str_initialized;
 
@@ -123,17 +141,23 @@ void Log				(const char *s)
 	AddOne(split);
 }
 
-void __cdecl Msg		( const char *format, ...)
+
+void __cdecl LogVAList(const char *format, va_list &mark)
 {
-	va_list mark;
 	string1024	buf;
-	va_start	(mark, format );
-	int sz		= _vsnprintf(buf, sizeof(buf)-1, format, mark ); buf[sizeof(buf)-1]=0;
+	int sz		= _vsnprintf(buf, sizeof(buf)-1, format, mark); buf[sizeof(buf)-1]=0;
     va_end		(mark);
 	if (sz)		Log(buf);
 }
 
-void 	__cdecl	MsgCB (LPCSTR format, ...) // alpet: вывод сообщений только в колбек (дл€ отладки и передачи данных в перехватчик)
+void __cdecl Msg		( const char *format, ...)
+{
+	va_list mark;	
+	va_start	(mark, format );
+	LogVAList   (format, mark);
+}
+
+void __cdecl	MsgCB (LPCSTR format, ...) // alpet: вывод сообщений только в колбек (дл€ отладки и передачи данных в перехватчик)
 {
 	static string1024 ctx_ring[16];   // кольцевой буфер дл€ сохранени€ данных контекста выполнени€ (выводитс€ при сбое, или по необходимости)
 	static u32 ctx_index = 0;
@@ -159,11 +183,36 @@ void 	__cdecl	MsgCB (LPCSTR format, ...) // alpet: вывод сообщений только в колб
 		Log("#DEBUG CONTEXT DUMP:");
 		for (u32 i = 15; i > 0; i--)
 			Msg("# %s", ctx_ring[(ctx_index + i) & 15]);
+
+		return;
 	}
 
 	if (NULL != LogCB && sz)		LogCB(buf);
 }
 
+
+void __cdecl MsgV (const char *verbosity, const char *format, ...)
+{
+	if (!verbosity) return;	
+	bool b_show = (verbosity[0] != '!');
+	if (!b_show)
+		verbosity++;
+
+	if (verbosity[0] >= '0' && verbosity[0] <= '9')
+	{
+		u32 msg_level = verbosity[0] - '0';
+		if (msg_level > verbosity_level) return;
+		verbosity++;
+	}
+	str_value *f = verbosity_filters.dock(verbosity);
+	if ( (f->dwReference > 0) == b_show )
+	{		
+		va_list mark;
+		va_start(mark, format);		
+		LogVAList (format, mark);
+	}
+	// f->dwReference--;
+}
 
 void Log				(const char *msg, const char *dop) {
 	char buf[1024];
@@ -223,7 +272,7 @@ void	LogXrayOffset(LPCSTR key, LPVOID base, LPVOID pval)
 {
 #ifdef LUAICP_COMPAT
 	u32 ofs = (u32)pval - (u32)base;
-	Msg("XRAY_OFFSET: %30s = 0x%x base = 0x%p, pval = 0x%p ", key, ofs, base, pval);
+	MsgV	  ("XRAY_OFFSET", "XRAY_OFFSET: %30s = 0x%x base = 0x%p, pval = 0x%p ", key, ofs, base, pval);
 	static OFFSET_UPDATER cbUpdater = NULL;
 	HMODULE hDLL = GetModuleHandle("luaicp.dll");
 	if (!cbUpdater && hDLL)

@@ -191,8 +191,7 @@ void CTexture::LoadImpl		()
 		return;
 	}
 	
-	if ( strstr(cName.c_str(), "act_arm_perchatka") )
- 		Msg(" loading texture %s ", cName.c_str());
+	MsgV ("7LOAD_TEX", " loading texture %s ", cName.c_str());
 
 	Preload							();
 #ifndef		DEDICATED_SERVER
