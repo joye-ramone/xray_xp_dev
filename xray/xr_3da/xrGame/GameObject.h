@@ -9,6 +9,7 @@
 #include "../xr_object.h"
 #include "xrServer_Space.h"
 #include "alife_space.h"
+#include "ai_object_location.h"
 #include "UsableScriptObject.h"
 #include "script_binder.h"
 #include "Hit.h"
@@ -252,6 +253,14 @@ public:
 	{
 		VERIFY(m_ai_location);
 		return				(*m_ai_location);
+	}
+	IC		u16					game_vertex_id() const
+	{		
+			return ai_location().game_vertex_id();
+	}
+	IC		u32					level_vertex_id() const
+	{		
+			return ai_location().level_vertex_id();
 	}
 
 private:

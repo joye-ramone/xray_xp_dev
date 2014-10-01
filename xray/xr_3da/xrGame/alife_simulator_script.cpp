@@ -247,6 +247,7 @@ CSE_Abstract *CALifeSimulator__spawn_ammo		(CALifeSimulator *self, LPCSTR sectio
 
 ALife::_SPAWN_ID CALifeSimulator__spawn_id		(CALifeSimulator *self, ALife::_SPAWN_STORY_ID spawn_story_id)
 {
+	FORCE_VERIFY(self);
 	return								(((const CALifeSimulator *)self)->spawns().spawn_id(spawn_story_id));
 }
 

@@ -119,7 +119,9 @@ CSE_Abstract::CSE_Abstract					(LPCSTR caSection)
 		LogXrayOffset("CSE_ALifeObject.spawn_id",   this, &this->m_tSpawnID);
 		LogXrayOffset("CSE_ALifeObject.name",		this, &this->s_name_replace);
 		LogXrayOffset("CSE_ALifeObject.section",	this, &this->s_name);
-		LogXrayOffset("CSE_ALifeObject.clsid",		this, &this->m_script_clsid);
+		LogXrayOffset("CSE_ALifeObject.position",	this, &this->o_Position);
+		LogXrayOffset("CSE_ALifeObject.direction",	this, &this->o_Angle);
+		LogXrayOffset("CSE_ALifeObject.clsid",		this, &this->m_script_clsid);		
 	}
 #endif
 	if (pSettings->line_exist(caSection,"custom_data")) {

@@ -23,32 +23,26 @@ CPHMovementControl *get_movement(CActor *pActor)
 
 #pragma optimize("s",on)
 
+typedef CScriptActor::SConditionChangeV  SConditionChangeV;
+typedef float SConditionChangeV::*		 SConditionChangeVField;
+
+
+template <SConditionChangeVField field> 
+float get_change_v(CActorCondition *C)
+{
+	return CScriptActor::sccv(C).*field;	
+}
+
+template <SConditionChangeVField field> 
+void set_change_v(CActorCondition *C, float v)
+{
+	CScriptActor::sccv(C).*field = v;	
+}
+
+
+
 void set_health(CActorCondition *C, float h)			   { C->health() = h; }
 void set_max_health (CActorCondition *C, float h)		   { C->max_health() = h; }
-
-float get_radiation_v (CActorCondition *C)					{ return CScriptActor::sccv(C).m_fV_Radiation; }
-void  set_radiation_v(CActorCondition *C, float v)			{ CScriptActor::sccv(C).m_fV_Radiation = v; }
-
-float get_psy_health_v(CActorCondition *C)					{ return CScriptActor::sccv(C).m_fV_PsyHealth; }
-void  set_psy_health_v(CActorCondition *C, float v)			{ CScriptActor::sccv(C).m_fV_PsyHealth = v; }
-
-float get_circumspection_v(CActorCondition *C)				{ return CScriptActor::sccv(C).m_fV_Circumspection; }
-void  set_circumspection_v(CActorCondition *C, float v)		{ CScriptActor::sccv(C).m_fV_Circumspection = v; }
-
-float get_morale_v(CActorCondition *C)						{ return CScriptActor::sccv(C).m_fV_EntityMorale; }
-void  set_morale_v(CActorCondition *C, float v)			    { CScriptActor::sccv(C).m_fV_EntityMorale = v; }
-
-float get_radiation_health_v(CActorCondition *C)			{ return CScriptActor::sccv(C).m_fV_RadiationHealth; }
-void  set_radiation_health_v(CActorCondition *C, float v)	{ CScriptActor::sccv(C).m_fV_RadiationHealth = v; }
-
-float get_bleeding_v(CActorCondition *C)					{ return CScriptActor::sccv(C).m_fV_Bleeding; }
-void  set_bleeding_v(CActorCondition *C, float v)			{ CScriptActor::sccv(C).m_fV_Bleeding = v; }
-
-float get_wound_incarnation_v(CActorCondition *C)			{ return CScriptActor::sccv(C).m_fV_WoundIncarnation; }
-void  set_wound_incarnation_v(CActorCondition *C, float v)	{ CScriptActor::sccv(C).m_fV_WoundIncarnation = v; }
-
-float get_health_restore_v(CActorCondition *C)				{ return CScriptActor::sccv(C).m_fV_HealthRestore; }
-void  set_health_restore_v(CActorCondition *C, float v)		{ CScriptActor::sccv(C).m_fV_HealthRestore = v; }
 
 float get_wound_size (CActorCondition *C, u32 bone, u32 hit_type) 
 { 
@@ -134,14 +128,14 @@ void CScriptActor::script_register(lua_State *L)
 			.def_readonly("limping",					&CActorCondition::m_bLimping)
 			.def_readonly("cant_walk",					&CActorCondition::m_bCantWalk)
 			.def_readonly("cant_sprint",				&CActorCondition::m_bCantSprint)
-			.property ("radiation_v",					&get_radiation_v,						&set_radiation_v )
-			.property("psy_health_v",					&get_psy_health_v,						&set_psy_health_v)
-			.property("circumspection_v",				&get_circumspection_v,					&set_circumspection_v)
-			.property("morale_v",						&get_morale_v,							&set_morale_v)
-			.property("radiation_health_v",				&get_radiation_health_v,				&set_radiation_health_v)
-			.property("bleeding_v",						&get_bleeding_v,						&set_bleeding_v)
-			.property("wound_incarnation_v",			&get_wound_incarnation_v,				&set_wound_incarnation_v)
-			.property("health_restore_v",				&get_health_restore_v,					&set_health_restore_v)
+			.property ("radiation_v",					&get_change_v <&SConditionChangeV::m_fV_Radiation>			,				&set_change_v <&SConditionChangeV::m_fV_Radiation>)
+			.property("psy_health_v",					&get_change_v <&SConditionChangeV::m_fV_PsyHealth>			,				&set_change_v <&SConditionChangeV::m_fV_PsyHealth>)
+			.property("circumspection_v",				&get_change_v <&SConditionChangeV::m_fV_Circumspection>		,				&set_change_v <&SConditionChangeV::m_fV_Circumspection>)
+			.property("morale_v",						&get_change_v <&SConditionChangeV::m_fV_EntityMorale>		,				&set_change_v <&SConditionChangeV::m_fV_EntityMorale>)
+			.property("radiation_health_v",				&get_change_v <&SConditionChangeV::m_fV_RadiationHealth>	,				&set_change_v <&SConditionChangeV::m_fV_RadiationHealth>)
+			.property("bleeding_v",						&get_change_v <&SConditionChangeV::m_fV_Bleeding>			,				&set_change_v <&SConditionChangeV::m_fV_Bleeding>)
+			.property("wound_incarnation_v",			&get_change_v <&SConditionChangeV::m_fV_WoundIncarnation>	,				&set_change_v <&SConditionChangeV::m_fV_WoundIncarnation>)
+			.property("health_restore_v",				&get_change_v <&SConditionChangeV::m_fV_HealthRestore>		,				&set_change_v <&SConditionChangeV::m_fV_HealthRestore>)
 			.def("get_wound_size",						&get_wound_size)
 			.def("get_wound_total_size",				&get_wound_total_size)
 			.property("class_name",						&get_lua_class_name)

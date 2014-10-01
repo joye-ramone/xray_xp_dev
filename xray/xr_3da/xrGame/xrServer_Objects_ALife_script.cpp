@@ -57,6 +57,11 @@ void CSE_ALifeGraphPoint::script_register(lua_State *L)
 flags32 &get_flags_ref(CSE_ALifeObject *sobj) { return sobj->m_flags; }
 
 
+void cse_obj_set_position (CSE_ALifeObject *o, const Fvector &pos)
+{
+	o->position().set(pos);
+}
+
 void CSE_ALifeObject::script_register(lua_State *L)
 {
 	module(L)[
@@ -72,8 +77,9 @@ void CSE_ALifeObject::script_register(lua_State *L)
 		.def			("visible_for_map",		(void (CSE_ALifeObject::*)(bool))(&CSE_ALifeObject::visible_for_map))
 		.def			("can_switch_online",	(void (CSE_ALifeObject::*)(bool))(&CSE_ALifeObject::can_switch_online))
 		.def			("can_switch_offline",	(void (CSE_ALifeObject::*)(bool))(&CSE_ALifeObject::can_switch_offline))
-		.def_readonly	("m_level_vertex_id",	&CSE_ALifeObject::m_tNodeID)
-		.def_readonly	("m_game_vertex_id",	&CSE_ALifeObject::m_tGraphID)
+		.def			("set_position",		&cse_obj_set_position)                     // alpet: для коррекции позиции в оффлайне
+		.def_readwrite	("m_level_vertex_id",	&CSE_ALifeObject::m_tNodeID)
+		.def_readwrite	("m_game_vertex_id",	&CSE_ALifeObject::m_tGraphID)
 		.def_readonly	("m_story_id",			&CSE_ALifeObject::m_story_id)
 		// .def_readwrite	("m_flags",				&CSE_ALifeObject::m_flags)
 		.property		("m_flags",				&get_flags_ref)

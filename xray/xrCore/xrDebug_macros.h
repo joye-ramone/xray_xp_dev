@@ -35,6 +35,11 @@
 #		undef VERIFY
 #	endif // VERIFY
 
+#		define FORCE_VERIFY(expr)				do {static bool ignore_always = false; if (!ignore_always && !(expr)) ::Debug.verify_error(#expr, DEBUG_INFO);} while(0)
+#		define FORCE_VERIFY2(expr, e2)			do {static bool ignore_always = false; if (!ignore_always && !(expr)) ::Debug.verify_error(#expr,e2, DEBUG_INFO);} while(0)
+#		define FORCE_VERIFY3(expr, e2, e3)		do {static bool ignore_always = false; if (!ignore_always && !(expr)) ::Debug.verify_error(#expr,e2,e3, DEBUG_INFO);} while(0)
+#		define FORCE_VERIFY4(expr, e2, e3, e4)	do {static bool ignore_always = false; if (!ignore_always && !(expr)) ::Debug.verify_error(#expr,e2,e3,e4, DEBUG_INFO);} while(0)
+
 #	ifdef DEBUG
 #		define NODEFAULT				FATAL("nodefault reached")
 #		define VERIFY(expr)				do {static bool ignore_always = false; if (!ignore_always && !(expr)) ::Debug.verify_error(#expr, DEBUG_INFO);} while(0)

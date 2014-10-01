@@ -261,8 +261,13 @@ CSE_ALifeObject::CSE_ALifeObject			(LPCSTR caSection) : CSE_Abstract(caSection)
 	if (!_saved)
 	{
 		_saved = true;
-		LogXrayOffset("CSE_ALifeObject.story_id",	this, &this->m_story_id);
-		LogXrayOffset("CSE_ALifeObject.spawn_sid",  this, &this->m_spawn_story_id);
+		LogXrayOffset("CSE_ALifeObject.game_vertex",	this, &m_tGraphID);
+		LogXrayOffset("CSE_ALifeObject.level_vertex",	this, &m_tNodeID);		
+		LogXrayOffset("CSE_ALifeObject.flags",			this, &m_flags);
+		LogXrayOffset("CSE_ALifeObject.online",			this, &m_bOnline);				
+		LogXrayOffset("CSE_ALifeObject.story_id",		this, &m_story_id);
+		LogXrayOffset("CSE_ALifeObject.spawn_sid",		this, &m_spawn_story_id);
+		LogXrayOffset("CSE_ALifeObject.simulator",		this, &m_alife_simulator);
 	}
 #endif
 

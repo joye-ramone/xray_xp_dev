@@ -235,6 +235,8 @@ void CALifeSpawnRegistry::build_root_spawns	()
 #ifdef LUAICP_COMPAT
 	LogXrayOffset("CALifeSpawnRegistry.spawns",		this, &this->m_spawns);
 	LogXrayOffset("CALifeSpawnRegistry.vertices",	this, &this->m_spawns.vertices());
+	LogXrayOffset("CALifeSpawnRegistry.story_ids",	this, &this->m_spawn_story_ids);
+
 	if (m_spawns.vertices().size() > 0)
 	{
 		SPAWN_GRAPH::const_vertex_iterator	I = m_spawns.vertices().begin();

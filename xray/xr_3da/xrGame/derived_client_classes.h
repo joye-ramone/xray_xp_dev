@@ -59,17 +59,17 @@ add_to_type_list(CMonsterScript)
 class   COutfitScript
 {
 protected:
-	template <typename T> 
+	template <ALife::EHitType idx> 
 	static	float get_protection(CCustomOutfit *O)
 	{	
-		u32 idx = sizeof(T) - 1;
+		// u32 idx = sizeof(T) - 1;
 		return O->m_HitTypeProtection[idx]; 
 	}
 
-	template <typename T> 
+	template <ALife::EHitType idx> 
 	static	void set_protection(CCustomOutfit *O, float value)
 	{	
-		u32 idx = sizeof(T) - 1;
+		// u32 idx = sizeof(T) - 1;
 		O->m_HitTypeProtection[idx] = value; 
 	}
 

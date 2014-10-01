@@ -62,7 +62,7 @@ CGameObject::CGameObject()
 		LogXrayOffset("GameObject.server_flags",	this, &this->m_server_flags);
 		LogXrayOffset("GameObject.b_spawned",		this, &this->m_spawned);
 		LogXrayOffset("GameObject.clsid",			this, &this->m_script_clsid);
-		LogXrayOffset("GameObject.story_id",		this, &this->m_story_id);
+		LogXrayOffset("GameObject.story_id",		this, &this->m_story_id);		
 		LogXrayOffset("GameObject.ai_location",		this, &this->m_ai_location);	
 		LogXrayOffset("GameObject.xform",			this, &this->XFORM());
 		LogXrayOffset("GameObject.position",		this, &this->Position());
@@ -547,9 +547,9 @@ void CGameObject::spawn_supplies()
 void CGameObject::setup_parent_ai_locations(bool assign_position)
 {
 	//	CGameObject				*l_tpGameObject	= static_cast<CGameObject*>(H_Root());
-	VERIFY(H_Parent());
+	FORCE_VERIFY(H_Parent());
 	CGameObject				*l_tpGameObject = static_cast<CGameObject*>(H_Parent());
-	VERIFY(l_tpGameObject);
+	FORCE_VERIFY(l_tpGameObject);
 
 	// get parent's position
 	if (assign_position && use_parent_ai_locations())
@@ -562,8 +562,8 @@ void CGameObject::setup_parent_ai_locations(bool assign_position)
 	if (!ai().get_level_graph())
 		return;
 
-	if (l_tpGameObject->UsedAI_Locations() && ai().level_graph().valid_vertex_id(l_tpGameObject->ai_location().level_vertex_id()))
-		ai_location().level_vertex(l_tpGameObject->ai_location().level_vertex_id());
+	if (l_tpGameObject->UsedAI_Locations() && ai().level_graph().valid_vertex_id(l_tpGameObject->level_vertex_id()))
+		ai_location().level_vertex (l_tpGameObject->level_vertex_id());
 	else
 		validate_ai_locations(false);
 	//	VERIFY2						(l_tpGameObject->UsedAI_Locations(),*l_tpGameObject->cNameSect());
