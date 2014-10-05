@@ -1,5 +1,6 @@
 #include "pch_script.h"
 #include "physicsshell.h"
+#include "PHElement.h"
 
 using namespace luabind;
 
@@ -31,20 +32,51 @@ void CPhysicsShell::script_register(lua_State *L)
 			.def("is_breakable",				&CPhysicsShell::isBreakable)
 			.def("get_linear_vel",				&CPhysicsShell::get_LinearVel)
 			.def("get_angular_vel",				&CPhysicsShell::get_AngularVel)
+			// alpet: расширенный контроль над физическими объектами
+			.def("get_mass",					&CPhysicsShell::getMass)
+			// методы CPhysicsShell::set_mass* не передают в физический движок значения, но рассчитывает массы элементов. Требуется использовать physic_element:set_mass для реальных изменений
+			.def("set_mass",					&CPhysicsShell::setMass)       
+			.def("set_mass1",					&CPhysicsShell::setMass1)
+			.def("freeze",						&CPhysicsShell::Freeze)
+			.def("unfreeze",					&CPhysicsShell::UnFreeze)
+			.def("disable_collision",			&CPhysicsShell::DisableCollision)
+			.def("enalbe_collision",			&CPhysicsShell::EnableCollision)
 		];
+}
+
+
+void set_element_mass(CPhysicsElement *E, float mass)
+{
+	E->setMass(mass);
+	CPHElement *elem = smart_cast<CPHElement *> (E);
+	if (elem) 
+		elem->ResetMass(E->getDensity());
 }
 
 void CPhysicsElement::script_register(lua_State *L)
 {
 	module(L)
 		[
+			class_<dMass>("dMass")
+			.def_readwrite("mass",				&dMass::mass)
+			.def("adjust",						&dMass::adjust)
+			.def("set_box",						&dMass::setBox)
+			.def("set_sphere",					&dMass::setSphere)
+			.def("set_zero",					&dMass::setZero) 			
+			.def("translate",					&dMass::translate)
+			,
 			class_<CPhysicsElement>("physics_element")
 			.def("apply_force",					(void (CPhysicsElement::*)(float,float,float))(&CPhysicsElement::applyForce))
 			.def("is_breakable",				&CPhysicsElement::isBreakable)
 			.def("get_linear_vel",				&CPhysicsElement::get_LinearVel)
 			.def("get_angular_vel",				&CPhysicsElement::get_AngularVel)
+			.def("get_inertia",					&CPhysicsElement::getMassTensor)
+			.def("set_inertia",					&CPhysicsElement::setInertia)
 			.def("get_mass",					&CPhysicsElement::getMass)
+			.def("set_mass",					&set_element_mass)
+			.def("set_mass_mc",					&CPhysicsElement::setMassMC)			
 			.def("get_density",					&CPhysicsElement::getDensity)
+			.def("set_density",					&CPhysicsElement::setDensity)
 			.def("get_volume",					&CPhysicsElement::getVolume)
 			.def("fix",							&CPhysicsElement::Fix)
 			.def("release_fixed",				&CPhysicsElement::ReleaseFixed)

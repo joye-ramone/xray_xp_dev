@@ -593,63 +593,9 @@ bool CUIInventoryWnd::OnItemRButtonClick(CUICellItem* itm)
 }
 
 CUIDragDropListEx* CUIInventoryWnd::GetSlotList(u32 slot_idx)
-{
-	
+{	
 	if(slot_idx == NO_ACTIVE_SLOT || GetInventory()->m_slots[slot_idx].m_bPersistent)	return NULL;
-
-	return m_slots_array[slot_idx];
-#pragma todo("alpet: удалить после проверки")
-	/*
-	switch (slot_idx)
-	{
-		case PISTOL_SLOT:
-			return m_pUIPistolList;
-			break;
-
-		case RIFLE_SLOT:
-			return m_pUIAutomaticList;
-			break;
-
-		case OUTFIT_SLOT:
-			return m_pUIOutfitList;
-			break;
-			
-#ifdef INV_NEW_SLOTS_SYSTEM
-		case KNIFE_SLOT:
-			return m_pUIKnifeList;
-			break;
-		case APPARATUS_SLOT:
-			return m_pUIBinocularList;
-			break;
-		case DETECTOR_SLOT:
-			return m_pUIDetectorList;
-			break;
-		case TORCH_SLOT:
-			return m_pUITorchList;
-			break;
-		case PDA_SLOT:
-			return m_pUIPDAList;
-			break;
-		case HELMET_SLOT:
-			return m_pUIHelmetList;
-			break;
-		case SLOT_QUICK_ACCESS_0:
-			return m_pUISlotQuickAccessList_0;
-			break;
-		case SLOT_QUICK_ACCESS_1:
-			return m_pUISlotQuickAccessList_1;
-			break;
-		case SLOT_QUICK_ACCESS_2:
-			return m_pUISlotQuickAccessList_2;
-			break;
-		case SLOT_QUICK_ACCESS_3:
-			return m_pUISlotQuickAccessList_3;
-			break;
-#endif
-	};
-	return NULL;
-	*/
-	
+	return m_slots_array[slot_idx];	
 }
 
 

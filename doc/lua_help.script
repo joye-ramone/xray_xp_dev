@@ -1748,6 +1748,13 @@ C++ class SEntityState {
     
 };
 
+C++ class Int64 {
+ property			high                     (number);
+ property			low                      (number);
+    
+    function to_string();
+};
+
 C++ class memory_object {
  property			last_level_time;
  property			level_time;
@@ -1810,6 +1817,16 @@ C++ class SZoneMapEntityData {
 C++ class TEX_INFO {
     function get_rect();
     function get_file_name();
+};
+
+C++ class dMass {
+ property			mass                     (number);
+    
+    function set_zero();
+    function adjust(number);
+    function set_box(number, number, number, number);
+    function translate(number, number, number);
+    function set_sphere(number, number);
 };
 
 C++ class fs_file {
@@ -4004,22 +4021,34 @@ C++ class CInventoryOwner {
 };
 
 C++ class CKinematics {
-    function LL_GetBoneInstance(number);
-    function bone_position(CKinematics*, const vector&, string);
-    function LL_BoneCount();
+    function LL_GetBonesVisible(CKinematics*);
+    function LL_SetBoneVisible(CKinematics*, number, boolean, boolean);
+    function LL_SetBoneVisible(CKinematics*, string, boolean, boolean);
     function LL_BoneID(CKinematics*, string);
+    function bone_position(CKinematics*, const vector&, string);
+    function LL_GetBoneVisible(CKinematics*, number);
+    function LL_GetBoneVisible(CKinematics*, string);
+    function LL_GetBoneInstance(number);
+    function LL_BoneCount();
+    function LL_SetBonesVisible(CKinematics*, const Int64&);
     function LL_BoneName(number);
     function LL_GetBoneRoot();
 };
 
 C++ class CKinematicsAnimated : CKinematics {
     function LL_GetBoneInstance(number);
+    function LL_SetBoneVisible(CKinematics*, number, boolean, boolean);
+    function LL_SetBoneVisible(CKinematics*, string, boolean, boolean);
+    function LL_BoneID(CKinematics*, string);
+    function bone_position(CKinematics*, const vector&, string);
     function PlayCycle(CKinematicsAnimated*, string);
     function LL_GetBoneRoot();
+    function LL_GetBonesVisible(CKinematics*);
     function LL_BoneCount();
-    function LL_BoneID(CKinematics*, string);
+    function LL_SetBonesVisible(CKinematics*, const Int64&);
     function LL_BoneName(number);
-    function bone_position(CKinematics*, const vector&, string);
+    function LL_GetBoneVisible(CKinematics*, number);
+    function LL_GetBoneVisible(CKinematics*, string);
 };
 
 C++ class CLevelGraph {
@@ -4299,15 +4328,20 @@ C++ class CPhysicObject : CGameObject {
 
 C++ class physics_element {
     function get_density();
+    function set_inertia(const dMass&);
     function get_mass();
+    function set_density(number);
     function is_fixed();
+    function get_inertia();
+    function set_mass(physics_element*, number);
     function is_breakable();
+    function release_fixed();
     function get_volume();
     function get_linear_vel(vector&);
-    function fix();
-    function get_angular_vel(vector&);
     function apply_force(number, number, number);
-    function release_fixed();
+    function get_angular_vel(vector&);
+    function fix();
+    function set_mass_mc(number, const vector&);
     function global_transform(physics_element*);
 };
 
@@ -4336,19 +4370,26 @@ C++ class physics_joint {
 
 C++ class physics_shell {
     function get_joints_number();
-    function is_breaking_blocked();
-    function get_element_by_bone_id(number);
-    function get_linear_vel(vector&);
-    function is_breakable();
+    function enalbe_collision();
+    function set_mass1(number);
     function get_elements_number();
-    function unblock_breaking();
+    function is_breakable();
     function get_joint_by_bone_name(string);
-    function get_element_by_order(number);
     function get_element_by_bone_name(string);
     function apply_force(number, number, number);
-    function get_angular_vel(vector&);
-    function block_breaking();
     function get_joint_by_order(number);
+    function freeze();
+    function get_mass();
+    function get_element_by_bone_id(number);
+    function disable_collision();
+    function unblock_breaking();
+    function block_breaking();
+    function get_element_by_order(number);
+    function unfreeze();
+    function set_mass(number);
+    function get_angular_vel(vector&);
+    function is_breaking_blocked();
+    function get_linear_vel(vector&);
     function get_joint_by_bone_id(number);
 };
 
@@ -12101,29 +12142,26 @@ List of the namespaces exported to LUA
      function texture_find(string);
      function device();
      function IsGameTypeSingle();
-     function bit_not(number);
+     function GetTextureInfo(string, string);
      function texture_get_name(CTexture*);
      function game_graph();
-     function set_global_fov(number);
      function dik_to_bind(number);
      function GetFontGraffiti19Russian();
-     function cast_ptr_CTexture(lua_State*);
      function sell_condition(ini_file*, string);
      function sell_condition(number, number);
      function buy_condition(ini_file*, string);
      function buy_condition(number, number);
      function create_ini_file(string);
      function get_hud();
-     function actor_camera(number);
+     function script_object_class_name(lua_State*);
      function GetFontSmall();
-     function user_name();
      function error_log(string);
-     function bind_to_dik(enum EGameActions);
+     function actor_camera(number);
      function GetFontLetterica18Russian();
-     function texture_unload(CTexture*);
      function command_line();
      function get_actor_obj();
      function get_hud_fov(number);
+     function find_effector_zi();
      function getFS();
      function texture_load(CTexture*);
      function valid_saved_game(string);
@@ -12131,47 +12169,50 @@ List of the namespaces exported to LUA
      function get_console();
      function GetFontGraffiti50Russian();
      function app_ready();
-     function get_application();
+     function get_global_fov(number);
      function GetTextureName(string);
-     function texture_to_visual(IRender_Visual*, string);
      function GetFontDI();
      function GetFontLetterica16Russian();
      function log(string);
+     function set_hud_fov(number);
      function object_by_id(lua_State*);
+     function xrRender_test_r2_hw();
      function system_ini();
      function show_condition(ini_file*, string);
-     function prefetch(string);
-     function editor();
-     function texture_delete(CTexture*);
+     function user_name();
      function get_main_window();
      function texture_to_object(game_object*, number, string);
      function get_resource_manager();
      function switch_zoom_osc(boolean);
      function cse_get_restrictor_type(cse_alife_dynamic_object*);
+     function bind_to_dik(enum EGameActions);
      function setup_game_icon(number, number, number, number);
      function GetFontLetterica25();
      function log1(string);
-     function script_object_class_name(lua_State*);
-     function get_torch_obj(game_object*);
      function GetFontMedium();
-     function ef_storage();
-     function GetTextureInfo(string, string);
+     function get_torch_obj(game_object*);
+     function texture_to_visual(IRender_Visual*, string);
+     function set_global_fov(number);
      function texture_from_object(game_object*, number, number);
-     function GetARGB(number, number, number, number);
-     function set_hud_fov(number);
      function flush();
+     function editor();
+     function get_application();
      function texture_create(string);
-     function script_server_object_version();
-     function find_effector_zi();
+     function prefetch(string);
      function GetFontGraffiti22Russian();
+     function bit_not(number);
      function texture_set_name(CTexture*, string);
      function texture_from_visual(IRender_Visual*, number);
      function time_global();
      function verify_if_thread_is_running();
-     function engine_object(lua_State*);
-     function get_global_fov(number);
      function GetTextureRect(string);
-     function xrRender_test_r2_hw();
+     function cast_ptr_CTexture(lua_State*);
+     function ef_storage();
+     function texture_unload(CTexture*);
+     function texture_delete(CTexture*);
+     function engine_object(lua_State*);
+     function GetARGB(number, number, number, number);
+     function script_server_object_version();
 
      namespace level {
          function add_complex_effector(string, number);

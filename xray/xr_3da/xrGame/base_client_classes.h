@@ -26,6 +26,29 @@ class CKinematicsAnimated;
 template <class C, typename T> 
 IC void fake_setter(C *, T) {}; // alpet: чтобы определялись типы свойств при дампе в lua_help.script
 
+struct SLargeInteger // по мотивам LARGE_INTEGER
+{ 
+public:	
+	union 
+	{
+		struct 
+		{
+			DWORD LowPart; 		 		 
+		    LONG HighPart; 
+		};
+		ULONGLONG   QuadPart;
+	};
+
+   LPCSTR		to_string()  {  static char temp[20];   return _i64toa(QuadPart, temp, 10); }
+   DECLARE_SCRIPT_REGISTER_FUNCTION
+};
+
+add_to_type_list(SLargeInteger)
+#undef script_type_list
+#define script_type_list save_type_list(SLargeInteger)
+
+
+
 typedef class_exporter<DLL_Pure>	DLL_PureScript;
 add_to_type_list(DLL_PureScript)
 #undef script_type_list

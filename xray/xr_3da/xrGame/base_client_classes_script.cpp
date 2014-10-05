@@ -32,6 +32,17 @@ struct CGlobalFlags { };
 using namespace luabind;
 
 #pragma optimize("s",on)
+void SLargeInteger::script_register(lua_State *L)
+{
+	module(L)
+		[
+			class_<SLargeInteger>("Int64")
+			.def_readwrite("low"			,				&SLargeInteger::LowPart)
+			.def_readwrite("high"			,				&SLargeInteger::HighPart)
+			.def("to_string"				,				&SLargeInteger::to_string)
+		];		
+}
+
 void DLL_PureScript::script_register	(lua_State *L)
 {
 	module(L)
@@ -463,6 +474,40 @@ Fvector CalcBonePosition(CKinematics *K, const Fvector &pos, LPCSTR bone_name)
 	return				(matrix.c);
 }
 
+const SLargeInteger get_bones_visible(CKinematics *K)
+{	
+	SLargeInteger r;
+	r.QuadPart = K->LL_GetBonesVisible();
+	return r;
+}
+
+bool get_bone_visible_by_id(CKinematics *K, u16 bone_id)
+{
+	if (bone_id != BI_NONE)	return K->LL_GetBoneVisible(bone_id);
+	return false;
+}
+
+bool get_bone_visible_by_name(CKinematics *K, LPCSTR bone_name)
+{
+	u16 bone_id = K->LL_BoneID (bone_name);
+	return get_bone_visible_by_id(K, bone_id);	
+}
+
+void set_bone_visible_by_id   (CKinematics *K, u16 bone_id, bool visible, bool recursive = true)
+{ 
+	if (bone_id != BI_NONE) K->LL_SetBoneVisible(bone_id, visible, recursive); 
+}
+void set_bone_visible_by_name (CKinematics *K, LPCSTR bone_name, bool visible, bool recursive = true) 
+{ 
+	u16 bone_id = K->LL_BoneID (bone_name);	
+	K->LL_SetBoneVisible(bone_id, visible, recursive); 
+}
+
+void set_bones_visible(CKinematics *K, const SLargeInteger &vset)
+{	
+	K->LL_SetBonesVisible(vset.QuadPart);	
+}
+
 
 void CKinematicsAnimatedScript::script_register		(lua_State *L)
 {
@@ -480,6 +525,12 @@ void CKinematicsAnimatedScript::script_register		(lua_State *L)
 		.def("LL_BoneName"						,				&CKinematics::LL_BoneName_dbg)
 		.def("LL_GetBoneInstance"				,				&CKinematics::LL_GetBoneInstance)		
 		.def("LL_GetBoneRoot"					,				&CKinematics::LL_GetBoneRoot)	
+		.def("LL_GetBoneVisible"				,				&get_bone_visible_by_id)
+		.def("LL_GetBoneVisible"				,				&get_bone_visible_by_name)
+		.def("LL_SetBoneVisible"				,				&set_bone_visible_by_id)
+		.def("LL_SetBoneVisible"				,				&set_bone_visible_by_name)
+		.def("LL_GetBonesVisible"				,				&get_bones_visible)
+		.def("LL_SetBonesVisible"				,				&set_bones_visible)
 		.def("bone_position"					,				&CalcBonePosition)
 		,
 		class_<CKinematicsAnimated, CKinematics>("CKinematicsAnimated")
