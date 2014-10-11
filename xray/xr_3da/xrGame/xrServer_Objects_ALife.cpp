@@ -1410,6 +1410,13 @@ CSE_ALifeCar::CSE_ALifeCar				(LPCSTR caSection) : CSE_ALifeDynamicObjectVisual(
 	m_flags.set					(flUseSwitches,FALSE);
 	m_flags.set					(flSwitchOffline,FALSE);
 	health						=1.0f;
+
+	// Real Wolf: 10.10.2014
+#ifdef CAR_SAVE_FUEL
+	m_fuel_tank			= -1;
+	m_fuel				= -1;
+	m_fuel_consumption	= -1;
+#endif
 }
 
 CSE_ALifeCar::~CSE_ALifeCar				()
@@ -1440,12 +1447,26 @@ void CSE_ALifeCar::UPDATE_Read			(NET_Packet	&tNetPacket)
 {
 	inherited1::UPDATE_Read		(tNetPacket);
 	inherited2::UPDATE_Read		(tNetPacket);
+
+	// Real Wolf: 10.10.2014
+#ifdef CAR_SAVE_FUEL
+	tNetPacket.r_float(m_fuel);
+	tNetPacket.r_float(m_fuel_tank);
+	tNetPacket.r_float(m_fuel_consumption);
+#endif
 }
 
 void CSE_ALifeCar::UPDATE_Write			(NET_Packet	&tNetPacket)
 {
 	inherited1::UPDATE_Write		(tNetPacket);
 	inherited2::UPDATE_Write		(tNetPacket);
+
+	// Real Wolf: 10.10.2014
+#ifdef CAR_SAVE_FUEL
+	tNetPacket.w_float(m_fuel);
+	tNetPacket.w_float(m_fuel_tank);
+	tNetPacket.w_float(m_fuel_consumption);
+#endif
 }
 
 bool CSE_ALifeCar::used_ai_locations() const

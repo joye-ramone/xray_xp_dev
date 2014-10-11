@@ -12,6 +12,7 @@
 #include "xrServer_Objects.h"
 #include "alife_space.h"
 #include "game_graph_space.h"
+#include "../../build_config_defines.h"
 
 #pragma warning(push)
 #pragma warning(disable:4005)
@@ -477,6 +478,15 @@ SERVER_ENTITY_DECLARE_BEGIN2(CSE_ALifeCar,CSE_ALifeDynamicObjectVisual,CSE_PHSke
 	virtual	void					load				(NET_Packet &tNetPacket);
 	virtual bool					can_save			() const;
 	virtual CSE_Abstract			*cast_abstract		() {return this;}
+
+public:
+	// Real Wolf: 10.10.2014
+#ifdef CAR_SAVE_FUEL
+			float					m_fuel,
+									m_fuel_tank,
+									m_fuel_consumption;
+#endif
+
 protected:
 	virtual void					data_load				(NET_Packet &tNetPacket);
 	virtual void					data_save				(NET_Packet &tNetPacket);

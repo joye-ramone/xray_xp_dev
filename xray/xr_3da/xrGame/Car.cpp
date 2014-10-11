@@ -185,8 +185,16 @@ BOOL	CCar::net_Spawn				(CSE_Abstract* DC)
 		m_memory->reload	(pUserData->r_string("visual_memory_definition", "section"));
 	}
 
+	// Real Wolf: 10.10.2014
+#ifdef CAR_SAVE_FUEL
+	if (co->m_fuel > 0) // Немного кривовато, так как я не нашел возможности получить эти значения в серверном объекте.
+	{
+		m_fuel				= co->m_fuel;
+		m_fuel_consumption	= co->m_fuel_consumption;
+		m_fuel_tank			= co->m_fuel_tank;
+	}
+#endif
 	return							(CScriptEntity::net_Spawn(DC) && R);
-	
 }
 
 void CCar::ActorObstacleCallback					(bool& do_colide,bool bo1,dContact& c,SGameMtl* material_1,SGameMtl* material_2)	
@@ -486,17 +494,29 @@ void	CCar::renderable_Render				( )
 void	CCar::net_Export			(NET_Packet& P)
 {
 	inherited::net_Export(P);
-//	P.w_u32 (Level().timeServer());
-//	P.w_u16 (0);
+
+	// Real Wolf: 10.10.2014
+#ifdef CAR_SAVE_FUEL
+	P.w_float(m_fuel);
+	P.w_float(m_fuel_tank);
+	P.w_float(m_fuel_consumption);
+#endif
 }
 
 void	CCar::net_Import			(NET_Packet& P)
 {
 	inherited::net_Import(P);
-//	u32 TimeStamp = 0;
-//	P.w_u32 (TimeStamp);
-//	u16 NumItems = 0;
-//	P.w_u32 (NumItems);
+
+	// Real Wolf: 10.10.2014
+#ifdef CAR_SAVE_FUEL
+	float	fuel				= P.r_float(),
+			fuel_tank			= P.r_float(),
+			fuel_consumption	= P.r_float();
+
+	m_fuel				= (fuel < 0)?				m_fuel:					fuel;
+	m_fuel_tank			= (fuel_tank < 0)?			m_fuel_tank:			fuel_tank;
+	m_fuel_consumption	= (fuel_consumption < 0)?	m_fuel_consumption:		fuel_consumption;
+#endif
 }
 
 void	CCar::OnHUDDraw				(CCustomHUD* /**hud/**/)
