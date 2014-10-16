@@ -287,9 +287,15 @@ const Fvector&	get_fire_point1 (CWeaponHUD *hud) { return hud->FirePoint(); }
 const Fvector&	get_fire_point2 (CWeaponHUD *hud) { return hud->FirePoint2(); }
 IRender_Visual* get_hud_visual(CWeaponHUD *hud)   { return hud->Visual(); }
 
+#ifdef NLC_EXTENSIONS
+extern void attach_upgrades(lua_State *L);
+#endif
 
 void CWeaponScript::script_register(lua_State *L)
 {
+#ifdef NLC_EXTENSIONS
+	attach_upgrades (L);
+#endif
 	module(L)
 		[
 			class_<CWeaponHUD>("CWeaponHUD")

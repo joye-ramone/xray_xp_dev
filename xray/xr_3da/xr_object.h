@@ -63,6 +63,7 @@ protected:
 
 	// Geometric (transformation)
 	svector<SavedPosition,4>			PositionStack;
+	BOOL								m_bAlwaysProcessing;         // для принудительного обновления UpdateCL
 public:
 #ifdef DEBUG
 	u32									dbg_update_cl;
@@ -141,7 +142,7 @@ public:
 	// Properties
 	void								processing_activate		();				// request	to enable	UpdateCL
 	void								processing_deactivate	();				// request	to disable	UpdateCL
-	bool								processing_enabled		()				{ return 0!=Props.bActiveCounter;	}
+	bool								processing_enabled		()				{ return m_bAlwaysProcessing || (0 != Props.bActiveCounter);	}
 
 	void								setVisible			(BOOL _visible);
 	ICF BOOL							getVisible			()			const	{ return Props.bVisible;			}

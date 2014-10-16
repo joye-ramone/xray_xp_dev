@@ -2,16 +2,17 @@
 #include "hud_item_object.h"
 #include "HudSound.h"
 
-#define MS_HIDDEN	0
-#define MS_SHOWING	1
-#define MS_IDLE		2
-#define MS_THREATEN	3
-#define MS_READY	4
-#define MS_THROW	5
-#define MS_END		6
-#define MS_EMPTY	7
-#define MS_HIDING	8
-#define MS_PLAYING	9
+#define MS_HIDDEN		0
+#define MS_SHOWING		1
+#define MS_IDLE			2
+#define MS_THREATEN		3
+#define MS_READY		4
+#define MS_THROW		5
+#define MS_END			6
+#define MS_EMPTY		7
+#define MS_HIDING		8
+#define MS_PLAYING		9
+#define MS_IDLE_SPRINT	10
 
 struct dContact;
 struct SGameMtl;
@@ -104,6 +105,7 @@ protected:
 	shared_str				m_sAnimShow;
 	shared_str				m_sAnimHide;
 	shared_str				m_sAnimIdle;
+	shared_str				m_sAnimIdleSprint;
 	shared_str				m_sAnimPlaying;
 	shared_str				m_sAnimThrowBegin;
 	shared_str				m_sAnimThrowIdle;
@@ -113,6 +115,7 @@ protected:
 	//звук анимации "играния"
 	HUD_SOUND				sndPlaying;
 
+	u32						idle_state();
 protected:
 			void			setup_throw_params		();
 public:

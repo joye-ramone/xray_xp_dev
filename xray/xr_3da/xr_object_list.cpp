@@ -103,6 +103,10 @@ void	CObjectList::o_remove		( xr_vector<CObject*>&	v,  CObject* O)
 
 void	CObjectList::o_activate		( CObject*		O		)
 {	
+	xr_vector<CObject*>::iterator _i	= std::find(objects_active.begin(), objects_active.end(), O);
+	if (_i != objects_active.end())
+		return; // already activated
+
 	// chk_already_deleted(O, "o_activate");
 	VERIFY						(O && O->processing_enabled());
 	o_remove					(objects_sleeping,O);

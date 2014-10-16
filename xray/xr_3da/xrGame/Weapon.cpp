@@ -769,6 +769,8 @@ void CWeapon::UpdatePosition(const Fmatrix& trans)
 	VERIFY(!fis_zero(DET(renderable.xform)));
 }
 
+#pragma optimize("gyt", off)
+
 bool CWeapon::Action(s32 cmd, u32 flags)
 {
 	if (inherited::Action(cmd, flags)) return true;

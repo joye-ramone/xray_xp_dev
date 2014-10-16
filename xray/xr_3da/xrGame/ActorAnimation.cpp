@@ -464,7 +464,8 @@ void CActor::g_SetAnimation( u32 mstate_rl )
 							switch (M->GetState()){
 							case MS_SHOWING	 :		M_torso	= TW->draw;			break;
 							case MS_HIDING	 :		M_torso	= TW->holster;		break;
-							case MS_IDLE	 :		M_torso	= TW->moving[moving_idx];		break;
+							case MS_IDLE_SPRINT:   ;
+							case MS_IDLE	 :		M_torso	= TW->moving[moving_idx];		break;							
 							case MS_EMPTY	 :		M_torso	= TW->zoom;		break;
 							case MS_THREATEN :		M_torso = M_legs = M_head = TW->all_attack_0;	break;
 							case MS_READY	 :		M_torso = M_legs = M_head = TW->all_attack_1;	break;
@@ -478,6 +479,7 @@ void CActor::g_SetAnimation( u32 mstate_rl )
 							switch (M->GetState()){
 							case MS_SHOWING	 :		M_torso	= TW->draw;						break;
 							case MS_HIDING	 :		M_torso	= TW->holster;					break;
+							case MS_IDLE_SPRINT:   ;
 							case MS_IDLE	 :		M_torso	= TW->moving[moving_idx];		break;
 							case MS_EMPTY	 :		M_torso	= TW->moving[moving_idx];		break;
 							case MS_THREATEN :		M_torso	= TW->attack_zoom;				break;

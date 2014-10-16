@@ -21,6 +21,7 @@ CCustomOutfit::CCustomOutfit()
 		m_HitTypeProtection[i] = 1.0f;
 
 	m_boneProtection = xr_new<SBoneProtections>();
+	m_bAlwaysProcessing = TRUE;
 }
 
 CCustomOutfit::~CCustomOutfit() 
