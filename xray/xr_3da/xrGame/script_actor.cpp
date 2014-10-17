@@ -14,6 +14,8 @@
 #include "Inventory.h"
 #include "Wound.h"
 
+#include "../lua_tools.h"
+
 using namespace luabind;
 
 CPHMovementControl *get_movement(CActor *pActor)
@@ -147,7 +149,7 @@ void CScriptActor::script_register(lua_State *L)
 			.def_readwrite("crash_speed_max",			&CPHMovementControl::fMaxCrashSpeed)
 			.def_readwrite("crash_speed_min",			&CPHMovementControl::fMinCrashSpeed)
 			.def_readwrite("collision_damage_factor",	&CPHMovementControl::fCollisionDamageFactor)
-			.def_readwrite("air_control_param",			&CPHMovementControl::fAirControlParam)			
+			.def_readwrite("air_control_param",			&CPHMovementControl::fAirControlParam)
 			.property("jump_up_velocity",				&get_jump_up_velocity,				    &CPHMovementControl::SetJumpUpVelocity)			
 			.property("jump_up_velocity",				&get_jump_up_velocity,					&CPHMovementControl::SetJumpUpVelocity)
 			.property("class_name",						&get_lua_class_name)
@@ -178,6 +180,14 @@ void CScriptActor::script_register(lua_State *L)
 			.property("jump_speed",						&get_jump_speed, &set_jump_speed)					
 			.property("state",							&get_actor_state)	
 			.property("orientation",					&get_actor_orientation)
+
+			// Real Wolf. Start. 14.10.2014.
+			.def("block_action",						&CActor::block_action)
+			.def("unblock_action",						&CActor::unblock_action)
+			.def("press_action",						&CActor::IR_OnKeyboardPress)
+			.def("hold_action",							&CActor::IR_OnKeyboardHold)
+			.def("release_action",						&CActor::IR_OnKeyboardRelease)
+			// Real Wolf. End. 14.10.2014.
 			,
 			class_<CActorObject, bases<CActor, CEntityAlive>>("CActor")	// хак с наследованием нужен для переопределения свойств. Luabind не поддерживает property getters override			
 			

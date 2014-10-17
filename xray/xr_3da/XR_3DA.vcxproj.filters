@@ -504,6 +504,7 @@
     <ClInclude Include="lua_tools.h">
       <Filter>General</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\build_config_defines.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="defines.cpp">

@@ -14,6 +14,7 @@
 #include "PhraseDialogManager.h"
 
 #include "step_manager.h"
+#include "xr_level_controller.h"
 
 using namespace ACTOR_DEFS;
 
@@ -757,7 +758,8 @@ public:
 
 private:
 	ALife::_OBJECT_ID	m_holder_id;
-
+			
+			xr_map<EGameActions, bool> m_blocked_actions; // ¬ектор с заблокированными действи€ми. Real Wolf. 14.10.2014.
 public:
 	virtual bool				register_schedule				() const {return false;}
 			IC u32 get_state() const
@@ -779,6 +781,11 @@ public:
 			{
 				mstate_wishful = state;
 			}
+
+			// Real Wolf. Start. 14.10.2014
+			void block_action(EGameActions cmd);
+			void unblock_action(EGameActions cmd);
+			// Real Wolf. End. 14.10.2014
 };
 
 extern bool		isActorAccelerated			(u32 mstate, bool ZoomMode);
