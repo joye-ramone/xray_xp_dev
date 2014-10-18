@@ -7,6 +7,7 @@
 #pragma once
 
 #include "alife_space.h"
+#include "xrServer_Space.h"
 #include "../render.h"
 
 class CCartridge;
@@ -19,6 +20,8 @@ extern const Fvector zero_vel;
 
 class CShootingObject
 {
+	friend class CWeaponScript;
+
 protected:
 	CShootingObject(void);
 	virtual ~CShootingObject(void);
@@ -59,6 +62,7 @@ protected:
 	bool					bWorking;
 
 	float					fTimeToFire;
+	ALife::EHitType			m_eHitType;
 	Fvector4				fvHitPower;
 	//float					fHitPower;
 	float					fHitImpulse;
@@ -70,6 +74,8 @@ protected:
 
 	//рассеивание во время стрельбы
 	float					fireDispersionBase;
+
+	struct SRotation		constDeviation;  // постоянное отклонение пуль при стрельбе в радианах
 
 	//счетчик времени, затрачиваемого на выстрел
 	float					fTime;

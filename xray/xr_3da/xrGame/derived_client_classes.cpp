@@ -291,6 +291,11 @@ IRender_Visual* get_hud_visual(CWeaponHUD *hud)   { return hud->Visual(); }
 extern void attach_upgrades(lua_State *L);
 #endif
 
+SRotation& CWeaponScript::FireDeviation(CWeapon *wpn)
+{
+	return wpn->constDeviation;
+}
+
 void CWeaponScript::script_register(lua_State *L)
 {
 #ifdef NLC_EXTENSIONS
@@ -334,6 +339,7 @@ void CWeaponScript::script_register(lua_State *L)
 			
 
 			.property("ammo_elapsed"					,			&CWeapon::GetAmmoElapsed, &CWeapon::SetAmmoElapsed)
+			.property("const_deviation"					,			&CWeaponScript::FireDeviation)	// отклонение при стрельбе от целика (для непристрелляного оружия).
 			.def("get_ammo_current"						,			&CWeapon::GetAmmoCurrent)
 			//.def("load_config"						,			&CWeapon::Load)
 			.def("start_fire"							,			&CWeapon::FireStart)

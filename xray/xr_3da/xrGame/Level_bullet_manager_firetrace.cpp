@@ -382,8 +382,10 @@ void CBulletManager::DynamicObjectHit	(CBulletManager::_event& E)
 
 		NET_Packet			np;
 		Hit.Write_Packet	(np);
-		
-//		Msg("Hit sended: %d[%d,%d]", Hit.whoID, Hit.weaponID, Hit.BulletID);
+
+
+		if (Hit.hit_type != ALife::eHitTypeFireWound) 
+		    Msg("Hit sended: %d[%d,%d], type = %d", Hit.whoID, Hit.weaponID, Hit.BulletID, Hit.hit_type);
 		CGameObject::u_EventSend(np);
 	}
 }

@@ -2492,13 +2492,18 @@ C++ class CActorBase : CInventoryOwner,CGameObject {
  property			walk_strafe_coef         (number);
     
     function Visual();
+    function release_action(number);
     function _construct();
     function net_Import(net_packet&);
+    function hold_action(number);
     function getVisible() const;
     function net_Spawn(cse_abstract*);
+    function press_action(number);
+    function unblock_action(enum EGameActions);
+    function getEnabled() const;
     function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function getEnabled() const;
+    function block_action(enum EGameActions);
     function net_Export(net_packet&);
     function test_server_flag(number) const;
     function use(CGameObject*);
@@ -2648,14 +2653,19 @@ C++ class CActor : CActorBase,CEntityAlive {
  property			walk_strafe_coef         (number);
     
     function Visual();
+    function hold_action(number);
     function _construct();
     function net_Import(net_packet&);
+    function test_server_flag(number) const;
     function getVisible() const;
     function net_Spawn(cse_abstract*);
+    function press_action(number);
+    function net_Export(net_packet&);
+    function block_action(enum EGameActions);
     function set_schedule(ISheduled*, number, number);
     function load_config(string);
-    function test_server_flag(number) const;
-    function net_Export(net_packet&);
+    function release_action(number);
+    function unblock_action(enum EGameActions);
     function getEnabled() const;
     function use(CGameObject*);
 };
@@ -4244,6 +4254,7 @@ C++ class CPHMovementControl {
  property			crash_speed_min          (number);
  property			jump_up_velocity         (number);
  property			ph_mass                  (number);
+ property			velocity;
     
 };
 
@@ -10111,6 +10122,7 @@ C++ class CWeapon : CInventoryItemObject {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			const_deviation;
  property			cost                     (number);
  property			grenade_launcher_x       (number);
  property			grenade_launcher_y       (number);
@@ -10171,6 +10183,7 @@ C++ class CWeaponAK74 : CWeaponMagazinedWGrenade {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			const_deviation;
  property			cost                     (number);
  property			cur_fire_mode            (number);
  property			fire_mode;
@@ -10239,6 +10252,7 @@ C++ class CWeaponBM16 : CWeaponShotgun {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			const_deviation;
  property			cost                     (number);
  property			cur_fire_mode            (number);
  property			fire_mode;
@@ -10306,6 +10320,7 @@ C++ class CWeaponBinoculars : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			const_deviation;
  property			cost                     (number);
  property			cur_fire_mode            (number);
  property			fire_mode;
@@ -10373,6 +10388,7 @@ C++ class CWeaponFN2000 : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			const_deviation;
  property			cost                     (number);
  property			cur_fire_mode            (number);
  property			fire_mode;
@@ -10440,6 +10456,7 @@ C++ class CWeaponFORT : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			const_deviation;
  property			cost                     (number);
  property			cur_fire_mode            (number);
  property			fire_mode;
@@ -10507,6 +10524,7 @@ C++ class CWeaponGroza : CWeaponMagazinedWGrenade {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			const_deviation;
  property			cost                     (number);
  property			cur_fire_mode            (number);
  property			fire_mode;
@@ -10575,6 +10593,7 @@ C++ class CWeaponHPSA : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			const_deviation;
  property			cost                     (number);
  property			cur_fire_mode            (number);
  property			fire_mode;
@@ -10652,6 +10671,7 @@ C++ class CWeaponKnife : CWeapon {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			const_deviation;
  property			cost                     (number);
  property			grenade_launcher_x       (number);
  property			grenade_launcher_y       (number);
@@ -10714,6 +10734,7 @@ C++ class CWeaponLR300 : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			const_deviation;
  property			cost                     (number);
  property			cur_fire_mode            (number);
  property			fire_mode;
@@ -10781,6 +10802,7 @@ C++ class CWeaponMagazined : CWeapon {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			const_deviation;
  property			cost                     (number);
  property			cur_fire_mode            (number);
  property			fire_mode;
@@ -10846,6 +10868,7 @@ C++ class CWeaponMagazinedWGrenade : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			const_deviation;
  property			cost                     (number);
  property			cur_fire_mode            (number);
  property			fire_mode;
@@ -10912,6 +10935,7 @@ C++ class CWeaponPM : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			const_deviation;
  property			cost                     (number);
  property			cur_fire_mode            (number);
  property			fire_mode;
@@ -10979,6 +11003,7 @@ C++ class CWeaponRG6 : CWeaponShotgun {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			const_deviation;
  property			cost                     (number);
  property			cur_fire_mode            (number);
  property			fire_mode;
@@ -11046,6 +11071,7 @@ C++ class CWeaponRPG7 : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			const_deviation;
  property			cost                     (number);
  property			cur_fire_mode            (number);
  property			fire_mode;
@@ -11113,6 +11139,7 @@ C++ class CWeaponSVD : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			const_deviation;
  property			cost                     (number);
  property			cur_fire_mode            (number);
  property			fire_mode;
@@ -11180,6 +11207,7 @@ C++ class CWeaponSVU : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			const_deviation;
  property			cost                     (number);
  property			cur_fire_mode            (number);
  property			fire_mode;
@@ -11247,6 +11275,7 @@ C++ class CWeaponShotgun : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			const_deviation;
  property			cost                     (number);
  property			cur_fire_mode            (number);
  property			fire_mode;
@@ -11314,6 +11343,7 @@ C++ class CWeaponUSP45 : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			const_deviation;
  property			cost                     (number);
  property			cur_fire_mode            (number);
  property			fire_mode;
@@ -11381,6 +11411,7 @@ C++ class CWeaponVal : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			const_deviation;
  property			cost                     (number);
  property			cur_fire_mode            (number);
  property			fire_mode;
@@ -11448,6 +11479,7 @@ C++ class CWeaponVintorez : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			const_deviation;
  property			cost                     (number);
  property			cur_fire_mode            (number);
  property			fire_mode;
@@ -11515,6 +11547,7 @@ C++ class CWeaponWalther : CWeaponMagazined {
  property			ammo_mag_size            (number);
  property			class_id;
  property			class_name;
+ property			const_deviation;
  property			cost                     (number);
  property			cur_fire_mode            (number);
  property			fire_mode;
@@ -12145,42 +12178,41 @@ List of the namespaces exported to LUA
      function GetTextureInfo(string, string);
      function texture_get_name(CTexture*);
      function game_graph();
+     function set_global_fov(number);
      function dik_to_bind(number);
      function GetFontGraffiti19Russian();
+     function cast_ptr_CTexture(lua_State*);
      function sell_condition(ini_file*, string);
      function sell_condition(number, number);
      function buy_condition(ini_file*, string);
      function buy_condition(number, number);
      function create_ini_file(string);
      function get_hud();
-     function script_object_class_name(lua_State*);
-     function GetFontSmall();
-     function error_log(string);
      function actor_camera(number);
+     function GetFontSmall();
+     function GetARGB(number, number, number, number);
+     function error_log(string);
      function GetFontLetterica18Russian();
      function command_line();
      function get_actor_obj();
      function get_hud_fov(number);
-     function find_effector_zi();
      function getFS();
      function texture_load(CTexture*);
-     function valid_saved_game(string);
      function bit_xor(number, number);
+     function valid_saved_game(string);
      function get_console();
      function GetFontGraffiti50Russian();
      function app_ready();
-     function get_global_fov(number);
+     function get_application();
      function GetTextureName(string);
      function GetFontDI();
      function GetFontLetterica16Russian();
      function log(string);
-     function set_hud_fov(number);
      function object_by_id(lua_State*);
-     function xrRender_test_r2_hw();
      function system_ini();
      function show_condition(ini_file*, string);
-     function user_name();
      function get_main_window();
+     function user_name();
      function texture_to_object(game_object*, number, string);
      function get_resource_manager();
      function switch_zoom_osc(boolean);
@@ -12188,31 +12220,32 @@ List of the namespaces exported to LUA
      function bind_to_dik(enum EGameActions);
      function setup_game_icon(number, number, number, number);
      function GetFontLetterica25();
+     function texture_delete(CTexture*);
      function log1(string);
+     function script_object_class_name(lua_State*);
+     function ef_storage();
      function GetFontMedium();
-     function get_torch_obj(game_object*);
      function texture_to_visual(IRender_Visual*, string);
-     function set_global_fov(number);
+     function xrRender_test_r2_hw();
      function texture_from_object(game_object*, number, number);
+     function set_hud_fov(number);
      function flush();
+     function script_server_object_version();
      function editor();
-     function get_application();
      function texture_create(string);
-     function prefetch(string);
+     function find_effector_zi();
      function GetFontGraffiti22Russian();
      function bit_not(number);
      function texture_set_name(CTexture*, string);
      function texture_from_visual(IRender_Visual*, number);
+     function get_torch_obj(game_object*);
      function time_global();
      function verify_if_thread_is_running();
+     function prefetch(string);
+     function get_global_fov(number);
      function GetTextureRect(string);
-     function cast_ptr_CTexture(lua_State*);
-     function ef_storage();
      function texture_unload(CTexture*);
-     function texture_delete(CTexture*);
      function engine_object(lua_State*);
-     function GetARGB(number, number, number, number);
-     function script_server_object_version();
 
      namespace level {
          function add_complex_effector(string, number);

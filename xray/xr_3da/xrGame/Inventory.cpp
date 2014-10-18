@@ -273,10 +273,10 @@ bool CInventory::DropItem(CGameObject *pObj)
 		}break;
 	case eItemPlaceSlot:{
 			u32 slot = pIItem->GetSlot();
-			Msg("Drop item %s from slot %d from owner %d", pObj->Name_script(), slot, GetOwner()->object_id());
+			MsgV("5SLOTS", "Drop item %s from slot %d from owner %d", pObj->Name_script(), slot, GetOwner()->object_id());
 			PIItem item = m_slots[slot].m_pIItem;
 			if (item && item->object().H_Parent())
-				Msg(" in slot now item %s [%d] owner = %s ", 
+				MsgV("5SLOTS", " in slot now item %s [%d] owner = %s ", 
 								item->object().Name_script(), item->object().ID(), 
 								item->object().H_Parent()->Name_script());
 
