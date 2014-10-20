@@ -217,7 +217,9 @@ void CGamePersistent::WeathersUpdate()
 
 		int data_set				= (Random.randF()<(1.f-Environment().CurrentEnv.weight))?0:1; 
 		CEnvDescriptor* _env		= Environment().Current[data_set]; VERIFY(_env);
-		CEnvAmbient* env_amb		= _env->env_ambient;
+		if (!_env)
+			Msg("!ERROR: Environment().Current[%d] == NULL", data_set); // alpet: сия проблема всплывает, при вызове level.on_frame в скриптах
+		CEnvAmbient* env_amb		= _env ? _env->env_ambient : NULL; // _env->env_ambient; // 
 		if (env_amb){
 			// start sound
 			if (Device.dwTimeGlobal > ambient_sound_next_time){

@@ -92,6 +92,7 @@ namespace GameObject {
 		eAttachVehicle,
 		eDetachVehicle,
 		eUseVehicle,
+		eBeforeSave,
 		ePostSave,
 		eOnInvBoxItemTake,
 		eOnInvBoxItemDrop,

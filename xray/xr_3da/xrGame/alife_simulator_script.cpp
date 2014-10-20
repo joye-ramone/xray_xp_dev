@@ -343,13 +343,17 @@ LPCSTR get_save_name(CALifeSimulator *sim)
 {
 	// alpet: обертка предотвращает вылет, при обращении к свойству на ранней стадии  инициализации
 	LPCSTR result = NULL;
-	if (sim)
-		result = sim->save_name();
-	if (result)
-		return result;
-	else
-		return "NULL";
+	if (sim) result = sim->save_name(FALSE);
+	return result ? result : "NULL";
 }
+
+LPCSTR get_loaded_save(CALifeSimulator *sim) 
+{
+	LPCSTR result = NULL;
+	if (sim) result = sim->save_name(TRUE);
+	return result ? result : "NULL";
+}
+
 #pragma optimize("s",on)
 void CALifeSimulator::script_register			(lua_State *L)
 {
@@ -389,6 +393,7 @@ void CALifeSimulator::script_register			(lua_State *L)
 			.def("assign_story_id",			&assign_story_id)
 			// .def_readonly("save_name",		&CALifeSimulator::m_save_name)
 			.property("save_name",			&get_save_name)
+			.property("loaded_save_name",	&get_loaded_save)
 		,def("alife",						&alife)
 	];
 

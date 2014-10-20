@@ -4,13 +4,18 @@
 
 #include "client_id.h"
 #include "../xr_3da/stdafx.h"
+#include "../../build_config_defines.h"
 #pragma pack(push,1)
 
 
 DLL_API extern void LogPacketError(LPCSTR format, ...);
 
 //for presentation
+#ifdef LUAICP_COMPAT
+const	u32			NET_PacketSizeLimit	= 16384;//8192;
+#else
 const	u32			NET_PacketSizeLimit	= 8192; //16384;//8192;
+#endif
 // const	u32			NET_PacketSizeLimit	= 16384; 
 
 struct	NET_Buffer

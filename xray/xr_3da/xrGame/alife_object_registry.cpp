@@ -70,6 +70,10 @@ void CALifeObjectRegistry::save				(IWriter &memory_stream, CSE_ALifeDynamicObje
 
 void CALifeObjectRegistry::save				(IWriter &memory_stream)
 {
+	// alpet: колбек перед сохранением всех объектов 18.10.2014 :)
+	if (g_actor)
+		g_actor->callback(GameObject::eBeforeSave)();
+
 	Msg							("* Saving objects...");
 	memory_stream.open_chunk	(OBJECT_CHUNK_DATA);
 

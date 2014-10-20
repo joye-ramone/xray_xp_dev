@@ -320,7 +320,8 @@ void game_sv_Single::on_death					(CSE_Abstract *e_dest, CSE_Abstract *e_src)
 void game_sv_Single::restart_simulator			(LPCSTR saved_game_name)
 {
 	shared_str				&options = *alife().server_command_line();
-
+	string_path				loaded;
+	strcpy_s (loaded, sizeof(loaded), alife().save_name(TRUE));
 	delete_data				(m_alife_simulator);
 	server().clear_ids		();
 
@@ -329,6 +330,7 @@ void game_sv_Single::restart_simulator			(LPCSTR saved_game_name)
 
 	pApp->LoadBegin			();
 	m_alife_simulator		= xr_new<CALifeSimulator>(&server(),&options);
+	strcpy_s((LPSTR)alife().save_name(TRUE), sizeof(loaded), loaded);
 	g_pGamePersistent->LoadTitle		("st_client_synchronising");
 	Device.PreCache			(30);
 	pApp->LoadEnd			();

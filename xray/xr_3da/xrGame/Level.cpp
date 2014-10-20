@@ -431,7 +431,7 @@ void CLevel::ProcessGameEvents		()
 		if (!game_events->queue.empty())	
 			Msg("- d[%d],ts[%d] -- E[svT=%d],[evT=%d]",Device.dwTimeGlobal,timeServer(),svT,game_events->queue.begin()->timestamp);
 		*/			
-#ifdef   SPAWN_ANTITFREEZE
+#ifdef   SPAWN_ANTIFREEZE
 		while (spawn_events->available(svT))
 		{
 			u16 ID,dest,type;			
@@ -448,7 +448,7 @@ void CLevel::ProcessGameEvents		()
 		{
 			u16 ID,dest,type;
 			game_events->get	(ID,dest,type,P);		
-#ifdef   SPAWN_ANTITFREEZE
+#ifdef   SPAWN_ANTIFREEZE
 			// не отправлять события не заспавненным объектам
 			if (g_bootComplete && M_EVENT == ID && PostponedSpawn(dest))
 			{

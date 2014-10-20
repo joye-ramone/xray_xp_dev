@@ -163,17 +163,16 @@ int auto_load				(lua_State *L)
 }
 
 void CScriptEngine::setup_auto_load		()
-{
+{	
+	lua_pushstring 						(lua(),"_G"); 
+	lua_gettable 						(lua(),LUA_GLOBALSINDEX); 
+	int value_index	= lua_gettop		(lua());  // alpet: во избежания оставления в стеке лишней метатаблицы
 	luaL_newmetatable					(lua(),"XRAY_AutoLoadMetaTable");
 	lua_pushstring						(lua(),"__index");
 	lua_pushcfunction					(lua(), auto_load);
 	lua_settable						(lua(),-3);
-	lua_pushstring 						(lua(),"_G"); 
-	lua_gettable 						(lua(),LUA_GLOBALSINDEX); 
-	luaL_getmetatable					(lua(),"XRAY_AutoLoadMetaTable");
-	lua_setmetatable					(lua(),-2);
-	//. ??????????
-	// lua_settop							(lua(),-0);
+	// luaL_getmetatable					(lua(),"XRAY_AutoLoadMetaTable");
+	lua_setmetatable					(lua(), value_index);
 }
 
 void CScriptEngine::init				()

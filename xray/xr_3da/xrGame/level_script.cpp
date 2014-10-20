@@ -31,6 +31,7 @@
 #include "raypick.h"
 #include "ui/UIScriptWnd.h"
 #include "../xr_collide_defs.h"
+#include "NET_Queue.h"
 
 using namespace luabind;
 
@@ -358,6 +359,34 @@ void remove_calls_for_object(const luabind::object &lua_object)
 	Level().ph_commander_scripts().remove_calls(&c);
 }
 
+#pragma optimize("gyts", off)
+
+void level_on_frame()
+{
+	Level().OnFrame();
+}
+
+
+bool receive_game_events()
+{
+	Level().ClientReceive();
+	// вернуть true если события добавлены
+	return Level().game_events->available(0); 
+}
+
+bool process_game_events()
+{
+	Level().ProcessGameEvents();
+    // вернуть true если не все события обработаны
+	return Level().spawn_events->available(0);
+}
+
+void process_game_spawns()
+{
+	Level().ProcessGameSpawns();
+}
+
+
 CPHWorld* physics_world()
 {
 	return	ph_world;
@@ -643,6 +672,7 @@ u8  get_level_id(CLevelGraph *graph) { return graph->level_id(); }
 
 u32 get_vertex_count(CLevelGraph *graph) { return graph->header().vertex_count(); }
 
+
 #pragma optimize("s",on)
 void CLevel::script_register(lua_State *L)
 {
@@ -750,7 +780,14 @@ void CLevel::script_register(lua_State *L)
 		def("ray_pick",							&ray_pick),
 
 		// Real Wolf 07.07.2014
-		def("vertex_id",						&vertex_id)
+		def("vertex_id",						&vertex_id),
+
+		// alpet 18.10.2014
+		// экспериментальное, для ускорения отработки спавна клиентских объектов.
+		def("on_frame",							&level_on_frame),
+		def("receive_game_events",				&receive_game_events),
+		def("process_game_events",				&process_game_events),   
+		def("process_game_spawns",				&process_game_spawns) 
 	],
 	
 	module(L,"actor_stats")
