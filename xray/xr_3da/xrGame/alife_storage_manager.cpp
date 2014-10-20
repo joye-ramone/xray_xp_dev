@@ -21,6 +21,7 @@
 #include "saved_game_wrapper.h"
 #include "string_table.h"
 #include "../igame_persistent.h"
+#include "script_vars_storage.h"
 
 using namespace ALife;
 
@@ -56,7 +57,9 @@ void CALifeStorageManager::save	(LPCSTR save_name, bool update_name)
 		spawns().save			(stream);
 		objects().save			(stream);
 		registry().save			(stream);
-
+#ifdef  SCRIPT_VARS_STORAGE
+		g_ScriptVars.save		(stream);
+#endif
 		source_count			= stream.tell();
 		void					*source_data = stream.pointer();
 		dest_count				= rtc_csize(source_count);
@@ -110,6 +113,9 @@ void CALifeStorageManager::load	(void *buffer, const u32 &buffer_size, LPCSTR fi
 	}
 
 	registry().load				(source);
+#ifdef  SCRIPT_VARS_STORAGE
+	g_ScriptVars.load			(source);
+#endif
 
 	can_register_objects		(true);
 
@@ -129,6 +135,9 @@ bool CALifeStorageManager::load	(LPCSTR save_name)
 	}
 	else
 		strconcat				(sizeof(m_save_name),m_save_name,save_name,SAVE_EXTENSION);
+
+	strcpy_s (m_loaded_save, sizeof(m_loaded_save) - 1, m_save_name);
+
 	string_path					file_name;
 	FS.update_path				(file_name,"$game_saves$",m_save_name);
 
@@ -161,7 +170,7 @@ bool CALifeStorageManager::load	(LPCSTR save_name)
 	VERIFY						(graph().actor());
 	
 	Msg							("* Game %s is successfully loaded from file '%s' (%.3fs)",save_name, file_name,timer.GetElapsed_sec());
-
+		
 	return						(true);
 }
 

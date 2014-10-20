@@ -1073,13 +1073,14 @@ C++ class callback {
     const on_actor_weapon_zoom_in = 54;
     const on_actor_weapon_zoom_out = 55;
     const on_attach_vehicle = 58;
+    const on_before_save = 62;
     const on_cell_item_focus = 56;
     const on_cell_item_focus_lost = 57;
     const on_detach_vehicle = 59;
-    const on_group_items = 68;
-    const on_inv_box_item_drop = 63;
-    const on_inv_box_item_take = 62;
-    const on_inv_box_open = 64;
+    const on_group_items = 69;
+    const on_inv_box_item_drop = 64;
+    const on_inv_box_item_take = 63;
+    const on_inv_box_open = 65;
     const on_item_belt = 39;
     const on_item_drop = 28;
     const on_item_ruck = 41;
@@ -1088,8 +1089,8 @@ C++ class callback {
     const on_key_hold = 36;
     const on_key_press = 34;
     const on_key_release = 35;
-    const on_level_map_click = 65;
-    const on_map_spot_click = 66;
+    const on_level_map_click = 66;
+    const on_map_spot_click = 67;
     const on_mouse_hold = 45;
     const on_mouse_move = 37;
     const on_mouse_press = 43;
@@ -1099,8 +1100,8 @@ C++ class callback {
     const on_npc_weapon_fire = 50;
     const on_npc_weapon_jammed = 51;
     const on_npc_weapon_reload = 53;
-    const on_pickup_item_showing = 67;
-    const on_postsave = 61;
+    const on_pickup_item_showing = 68;
+    const on_postsave = 62;
     const on_use_vehicle = 60;
     const patrol_path_in_point = 9;
     const script_animation = 29;
@@ -2406,6 +2407,7 @@ C++ class CALifeMonsterPatrolPathManager {
 };
 
 C++ class alife_simulator {
+ property			loaded_save_name;
  property			save_name;
     
     function level_name(const alife_simulator*, number);
@@ -12188,10 +12190,11 @@ List of the namespaces exported to LUA
      function buy_condition(number, number);
      function create_ini_file(string);
      function get_hud();
-     function actor_camera(number);
+     function texture_unload(CTexture*);
      function GetFontSmall();
-     function GetARGB(number, number, number, number);
+     function prefetch(string);
      function error_log(string);
+     function xrRender_test_r2_hw();
      function GetFontLetterica18Russian();
      function command_line();
      function get_actor_obj();
@@ -12204,6 +12207,7 @@ List of the namespaces exported to LUA
      function GetFontGraffiti50Russian();
      function app_ready();
      function get_application();
+     function texture_to_visual(IRender_Visual*, string);
      function GetTextureName(string);
      function GetFontDI();
      function GetFontLetterica16Russian();
@@ -12211,8 +12215,9 @@ List of the namespaces exported to LUA
      function object_by_id(lua_State*);
      function system_ini();
      function show_condition(ini_file*, string);
+     function ef_storage();
+     function GetARGB(number, number, number, number);
      function get_main_window();
-     function user_name();
      function texture_to_object(game_object*, number, string);
      function get_resource_manager();
      function switch_zoom_osc(boolean);
@@ -12220,20 +12225,16 @@ List of the namespaces exported to LUA
      function bind_to_dik(enum EGameActions);
      function setup_game_icon(number, number, number, number);
      function GetFontLetterica25();
-     function texture_delete(CTexture*);
+     function user_name();
      function log1(string);
      function script_object_class_name(lua_State*);
-     function ef_storage();
      function GetFontMedium();
-     function texture_to_visual(IRender_Visual*, string);
-     function xrRender_test_r2_hw();
      function texture_from_object(game_object*, number, number);
      function set_hud_fov(number);
      function flush();
-     function script_server_object_version();
      function editor();
-     function texture_create(string);
      function find_effector_zi();
+     function texture_create(string);
      function GetFontGraffiti22Russian();
      function bit_not(number);
      function texture_set_name(CTexture*, string);
@@ -12241,29 +12242,34 @@ List of the namespaces exported to LUA
      function get_torch_obj(game_object*);
      function time_global();
      function verify_if_thread_is_running();
-     function prefetch(string);
      function get_global_fov(number);
      function GetTextureRect(string);
-     function texture_unload(CTexture*);
+     function texture_delete(CTexture*);
+     function actor_camera(number);
      function engine_object(lua_State*);
+     function script_server_object_version();
 
      namespace level {
          function add_complex_effector(string, number);
          function enable_input();
          function map_change_spot_hint(number, string, string);
          function game_id();
+         function process_game_spawns();
          function vertex_in_direction(number, vector, number);
          function set_game_difficulty(enum ESingleGameDifficulty);
+         function process_game_events();
          function map_add_object_spot(number, string, string);
+         function set_pp_effector_factor(number, number, number);
+         function set_pp_effector_factor(number, number);
          function rain_factor();
          function remove_pp_effector(number);
+         function on_frame();
          function vertex_id(const vector&);
          function get_graph();
          function remove_complex_effector(number);
          function set_weather_fx(string);
          function add_cam_effector2(string, number, boolean, string);
-         function set_pp_effector_factor(number, number, number);
-         function set_pp_effector_factor(number, number);
+         function receive_game_events();
          function add_pp_effector(string, number, boolean);
          function prefetch_sound(string);
          function add_cam_effector(string, number, boolean, string);

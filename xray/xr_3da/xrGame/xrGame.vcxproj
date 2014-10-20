@@ -1089,6 +1089,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="derived_client_classes.h" />
+    <ClInclude Include="script_vars_storage.h" />
     <ClInclude Include="script_actor.h" />
     <ClInclude Include="mt_config.h" />
     <ClInclude Include="damage_manager.h" />
@@ -3033,6 +3035,21 @@
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|Win32'">pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">pch_script.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
+    </ClCompile>
+    <ClCompile Include="scripts_upgrade.cpp" />
+    <ClCompile Include="script_vars_storage.cpp">
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">pch_script.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|Win32'">pch_script.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|Win32'">pch_script.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">pch_script.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
