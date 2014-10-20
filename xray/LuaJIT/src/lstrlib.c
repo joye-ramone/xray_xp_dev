@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <locale.h>
 
 #define lstrlib_c
 #define LUA_LIB
@@ -23,7 +24,7 @@
 /* macro to `unsign' a character */
 #define uchar(c)        ((unsigned char)(c))
 
-
+_locale_t ru_1251 = (NULL);
 
 static int str_len (lua_State *L) {
   size_t l;
@@ -70,10 +71,10 @@ static int str_lower (lua_State *L) {
   size_t i;
   luaL_Buffer b;
   const char *s = luaL_checklstring(L, 1, &l);
-  luaL_buffinit(L, &b);
+  luaL_buffinit(L, &b);  
   for (i=0; i<l; i++)
-    luaL_addchar(&b, tolower(uchar(s[i])));
-  luaL_pushresult(&b);
+    luaL_addchar(&b, _tolower_l(uchar(s[i]), ru_1251));
+  luaL_pushresult(&b);  
   return 1;
 }
 
@@ -83,10 +84,10 @@ static int str_upper (lua_State *L) {
   size_t i;
   luaL_Buffer b;
   const char *s = luaL_checklstring(L, 1, &l);
-  luaL_buffinit(L, &b);
+  luaL_buffinit(L, &b);    
   for (i=0; i<l; i++)
-    luaL_addchar(&b, toupper(uchar(s[i])));
-  luaL_pushresult(&b);
+    luaL_addchar(&b, _toupper_l(uchar(s[i]), ru_1251));
+  luaL_pushresult(&b);  
   return 1;
 }
 
@@ -866,6 +867,8 @@ LUALIB_API int luaopen_string (lua_State *L) {
   lua_setfield(L, -2, "gfind");
 #endif
   createmetatable(L);
+  if (NULL == ru_1251)
+	  ru_1251 = _create_locale(LC_ALL, ".1251");
   return 1;
 }
 
