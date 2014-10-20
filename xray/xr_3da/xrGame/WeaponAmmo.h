@@ -49,6 +49,7 @@ public:
 	virtual bool					Useful				() const;
 	virtual float					Weight				();
 
+	virtual u32						Cost				() const;
 	bool							Get					(CCartridge &cartridge);
 
 	float		m_kDist, m_kDisp, m_kHit, m_kImpulse, m_kPierce, m_kAP, m_kAirRes;
@@ -60,6 +61,7 @@ public:
 	u16			m_boxSize;
 	u16			m_boxCurr;
 	bool		m_tracer;
+
 
 public:
 	virtual CInventoryItem *can_make_killing	(const CInventory *inventory) const;

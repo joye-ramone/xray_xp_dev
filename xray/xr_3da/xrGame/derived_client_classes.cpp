@@ -193,14 +193,14 @@ void CInventoryScript::script_register(lua_State *L)
 	module(L)
 		[
 
-			class_<CInventoryItem>("CInventoryItem")
-			.def_readwrite("cost"						,			&CInventoryItem::m_cost)			
+			class_<CInventoryItem>("CInventoryItem")						
 			.def_readonly("item_place"					,			&CInventoryItem::m_eItemPlace)
 			.def_readwrite("item_condition"				,			&CInventoryItem::m_fCondition)
 			.def_readwrite("inv_weight"					,			&CInventoryItem::m_weight)
 			.property("class_name"						,			&get_lua_class_name)
 			.property("item_name"						,			&get_item_name)
 			.property("item_name_short"					,			&get_item_name_short)
+			.property("cost"							,			&CInventoryItem::Cost,  &CInventoryItem::SetCost)
 			.property("slot"							,			&CInventoryItem::GetSlot, &CInventoryItem::SetSlot)
 #ifdef INV_NEW_SLOTS_SYSTEM
 			.property("slots"							,			&get_slots,    &fake_set_slots, raw(_2))	

@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: script_vars_storage.cpp
 //	Created 	: 19.10.2014
-//  Modified 	: 19.10.2014
+//  Modified 	: 20.10.2014
 //	Author		: Alexander Petrov
 //	Description : global script vars class, with saving content to savegame
 ////////////////////////////////////////////////////////////////////////////
@@ -274,6 +274,16 @@ int script_vars_size(lua_State *L)
 	return 1;
 }
 
+// typedef int (*lua_Writer) (lua_State *L, const void* p, size_t sz, void* ud);
+int dump_byte_code(lua_State *L, const void *src, size_t size, void *ud)
+{
+	if (!src || !size || !ud) return -1;
+	CMemoryWriter *dst = (CMemoryWriter*) ud;
+	dst->w(src, size);
+	return 0;
+}
+
+
 void CScriptVarsTable::get(lua_State *L, LPCSTR k, bool unpack)
 {
 	shared_str key (k);
@@ -298,16 +308,21 @@ void CScriptVarsTable::get(lua_State *L, LPCSTR k, bool unpack)
 			else
 				lua_pushstring(L, (char*)sv.data);
 			break;
-		case LUA_TUSERDATA:
-			p = lua_newuserdata(L, sv.size);
-			memcpy(p, sv.data, sv.size);
-			break;			
 		case LUA_TTABLE:
 			if (unpack)
 				script_vars_dump (L, sv.T, unpack);
 			else			
 				lua_pushsvt(L, sv.T);
 			break;
+		case LUA_TFUNCTION:
+			if (luaL_loadbuffer(L, (LPCSTR)sv.data, sv.size, k) != 0)
+				lua_pushnil (L);
+			break;
+		case LUA_TUSERDATA:
+			p = lua_newuserdata(L, sv.size);
+			memcpy(p, sv.data, sv.size);
+			break;			
+
 		case LUA_TNETPACKET:
 			convert_to_lua<NET_Packet*>(L, sv.P); 
 			break;
@@ -393,6 +408,14 @@ void CScriptVarsTable::set(lua_State *L, LPCSTR k, int index)
 		}
 		lua_settop(L, save_top);
 
+		break;
+	}
+	case LUA_TFUNCTION:
+	{
+		CMemoryWriter stream;				
+		lua_dump(L, dump_byte_code, &stream);
+		void *dst = sv.smart_alloc(new_type, stream.size());
+		memcpy_s(dst, sv.size, stream.pointer(), sv.size);	
 		break;
 	}
 	case LUA_TUSERDATA:

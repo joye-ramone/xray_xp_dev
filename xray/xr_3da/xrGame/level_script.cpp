@@ -371,14 +371,14 @@ bool receive_game_events()
 {
 	Level().ClientReceive();
 	// вернуть true если события добавлены
-	return Level().game_events->available(0); 
+	return !!Level().game_events->available(0); 
 }
 
 bool process_game_events()
 {
 	Level().ProcessGameEvents();
     // вернуть true если не все события обработаны
-	return Level().spawn_events->available(0);
+	return !!Level().spawn_events->available(0);
 }
 
 void process_game_spawns()
