@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: script_vars_storage.h
 //	Created 	: 19.10.2014
-//  Modified 	: 19.10.2014
+//  Modified 	: 21.10.2014
 //	Author		: Alexander Petrov
 //	Description : global script vars class, with saving content to savegame
 ////////////////////////////////////////////////////////////////////////////
@@ -9,8 +9,15 @@
 #include "script_export_space.h"
 #include "../../build_config_defines.h"
 
+
+
 #define		LUA_TNETPACKET		0x00000100
-#define		SVT_ARRAY_TABLE		0x00020000    // используются численные индексы
+#define		SVT_ARRAY_TABLE		0x00020000    // используются только численные индексы
+#define		SVT_ARRAY_ZEROK		0x00040000    // нестандартный массив с нулевым индексом
+#define		SVT_KEY_BOOLEAN		0x00100000   
+#define		SVT_KEY_NUMERIC		0x00300000	  
+#define		SVT_KEY_MASK		0x00F00000
+
 #define		SVT_ALLOCATED	    0x10000000
 
 
@@ -34,6 +41,10 @@ typedef struct _SCRIPT_VAR
    u32							eff_type				() { return type & 0xffff; }
    void							release					();
    void*						smart_alloc				(int new_type, u32 cb = 4);   
+
+   bool							is_key_boolean          () { return (type & SVT_KEY_MASK) == SVT_KEY_BOOLEAN; }
+   bool							is_key_numeric          () { return (type & SVT_KEY_MASK) == SVT_KEY_NUMERIC; }
+
 } SCRIPT_VAR;
 
 typedef xr_map<shared_str, SCRIPT_VAR> SCRIPT_VARS_MAP;
@@ -46,6 +57,7 @@ private:
 public:
 
 	bool					    is_array;
+	bool						zero_key;
 
 	virtual ~CScriptVarsTable ();
 
@@ -54,7 +66,8 @@ public:
 	virtual void				load					(IReader  &memory_stream);
 	virtual void				save					(IWriter  &memory_stream);
 			void				get						(lua_State *L, LPCSTR k, bool unpack);
-			void				set						(lua_State *L, LPCSTR k, int index);
+			void				set						(lua_State *L, int key_index, int value_index);
+			void				set						(lua_State *L, LPCSTR k, int index, int key_type);
 	ICF		int					size					() { return map().size(); };
 };
 

@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: derived_client_classes.h
 //	Created 	: 16.08.2014
-//  Modified 	: 22.08.2014
+//  Modified 	: 20.10.2014
 //	Author		: Alexander Petrov
 //	Description : XRay derived client classes script export
 ////////////////////////////////////////////////////////////////////////////
@@ -296,6 +296,32 @@ SRotation& CWeaponScript::FireDeviation(CWeapon *wpn)
 	return wpn->constDeviation;
 }
 
+luabind::object CWeaponScript::get_fire_modes(CWeaponMagazined *wpn)
+{
+   lua_State *L = wpn->lua_game_object()->lua_state();
+   luabind::object t = newtable(L);   
+   auto &vector = wpn->m_aFireModes;
+   int index = 1;
+   for (auto it = vector.begin(); it != vector.end(); ++it, ++index)
+	   t[index] = *it;
+
+   return t;
+}
+
+void CWeaponScript::set_fire_modes(CWeaponMagazined *wpn, luabind::object const& t)
+{
+	if (LUA_TTABLE != t.type()) return;
+	auto &vector = wpn->m_aFireModes;
+	vector.clear();
+	for (auto it = t.begin(); it != t.end(); ++it)
+	{
+		int m = object_cast<int>(*it);
+		vector.push_back(m);
+	}	
+}
+
+
+
 void CWeaponScript::script_register(lua_State *L)
 {
 #ifdef NLC_EXTENSIONS
@@ -318,6 +344,21 @@ void CWeaponScript::script_register(lua_State *L)
 			.property("state", &CHudItemObject::GetState)
 			.property("next_state", &CHudItemObject::GetNextState)
 			// ============================================================================= //
+			// параметры отдачи вли€ющие на камеру
+			.def_readwrite("cam_max_angle"				,			&CWeapon::camMaxAngle)
+			.def_readwrite("cam_relax_speed"			,			&CWeapon::camRelaxSpeed)
+			.def_readwrite("cam_relax_speed_ai"			,			&CWeapon::camRelaxSpeed_AI)
+			.def_readwrite("cam_dispersion"				,			&CWeapon::camDispersion)
+			.def_readwrite("cam_dispersion_inc"			,			&CWeapon::camDispersionInc)
+			.def_readwrite("cam_dispertion_frac"		,			&CWeapon::camDispertionFrac)
+			.def_readwrite("cam_max_angle_horz"			,			&CWeapon::camMaxAngleHorz)
+			.def_readwrite("cam_step_angle_horz"		,			&CWeapon::camStepAngleHorz)
+
+			.def_readwrite("fire_dispersion_condition_factor"	,	&CWeapon::fireDispersionConditionFactor)			
+			.def_readwrite("misfire_probability"		,			&CWeapon::misfireProbability)
+			.def_readwrite("misfire_condition_k"		,			&CWeapon::misfireConditionK)	
+			.def_readwrite("condition_shot_dec"			,			&CWeapon::conditionDecreasePerShot)
+
 			.def_readwrite("ammo_mag_size"				,			&CWeapon::iMagazineSize)
 			.def_readwrite("scope_dynamic_zoom"			,			&CWeapon::m_bScopeDynamicZoom)
 			.def_readwrite("zoom_enabled"				,			&CWeapon::m_bZoomEnabled)
@@ -359,6 +400,7 @@ void CWeaponScript::script_register(lua_State *L)
 			.def_readwrite("shoot_effector_start"		,			&CWeaponMagazined::m_iShootEffectorStart)
 			.def_readwrite("cur_fire_mode"				,			&CWeaponMagazined::m_iCurFireMode)			
 			.property	  ("fire_mode"					,			&curr_fire_mode)
+			.property	  ("fire_modes"					,			&get_fire_modes, &set_fire_modes)
 			,
 			class_<CWeaponMagazinedWGrenade,			CWeaponMagazined>("CWeaponMagazinedWGrenade")
 			.def_readwrite("gren_mag_size"				,			&CWeaponMagazinedWGrenade::iMagazineSize2)			

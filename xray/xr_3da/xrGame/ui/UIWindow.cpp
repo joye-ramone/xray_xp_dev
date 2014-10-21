@@ -614,7 +614,7 @@ bool CUIWindow::IsChild(CUIWindow *pPossibleChild) const
 CUIWindow*	CUIWindow::FindChild(const shared_str name, u32 max_nested)
 {
 	if ( IsDebuggerPresent() && WindowName().size() != 0)
-	  	Msg("checking child '%-32s' for sample '%s'", WindowName().c_str(), name.c_str()); // позволяет сдампить названия контролов, при неуспешном поиске
+	  	 MsgV ("8WINDOWS", "checking child '%-32s' for sample '%s'", WindowName().c_str(), name.c_str()); // позволяет сдампить названия контролов, при неуспешном поиске
 
 	if( WindowName() == name)
 		return this;

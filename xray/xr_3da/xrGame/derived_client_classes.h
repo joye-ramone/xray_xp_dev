@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: derived_client_classes.h
 //	Created 	: 16.08.2014
-//  Modified 	: 16.08.2014
+//  Modified 	: 20.10.2014
 //	Author		: Alexander Petrov
 //	Description : XRay derived client classes script export
 ////////////////////////////////////////////////////////////////////////////
@@ -85,8 +85,9 @@ add_to_type_list(COutfitScript)
 class	CWeaponScript
 {
 public:
-	static SRotation& FireDeviation(CWeapon *wpn);
-
+	static SRotation&					FireDeviation				(CWeapon *wpn);
+ 	static luabind::object				get_fire_modes				(CWeaponMagazined *wpn);
+	static void							set_fire_modes				(CWeaponMagazined *wpn, luabind::object const& t);
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };
 add_to_type_list(CWeaponScript)
