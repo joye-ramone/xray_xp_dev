@@ -21,6 +21,13 @@ CScriptVarsStorage g_ScriptVars;
 
 #define  SMALL_VAR_SIZE	  sizeof(SCRIPT_VAR::s_value)
 
+IC bool is_number(LPCSTR s)
+{
+	string16 tmp;
+	int i = atoi(s);
+	return (0 == _strcmpi(s, itoa(i, tmp, 10)));
+}
+
 void SCRIPT_VAR::release()
 {
 	SCRIPT_VAR sv = *this;
@@ -45,7 +52,7 @@ void SCRIPT_VAR::release()
 void* SCRIPT_VAR::smart_alloc(int new_type, u32 cb) // схема автоматического выделения памяти
 {
 	// autodetect embedded var-size
-	switch (type & 0xffff)
+	switch (new_type & 0xffff)
 	{
 	case LUA_TBOOLEAN: 
 		cb = sizeof(b_value); break;
@@ -55,7 +62,7 @@ void* SCRIPT_VAR::smart_alloc(int new_type, u32 cb) // схема автоматического выд
 
 	size = cb;
 
-	if (type & SVT_ALLOCATED)
+	if (type & SVT_ALLOCATED) // если старая переменная была аллоцирована в памяти
 	{
 		if (size > SMALL_VAR_SIZE)
 			data = xr_realloc(data, size);
@@ -101,23 +108,29 @@ void CScriptVarsTable::load(IReader  &memory_stream)
 	if (!var_count) return; // noting for load
 	is_array = true;
 	u32 loaded = 0;
-	while (var_count > 0 && !memory_stream.eof())  
-	{
+	while (var_count-- > 0 && !memory_stream.eof())  
+	{		
+		loaded++;
+
 		shared_str var_name;
 		SCRIPT_VAR sv;
-		memory_stream.r_stringZ(var_name);
+		memory_stream.r_stringZ(var_name);		
 		sv.type = (int)memory_stream.r_u32();
+		sv.size = memory_stream.r_u32();
+		MsgV ("7SCRIPT_VARS", "#DBG: CScriptVarsTable::load var_count = %3d type = 0x%08x   size = %5d  name =  %s.%s   ", var_count, sv.type, sv.size, name(), *var_name);
 		if (LUA_TTABLE == sv.eff_type())
 		{			
+			memory_stream.seek (memory_stream.tell() - 4);
 			sv.T = xr_new<CScriptVarsTable>();
 			sv.T->is_array = (sv.type & SVT_ARRAY_TABLE) > 0; 
 			sv.T->zero_key = (sv.type & SVT_ARRAY_ZEROK) > 0; 
+			sv.T->m_name.sprintf("%s.%s", name(), *var_name);
 			sv.T->load(memory_stream);
 			m_map[var_name] = sv;
 			continue;
 		}
 
-		sv.size = memory_stream.r_u32();
+		
 
 		if (LUA_TNETPACKET == sv.eff_type()	)
 		{
@@ -139,15 +152,17 @@ void CScriptVarsTable::load(IReader  &memory_stream)
 				memory_stream.r(&sv.s_value, sv.size);
 
 			m_map[var_name] = sv;
-		}
-		var_count--;
-		loaded++;
-		shared_str test;
-		test.sprintf("%d", atoi(*var_name));
-		if (test != var_name)
-			is_array = false;
+		}		
+		if (!is_number(*var_name))
+			 is_array = false;
 	}
 
+	int pos = memory_stream.tell();
+	if (-1 != memory_stream.r_s32())
+	{
+		Msg("!#ERROR: script vars table %s invalid src stream format ", name());
+		memory_stream.seek(pos);
+	}
 }
 
 void CScriptVarsTable::save(IWriter  &memory_stream)
@@ -166,12 +181,12 @@ void CScriptVarsTable::save(IWriter  &memory_stream)
 			if (sv.T->is_array)	sv.type |= SVT_ARRAY_TABLE;
 			if (sv.T->zero_key)	sv.type |= SVT_ARRAY_ZEROK;			
 
-			memory_stream.w_u32((u32) sv.type);
+			memory_stream.w_s32(sv.type);
 			sv.T->save(memory_stream);
 			continue;
 		}
 
-		memory_stream.w_u32((u32) sv.type);
+		memory_stream.w_s32(sv.type);
 
 		if (LUA_TNETPACKET == sv.eff_type())
 		{			
@@ -187,6 +202,7 @@ void CScriptVarsTable::save(IWriter  &memory_stream)
 			memory_stream.w (&sv.s_value, sv.size);
 	}
 
+	memory_stream.w_s32(-1);
 }
 
 void CScriptVarsStorage::load(IReader  &memory_stream)
@@ -228,13 +244,6 @@ CScriptVarsTable *lua_tosvt(lua_State *L, int index)
 
 	SCRIPT_VAR *sv = (SCRIPT_VAR*)lua_touserdata(L, index);
 	return sv->T;
-}
-
-IC bool is_number(LPCSTR s)
-{
-	string16 tmp;
-	int i = atoi(s);
-	return (0 == _strcmpi(s, itoa(i, tmp, 10)));
 }
 
 int script_vars_dump (lua_State *L, CScriptVarsTable *svt, bool unpack) // дамп имен и значений переменных в таблицу
@@ -436,6 +445,7 @@ void CScriptVarsTable::set(lua_State *L, LPCSTR k, int index, int key_type)
 			sv.size = 4;
 			sv.T = xr_new<CScriptVarsTable>();
 		}
+		sv.T->m_name.sprintf("%s.%s", *m_name, *key);
 		sv.T->clear();
 		int save_top = lua_gettop(L);
 		sv.T->is_array = false;
@@ -571,9 +581,14 @@ int script_vars_export(lua_State *L)  // сохранение таблицы переменных в нет-пак
 
 int script_vars_import(lua_State *L) // загрузка таблицы переменных из нет-пакета 
 {
-	CScriptVarsTable *svt = lua_tosvt(L, 1);
+	CScriptVarsTable *svt = NULL;
+	if (lua_isuserdata(L, 1))
+		svt = lua_tosvt(L, 1);
 	if (!svt)
 		svt = xr_new<CScriptVarsTable>();
+	if (lua_isstring(L, 1))
+		svt->set_name(lua_tostring(L, 1));
+
 
 	object_rep* rep = is_class_object(L, 2);
 	if (rep && strstr(rep->crep()->name(), "net_packet"))
@@ -597,6 +612,7 @@ int get_stored_vars(lua_State *L)
 
 void CScriptVarsStorage::script_register(lua_State *L)
 {
+	g_ScriptVars.set_name("g_ScriptVars");
 	lua_pushcfunction(L, &get_stored_vars);
 	lua_setglobal(L, "get_stored_vars");
 	lua_pushcfunction(L, &script_vars_export);

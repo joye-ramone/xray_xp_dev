@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: alife_simulator_script.cpp
 //	Created 	: 25.12.2002
-//  Modified 	: 13.05.2004
+//  Modified 	: 21.10.2014
 //	Author		: Dmitriy Iassenev
 //	Description : ALife Simulator script export
 ////////////////////////////////////////////////////////////////////////////
@@ -275,6 +275,12 @@ void CALifeSimulator__release					(CALifeSimulator *self, CSE_Abstract *object, 
 
 LPCSTR get_level_name							(const CALifeSimulator *self, int level_id)
 {
+	if (level_id <= 0)
+	{
+		log_script_error("level_name(%d) == invalid level id", level_id);
+		return "invalid_level_index";
+	}
+
 	LPCSTR								result = *ai().game_graph().header().level((GameGraph::_LEVEL_ID)level_id).name();
 	return								(result);
 }

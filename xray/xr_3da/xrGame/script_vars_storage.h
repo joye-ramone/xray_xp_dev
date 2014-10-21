@@ -31,7 +31,7 @@ typedef struct _SCRIPT_VAR
    u32		   size;
    union {
 	   void*					data;
-	   double					n_value;
+	   double 					n_value;
 	   bool						b_value;
 	   char						s_value[8];
 	   CScriptVarsTable			*T;
@@ -54,6 +54,7 @@ class CScriptVarsTable // таблица переменных
 private:
 	
 	SCRIPT_VARS_MAP			    m_map;
+	shared_str					m_name;
 public:
 
 	bool					    is_array;
@@ -68,7 +69,10 @@ public:
 			void				get						(lua_State *L, LPCSTR k, bool unpack);
 			void				set						(lua_State *L, int key_index, int value_index);
 			void				set						(lua_State *L, LPCSTR k, int index, int key_type);
-	ICF		int					size					() { return map().size(); };
+	ICF		int					size					()					{ return map().size(); };
+
+	ICF		LPCSTR				name					()					{ return *m_name; }
+	ICF		void				set_name				(LPCSTR n)			{ m_name = n; }
 };
 
 class CScriptVarsStorage:
