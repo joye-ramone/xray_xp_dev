@@ -104,20 +104,28 @@ void CScriptVarsTable::clear()
 void CScriptVarsTable::load(IReader  &memory_stream)
 {
 	clear();
-	u32 var_count = memory_stream.r_u32();
-	if (!var_count) return; // noting for load
+	u32 var_count = memory_stream.r_u32();	
 	is_array = true;
 	u32 loaded = 0;
-	while (var_count-- > 0 && !memory_stream.eof())  
+	// while (var_count-- > 0 && )  
+	for (u32 n_var = 0; n_var < var_count && memory_stream.elapsed() >= 4; n_var++)
 	{		
 		loaded++;
+		u32 pos = memory_stream.tell();
+		if (-1 == memory_stream.r_s32())
+		{
+			Msg("!#ERROR: script vars table %s loaded vars %d from %d, and found EOT flag ", name(), n_var, var_count);			
+			// return;
+		}
+		else
+			memory_stream.seek(pos);
 
 		shared_str var_name;
 		SCRIPT_VAR sv;
 		memory_stream.r_stringZ(var_name);		
 		sv.type = (int)memory_stream.r_u32();
 		sv.size = memory_stream.r_u32();
-		MsgV ("7SCRIPT_VARS", "#DBG: CScriptVarsTable::load var_count = %3d type = 0x%08x   size = %5d  name =  %s.%s   ", var_count, sv.type, sv.size, name(), *var_name);
+		MsgV ("3SCRIPT_VARS", "#DBG: CScriptVarsTable::load n_var = %3d type = 0x%08x   size = %5d  name =  %s.%s   ", n_var, sv.type, sv.size, name(), *var_name);
 		if (LUA_TTABLE == sv.eff_type())
 		{			
 			memory_stream.seek (memory_stream.tell() - 4);
@@ -147,22 +155,24 @@ void CScriptVarsTable::load(IReader  &memory_stream)
 			{
 				sv.data = xr_malloc(sv.size);
 				memory_stream.r(sv.data, sv.size);
+
+				if (LUA_TSTRING == sv.eff_type() && -1 == *(int*)sv.data) // явный выход за пределы чтения
+					Msg("!#WARN: probably string load failed = %s ", (LPCSTR) sv.data);
+
 			}
 			else
 				memory_stream.r(&sv.s_value, sv.size);
+
+
 
 			m_map[var_name] = sv;
 		}		
 		if (!is_number(*var_name))
 			 is_array = false;
 	}
-
-	int pos = memory_stream.tell();
+		
 	if (-1 != memory_stream.r_s32())
-	{
-		Msg("!#ERROR: script vars table %s invalid src stream format ", name());
-		memory_stream.seek(pos);
-	}
+		Debug.fatal(DEBUG_INFO, "EOT flag not loaded for table %s", name());
 }
 
 void CScriptVarsTable::save(IWriter  &memory_stream)
