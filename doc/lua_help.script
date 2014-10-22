@@ -12456,9 +12456,12 @@ List of the namespaces exported to LUA
  namespace  {
      function game_ini();
      function alife();
+     function get_stored_vars(lua_State*);
      function GetFontGraffiti32Russian();
      function texture_find(string);
      function device();
+     function xrRender_test_r2_hw();
+     function vars_table_import(lua_State*);
      function IsGameTypeSingle();
      function GetTextureInfo(string, string);
      function texture_get_name(CTexture*);
@@ -12472,65 +12475,67 @@ List of the namespaces exported to LUA
      function buy_condition(ini_file*, string);
      function buy_condition(number, number);
      function create_ini_file(string);
-     function find_effector_zi();
      function get_hud();
-     function actor_camera(number);
      function user_name();
      function GetFontSmall();
-     function bit_xor(number, number);
      function error_log(string);
      function GetFontLetterica18Russian();
+     function engine_object(lua_State*);
      function command_line();
      function get_actor_obj();
      function get_hud_fov(number);
+     function bit_xor(number, number);
      function getFS();
      function texture_load(CTexture*);
      function valid_saved_game(string);
      function get_console();
      function GetFontGraffiti50Russian();
+     function get_application();
      function app_ready();
-     function script_server_object_version();
      function GetTextureName(string);
      function GetFontDI();
      function GetFontLetterica16Russian();
      function log(string);
      function object_by_id(lua_State*);
-     function xrRender_test_r2_hw();
+     function ef_storage();
      function system_ini();
      function show_condition(ini_file*, string);
+     function actor_camera(number);
+     function bit_not(number);
      function get_main_window();
-     function engine_object(lua_State*);
      function texture_to_object(game_object*, number, string);
      function get_resource_manager();
      function switch_zoom_osc(boolean);
      function cse_get_restrictor_type(cse_alife_dynamic_object*);
-     function bind_to_dik(enum EGameActions);
      function setup_game_icon(number, number, number, number);
      function GetFontLetterica25();
-     function texture_delete(CTexture*);
      function log1(string);
      function script_object_class_name(lua_State*);
+     function bind_to_dik(enum EGameActions);
+     function vars_table_assign(lua_State*);
      function GetFontMedium();
      function texture_to_visual(IRender_Visual*, string);
-     function texture_from_object(game_object*, number, number);
-     function set_hud_fov(number);
-     function flush();
      function editor();
+     function texture_from_object(game_object*, number, number);
+     function script_server_object_version();
+     function set_hud_fov(number);
+     function find_effector_zi();
+     function flush();
      function texture_create(string);
+     function vars_table_create(lua_State*);
      function GetFontGraffiti22Russian();
+     function vars_table_export(lua_State*);
      function texture_set_name(CTexture*, string);
      function texture_from_visual(IRender_Visual*, number);
-     function bit_not(number);
      function get_torch_obj(game_object*);
      function time_global();
      function verify_if_thread_is_running();
      function prefetch(string);
      function get_global_fov(number);
-     function ef_storage();
      function GetTextureRect(string);
      function texture_unload(CTexture*);
+     function texture_delete(CTexture*);
      function GetARGB(number, number, number, number);
-     function get_application();
 
      namespace level {
          function add_complex_effector(string, number);
@@ -12625,14 +12630,6 @@ List of the namespaces exported to LUA
          function get_main_menu();
      };
 
-     namespace game {
-         function translate_string(string);
-         function time();
-         function get_game_time();
-         function has_active_tutorial();
-         function start_tutorial(string);
-     };
-
      namespace actor_stats {
          function add_points_str(string, string, string);
          function get_actor_ranking();
@@ -12640,6 +12637,14 @@ List of the namespaces exported to LUA
          function remove_from_ranking(number);
          function add_to_ranking(number);
          function add_points(string, string, number, number);
+     };
+
+     namespace game {
+         function translate_string(string);
+         function time();
+         function get_game_time();
+         function has_active_tutorial();
+         function start_tutorial(string);
      };
  };
 End of list of the namespaces exported to LUA

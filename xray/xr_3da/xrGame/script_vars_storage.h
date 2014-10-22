@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: script_vars_storage.h
 //	Created 	: 19.10.2014
-//  Modified 	: 21.10.2014
+//  Modified 	: 22.10.2014
 //	Author		: Alexander Petrov
 //	Description : global script vars class, with saving content to savegame
 ////////////////////////////////////////////////////////////////////////////
@@ -55,23 +55,29 @@ private:
 	
 	SCRIPT_VARS_MAP			    m_map;
 	shared_str					m_name;
+	int							ref_count;
 public:
 
 	bool					    is_array;
 	bool						zero_key;
 
-	virtual ~CScriptVarsTable ();
-
+	CScriptVarsTable									() { ref_count = 0; }
+	virtual ~CScriptVarsTable							();
+	virtual int					assign					(lua_State *L, int index);
 	virtual void				clear					();
+
+	virtual void				add_ref					() { ref_count ++; }
+	virtual void				release					();				
+
 	ICF SCRIPT_VARS_MAP&		map						() { return m_map; }
-	virtual void				load					(IReader  &memory_stream);
-	virtual void				save					(IWriter  &memory_stream);
+	virtual int					load					(IReader  &memory_stream);
+	virtual int					save					(IWriter  &memory_stream);
 			void				get						(lua_State *L, LPCSTR k, bool unpack);
 			void				set						(lua_State *L, int key_index, int value_index);
 			void				set						(lua_State *L, LPCSTR k, int index, int key_type);
 	ICF		int					size					()					{ return map().size(); };
 
-	ICF		LPCSTR				name					()					{ return *m_name; }
+	ICF		LPCSTR				name					()					{ LPCSTR res = *m_name; return res ? res : ""; }
 	ICF		void				set_name				(LPCSTR n)			{ m_name = n; }
 };
 
@@ -82,8 +88,9 @@ class CScriptVarsStorage:
 
 public:
 	
-	virtual void				load					(IReader  &memory_stream);
-	virtual void				save					(IWriter  &memory_stream);
+	virtual int					load					(IReader  &memory_stream);
+	virtual int					save					(IWriter  &memory_stream);
+	virtual void				release					() {};
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };
 
@@ -94,4 +101,4 @@ add_to_type_list(CScriptVarsStorage)
 #endif
 
 extern CScriptVarsStorage g_ScriptVars;
-extern void lua_pushsvt(lua_State *L, CScriptVarsTable *T);
+extern int lua_pushsvt(lua_State *L, CScriptVarsTable *T);

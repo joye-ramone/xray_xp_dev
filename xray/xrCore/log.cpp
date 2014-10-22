@@ -144,7 +144,7 @@ void Log				(const char *s)
 
 void __cdecl LogVAList(const char *format, va_list &mark)
 {
-	string1024	buf;
+	string4096	buf; // alpet: размер буфера лучше сделать побольше, чтобы избежать вылетов invalid parameter handler при выводе стеков вызова
 	int sz		= _vsnprintf(buf, sizeof(buf)-1, format, mark); buf[sizeof(buf)-1]=0;
     va_end		(mark);
 	if (sz)		Log(buf);
@@ -159,11 +159,11 @@ void __cdecl Msg		( const char *format, ...)
 
 void __cdecl	MsgCB (LPCSTR format, ...) // alpet: вывод сообщений только в колбек (для отладки и передачи данных в перехватчик)
 {
-	static string1024 ctx_ring[16];   // кольцевой буфер для сохранения данных контекста выполнения (выводится при сбое, или по необходимости)
+	static string4096 ctx_ring[16];   // кольцевой буфер для сохранения данных контекста выполнения (выводится при сбое, или по необходимости)
 	static u32 ctx_index = 0;
 
 	va_list mark;
-	string1024	buf;
+	string4096	buf;
 	va_start(mark, format);
 	int sz = _vsnprintf(buf, sizeof(buf)-1, format, mark); buf[sizeof(buf)-1] = 0;
 	va_end(mark);
@@ -175,7 +175,7 @@ void __cdecl	MsgCB (LPCSTR format, ...) // alpet: вывод сообщений только в колбе
 		LPSTR dest = ctx_ring[ctx_index & 15];
 		ctx_index++;
 		// copy-paste forever	
-		sprintf_s(dest, 1023, "[%02d:%02d:%02d.%03d]. %s", lt.wHour, lt.wMinute, lt.wSecond, lt.wMilliseconds, buf);						
+		sprintf_s(dest, sizeof(buf) - 1, "[%02d:%02d:%02d.%03d]. %s", lt.wHour, lt.wMinute, lt.wSecond, lt.wMilliseconds, buf);						
 		return;
 	}
 	if (strstr(buf, "#DUMP_CONTEXT"))

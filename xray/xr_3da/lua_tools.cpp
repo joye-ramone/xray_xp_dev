@@ -17,14 +17,19 @@ ENGINE_API LPCSTR get_lua_traceback(lua_State *L, int depth)
 
 	const char *traceback = "cannot get Lua traceback ";
 	strcpy_s(buffer, 32767, traceback);
-
-	if (0 == lua_pcall(L, 2, 1, 0))
+	__try
 	{
-		traceback = lua_tostring(L, -1);
-		strcpy_s(buffer, 32767, traceback);
-		lua_pop(L, 1);
+		if (0 == lua_pcall(L, 2, 1, 0))
+		{
+			traceback = lua_tostring(L, -1);
+			strcpy_s(buffer, 32767, traceback);
+			lua_pop(L, 1);
+		}
 	}
-
+	__except (EXCEPTION_EXECUTE_HANDLER)
+	{
+		Msg("!#EXCEPTION(get_lua_traceback): buffer = %s ", buffer);
+	}
 	lua_settop (L, top);
 	return buffer;
 }
