@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug_Priquel|Win32">
@@ -3037,22 +3037,7 @@
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile Include="scripts_upgrade.cpp" />
-    <ClCompile Include="script_vars_storage.cpp">
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">pch_script.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|Win32'">pch_script.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|Win32'">pch_script.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">pch_script.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">pch_script.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">pch_script.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
+    </ClCompile>    
     <ClCompile Include="visual_memory_manager.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|x64'">pch_script.h</PrecompiledHeaderFile>
