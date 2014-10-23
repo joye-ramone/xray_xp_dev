@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: script_engine_help.cpp
 //	Created 	: 01.04.2004
-//  Modified 	: 01.04.2004
+//  Modified 	: 23.10.2014
 //	Author		: Dmitriy Iassenev
 //	Description : Script Engine help
 ////////////////////////////////////////////////////////////////////////////
@@ -352,34 +352,40 @@ void print_free_functions				(lua_State *L, const luabind::object &object, LPCST
 		lua_pushnil		(L);		
 		int save_top = lua_gettop(L);
 
-#pragma todo("alpet : при загруженной сохраненке здесь происходит сбой invalid key to 'next', а потом креш в недрах Direct3D ")
+// #pragma todo("alpet : при загруженной сохраненке здесь иногда происходит сбой invalid key to 'next', а потом креш в недрах Direct3D ")
 		while (lua_next(L, n_table) != 0) {  
-
-			last_key = lua_tostring(L, -2);
-			if (lua_type(L, -1) == LUA_TTABLE) {				
-
+			last_key = "~"; 
+			int key_type = lua_type(L, -2);			
+			if (lua_type(L, -1) == LUA_TTABLE && key_type == LUA_TSTRING && lua_objlen(L, -2) > 0) {				
+				last_key = lua_tostring(L, -2);
+				LPCSTR	S = last_key.c_str();
+				MsgCB("~#CONTEXT: last_key = %s", S);
+				string_path script_name;
+				sprintf_s(script_name, sizeof(script_name) - 1, "%s.script", S);
 				if (nesting_path.size() == 0 && // скан глобального пространства имен
-				   (last_key == "" || last_key == "config" || last_key == "package" || last_key == "jit" || last_key == "loaded" )) // с дампом экспортируемых luabind вещей, возникают сбои!
+					(last_key == "" || last_key == "config" || last_key == "package" || last_key == "jit" || last_key == "loaded" || last_key == "md_list" ||
+   					 FS.exist("$game_scripts$", script_name) )) // с дампом экспортируемых luabind вещей, возникают сбои!
 				{
 					Msg("! skipping namespace %s ", last_key.c_str());
 					lua_pop(L, 1);
 					continue;
 				}
-
-				if (xr_strcmp("_G", lua_tostring(L, -2))) {
-					LPCSTR				S = last_key.c_str(); // lua_tostring(L, -2);
+				
+				if (xr_strcmp("_G", S)) {					
 					luabind::object		object(L);
 					object.set();
+					// if (!xr_strcmp("security", S)) { S = S; } /// wtf?
+					xr_string path_dump = "";
+					for (u32 ns = 0; ns < nesting_path.size(); ns++)
+						path_dump = path_dump + nesting_path.at(ns) + ".";
 
-
-					if (!xr_strcmp("security", S)) { S = S; } /// wtf?
-					Msg("# dumping namespace %s ", S);
-
+					path_dump = path_dump + S;
+					Msg("#dumping namespace %s ", path_dump.c_str());
 					nesting_path.push_back(S);
 
 					u32 nest_level = nesting_path.size();
 					// если слишком много вложений или начали повторяться строки
-					if (nest_level < 15 &&
+					if (nest_level < 2 &&
 						!(nest_level > 1 && nesting_path.at(0) == S)
 						)
 					{
@@ -388,9 +394,7 @@ void print_free_functions				(lua_State *L, const luabind::object &object, LPCST
 					else
 					{
 						// problem detected
-						Msg("! WARN: probably self-reference in scripts ");
-						for (u32 ns = 0; ns < nesting_path.size(); ns++)
-							Msg(" %d = %s", ns, nesting_path.at(ns).c_str());
+						Msg("! WARN: to many nested levels for export = %d, or self-reference detected ", nest_level);
 						FlushLog();
 						dumper->flush();
 					}
@@ -399,17 +403,7 @@ void print_free_functions				(lua_State *L, const luabind::object &object, LPCST
 				}
 			}
 			// #pragma todo("Dima to Dima : Remove this hack if find out why")			
-			// если ключ - цифровой, убрать из стека значение и ключ.
-			if (lua_isnumber(L, -2)) {
-				/*
-				Msg("~ Hack: removing value[%d] with type %x", lua_tonumber(L, -2), lua_type(L, -1));
-				if (lua_gettop(L) > n_table)
-				lua_pop(L, 1);
-				lua_pop(L, 1);
-				lua_settop(L, n_table);
-				break;
-				*/
-			}
+			
 			// */			
 			// lua_pop	(L, 1);	// remove value from stack
 			lua_pop(L, 1);
@@ -418,15 +412,6 @@ void print_free_functions				(lua_State *L, const luabind::object &object, LPCST
 				Msg("lua_gettop returned %d vs expected %d", lua_gettop(L), save_top);
 				lua_settop(L, save_top);
 			}
-			if (lua_type(L, save_top) != LUA_TSTRING)
-			{	
-#pragma message ("alpet : сия проблема иногда всплывает, если дампить lua_help.script при загруженной сохраненке.")
-				Msg("!WARN: probably invalid key at top after %s, type = %d. Numeric value = 0x%x ", last_key.c_str(), lua_type(L, save_top), lua_tointeger(L, save_top));				
-				lua_pop(L, 1);
-				lua_pop(L, 1);				// remove the table
-				break;		
-			}
-			// Msg("$  -----------------  stack-top = %d, up_value_type = %d ", lua_gettop(L), lua_type(L, -1));
 		} 		
 		
 	}
@@ -439,8 +424,8 @@ void print_help							(lua_State *L)
 
 	if (g_pGameLevel)
 	{
-		Msg("!ERROR: Рекомендуется lua_help выполнять до загрузки уровня (из главного меню).");
-		return;
+		Msg("!WARN: Рекомендуется lua_help выполнять до загрузки уровня (из главного меню).");
+		// return;
 	}
 
 	OpenDumper();
@@ -453,7 +438,7 @@ void print_help							(lua_State *L)
 #if !defined(_CPPUNWIND)
 	__try
 	{
-#else
+#else	
 	{
 #endif
 		FastMsg					("\nList of the classes exported to LUA\n");

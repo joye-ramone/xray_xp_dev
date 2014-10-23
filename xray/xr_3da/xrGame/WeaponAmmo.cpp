@@ -237,9 +237,10 @@ float CWeaponAmmo::Weight()
 
 u32 CWeaponAmmo::Cost() const
 {
-	float res = m_cost;		
+	float res = (float) m_cost;		
 	res *= (float)m_boxCurr/(float)m_boxSize;
-	return (u32)roundf(res);
+	// return (u32)roundf(res); // VC18 only
+	return (u32)ceil(res + 0.5);
 }
 
 
