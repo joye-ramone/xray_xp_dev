@@ -68,26 +68,42 @@ str_value*	str_container::dock		(str_c value)
 	return	result;
 }
 
-void		str_container::clean	()
+void str_container::clean()
 {
-	cs.Enter	();
-	cdb::iterator	it	= container.begin	();
-	cdb::iterator	end	= container.end		();
-	for (; it!=end; )	{
-		str_value*	sv = *it;
-		if (0==sv->dwReference)	
+	cs.Enter();
+	for (auto it = container.begin(); it != container.end(); )	
+	{
+		auto	sv		= *it;
+		auto	curr	= it++;
+
+		if (!sv->dwReference)	
 		{
-			cdb::iterator	i_current	= it;
-			cdb::iterator	i_next		= ++it;
-			xr_free			(sv);
-			container.erase	(i_current);
-			it							= i_next;
-		} else {
-			it++;
-		}
+			auto	len_flag = (sv->dwLength == xr_strlen(sv->value) );
+			if (!len_flag)
+			{
+				Msg("! WARNING! xrCore:str_container::clean: string len[%d] corruption", sv->dwLength);
+			}
+			else
+			{
+				auto	crc_flag = (sv->dwCRC == crc32(sv->value,sv->dwLength) );
+				if (!crc_flag)
+				{
+					Msg("! WARNING! xrCore:str_container::clean: string crc[%d] corruption", sv->dwCRC);
+				}
+				else
+				{
+					xr_free(sv); // Очищать будем заведомо корректную память.
+				}
+			}
+			container.erase(curr); // Скорее всего тут будет утечка на проблемных строках, которые не очищаются.
+		} 
 	}
-	if (container.empty())	container.clear	();
-	cs.Leave	();
+
+	if (container.empty() )
+	{
+		container.clear();
+	}
+	cs.Leave();
 }
 
 void		str_container::verify	()

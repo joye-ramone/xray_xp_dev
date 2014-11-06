@@ -138,6 +138,33 @@ CScriptGameObject  *get_inventory_target(CInventory *I)		{ return item_lua_objec
 LPCSTR get_item_name				(CInventoryItem *I) { return I->Name(); }
 LPCSTR get_item_name_short			(CInventoryItem *I) { return I->NameShort(); }
 
+#include "string_table.h"
+void set_item_name(CInventoryItem *item, LPCSTR name)
+{
+	if (!name || name[0] == '\0')
+		name = "";
+
+	item->m_name = CStringTable().translate(name);
+}
+
+void set_item_name_short(CInventoryItem *item, LPCSTR name)
+{
+	if (!name || name[0] == '\0')
+		name = "";
+
+	item->m_nameShort = CStringTable().translate(name);
+}
+
+LPCSTR get_item_description				(CInventoryItem *I) { return I->m_Description.c_str(); }
+
+void set_item_description(CInventoryItem *item, LPCSTR text)
+{
+	if (!text || text[0] == '\0')
+		text = "";
+
+	item->m_Description = CStringTable().translate(text);
+}
+
 
 void item_to_belt(CInventory *I, lua_State *L)
 {   // 1st param: CInventory*, 2nd param: item?
@@ -198,13 +225,14 @@ void CInventoryScript::script_register(lua_State *L)
 			.def_readwrite("item_condition"				,			&CInventoryItem::m_fCondition)
 			.def_readwrite("inv_weight"					,			&CInventoryItem::m_weight)
 			.property("class_name"						,			&get_lua_class_name)
-			.property("item_name"						,			&get_item_name)
-			.property("item_name_short"					,			&get_item_name_short)
+			.property("inv_name"						,			&get_item_name, &set_item_name)
+			.property("inv_name_short"					,			&get_item_name_short, &set_item_name_short)
 			.property("cost"							,			&CInventoryItem::Cost,  &CInventoryItem::SetCost)
 			.property("slot"							,			&CInventoryItem::GetSlot, &CInventoryItem::SetSlot)
 #ifdef INV_NEW_SLOTS_SYSTEM
 			.property("slots"							,			&get_slots,    &fake_set_slots, raw(_2))	
 #endif
+			.property("description"						,			&get_item_description, &set_item_description)
 			,
 			class_<CInventoryItemObject, bases<CInventoryItem, CGameObject>>("CInventoryItemObject"),
 
@@ -320,7 +348,30 @@ void CWeaponScript::set_fire_modes(CWeaponMagazined *wpn, luabind::object const&
 	}	
 }
 
+luabind::object CWeaponScript::get_hit_power(CWeapon *wpn)
+{
+   lua_State *L = wpn->lua_game_object()->lua_state();
+   luabind::object t = newtable(L);   
+   auto &vector = wpn->fvHitPower;
+   
+   t[1] = vector.x;
+   t[2] = vector.y;
+   t[3] = vector.z;
+   t[4] = vector.w;
 
+   return t;
+}
+
+void CWeaponScript::set_hit_power(CWeapon *wpn, luabind::object const& t)
+{
+	if (LUA_TTABLE != t.type()) return;
+	auto &vector = wpn->fvHitPower;
+
+	vector.x = object_cast<float>(t[1]);
+	vector.y = object_cast<float>(t[2]);
+	vector.z = object_cast<float>(t[3]);
+	vector.w = object_cast<float>(t[4]);	
+}
 
 void CWeaponScript::script_register(lua_State *L)
 {
@@ -358,6 +409,23 @@ void CWeaponScript::script_register(lua_State *L)
 			.def_readwrite("misfire_probability"		,			&CWeapon::misfireProbability)
 			.def_readwrite("misfire_condition_k"		,			&CWeapon::misfireConditionK)	
 			.def_readwrite("condition_shot_dec"			,			&CWeapon::conditionDecreasePerShot)
+
+
+			.def_readwrite("PDM_disp_base"				,			&CWeapon::m_fPDM_disp_base)
+			.def_readwrite("PDM_disp_vel_factor"		,			&CWeapon::m_fPDM_disp_vel_factor)
+			.def_readwrite("PDM_disp_accel_factor"		,			&CWeapon::m_fPDM_disp_accel_factor)
+			.def_readwrite("PDM_crouch"					,			&CWeapon::m_fPDM_disp_crouch)
+			.def_readwrite("PDM_crouch_no_acc"			,			&CWeapon::m_fPDM_disp_crouch_no_acc)
+
+			.def_readwrite("hit_type"					,			&CWeapon::m_eHitType)
+			.def_readwrite("hit_impulse"				,			&CWeapon::fHitImpulse)
+			.def_readwrite("bullet_speed"				,			&CWeapon::m_fStartBulletSpeed)
+			.def_readwrite("fire_distance"				,			&CWeapon::fireDistance)
+			.def_readwrite("fire_dispersion_base"		,			&CWeapon::fireDispersionBase)
+			.def_readwrite("time_to_aim"				,			&CWeapon::m_fTimeToAim)
+			.def_readwrite("use_aim_bullet"				,			&CWeapon::m_bUseAimBullet)
+			.property("hit_power"						,			&get_hit_power, &set_hit_power)
+
 
 			.def_readwrite("ammo_mag_size"				,			&CWeapon::iMagazineSize)
 			.def_readwrite("scope_dynamic_zoom"			,			&CWeapon::m_bScopeDynamicZoom)

@@ -20,6 +20,10 @@ public:
 	virtual void 	Undo					();
 	virtual void	Draw					();
 	virtual bool	OnMouse					(float x, float y, EUIMessages mouse_action);
+
+	virtual void	Update					();
+			
+
 	virtual	void 	OnMessage				(const char* message);
 	// CUIWindow
 	virtual void	Init					(float x, float y, float width, float height);
@@ -34,11 +38,14 @@ protected:
 			void 	UpdatePos				();
 			void 	UpdatePosRelativeToMouse();
 
+
+
     CUI3tButton*		m_pSlider;
 	CUIFrameLineWnd*	m_pFrameLine;
 	CUIFrameLineWnd*	m_pFrameLine_d;
 	bool				m_b_invert;
 	bool				m_b_is_float;
+	bool				m_bState;
 
 	union{
 		struct{

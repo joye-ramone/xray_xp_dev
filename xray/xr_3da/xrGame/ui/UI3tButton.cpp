@@ -28,6 +28,8 @@ CUI3tButton::CUI3tButton(){
 	m_bEnableTextHighlighting = false;
 	m_bCheckMode		= false;
 	SetPushOffset		(Fvector2().set(0.0f,0.0f) );
+
+	m_bSetStateAfterFocusLost = true;
 }
 
 CUI3tButton::~CUI3tButton()
@@ -68,8 +70,9 @@ bool CUI3tButton::OnMouseDown(int mouse_btn)
 void CUI3tButton::OnFocusLost()
 {
 	CUIButton::OnFocusLost();
-//.	if(BUTTON_PUSHED == m_eButtonState)
-//.		m_eButtonState = BUTTON_NORMAL;
+
+	if(m_bSetStateAfterFocusLost && BUTTON_PUSHED == m_eButtonState)
+		m_eButtonState = BUTTON_NORMAL;
 }
 
 void CUI3tButton::OnFocusReceive()

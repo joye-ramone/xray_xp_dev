@@ -62,5 +62,8 @@ private:
 			void		PlaySoundT					();
 
 	ref_sound			m_sound_h;
-	ref_sound			m_sound_t;	
+	ref_sound			m_sound_t;
+
+public:
+			bool		m_bSetStateAfterFocusLost;
 };

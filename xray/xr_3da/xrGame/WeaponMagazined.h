@@ -175,6 +175,9 @@ public:
 	virtual	int		GetCurrentFireMode	() { return m_aFireModes[m_iCurFireMode]; };	
 	virtual LPCSTR	GetCurrentFireModeStr	() {return m_sCurFireMode;};
 
+	virtual const	xr_vector<int>&	GetFireModes() const				{return m_aFireModes;}
+	virtual	void					SetCurFireMode(int fire_mode)		{m_iCurFireMode = fire_mode;}
+
 	virtual void	save				(NET_Packet &output_packet);
 	virtual void	load				(IReader &input_packet);
 
