@@ -13,6 +13,7 @@
 
 CUITabButton::CUITabButton(){
 //.	this->m_pAssociatedWindow = NULL;
+	m_bSetStateAfterFocusLost = false;
 }
 
 CUITabButton::~CUITabButton(){
