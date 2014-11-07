@@ -119,6 +119,9 @@ void	xrMemory::_destroy()
 	if (debug_mode)				dbg_dump_str_leaks	();
 #endif // DEBUG_MEMORY_MANAGER
 
+	extern str_container				verbosity_filters;
+	verbosity_filters.clean();
+
 	xr_delete					(g_pSharedMemoryContainer);
 	xr_delete					(g_pStringContainer);
 
