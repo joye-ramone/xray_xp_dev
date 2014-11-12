@@ -141,7 +141,8 @@ void CScriptGameObject::script_register(lua_State *L)
 					value("on_level_map_click", int(GameObject::eUIMapClick) ),
 					value("on_map_spot_click", int(GameObject::eUIMapSpotClick) ),
 					value("on_pickup_item_showing", int(GameObject::eUIPickUpItemShowing) ),
-					value("on_group_items", int(GameObject::eUIGroupItems) )
+					value("on_group_items", int(GameObject::eUIGroupItems) ),
+					value("on_cell_item_mouse", int(GameObject::eOnCellItemMouse) )
 				],
 
 				def("buy_condition", (void(*)(CScriptIniFile*, LPCSTR))(&::buy_condition)),

@@ -143,7 +143,6 @@ void CUIScrollView::RecalcSize			()
 
 void CUIScrollView::UpdateScroll		()
 {
-
 	Fvector2 w_pos					= m_pad->GetWndPos();
 	m_VScrollBar->SetHeight(GetHeight());
 	m_VScrollBar->SetRange		(0,iFloor(m_pad->GetHeight()*Scroll2ViewV()));
@@ -352,3 +351,18 @@ void CUIScrollView::UpdateChildrenLenght(){
 	}
 }
 
+void CUIScrollView::ShowScroll(bool is_shown)
+{
+	m_VScrollBar->Show(is_shown);
+}
+
+void CUIScrollView::SetScrollStepSize(int step)
+{
+	m_VScrollBar->SetStepSize(step);
+}
+
+void CUIScrollView::SetScrollRange(int min, int max)
+{
+	m_VScrollBar->SetRange(min, max);
+
+}

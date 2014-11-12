@@ -18,6 +18,7 @@ public:
 	// Real Wolf: Для коллбеков. 25.07.2014.
 	virtual void			OnFocusReceive				();
 	virtual void			OnFocusLost					();
+	virtual bool			OnMouse						(float, float, EUIMessages);
 	// Real Wolf: Для метода get_cell_item(). 25.07.2014.
 	virtual					~CUIInventoryCellItem		();
 	// Real Wolf: Улучшение отображения драг-объектов. 25.07.2014.

@@ -79,6 +79,19 @@ void CUIInventoryCellItem::OnFocusLost()
 	g_actor->callback(GameObject::eCellItemFocusLost)(script_obj);
 }
 
+bool CUIInventoryCellItem::OnMouse(float x, float y, EUIMessages action)
+{
+	inherited::OnMouse(x, y, action);
+	
+	if (m_bCursorOverWindow)
+	{
+		g_actor->callback(GameObject::eOnCellItemMouse)(object()->object().lua_game_object(), x, y, action);
+	}
+
+	return false;
+}
+
+
 CUIDragItem* CUIInventoryCellItem::CreateDragItem()
 {
 	CUIDragItem* i		= inherited::CreateDragItem();

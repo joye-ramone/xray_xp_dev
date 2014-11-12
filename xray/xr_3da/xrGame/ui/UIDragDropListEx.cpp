@@ -101,6 +101,7 @@ void CUIDragDropListEx::OnScrollV(CUIWindow* w, void* pData)
 void CUIDragDropListEx::CreateDragItem(CUICellItem* itm)
 {
 	R_ASSERT							(!m_drag_item);
+
 	m_drag_item							= itm->CreateDragItem();
 	GetParent()->SetCapture				(m_drag_item, true);
 }
@@ -112,7 +113,7 @@ void CUIDragDropListEx::DestroyDragItem()
 		VERIFY(GetParent()->GetMouseCapturer()==m_drag_item);
 		GetParent()->SetCapture				(NULL, false);
 
-		delete_data							(m_drag_item);		
+		delete_data							(m_drag_item);
 	}
 }
 
@@ -123,14 +124,20 @@ Fvector2 CUIDragDropListEx::GetDragItemPosition()
 
 void CUIDragDropListEx::OnItemStartDragging(CUIWindow* w, void* pData)
 {
-	OnItemSelected						(w, pData);
-	CUICellItem* itm		= smart_cast<CUICellItem*>(w);
+	// Избегаем случая двойного драга. Real Wolf. 12.11.14.
+	if (m_drag_item)
+		return;
 
-	if(itm!=m_selected_item)	return;
-	
-	if(m_f_item_start_drag && m_f_item_start_drag(itm) ) return;
+	OnItemSelected(w, pData);
 
-	CreateDragItem						(itm);
+	auto itm = smart_cast<CUICellItem*>(w);
+	if(itm != m_selected_item)	
+		return;
+
+	if(m_f_item_start_drag && m_f_item_start_drag(itm) ) 
+		return;
+
+	CreateDragItem(itm);
 #ifdef DEBUG_SLOTS
 	Msg("# item drag starting ");
 #endif
