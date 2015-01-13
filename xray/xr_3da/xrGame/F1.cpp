@@ -1,7 +1,11 @@
 #include "pch_script.h"
 #include "f1.h"
 
+
 CF1::CF1(void) {
+	m_flags.set				(Fbelt, TRUE);
+	m_weight				= .1f;
+	SetSlot (GRENADE_SLOT);
 }
 
 CF1::~CF1(void) {
@@ -14,7 +18,7 @@ void CF1::script_register	(lua_State *L)
 {
 	module(L)
 	[
-		class_<CF1,CGrenade>("CF1")
+		class_<CF1,CGameObject>("CF1")
 			.def(constructor<>())
 	];
 }

@@ -180,6 +180,17 @@ void CUIInventoryWnd::InitInventory()
 		m_pUIBagList->SetItem			(itm);
 #endif
 	}
+	
+#ifdef INV_NEW_SLOTS_SYSTEM
+	for(i=SLOT_QUICK_ACCESS_0; i <= SLOT_QUICK_ACCESS_3; ++i ) {
+		_itm								= m_pInv->m_slots[i].m_pIItem;
+		if(_itm)
+		{
+			CUICellItem* itm				= create_cell_item(_itm);
+			m_pUIBagList->SetItem			(itm);
+		}
+	}
+#endif
 
 	InventoryUtilities::UpdateWeight					(UIBagWnd, true);
 
@@ -292,7 +303,8 @@ bool CUIInventoryWnd::ToSlot(CUICellItem* itm, bool force_place)
 		// обновляем статик веса в инвентаре
 		InventoryUtilities::UpdateWeight	(UIBagWnd, true);
 		/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
-
+		m_b_need_reinit = true;
+		
 		return								true;
 	}else
 	{ // in case slot is busy
@@ -370,8 +382,12 @@ bool CUIInventoryWnd::ToBag(CUICellItem* itm, bool b_use_cursor_pos)
 			iitem->object().u_EventSend(P);
 		}
 
+		m_b_need_reinit = true;
+		
 		return result;
 #else
+		m_b_need_reinit = true;
+		
 		return true;
 #endif
 	}
@@ -408,7 +424,8 @@ bool CUIInventoryWnd::ToBelt(CUICellItem* itm, bool b_use_cursor_pos)
 		// обновляем статик веса в инвентаре
 		InventoryUtilities::UpdateWeight	(UIBagWnd, true);
 		/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
-
+		m_b_need_reinit = true;
+		
 		return true;
 	}
 	return									false;
@@ -531,10 +548,24 @@ bool CUIInventoryWnd::OnItemDbClick(CUICellItem* itm)
 	u32		__slot		= __item->GetSlot();
 	auto	old_owner	= itm->OwnerList();
 #if  defined(INV_NEW_SLOTS_SYSTEM)
-	if (__slot < SLOT_QUICK_ACCESS_0 || __slot > SLOT_QUICK_ACCESS_3)
-#endif
+	if (__slot < SLOT_QUICK_ACCESS_0 || __slot > SLOT_QUICK_ACCESS_3){
+		if(TryUseItem(__item))
+		return true;
+	}else{
+		PIItem iitem = GetInventory()->Same(__item,true);
+		if(iitem){
+			if(TryUseItem(iitem))
+			return true;
+		}else{
+			if(TryUseItem(__item))
+			return true;
+		}	
+	}
+#else
 	if(TryUseItem(__item))
 		return true;
+#endif
+
 	
 	EListType t_old						= GetType(old_owner);
 

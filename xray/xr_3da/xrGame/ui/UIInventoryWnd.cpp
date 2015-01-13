@@ -220,7 +220,6 @@ void CUIInventoryWnd::Init()
 		m_slots_array[PDA_SLOT]					= m_pUIPDAList;
 		m_slots_array[DETECTOR_SLOT]			= m_pUIDetectorList;
 		m_slots_array[TORCH_SLOT]				= m_pUITorchList;
-		m_slots_array[OUTFIT_SLOT]				= m_pUIOutfitList;
 		m_slots_array[HELMET_SLOT]				= m_pUIHelmetList;
 		m_slots_array[SLOT_QUICK_ACCESS_0]		= m_pUISlotQuickAccessList_0;
 		m_slots_array[SLOT_QUICK_ACCESS_1]		= m_pUISlotQuickAccessList_1;
@@ -238,6 +237,7 @@ void CUIInventoryWnd::Init()
 #endif	
 	m_slots_array[PISTOL_SLOT]				= m_pUIPistolList;
 	m_slots_array[RIFLE_SLOT]				= m_pUIAutomaticList;
+	m_slots_array[OUTFIT_SLOT]				= m_pUIOutfitList;
 	m_slots_array[GRENADE_SLOT]				= NULL;	
 	m_slots_array[BOLT_SLOT]				= NULL;		
 	m_slots_array[ARTEFACT_SLOT]		    = NULL; // m_pUIBeltList;
