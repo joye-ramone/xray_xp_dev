@@ -11,7 +11,12 @@
 IC	u32	CScriptSound::Length				()
 {
 	VERIFY					(m_sound._handle());
-	return					(m_sound._handle()->length_ms());
+
+	if (m_sound._handle())
+		return	m_sound._handle()->length_ms();
+
+	Msg("! WARNING! Bad sound object %s", m_caSoundToPlay.c_str());
+	return 0;
 }
 
 IC	void CScriptSound::Play					(CScriptGameObject *object)

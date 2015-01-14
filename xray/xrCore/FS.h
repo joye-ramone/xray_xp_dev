@@ -192,7 +192,9 @@ public:
 		u32	dwSize,dwType;
 
 		rewind();
-		while (!eof()) {
+		auto length = (u32)impl().length();
+		while ( (u32)impl().tell() + 8 <= length)
+		{
 			dwType = r_u32();
 			dwSize = r_u32();
 			if ((dwType&(~CFS_CompressMark)) == ID) {

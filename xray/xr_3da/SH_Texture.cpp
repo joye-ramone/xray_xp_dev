@@ -276,7 +276,7 @@ void CTexture::LoadImpl		()
 			_fs->r_string	(buffer,sizeof(buffer));
 		}
 		double fps	= atof(buffer);
-		seqMSPF	= iFloor(1000.f/fps);
+		seqMSPF	= iFloor(1000.f/(float)fps);
 
 		while (!_fs->eof())
 		{

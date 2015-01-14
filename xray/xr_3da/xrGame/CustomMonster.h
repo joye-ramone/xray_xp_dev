@@ -12,6 +12,7 @@
 #include "../skeletonanimated.h"
 #include "associative_vector.h"
 
+
 namespace MonsterSpace {
 	struct SBoneRotation;
 };
@@ -26,6 +27,7 @@ class CMovementManager;
 class CSoundPlayer;
 class CAI_Stalker;
 class CDangerObject;
+class CCustomMonsterScript;
 
 class CCustomMonster : 
 	public CEntityAlive, 
@@ -36,6 +38,7 @@ class CCustomMonster :
 {
 private:
 	typedef	CEntityAlive	inherited;
+	friend	class CCustomMonsterScript;
 
 private:
 	CMemoryManager		*m_memory_manager;

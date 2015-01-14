@@ -12,6 +12,10 @@
 #include "game_cl_base.h"
 #include "xrserver_objects_alife.h"
 #include "../../build_config_defines.h"
+#include "pch_script.h"
+#include "game_object_space.h"
+#include "script_callback_ex.h"
+#include "script_game_object.h"
 
 #define GRENADE_REMOVE_TIME		30000
 const float default_grenade_detonation_threshold_hit=100;
@@ -124,6 +128,7 @@ void CGrenade::State(u32 state)
 	inherited::State(state);
 }
 
+
 void CGrenade::Throw() 
 {
 	if (!m_fake_missile || m_thrown)
@@ -140,6 +145,15 @@ void CGrenade::Throw()
 	inherited::Throw			();
 	m_fake_missile->processing_activate();//@sliph
 	m_thrown = true;
+	
+	// Real Wolf.Start.18.12.14
+	auto parent = smart_cast<CGameObject*>(H_Parent());
+	auto obj	= smart_cast<CGameObject*>(m_fake_missile);
+	if (parent && obj)
+	{
+		parent->callback(GameObject::eOnThrowGrenade)(obj->lua_game_object());
+	}
+	// Real Wolf.End.18.12.14
 }
 
 

@@ -302,13 +302,15 @@ private:
 	}						m_firedeps;
 protected:
 	virtual void			UpdateFireDependencies_internal();
-	virtual void			UpdatePosition(const Fmatrix& transform);	//.
+	
 	virtual void			UpdateXForm();
 	virtual void			UpdateHudAdditonal(Fmatrix&);
 	IC		void			UpdateFireDependencies()			{ if (dwFP_Frame == Device.dwFrame) return; UpdateFireDependencies_internal(); };
 
 	virtual void			LoadFireParams(LPCSTR section, LPCSTR prefix);
 public:
+	virtual void			UpdatePosition(const Fmatrix& transform);	//.
+
 	IC		const Fvector&	get_LastFP()			{ UpdateFireDependencies(); return m_firedeps.vLastFP; }
 	IC		const Fvector&	get_LastFP2()			{ UpdateFireDependencies(); return m_firedeps.vLastFP2; }
 	IC		const Fvector&	get_LastFD()			{ UpdateFireDependencies(); return m_firedeps.vLastFD; }

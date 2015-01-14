@@ -6,6 +6,7 @@
 //	Description : XRay derived client classes script export
 ////////////////////////////////////////////////////////////////////////////
 
+#include "StdAfx.h"
 #include "pch_script.h"
 #include "base_client_classes.h"
 #include "derived_client_classes.h"
@@ -477,5 +478,15 @@ void CWeaponScript::script_register(lua_State *L)
 			.def_readwrite("destroy_time"				,			&CMissile::m_dwDestroyTime)
 			.def_readwrite("destroy_time_max"			,			&CMissile::m_dwDestroyTimeMax)			
 			
+		];
+}
+
+
+void CCustomMonsterScript::script_register(lua_State *L)
+{
+	module(L)
+		[
+			class_<CCustomMonster, bases<CEntityAlive>>("CCustomMonster")
+			.def("get_dest_vertex_id", &CCustomMonsterScript::GetDestVertexId)
 		];
 }

@@ -267,10 +267,21 @@ void CShootingObject::LoadFlameParticles (LPCSTR section, LPCSTR prefix)
 	m_sSmokeParticlesCurrent = m_sSmokeParticles;
 }
 
-
-void CShootingObject::OnShellDrop	(const Fvector& play_pos,
-									 const Fvector& parent_vel)
+#include "weapon.h"
+#include "pch_script.h"
+#include "script_callback_ex.h"
+#include "script_game_object.h"
+#include "game_object_space.h"
+void CShootingObject::OnShellDrop	(const Fvector& play_pos, const Fvector& parent_vel)
 {
+	if (auto wpn = smart_cast<CWeapon*>(this))
+	{
+		if (auto actor = smart_cast<CActor*>(wpn->H_Parent()))
+		{
+			actor->callback(GameObject::eOnWpnShellDrop)(wpn->lua_game_object(), play_pos, parent_vel);
+		}
+	}
+
 	if(!m_sShellParticles) return;
 	if( Device.vCameraPosition.distance_to_sqr(play_pos)>2*2 ) return;
 

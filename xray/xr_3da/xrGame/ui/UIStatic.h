@@ -78,6 +78,7 @@ public:
 			void		TextureAvailable			(bool value)				{ m_bAvailableTexture = value; }
 			bool		TextureAvailable			()							{ return m_bAvailableTexture;}
 
+	virtual void		SetColorAll					(u32);
 
 	// own
 	virtual void		SetHighlightColor			(const u32 uColor)	{ m_HighlightColor = uColor; }

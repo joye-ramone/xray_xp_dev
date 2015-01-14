@@ -245,7 +245,7 @@ void CUIWindow::script_register(lua_State *L)
 
 	// CUIdragDropItem
 				value("DRAG_DROP_ITEM_DRAG",			int(DRAG_DROP_ITEM_DRAG)),
-				value("DRAG_DROP_ITEM_DROP ",			int(DRAG_DROP_ITEM_DROP )),
+				value("DRAG_DROP_ITEM_DROP",			int(DRAG_DROP_ITEM_DROP)),
 				value("DRAG_DROP_ITEM_DB_CLICK",		int(DRAG_DROP_ITEM_DB_CLICK)),
 				value("DRAG_DROP_ITEM_RBUTTON_CLICK",	int(DRAG_DROP_ITEM_RBUTTON_CLICK)),
 

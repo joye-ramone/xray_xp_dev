@@ -13,6 +13,7 @@
 #define MS_HIDING		8
 #define MS_PLAYING		9
 #define MS_IDLE_SPRINT	10
+#define MS_SHOWING2		11
 
 struct dContact;
 struct SGameMtl;
@@ -111,6 +112,7 @@ protected:
 	shared_str				m_sAnimThrowIdle;
 	shared_str				m_sAnimThrowAct;
 	shared_str				m_sAnimThrowEnd;
+	shared_str				m_sAnimShow2;
 
 	//звук анимации "играния"
 	HUD_SOUND				sndPlaying;

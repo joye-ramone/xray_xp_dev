@@ -17,6 +17,7 @@
 #include "../IGame_Persistent.h"
 #ifdef DEBUG
 #	include "phdebug.h"
+
 #endif
 
 
@@ -90,6 +91,7 @@ void CMissile::Load(LPCSTR section)
 	m_sAnimThrowIdle	= pSettings->r_string(*hud_sect, "anim_throw_idle");
 	m_sAnimThrowAct		= pSettings->r_string(*hud_sect, "anim_throw_act");
 	m_sAnimThrowEnd		= pSettings->r_string(*hud_sect, "anim_throw_end");
+	m_sAnimShow2		= READ_IF_EXISTS(pSettings, r_string, *hud_sect, "anim_show2", *m_sAnimShow);
 
 	if(pSettings->line_exist(section,"snd_playing"))
 		HUD_SOUND::LoadSound(section,"snd_playing",sndPlaying);
@@ -248,6 +250,15 @@ void CMissile::State(u32 state)
 			m_bPending = true;
 			m_pHUD->animPlay(m_pHUD->animGet(*m_sAnimShow), FALSE, this, GetState());
 		} break;
+	
+	// Real Wolf: Сделаем отдельную анимацию для появления после броска. 29.12.14
+	case MS_SHOWING2:
+	{
+		m_bPending = true;
+		m_pHUD->animPlay(m_pHUD->animGet(*m_sAnimShow2), FALSE, this, GetState());
+		break;
+	} 
+
 	case MS_IDLE:
 		{
 			m_bPending = false;
@@ -360,7 +371,7 @@ void CMissile::OnAnimationEnd(u32 state)
 		} break;
 	case MS_END:
 		{
-			OnStateSwitch(MS_SHOWING);
+			OnStateSwitch(MS_SHOWING2);
 		} break;
 	case MS_PLAYING:
 		{

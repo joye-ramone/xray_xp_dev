@@ -129,7 +129,13 @@ void CLevel::IR_OnKeyboardPress	(int key)
 
 	if (!g_bDisableAllInput)
 	{
-		HUD().GetUI()->UIMainIngameWnd->HudAdjustMode(key); // Real Wolf. 07.09.2014.
+		if (auto ui = HUD().GetUI())
+		{
+			if (ui->UIMainIngameWnd)
+			{
+				ui->UIMainIngameWnd->HudAdjustMode(key); // Real Wolf. 07.09.2014.
+			}
+		}
 
 		/************************************************** added by Ray Twitty (aka Shadows) START **************************************************/
 		// Колбек на нажатие клавиши

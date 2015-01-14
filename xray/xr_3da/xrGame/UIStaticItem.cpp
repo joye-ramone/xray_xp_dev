@@ -84,9 +84,9 @@ void CUIStaticItem::Render()
 	int tile_x					= fis_zero(iRemX)?iTileX:iTileX+1;
 	int tile_y					= fis_zero(iRemY)?iTileY:iTileY+1;
 	int							x,y;
-	if (!(tile_x&&tile_y))		return;
+	if (!(tile_x > 0 && tile_y > 0))		return;
 	// render
-	FVF::TL* start_pv			= (FVF::TL*)RCache.Vertex.Lock	(abs(8*tile_x*tile_y),hGeom_fan.stride(),vOffset);
+	FVF::TL* start_pv			= (FVF::TL*)RCache.Vertex.Lock	(8*tile_x*tile_y,hGeom_fan.stride(),vOffset);
 	FVF::TL* pv					= start_pv;
 	for (x=0; x<tile_x; ++x){
 		for (y=0; y<tile_y; ++y){

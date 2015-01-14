@@ -10,18 +10,23 @@
 //-----------------------------------------------------------------------------
 // Environment modifier
 //-----------------------------------------------------------------------------
-void	CEnvModifier::load	(IReader* fs)
+bool	CEnvModifier::load	(IReader* fs)
 {
-//	Fvector			dummy;
-	fs->r_fvector3	(position);
-	radius			= fs->r_float	();
-	power			= fs->r_float	();
-	far_plane		= fs->r_float	();
-	fs->r_fvector3	(fog_color);
-	fog_density		= fs->r_float	();
-	fs->r_fvector3	(ambient);
-	fs->r_fvector3	(sky_color);
-	fs->r_fvector3	(hemi_color);
+	// Проверка на корректность файла. Real Wolf.
+	if (fs->tell() + 76 > fs->length())
+		return false;
+
+	fs->r_fvector3	(position);			// 4*3=12
+	radius			= fs->r_float	();	// 4
+	power			= fs->r_float	();	// 4
+	far_plane		= fs->r_float	();	// 4
+	fs->r_fvector3	(fog_color);		// 4*3=12
+	fog_density		= fs->r_float	();	// 4
+	fs->r_fvector3	(ambient);			// 4*3=12
+	fs->r_fvector3	(sky_color);		// 4*3=12
+	fs->r_fvector3	(hemi_color);		// 4*3=12
+
+	return true;
 }
 float	CEnvModifier::sum	(CEnvModifier& M, Fvector3& view)
 {
@@ -295,7 +300,9 @@ void	CEnvironment::mods_load			()
 		while		(fs->find_chunk(id))	
 		{
 			CEnvModifier		E;
-			E.load				(fs);
+			// Надо обязательно проверять, что файл корректный, даже если чанк был найден. Real Wolf.
+			if (!E.load(fs))
+				break;
 			Modifiers.push_back	(E);
 			id					++;
 		}
