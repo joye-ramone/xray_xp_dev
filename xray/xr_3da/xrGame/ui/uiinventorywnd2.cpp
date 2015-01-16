@@ -291,7 +291,10 @@ bool CUIInventoryWnd::ToSlot(CUICellItem* itm, bool force_place)
 		
 
 		new_owner->SetItem					(i);
-		SendEvent_Item2Slot					(iitem);
+
+		// Real Wolf: выше по коду уже вызвали функцию Slot. 16.01.14
+		//SendEvent_Item2Slot					(iitem);
+
 	#if defined(INV_NO_ACTIVATE_APPARATUS_SLOT)
 		if (activate_slot(_slot))
 			SendEvent_ActivateSlot				(iitem);
