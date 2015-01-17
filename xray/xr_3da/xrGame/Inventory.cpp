@@ -906,6 +906,13 @@ PIItem CInventory::GetAny(const char *name) const
 	return itm;
 }
 
+// by Karlan // патроны используются только с пояса (в общем получение итема с пояса)
+PIItem CInventory::GetAmmoOnBelt(const char *name) const
+{
+	PIItem itm = Get(name, false);
+	return itm;
+}
+
 PIItem CInventory::item(CLASS_ID cls_id) const
 {
 	const TIItemContainer &list = m_all;

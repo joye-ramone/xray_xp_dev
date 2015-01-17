@@ -33,6 +33,8 @@
 #include "script_game_object.h"
 #include "game_object_space.h"
 
+#include "../../build_config_defines.h"
+
 #define WEAPON_REMOVE_TIME		60000
 #define ROTATION_TIME			0.25f
 
@@ -964,6 +966,7 @@ int CWeapon::GetAmmoCurrent(bool use_item_to_spawn) const
 			}
 		}
 
+#if !defined(AMMO_FROM_BELT)
 		for (TIItemContainer::iterator l_it = m_pCurrentInventory->m_ruck.begin(); m_pCurrentInventory->m_ruck.end() != l_it; ++l_it)
 		{
 			CWeaponAmmo *l_pAmmo = smart_cast<CWeaponAmmo*>(*l_it);
@@ -972,6 +975,7 @@ int CWeapon::GetAmmoCurrent(bool use_item_to_spawn) const
 				iAmmoCurrent = iAmmoCurrent + l_pAmmo->m_boxCurr;
 			}
 		}
+#endif
 
 		if (!use_item_to_spawn)
 			continue;

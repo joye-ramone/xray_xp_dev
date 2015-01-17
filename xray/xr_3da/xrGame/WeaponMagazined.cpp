@@ -191,7 +191,14 @@ bool CWeaponMagazined::TryReload()
 {
 	if (m_pCurrentInventory)
 	{
+		#if defined(AMMO_FROM_BELT)
+		if (ParentIsActor())
+			m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAmmoOnBelt(*m_ammoTypes[m_ammoType]));
+		else
+			m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[m_ammoType]));
+		#else
 		m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[m_ammoType]));
+		#endif
 
 		if (IsMisfire() && iAmmoElapsed)
 		{
@@ -208,7 +215,14 @@ bool CWeaponMagazined::TryReload()
 		}
 		else for (u32 i = 0; i < m_ammoTypes.size(); ++i)
 		{
+					#if defined(AMMO_FROM_BELT)
+		if (ParentIsActor())
+			m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAmmoOnBelt(*m_ammoTypes[i]));
+		else
 			m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[i]));
+		#else
+		m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[i]));
+		#endif
 			if (m_pAmmo)
 			{
 				m_ammoType = i;
@@ -226,11 +240,28 @@ bool CWeaponMagazined::TryReload()
 
 bool CWeaponMagazined::IsAmmoAvailable()
 {
-	if (smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[m_ammoType])))
+		#if defined(AMMO_FROM_BELT)
+		if (ParentIsActor())
+			m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAmmoOnBelt(*m_ammoTypes[m_ammoType]));
+		else
+			m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[m_ammoType]));
+		#else
+		m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[m_ammoType]));
+		#endif
+
+	if (m_pAmmo)
 		return	(true);
 	else
 		for (u32 i = 0; i < m_ammoTypes.size(); ++i)
-			if (smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[i])))
+		#if defined(AMMO_FROM_BELT)
+		if (ParentIsActor())
+			m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAmmoOnBelt(*m_ammoTypes[i]));
+		else
+			m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[i]));
+		#else
+		m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[i]));
+		#endif
+			if (m_pAmmo)
 				return	(true);
 	return		(false);
 }
@@ -282,7 +313,9 @@ void CWeaponMagazined::UnloadMagazine(bool spawn_ammo)
 	xr_map<LPCSTR, u16>::iterator l_it;
 	for (l_it = l_ammo.begin(); l_ammo.end() != l_it; ++l_it)
 	{
+		
 		CWeaponAmmo *l_pA = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(l_it->first));
+
 		if (l_pA)
 		{
 			u16 l_free = l_pA->m_boxSize - l_pA->m_boxCurr;
@@ -318,14 +351,28 @@ void CWeaponMagazined::ReloadMagazine()
 	if (!unlimited_ammo())
 	{
 		//попытатьс€ найти в инвентаре патроны текущего типа
+		#if defined(AMMO_FROM_BELT)
+		if (ParentIsActor())
+			m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAmmoOnBelt(*m_ammoTypes[m_ammoType]));
+		else
+			m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[m_ammoType]));
+		#else
 		m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[m_ammoType]));
+		#endif
 
 		if (!m_pAmmo && !m_bLockType)
 		{
 			for (u32 i = 0; i < m_ammoTypes.size(); ++i)
 			{
 				//проверить патроны всех подход€щих типов
-				m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[i]));
+		#if defined(AMMO_FROM_BELT)
+		if (ParentIsActor())
+			m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAmmoOnBelt(*m_ammoTypes[i]));
+		else
+			m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[i]));
+		#else
+		m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[i]));
+		#endif
 				if (m_pAmmo)
 				{
 					m_ammoType = i;
