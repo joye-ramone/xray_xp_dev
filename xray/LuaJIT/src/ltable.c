@@ -34,7 +34,7 @@
 #include "lstate.h"
 #include "ltable.h"
 
-
+#include <stdio.h>
 /*
 ** max size of array part is 2^MAXBITS
 */
@@ -136,6 +136,8 @@ static int arrayindex (const TValue *key) {
 */
 static int findindex (lua_State *L, Table *t, StkId key) {
   int i;
+  char msg[512];
+
   if (ttisnil(key)) return -1;  /* first iteration */
   i = arrayindex(key);
   if (0 < i && i <= t->sizearray)  /* is `key' inside array part? */
@@ -153,11 +155,13 @@ static int findindex (lua_State *L, Table *t, StkId key) {
       }
       else n = gnext(n);
     } while (n);
-	char msg[512];
+
+
 	if (key)
 		sprintf(msg, " %s = after [type=%d] ", "invalid key to " LUA_QL("next"), key->tt);
 	else
 		sprintf(msg, " %s ", "invalid key to " LUA_QL("next"));
+
     luaG_runerror(L, msg);  /* key not found */
     return 0;  /* to avoid warnings */
   }

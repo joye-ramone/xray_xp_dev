@@ -6,6 +6,7 @@
 class CUIDragItem;
 class CUIDragDropListEx;
 class CUICellItem;
+class CUIProgressBar;
 
 class ICustomDrawCell
 {
@@ -22,11 +23,14 @@ protected:
 	xr_vector<CUICellItem*> m_childs;
 
 	CUIDragDropListEx*		m_pParentList;
+	CUIProgressBar* 		m_pConditionState;
 	Ivector2				m_grid_size;
 	ICustomDrawCell*		m_custom_draw;
 	Fvector2				m_cell_size;				// alpet: реальные размеры €чейки инветар€ вместо 50.f
 	int						m_accelerator;
+	CUIStatic*				m_text; 
 	virtual void			UpdateItemText			();
+	void					init					();
 public:
 							CUICellItem				();
 	virtual					~CUICellItem			();
@@ -52,6 +56,7 @@ public:
 
 	CUIDragDropListEx*		OwnerList				()						{return m_pParentList;}
 				void		SetOwnerList			(CUIDragDropListEx* p);
+				void		UpdateConditionProgressBar();
 				void		SetCustomDraw			(ICustomDrawCell* c);
 				void*		m_pData;
 				int			m_index;

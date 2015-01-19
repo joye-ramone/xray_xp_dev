@@ -6,15 +6,24 @@
 #include "../level.h"
 #include "../object_broker.h"
 #include "UIDragDropListEx.h"
+#include "UIProgressBar.h"
+
+#include "UIXmlInit.h"
+#include "UIInventoryWnd.h"
+#include "../Weapon.h"
+#include "../CustomOutfit.h"
 
 CUICellItem::CUICellItem()
 {
 	m_pParentList		= NULL;
+	m_text				= NULL;
 	m_pData				= NULL;
 	m_custom_draw		= NULL;
 	m_b_already_drawn	= false;
 	SetAccelerator		(0);
 	m_b_destroy_childs	= true;
+	m_pConditionState 	= NULL;
+	init();
 }
 
 CUICellItem::~CUICellItem()
@@ -25,6 +34,25 @@ CUICellItem::~CUICellItem()
 	delete_data		(m_custom_draw);
 }
 
+
+void CUICellItem::init()
+{
+	CUIXml uiXml;
+	bool xml_result						= uiXml.Init(CONFIG_PATH, UI_PATH, "inventory_new.xml");
+	R_ASSERT3							(xml_result, "file parsing error ", uiXml.m_xml_file_name);
+	
+	m_text					= xr_new<CUIStatic>();
+	m_text->SetAutoDelete	( true );
+	AttachChild				( m_text );
+	CUIXmlInit::InitStatic	( uiXml, "cell_item_text", 0, m_text );
+	m_text->Show			( false );
+	
+	m_pConditionState					= xr_new<CUIProgressBar>();
+	m_pConditionState->SetAutoDelete(true);
+	AttachChild(m_pConditionState);
+	CUIXmlInit::InitProgressBar(uiXml, "condition_progess_bar", 0, m_pConditionState);
+	m_pConditionState->Show(true);
+}
 
 void CUICellItem::Draw()
 {
@@ -100,7 +128,38 @@ CUIDragItem* CUICellItem::CreateDragItem()
 void CUICellItem::SetOwnerList(CUIDragDropListEx* p)	
 {
 	m_pParentList=p;
+	UpdateConditionProgressBar();
 }
+
+void CUICellItem::UpdateConditionProgressBar()
+{
+    if(m_pParentList && m_pParentList->GetConditionProgBarVisibility())
+    {
+        PIItem itm = (PIItem)m_pData;
+        CWeapon* pWeapon = smart_cast<CWeapon*>(itm);
+        CCustomOutfit* pOutfit = smart_cast<CCustomOutfit*>(itm);
+
+        if(pWeapon || pOutfit )
+        {
+            Ivector2 itm_grid_size = GetGridSize();
+            if(m_pParentList->GetVerticalPlacement())
+                std::swap(itm_grid_size.x, itm_grid_size.y);
+            Ivector2 cell_size = m_pParentList->CellSize();
+
+			m_pConditionState->SetWidth(cell_size.x);
+
+			float x = 0.5f*(itm_grid_size.x * (cell_size.x)-m_pConditionState->GetWidth());
+            float y = itm_grid_size.y * (cell_size.y) - m_pConditionState->GetHeight() - 1.f;
+
+            m_pConditionState->SetWndPos(Fvector2().set(x,y));
+            m_pConditionState->SetProgressPos(itm->GetCondition()*100.0f);
+            m_pConditionState->Show(true);
+            return;
+        }
+    }
+    m_pConditionState->Show(false);
+}
+
 
 bool CUICellItem::EqualTo(CUICellItem* itm)
 {
@@ -139,12 +198,16 @@ bool CUICellItem::HasChild(CUICellItem* item)
 void CUICellItem::UpdateItemText()
 {
 	string32			str;
-	if(ChildsCount())
-		sprintf_s				(str,"x%d",ChildsCount()+1);
-	else
-		sprintf_s				(str,"");
 
-	SetText				(str);
+		if ( ChildsCount() )
+		{
+			sprintf_s				(str,"x%d",ChildsCount()+1);
+			m_text->SetText(str);
+			m_text->Show( true );
+		}else{
+			sprintf_s				(str,"");
+			m_text->Show( false );
+		}
 }
 
 void CUICellItem::Update()

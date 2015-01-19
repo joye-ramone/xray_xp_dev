@@ -46,6 +46,7 @@ private:
 	Flags8					m_flags;
 	CUICellItem*			m_selected_item;
 	Ivector2				m_orig_cell_capacity;
+	bool					m_bConditionProgBarVisible;
 
 protected:
 	
@@ -96,6 +97,9 @@ public:
 
 			void			SetDrawGrid			(bool b)	{ m_flags.set(flDrawGrid,b); }
 			bool			GetDrawGrid			()			{ return !!m_flags.test(flDrawGrid); }
+			
+			bool			GetConditionProgBarVisibility() {return m_bConditionProgBarVisible;};
+			void			SetConditionProgBarVisibility(bool b) {m_bConditionProgBarVisible = b;};
 public:
 			// items management
 			virtual void	SetItem				(CUICellItem* itm); //auto
