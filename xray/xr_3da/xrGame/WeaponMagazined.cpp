@@ -187,46 +187,42 @@ void CWeaponMagazined::Reload()
 	TryReload();
 }
 
+// Real Wolf: Одна реализация на все участки кода.20.01.15
+bool CWeaponMagazined::TryToGetAmmo(u32 id)
+{
+#if defined(AMMO_FROM_BELT)
+	if (smart_cast<CActor*>(H_Parent()) != NULL)
+	{
+		m_pAmmo		= smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAmmoOnBelt(*m_ammoTypes[id]));
+		Msg("Try reload for actor");
+	}
+	else
+#endif
+	{
+		Msg("Try reload for npc");
+		m_pAmmo		= smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[id]));
+	}
+
+	return m_pAmmo != NULL;
+}
+
 bool CWeaponMagazined::TryReload()
 {
 	if (m_pCurrentInventory)
 	{
-		#if defined(AMMO_FROM_BELT)
-		if (ParentIsActor())
-			m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAmmoOnBelt(*m_ammoTypes[m_ammoType]));
-		else
-			m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[m_ammoType]));
-		#else
-		m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[m_ammoType]));
-		#endif
-
-		if (IsMisfire() && iAmmoElapsed)
+		if (TryToGetAmmo(m_ammoType) || unlimited_ammo() || (IsMisfire() && iAmmoElapsed))
 		{
-			m_bPending = true;
+			m_bPending	= true;
 			SwitchState(eReload);
 			return true;
 		}
 
-		if (m_pAmmo || unlimited_ammo())
+		for (u32 i = 0; i < m_ammoTypes.size(); ++i)
 		{
-			m_bPending = true;
-			SwitchState(eReload);
-			return true;
-		}
-		else for (u32 i = 0; i < m_ammoTypes.size(); ++i)
-		{
-					#if defined(AMMO_FROM_BELT)
-		if (ParentIsActor())
-			m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAmmoOnBelt(*m_ammoTypes[i]));
-		else
-			m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[i]));
-		#else
-		m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[i]));
-		#endif
-			if (m_pAmmo)
+			if (TryToGetAmmo(i))
 			{
-				m_ammoType = i;
-				m_bPending = true;
+				m_ammoType	= i;
+				m_bPending	= true;
 				SwitchState(eReload);
 				return true;
 			}
@@ -240,30 +236,17 @@ bool CWeaponMagazined::TryReload()
 
 bool CWeaponMagazined::IsAmmoAvailable()
 {
-		#if defined(AMMO_FROM_BELT)
-		if (ParentIsActor())
-			m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAmmoOnBelt(*m_ammoTypes[m_ammoType]));
-		else
-			m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[m_ammoType]));
-		#else
-		m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[m_ammoType]));
-		#endif
+	if (TryToGetAmmo(m_ammoType))
+		return true;
+	
+	for (u32 i = 0; i < m_ammoTypes.size(); ++i)
+	{
+		if (TryToGetAmmo(i))
+			return true;
+	}
 
-	if (m_pAmmo)
-		return	(true);
-	else
-		for (u32 i = 0; i < m_ammoTypes.size(); ++i)
-		#if defined(AMMO_FROM_BELT)
-		if (ParentIsActor())
-			m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAmmoOnBelt(*m_ammoTypes[i]));
-		else
-			m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[i]));
-		#else
-		m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[i]));
-		#endif
-			if (m_pAmmo)
-				return	(true);
-	return		(false);
+	return false;
+	
 }
 
 void CWeaponMagazined::OnMagazineEmpty()

@@ -966,16 +966,22 @@ int CWeapon::GetAmmoCurrent(bool use_item_to_spawn) const
 			}
 		}
 
-#if !defined(AMMO_FROM_BELT)
-		for (TIItemContainer::iterator l_it = m_pCurrentInventory->m_ruck.begin(); m_pCurrentInventory->m_ruck.end() != l_it; ++l_it)
+#if defined(AMMO_FROM_BELT)
+		auto parent			= const_cast<CObject*>(H_Parent());
+		auto entity_alive	= smart_cast<CEntityAlive*>(parent);
+
+		if (entity_alive == NULL || !entity_alive->cast_actor())
+#endif
 		{
-			CWeaponAmmo *l_pAmmo = smart_cast<CWeaponAmmo*>(*l_it);
-			if (l_pAmmo && !xr_strcmp(l_pAmmo->cNameSect(), l_ammoType))
+			for (TIItemContainer::iterator l_it = m_pCurrentInventory->m_ruck.begin(); m_pCurrentInventory->m_ruck.end() != l_it; ++l_it)
 			{
-				iAmmoCurrent = iAmmoCurrent + l_pAmmo->m_boxCurr;
+				CWeaponAmmo *l_pAmmo = smart_cast<CWeaponAmmo*>(*l_it);
+				if (l_pAmmo && !xr_strcmp(l_pAmmo->cNameSect(), l_ammoType))
+				{
+					iAmmoCurrent = iAmmoCurrent + l_pAmmo->m_boxCurr;
+				}
 			}
 		}
-#endif
 
 		if (!use_item_to_spawn)
 			continue;

@@ -143,10 +143,6 @@ void CLevel::IR_OnKeyboardPress	(int key)
 		/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
 	}
 
-
-//.	if (DIK_F10 == key)		vtune.enable();
-//.	if (DIK_F11 == key)		vtune.disable();
-	
 	EGameActions _curr = get_binded_action(key);
 	switch ( _curr ) 
 	{
