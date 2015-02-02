@@ -364,9 +364,11 @@ bool CInventory::Slot(PIItem pIItem, bool bNotActivate)
 	m_slots[pIItem->GetSlot()].m_pIItem = pIItem;
 	//удалить из рюкзака или пояса
 	TIItemContainer::iterator it = std::find(m_ruck.begin(), m_ruck.end(), pIItem);
-	if(m_ruck.end() != it) m_ruck.erase(it);
+	if(m_ruck.end() != it) 
+		m_ruck.erase(it);
 	it = std::find(m_belt.begin(), m_belt.end(), pIItem);
-	if(m_belt.end() != it) m_belt.erase(it);
+	if(m_belt.end() != it) 
+		m_belt.erase(it);
  
 	if (( (m_iActiveSlot==pIItem->GetSlot())||(m_iActiveSlot==NO_ACTIVE_SLOT) && m_iNextActiveSlot==NO_ACTIVE_SLOT) && (!bNotActivate))
 		#if defined(INV_NO_ACTIVATE_APPARATUS_SLOT)

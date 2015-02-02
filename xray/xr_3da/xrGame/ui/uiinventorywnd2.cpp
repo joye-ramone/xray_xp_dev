@@ -181,16 +181,16 @@ void CUIInventoryWnd::InitInventory()
 #endif
 	}
 	
-#ifdef INV_NEW_SLOTS_SYSTEM
-	for(i=SLOT_QUICK_ACCESS_0; i <= SLOT_QUICK_ACCESS_3; ++i ) {
-		_itm								= m_pInv->m_slots[i].m_pIItem;
-		if(_itm)
-		{
-			CUICellItem* itm				= create_cell_item(_itm);
-			m_pUIBagList->SetItem			(itm);
-		}
-	}
-#endif
+//#ifdef INV_NEW_SLOTS_SYSTEM
+//	for(i=SLOT_QUICK_ACCESS_0; i <= SLOT_QUICK_ACCESS_3; ++i ) {
+//		_itm								= m_pInv->m_slots[i].m_pIItem;
+//		if(_itm)
+//		{
+//			CUICellItem* itm				= create_cell_item(_itm);
+//			m_pUIBagList->SetItem			(itm);
+//		}
+//	}
+//#endif
 
 	InventoryUtilities::UpdateWeight					(UIBagWnd, true);
 
@@ -232,75 +232,73 @@ void CUIInventoryWnd::DropCurrentItem(bool b_all)
 
 bool CUIInventoryWnd::ToSlot(CUICellItem* itm, bool force_place)
 {
-	CUIDragDropListEx*	old_owner			= itm->OwnerList();
-	PIItem	iitem							= (PIItem)itm->m_pData;
-	u32 _slot								= iitem->GetSlot();
+	auto	old_owner	= itm->OwnerList();
+	auto	iitem		= (PIItem)itm->m_pData;
+	auto	_slot		= iitem->GetSlot();
 		
-
-	if(GetInventory()->CanPutInSlot(iitem)){		
+	if(GetInventory()->CanPutInSlot(iitem))
+	{		
 		
-
-		CUIDragDropListEx* new_owner		= GetSlotList(_slot);
+		auto new_owner	= GetSlotList(_slot);
 		
-		if(_slot==GRENADE_SLOT && !new_owner )
-#if defined(GRENADE_FROM_BELT)
-			return false;
-#else
-			return true; //fake, sorry (((
-#endif
-		
-
-
-	 #if defined(INV_MOVE_ITM_INTO_QUICK_SLOTS) 
-			if ((_slot == SLOT_QUICK_ACCESS_0)||(_slot == SLOT_QUICK_ACCESS_1)||(_slot == SLOT_QUICK_ACCESS_2)||(_slot == SLOT_QUICK_ACCESS_3)){
-				for(u32 i=SLOT_QUICK_ACCESS_0; i <= SLOT_QUICK_ACCESS_3; ++i ) 
-				{	
-					if(i != _slot){
-						 PIItem l_pIItem = GetInventory()->m_slots[i].m_pIItem;
-						 if(l_pIItem){
-							if ((!xr_strcmp(l_pIItem->object().cNameSect(), iitem->object().cNameSect()))&&(l_pIItem != iitem)){
-								PIItem	_iitem						= GetInventory()->m_slots[i].m_pIItem;
-								CUIDragDropListEx* slot_list		= GetSlotList(i);
-								VERIFY								(slot_list->ItemsCount()==1);
-								CUICellItem* slot_cell				= slot_list->GetItemIdx(0);
-								VERIFY								(slot_cell && ((PIItem)slot_cell->m_pData)==_iitem);
-								bool result							= ToBag(slot_cell, false);
-								VERIFY								(result);
-								}
-							 }
-						}
-					}
-				}
-	#endif	
-
-
-		bool result							= GetInventory()->Slot(iitem);
 		if (!new_owner)
 		{
 			Msg("!ERROR: Bad slot %d", _slot);
 			GetSlotList(_slot);  // for tracing
 			return false;
 		}
-	
 
-		VERIFY								(result);
+		if(_slot == GRENADE_SLOT && !new_owner )
+#if defined(GRENADE_FROM_BELT)
+			return false;
+#else
+			return true; //fake, sorry (((
+#endif
+		
+#if defined(INV_MOVE_ITM_INTO_QUICK_SLOTS) 
+		//if (_slot >= SLOT_QUICK_ACCESS_0 && _slot <= SLOT_QUICK_ACCESS_3)
+		//{
+		//	for (u32 i = SLOT_QUICK_ACCESS_0; i <= SLOT_QUICK_ACCESS_3; ++i)
+		//	{	
+		//		if(i != _slot)
+		//		{
+		//			auto item	= GetInventory()->m_slots[i].m_pIItem;
+
+		//			if (item)
+		//			{
+		//				auto name1	= item->object().cNameSect();
+		//				auto name2	= iitem->object().cNameSect();
+
+		//				if (!xr_strcmp(name1, name2) && item != iitem)
+		//				{
+
+		//					CUIDragDropListEx* slot_list		= GetSlotList(i);
+
+		//					CUICellItem* slot_cell				= slot_list->GetItemIdx(0);
+
+		//					bool result							= ToBag(slot_cell, false);
+
+		//				}
+		//			}
+		//		}
+		//	}
+		//}
+#endif	
+	
 #ifdef DEBUG_SLOTS
 		Msg("# inventory wnd ToSlot (0x%p) from old_owner = 0x%p ", itm, old_owner);
 #endif
-		CUICellItem* i						= old_owner->RemoveItem(itm, (old_owner==new_owner) );
-		
+		auto i	= old_owner->RemoveItem(itm, (old_owner == new_owner) );	
+		new_owner->SetItem(i);
 
-		new_owner->SetItem					(i);
+		SendEvent_Item2Slot(iitem);
 
-		// Real Wolf: выше по коду уже вызвали функцию Slot. 16.01.14
-		//SendEvent_Item2Slot					(iitem);
-
-	#if defined(INV_NO_ACTIVATE_APPARATUS_SLOT)
+#if defined(INV_NO_ACTIVATE_APPARATUS_SLOT)
 		if (activate_slot(_slot))
-			SendEvent_ActivateSlot				(iitem);
-	#else
-		SendEvent_ActivateSlot				(iitem);
-	#endif
+			SendEvent_ActivateSlot(iitem);
+#else
+		SendEvent_ActivateSlot(iitem);
+#endif
 
 		/************************************************** added by Ray Twitty (aka Shadows) START **************************************************/
 		// обновляем статик веса в инвентаре
@@ -308,13 +306,16 @@ bool CUIInventoryWnd::ToSlot(CUICellItem* itm, bool force_place)
 		/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
 		m_b_need_reinit = true;
 		
-		return								true;
-	}else
-	{ // in case slot is busy
-		if(!force_place ||  _slot==NO_ACTIVE_SLOT || GetInventory()->m_slots[_slot].m_bPersistent) return false;
+		return	true;
+	}
+	else
+	{ 
+		// in case slot is busy
+		if(!force_place ||  _slot == NO_ACTIVE_SLOT || GetInventory()->m_slots[_slot].m_bPersistent) 
+			return false;
 
-		PIItem	_iitem						= GetInventory()->m_slots[_slot].m_pIItem;
-		CUIDragDropListEx* slot_list		= GetSlotList(_slot);
+		auto	_iitem		= GetInventory()->m_slots[_slot].m_pIItem;
+		auto	slot_list	= GetSlotList(_slot);
 
 		if (0 == slot_list->ItemsCount())
 		{
@@ -322,19 +323,9 @@ bool CUIInventoryWnd::ToSlot(CUICellItem* itm, bool force_place)
 			return false;
 		}
 
+		ToBag(slot_list->GetItemIdx(0), false);
 
-
-		VERIFY								(slot_list->ItemsCount()==1);
-		VERIFY								(slot_list->ItemsCount()>=1);
-
-
-		CUICellItem* slot_cell				= slot_list->GetItemIdx(0);
-		VERIFY								(slot_cell && ((PIItem)slot_cell->m_pData)==_iitem);
-
-		bool result							= ToBag(slot_cell, false);
-		VERIFY								(result);
-
-		return ToSlot						(itm, false);
+		return ToSlot(itm, false);
 	}
 }
 
@@ -366,14 +357,19 @@ bool CUIInventoryWnd::ToBag(CUICellItem* itm, bool b_use_cursor_pos)
 		InventoryUtilities::UpdateWeight	(UIBagWnd, true);
 		/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
 
-#ifdef INV_RUCK_UNLIMITED_FIX		
-		if (result = new_owner->CanSetItem(i) || new_owner->IsAutoGrow() )
+#ifdef INV_RUCK_UNLIMITED_FIX
+		result = new_owner->CanSetItem(i);
+		if (result || new_owner->IsAutoGrow())
 		{
 #endif
-			if(b_use_cursor_pos)
-				new_owner->SetItem				(i,old_owner->GetDragItemPosition() );
+			if (b_use_cursor_pos)
+			{
+				new_owner->SetItem(i, old_owner->GetDragItemPosition());
+			}
 			else
-				new_owner->SetItem				(i);
+			{
+				new_owner->SetItem(i);
+			}
 			SendEvent_Item2Ruck					(iitem);
 #ifdef INV_RUCK_UNLIMITED_FIX
 		}

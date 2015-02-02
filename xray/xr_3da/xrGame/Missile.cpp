@@ -340,6 +340,7 @@ void CMissile::OnAnimationEnd(u32 state)
 			OnStateSwitch(MS_HIDDEN);
 		} break;
 	case MS_SHOWING:
+	case MS_SHOWING2:
 		{
 			setVisible(TRUE);
 			OnStateSwitch(idle_state());

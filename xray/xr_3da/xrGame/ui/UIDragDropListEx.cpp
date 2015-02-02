@@ -376,7 +376,7 @@ void CUIDragDropListEx::SetItem(CUICellItem* itm) //auto
 		return;
 	}
 
-	Ivector2 dest_cell_pos =	m_container->FindFreeCell(itm->GetGridSize());
+	Ivector2 dest_cell_pos =	m_container->FindFreeCell(itm->GetGridSize(true));
 
 	SetItem						(itm,dest_cell_pos);
 }
@@ -387,7 +387,7 @@ void CUIDragDropListEx::SetItem(CUICellItem* itm, Fvector2 abs_pos) // start at 
 	
 	const Ivector2 dest_cell_pos =	m_container->PickCell		(abs_pos);
 
-	if(m_container->ValidCell(dest_cell_pos) && m_container->IsRoomFree(dest_cell_pos,itm->GetGridSize()))
+	if(m_container->ValidCell(dest_cell_pos) && m_container->IsRoomFree(dest_cell_pos,itm->GetGridSize(true)))
 		SetItem						(itm, dest_cell_pos);
 	else
 		SetItem						(itm);
@@ -396,7 +396,7 @@ void CUIDragDropListEx::SetItem(CUICellItem* itm, Fvector2 abs_pos) // start at 
 void CUIDragDropListEx::SetItem(CUICellItem* itm, Ivector2 cell_pos) // start at cell
 {
 	if(m_container->AddSimilar(itm))	return;
-	R_ASSERT						(m_container->IsRoomFree(cell_pos, itm->GetGridSize()));
+	R_ASSERT						(m_container->IsRoomFree(cell_pos, itm->GetGridSize(true)));
 #ifdef DEBUG_SLOTS
 	Msg("# drag-drop list SetItem (0x%p) ", itm);
 #endif
@@ -409,11 +409,11 @@ void CUIDragDropListEx::SetItem(CUICellItem* itm, Ivector2 cell_pos) // start at
 }
 
 bool CUIDragDropListEx::CanSetItem(CUICellItem* itm){
-	if (m_container->HasFreeSpace(itm->GetGridSize()))
+	if (m_container->HasFreeSpace(itm->GetGridSize(true)))
 		return true;
 	Compact();
 
-	return m_container->HasFreeSpace(itm->GetGridSize());
+	return m_container->HasFreeSpace(itm->GetGridSize(true));
 }
 
 CUICellItem* CUIDragDropListEx::RemoveItem(CUICellItem* itm, bool force_root)
@@ -494,15 +494,21 @@ CUICellItem* CUICellContainer::FindSimilar(CUICellItem* itm)
 
 void CUICellContainer::PlaceItemAtPos(CUICellItem* itm, Ivector2& cell_pos)
 {
-	Ivector2 cs				=	itm->GetGridSize();
+	auto cs	= itm->GetGridSize(true);
+
 	if(m_pParentDragDropList->GetVerticalPlacement())
 		std::swap(cs.x,cs.y); 
 
-	for(int x=0; x<cs.x; ++x)
-		for(int y=0; y<cs.y; ++y){
-			CUICell& C		= GetCellAt(Ivector2().set(x,y).add(cell_pos));
-			C.SetItem		(itm,(x==0&&y==0));
+	for (int x = 0; x < cs.x; ++x)
+	{
+		for (int y = 0; y < cs.y; ++y)
+		{
+			CUICell& C = GetCellAt(Ivector2().set(x, y).add(cell_pos));
+			C.SetItem(itm, (x == 0 && y == 0));
 		}
+	}
+
+	cs		= itm->GetGridSize(false);
 
 	itm->SetWndPos			( Fvector2().set( (m_cellSize.x*cell_pos.x), (m_cellSize.y*cell_pos.y))	);
 	itm->SetWndSize			( Fvector2().set( (m_cellSize.x*cs.x),		(m_cellSize.y*cs.y)		 )	);
@@ -539,7 +545,7 @@ CUICellItem* CUICellContainer::RemoveItem(CUICellItem* itm, bool force_root)
 #endif
 
 	Ivector2 pos			= GetItemPos(itm);
-	Ivector2 cs				= itm->GetGridSize();
+	Ivector2 cs				= itm->GetGridSize(true);
 
 	if(m_pParentDragDropList->GetVerticalPlacement())
 		std::swap(cs.x,cs.y); 

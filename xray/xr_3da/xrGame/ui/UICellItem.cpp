@@ -163,7 +163,7 @@ void CUICellItem::UpdateConditionProgressBar()
 
 bool CUICellItem::EqualTo(CUICellItem* itm)
 {
-	return (m_grid_size.x==itm->GetGridSize().x) && (m_grid_size.y==itm->GetGridSize().y);
+	return (m_grid_size.x==itm->GetGridSize(true).x) && (m_grid_size.y==itm->GetGridSize(true).y);
 }
 
 u32 CUICellItem::ChildsCount()
@@ -212,7 +212,9 @@ void CUICellItem::UpdateItemText()
 
 void CUICellItem::Update()
 {
-	EnableHeading(m_pParentList->GetVerticalPlacement());
+	if (m_pParentList)
+		EnableHeading(m_pParentList->GetVerticalPlacement());
+
 	if(Heading())
 	{
 		SetHeading			( 90.0f * (PI/180.0f) );
@@ -232,6 +234,12 @@ void CUICellItem::SetCustomDraw			(ICustomDrawCell* c){
 		xr_delete(m_custom_draw);
 	m_custom_draw = c;
 }
+
+Ivector2 CUICellItem::GetGridSize(bool with_child)
+{
+	return m_grid_size;
+}
+
 
 CUIDragItem::CUIDragItem(CUICellItem* parent)
 {

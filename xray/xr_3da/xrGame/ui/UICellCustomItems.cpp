@@ -302,10 +302,11 @@ void CUIWeaponCellItem::OnAfterChild(CUIDragDropListEx* parent_list)
 {
 	const Ivector2 &cs = parent_list->CellSize();
 	m_cell_size.set( (float)cs.x, (float)cs.y );
-	CUIStatic* s_silencer	= is_silencer() ? GetIcon(eSilencer) : NULL;
-	CUIStatic* s_scope		= is_scope()	? GetIcon(eScope) : NULL;
-	CUIStatic* s_launcher	= is_launcher() ? GetIcon(eLauncher) : NULL;
-	
+
+	CUIStatic* s_silencer	= is_silencer() ?	GetIcon(eSilencer):		NULL;
+	CUIStatic* s_scope		= is_scope() ?		GetIcon(eScope):		NULL;
+	CUIStatic* s_launcher	= is_launcher() ?	GetIcon(eLauncher):		NULL;
+
 	InitAllAddons(s_silencer, s_scope, s_launcher, parent_list->GetVerticalPlacement());
 }
 
@@ -450,6 +451,70 @@ bool CUIWeaponCellItem::EqualTo(CUICellItem* itm)
 	bool b_place					= ( (object()->m_eItemPlace == ci->object()->m_eItemPlace) );
 	
 	return							b_addons && b_place;
+}
+
+Ivector2 CUIWeaponCellItem::GetGridSize(bool with_childs)
+{
+	auto child_grid_size = m_grid_size;
+
+	// Real Wolf: ƒл€ того, чтобы размер €чейки учитывал и размеры улучшений.01.02.15.
+	if (with_childs && !Heading())
+	{
+		Fvector2	inventory_size;
+			inventory_size.x = INV_GRID_WIDTHF  * m_grid_size.x;
+			inventory_size.y = INV_GRID_HEIGHTF * m_grid_size.y;
+
+		auto grid_size	= inventory_size;
+			grid_size.x /= m_grid_size.x;
+			grid_size.y /= m_grid_size.y;
+
+		auto obj		= object();
+
+		str_c addons[eMaxAddon]; std::memset(addons, NULL, sizeof(addons));
+
+		if (obj->IsSilencerAttached())
+			addons[eSilencer]	= obj->GetSilencerName().c_str();
+
+		if (obj->IsScopeAttached())
+			addons[eScope]		= obj->GetScopeName().c_str();
+
+		if (obj->IsGrenadeLauncherAttached())
+			addons[eLauncher]	= obj->GetGrenadeLauncherName().c_str();
+
+		for (int it = eSilencer; it < eMaxAddon; ++it)
+		{
+			if (addons[it] == NULL)
+				continue;
+
+			auto delta	= m_addon_offset[it];
+
+			Fvector2	cell_size;
+				cell_size.x	= pSettings->r_u32(addons[it], "inv_grid_width")	*INV_GRID_WIDTHF;
+				cell_size.y = pSettings->r_u32(addons[it], "inv_grid_height")	*INV_GRID_HEIGHTF;
+
+			delta.add(cell_size);
+			
+			auto delta_x = delta.x - inventory_size.x;
+			if (delta_x > 0)
+			{
+				auto num = (int)std::ceil(delta_x / grid_size.x);
+
+				child_grid_size.x	+= num;
+				inventory_size.x	+= num * grid_size.x;
+			}
+
+			auto delta_y = delta.y - inventory_size.y;
+			if (delta_y > 0)
+			{
+				auto num = (int)std::ceil(delta_y / grid_size.y);
+
+				child_grid_size.y	+= num;
+				inventory_size.y	+= num * grid_size.y;
+			}
+		}
+	}
+
+	return child_grid_size;
 }
 
 CBuyItemCustomDrawCell::CBuyItemCustomDrawCell	(LPCSTR str, CGameFont* pFont)
