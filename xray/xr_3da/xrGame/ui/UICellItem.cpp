@@ -141,7 +141,7 @@ void CUICellItem::UpdateConditionProgressBar()
 
         if(pWeapon || pOutfit )
         {
-            Ivector2 itm_grid_size = GetGridSize();
+            Ivector2 itm_grid_size = GetGridSize(true);
             if(m_pParentList->GetVerticalPlacement())
                 std::swap(itm_grid_size.x, itm_grid_size.y);
             Ivector2 cell_size = m_pParentList->CellSize();
