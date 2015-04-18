@@ -173,6 +173,9 @@ protected:
 	void						DetachAddon					(const char* addon_name);
 
 	void						SetCurrentItem				(CUICellItem* itm);
+#ifdef INV_COLORIZE_AMMO
+	void						ColorizeAmmo				(CUICellItem* itm);
+#endif
 	CUICellItem*				CurrentItem					();
 	
 
