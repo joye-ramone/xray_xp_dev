@@ -2,6 +2,7 @@
 #include <dinput.h>
 #include "key_binding_registrator.h"
 #include "xr_level_controller.h"
+#include "../../build_config_defines.h"
 
 using namespace luabind;
 
@@ -63,7 +64,13 @@ void key_binding_registrator::script_register(lua_State *L)
 				value("kINVENTORY",					int(kINVENTORY)),
 				value("kBUY",						int(kBUY)),
 				value("kSKIN",						int(kSKIN)),
-				value("kTEAM",						int(kTEAM))
+				value("kTEAM",						int(kTEAM)),
+#ifdef INV_NEW_SLOTS_SYSTEM
+				value("kUSE_SLOT_QUICK_ACCESS_0",	int(kUSE_SLOT_QUICK_ACCESS_0)),
+				value("kUSE_SLOT_QUICK_ACCESS_1",	int(kUSE_SLOT_QUICK_ACCESS_1)),
+				value("kUSE_SLOT_QUICK_ACCESS_2",	int(kUSE_SLOT_QUICK_ACCESS_2)),
+				value("kUSE_SLOT_QUICK_ACCESS_3",	int(kUSE_SLOT_QUICK_ACCESS_3))
+#endif									
 			],
 		class_<key_binding_registrator >("DIK_keys")
 			.enum_("dik_keys")

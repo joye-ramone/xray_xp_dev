@@ -13,6 +13,8 @@
 #include "UIMotionIcon.h"
 #include "../hudsound.h"
 #include "../script_export_space.h"
+#include "../inventory.h"
+#include "../../../build_config_defines.h"
 
 //для режима настройки HUD
 extern int				g_bHudAdjustMode;
@@ -28,6 +30,49 @@ class					CActor;
 class					CWeapon;
 class					CMissile;
 class					CInventoryItem;
+
+#ifdef INV_QUICK_SLOT_PANEL
+class CUIXml;
+class CUIStatic;
+
+class CUIQuickSlotPanel : public CUIWindow
+{
+private:
+	typedef				CUIWindow inherited;
+public:
+	CUIQuickSlotPanel			();
+	~CUIQuickSlotPanel			();
+	virtual void 		Update			();
+	virtual void		Draw			();
+	virtual void		Show			();
+	virtual void		Hide			();
+	virtual void 		Init			();
+	void				DrawItemInSlot		(const PIItem itm, CUIStatic* m_QuickSlot_Icon, Fvector2 m_QuickSlot_Icon_Size );
+protected:
+	//
+	Fvector2					m_QuickSlot_0_Icon_Size; 
+	Fvector2					m_QuickSlot_1_Icon_Size;
+	Fvector2					m_QuickSlot_2_Icon_Size;
+	Fvector2					m_QuickSlot_3_Icon_Size;	
+	//
+	CUIStatic*					m_QuickSlot_0_Icon;
+	CUIStatic*					m_QuickSlot_1_Icon;
+	CUIStatic*					m_QuickSlot_2_Icon;
+	CUIStatic*					m_QuickSlot_3_Icon;	
+	//
+	CUIStatic*					m_CountItemQuickSlot_0_Text;
+	CUIStatic*					m_CountItemQuickSlot_1_Text;
+	CUIStatic*					m_CountItemQuickSlot_2_Text;
+	CUIStatic*					m_CountItemQuickSlot_3_Text;
+	//
+	CUIStatic*					m_UseQuickSlot_0_Text;
+	CUIStatic*					m_UseQuickSlot_1_Text;
+	CUIStatic*					m_UseQuickSlot_2_Text;
+	CUIStatic*					m_UseQuickSlot_3_Text;
+	//
+	CUIStatic*					m_QuickSlotPanelBackground;
+};
+#endif
 
 class CUIMainIngameWnd: public CUIWindow  
 {
@@ -89,6 +134,7 @@ protected:
 	CUIWindow*			m_pMPLogWnd;
 public:	
 	CUIArtefactPanel*    m_artefactPanel;
+	CUIQuickSlotPanel*	 m_quickSlotPanel;
 	
 public:
 	
@@ -180,3 +226,5 @@ public:
 add_to_type_list(CUIMainIngameWnd)
 #undef script_type_list
 #define script_type_list save_type_list(CUIMainIngameWnd)
+
+

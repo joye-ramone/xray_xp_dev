@@ -32,10 +32,15 @@
 //#define R1_EXCLUDE						// Real Wolf: отключает первый рендер, оставляя только полное динамическое освещение.
 
 // ==================================== Правки от Red Virus ======================================= 
-#define INV_NO_ACTIVATE_APPARATUS_SLOT  // Red Virus: убирает невозможность сменить оружие клавишами при активных слотах:  фонарика, детектора и тд
-#define INV_MOVE_ITM_INTO_QUICK_SLOTS	// Red Virus: позволяет менять местами предметы в быстрых слотах
 #define WPN_BOBBING						// Red Virus: bobbing effect from lost alpha
 #define INV_COLORIZE_AMMO				// Red Virus: colorize ammo from lost alpha
+
+#ifdef INV_NEW_SLOTS_SYSTEM
+	#define INV_NO_ACTIVATE_APPARATUS_SLOT  // Red Virus: убирает невозможность сменить оружие клавишами при активных слотах:  фонарика, детектора и тд
+	#define INV_MOVE_ITM_INTO_QUICK_SLOTS	// Red Virus: позволяет менять местами предметы в быстрых слотах
+	#define INV_QUICK_SLOT_PANEL		// Red Virus: панель быстрых слотов на главном экране
+#endif
+
 // ==================================== Правки от Karlan ======================================= 
 //#define AMMO_FROM_BELT					// Karlan: Патроны используются только с пояса
 
