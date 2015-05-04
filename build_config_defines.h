@@ -34,7 +34,7 @@
 // ==================================== Правки от Red Virus ======================================= 
 #define WPN_BOBBING						// Red Virus: bobbing effect from lost alpha
 #define INV_COLORIZE_AMMO				// Red Virus: colorize ammo from lost alpha
-
+#define INV_FLOAT_ITEM_INFO				// Red Virus: окно информации о предмете рядом с предметом
 #ifdef INV_NEW_SLOTS_SYSTEM
 	#define INV_NO_ACTIVATE_APPARATUS_SLOT  // Red Virus: убирает невозможность сменить оружие клавишами при активных слотах:  фонарика, детектора и тд
 	#define INV_MOVE_ITM_INTO_QUICK_SLOTS	// Red Virus: позволяет менять местами предметы в быстрых слотах

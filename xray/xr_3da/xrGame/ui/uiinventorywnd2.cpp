@@ -690,6 +690,19 @@ bool CUIInventoryWnd::OnItemRButtonClick(CUICellItem* itm)
 	return						false;
 }
 
+bool CUIInventoryWnd::OnItemFocusedUpdate(CUICellItem* itm)
+{
+	if ( itm )
+	{
+		#ifdef INV_FLOAT_ITEM_INFO
+		Fvector2 pos = GetUICursor()->GetCursorPosition();
+		SetCurrentItem	(itm);
+		UIItemInfo.SetWndPos( pos );
+		#endif
+	}
+	return true;
+}
+
 CUIDragDropListEx* CUIInventoryWnd::GetSlotList(u32 slot_idx)
 {	
 	if(slot_idx == NO_ACTIVE_SLOT || GetInventory()->m_slots[slot_idx].m_bPersistent)	return NULL;

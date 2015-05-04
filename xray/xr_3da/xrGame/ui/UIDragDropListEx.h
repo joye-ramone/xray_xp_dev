@@ -59,7 +59,7 @@ protected:
 	void	__stdcall		OnItemSelected			(CUIWindow* w, void* pData);
 	void	__stdcall		OnItemRButtonClick		(CUIWindow* w, void* pData);
 	void	__stdcall		OnItemDBClick			(CUIWindow* w, void* pData);
-	
+	void	__stdcall		OnItemFocusedUpdate		(CUIWindow* w, void* pData);	
 public:
 	static CUIDragItem*		m_drag_item;
 							CUIDragDropListEx	();
@@ -73,6 +73,7 @@ public:
 	DRAG_DROP_EVENT			m_f_item_db_click;
 	DRAG_DROP_EVENT			m_f_item_selected;
 	DRAG_DROP_EVENT			m_f_item_rbutton_click;
+	DRAG_DROP_EVENT			m_f_item_focused_update;
 
 	const	Ivector2&		CellsCapacity		();
 			void			SetCellsCapacity	(const Ivector2 c);
