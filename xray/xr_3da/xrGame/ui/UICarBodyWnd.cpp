@@ -26,6 +26,8 @@
 #include "../script_game_object.h"
 #include "../BottleItem.h"
 
+#include "../../../build_config_defines.h"
+
 #define				CAR_BODY_XML		"carbody_new.xml"
 #define				CARBODY_ITEM_XML	"carbody_item.xml"
 
@@ -107,25 +109,33 @@ void CUICarBodyWnd::Init()
 	m_pUIStaticDesc					= xr_new<CUIStatic>(); m_pUIStaticDesc->SetAutoDelete(true);
 	m_pUIDescWnd->AttachChild		(m_pUIStaticDesc);
 	xml_init.InitStatic				(uiXml, "descr_static", 0, m_pUIStaticDesc);
-
+	
+	#ifndef INV_FLOAT_ITEM_INFO
 	m_pUIItemInfo					= xr_new<CUIItemInfo>(); m_pUIItemInfo->SetAutoDelete(true);
 	m_pUIDescWnd->AttachChild		(m_pUIItemInfo);
 	m_pUIItemInfo->Init				(0,0, m_pUIDescWnd->GetWidth(), m_pUIDescWnd->GetHeight(), CARBODY_ITEM_XML);
-
-
+	#endif
+	
+	m_pUIStaticDesc->SetText		(NULL);
+	
 	xml_init.InitAutoStatic			(uiXml, "auto_static", this);
 
 	m_pUIPropertiesBox				= xr_new<CUIPropertiesBox>(); m_pUIPropertiesBox->SetAutoDelete(true);
 	AttachChild						(m_pUIPropertiesBox);
 	m_pUIPropertiesBox->Init		(0,0,300,300);
 	m_pUIPropertiesBox->Hide		();
-
-	SetCurrentItem					(NULL);
-	m_pUIStaticDesc->SetText		(NULL);
-
+	
 	m_pUITakeAll					= xr_new<CUI3tButton>(); m_pUITakeAll->SetAutoDelete(true);
 	AttachChild						(m_pUITakeAll);
 	xml_init.Init3tButton				(uiXml, "take_all_btn", 0, m_pUITakeAll);
+
+	#ifdef INV_FLOAT_ITEM_INFO
+	m_pUIItemInfo					= xr_new<CUIItemInfo>(); m_pUIItemInfo->SetAutoDelete(true);
+	AttachChild		(m_pUIItemInfo);
+	m_pUIItemInfo->Init				(CARBODY_ITEM_XML);
+	#endif
+
+	SetCurrentItem					(NULL);
 
 	BindDragDropListEnents			(m_pUIOurBagList);
 	BindDragDropListEnents			(m_pUIOthersBagList);
@@ -572,6 +582,51 @@ bool CUICarBodyWnd::OnItemRButtonClick(CUICellItem* itm)
 	return						false;
 }
 
+bool CUICarBodyWnd::OnItemFocusedUpdate(CUICellItem* itm)
+{
+	if ( itm )
+	{
+		#ifdef INV_FLOAT_ITEM_INFO
+		Fvector2 c_pos			= GetUICursor()->GetCursorPosition();
+		Frect vis_rect;
+		vis_rect.set			(0,0,UI_BASE_WIDTH, UI_BASE_HEIGHT);
+
+		Frect r;
+		r.set					(0.0f, 0.0f, m_pUIItemInfo->GetWidth(), m_pUIItemInfo->GetHeight());
+		r.add					(c_pos.x, c_pos.y);
+
+		r.sub					(0.0f,r.height());
+		if (false==((vis_rect.x1<r.x1)&&(vis_rect.x2>r.x2)&&(vis_rect.y1<r.y1)&&(vis_rect.y2>r.y2)))
+			r.sub				(r.width(),0.0f);
+		if (false==((vis_rect.x1<r.x1)&&(vis_rect.x2>r.x2)&&(vis_rect.y1<r.y1)&&(vis_rect.y2>r.y2)))
+			r.add				(0.0f,r.height());
+		if (false==((vis_rect.x1<r.x1)&&(vis_rect.x2>r.x2)&&(vis_rect.y1<r.y1)&&(vis_rect.y2>r.y2)))
+			r.add				(r.width(), 45.0f);
+
+		m_pUIItemInfo->SetWndPos(r.lt);
+		SetCurrentItem	(itm);
+		#endif
+	}
+	return true;
+}
+
+bool CUICarBodyWnd::OnItemFocusReceive(CUICellItem* itm)
+{
+	#ifdef INV_FLOAT_ITEM_INFO
+	SetCurrentItem	(NULL);
+	#endif
+	return true;
+}
+
+bool CUICarBodyWnd::OnItemFocusLost(CUICellItem* itm)
+{
+	#ifdef INV_FLOAT_ITEM_INFO
+	SetCurrentItem	(NULL);
+	#endif
+	return true;
+}
+
+
 void move_item (u16 from_id, u16 to_id, u16 what_id)
 {
 	NET_Packet P;
@@ -620,4 +675,16 @@ void CUICarBodyWnd::BindDragDropListEnents(CUIDragDropListEx* lst)
 	lst->m_f_item_db_click			= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUICarBodyWnd::OnItemDbClick);
 	lst->m_f_item_selected			= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUICarBodyWnd::OnItemSelected);
 	lst->m_f_item_rbutton_click		= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUICarBodyWnd::OnItemRButtonClick);
+	lst->m_f_item_focused_update	= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUICarBodyWnd::OnItemFocusedUpdate);
+	lst->m_f_item_focus_received	= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUICarBodyWnd::OnItemFocusReceive);
+	lst->m_f_item_focus_lost		= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUICarBodyWnd::OnItemFocusLost);
+}
+
+void CUICarBodyWnd::ColorizeItem(CUICellItem* itm)
+{
+	#ifdef INV_COLORIZE
+	PIItem iitem		= (PIItem)itm->m_pData;
+	if (iitem->m_eItemPlace == eItemPlaceSlot || iitem->m_eItemPlace == eItemPlaceBelt)
+		itm->SetTextureColor				(color_rgba(100,255,100,255));
+	#endif
 }

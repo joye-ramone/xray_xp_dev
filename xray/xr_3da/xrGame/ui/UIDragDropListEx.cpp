@@ -39,6 +39,9 @@ CUIDragDropListEx::CUIDragDropListEx()
 	AddCallback					("cell_item",	DRAG_DROP_ITEM_RBUTTON_CLICK,	CUIWndCallback::void_function	(this, &CUIDragDropListEx::OnItemRButtonClick)			);
 	AddCallback					("cell_item",	DRAG_DROP_ITEM_DB_CLICK,		CUIWndCallback::void_function	(this, &CUIDragDropListEx::OnItemDBClick)			);
 	AddCallback					("cell_item",	DRAG_DROP_ITEM_FOCUSED_UPDATE,	CUIWndCallback::void_function	(this, &CUIDragDropListEx::OnItemFocusedUpdate)			);
+	AddCallback					("cell_item",	WINDOW_FOCUS_RECEIVED,			CUIWndCallback::void_function	(this, &CUIDragDropListEx::OnItemFocusReceived)			);
+	AddCallback					("cell_item",	WINDOW_FOCUS_LOST,				CUIWndCallback::void_function	(this, &CUIDragDropListEx::OnItemFocusLost)			);
+
 	SetDrawGrid					(true);
 }
 
@@ -237,6 +240,25 @@ void  CUIDragDropListEx::OnItemFocusedUpdate(CUIWindow* w, void* pData)
 	if(m_f_item_focused_update)
 	{
 		m_f_item_focused_update			(itm);
+	}
+}
+
+
+void  CUIDragDropListEx::OnItemFocusReceived(CUIWindow* w, void* pData)
+{	
+	if(m_f_item_focus_received)
+	{
+		CUICellItem* itm				= smart_cast<CUICellItem*>(w);
+		m_f_item_focus_received			(itm);
+	}
+}
+
+void  CUIDragDropListEx::OnItemFocusLost(CUIWindow* w, void* pData)
+{	
+	if(m_f_item_focus_lost)
+	{
+		CUICellItem* itm				= smart_cast<CUICellItem*>(w);
+		m_f_item_focus_lost				(itm);
 	}
 }
 

@@ -128,6 +128,8 @@ protected:
 	bool		xr_stdcall		OnItemSelected				(CUICellItem* itm);
 	bool		xr_stdcall		OnItemRButtonClick			(CUICellItem* itm);
 	bool		xr_stdcall		OnItemFocusedUpdate			(CUICellItem* itm);
+	bool		xr_stdcall		OnItemFocusReceive			(CUICellItem* itm);
+	bool		xr_stdcall		OnItemFocusLost				(CUICellItem* itm);
 
 	CUIStatic					UIProgressBack;
 	CUIStatic					UIProgressBack_rank;

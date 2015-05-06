@@ -26,6 +26,7 @@
 #include "UICellItem.h"
 #include "UICellItemFactory.h"
 
+#include "../../../build_config_defines.h"
 
 #define				TRADE_XML			"trade.xml"
 #define				TRADE_CHARACTER_XML	"trade_character.xml"
@@ -153,9 +154,10 @@ void CUITradeWnd::Init()
 	
 	AttachChild							(&m_uidata->UIDescWnd);
 	xml_init.InitStatic					(uiXml, "desc_static", 0, &m_uidata->UIDescWnd);
+	#ifndef INV_FLOAT_ITEM_INFO
 	m_uidata->UIDescWnd.AttachChild		(&m_uidata->UIItemInfo);
 	m_uidata->UIItemInfo.Init			(0,0, m_uidata->UIDescWnd.GetWidth(), m_uidata->UIDescWnd.GetHeight(), TRADE_ITEM_XML);
-
+	#endif
 
 	xml_init.InitAutoStatic				(uiXml, "auto_static", this);
 
@@ -165,6 +167,11 @@ void CUITradeWnd::Init()
 
 	AttachChild							(&m_uidata->UIToTalkButton);
 	xml_init.Init3tButton					(uiXml, "button", 1, &m_uidata->UIToTalkButton);
+	
+	#ifdef INV_FLOAT_ITEM_INFO
+	AttachChild		(&m_uidata->UIItemInfo);
+	m_uidata->UIItemInfo.Init			(TRADE_ITEM_XML);
+	#endif
 
 	m_uidata->UIDealMsg					= NULL;
 
@@ -582,6 +589,50 @@ bool CUITradeWnd::OnItemDbClick(CUICellItem* itm)
 	return true;
 }
 
+bool CUITradeWnd::OnItemFocusedUpdate(CUICellItem* itm)
+{
+	if ( itm )
+	{
+		#ifdef INV_FLOAT_ITEM_INFO
+		Fvector2 c_pos			= GetUICursor()->GetCursorPosition();
+		Frect vis_rect;
+		vis_rect.set			(0,0,UI_BASE_WIDTH, UI_BASE_HEIGHT);
+
+		Frect r;
+		r.set					(0.0f, 0.0f, m_uidata->UIItemInfo.GetWidth(), m_uidata->UIItemInfo.GetHeight());
+		r.add					(c_pos.x, c_pos.y);
+
+		r.sub					(0.0f,r.height());
+		if (false==((vis_rect.x1<r.x1)&&(vis_rect.x2>r.x2)&&(vis_rect.y1<r.y1)&&(vis_rect.y2>r.y2)))
+			r.sub				(r.width(),0.0f);
+		if (false==((vis_rect.x1<r.x1)&&(vis_rect.x2>r.x2)&&(vis_rect.y1<r.y1)&&(vis_rect.y2>r.y2)))
+			r.add				(0.0f,r.height());
+		if (false==((vis_rect.x1<r.x1)&&(vis_rect.x2>r.x2)&&(vis_rect.y1<r.y1)&&(vis_rect.y2>r.y2)))
+			r.add				(r.width(), 45.0f);
+
+		m_uidata->UIItemInfo.SetWndPos(r.lt);
+		SetCurrentItem	(itm);
+		#endif
+	}
+	return true;
+}
+
+bool CUITradeWnd::OnItemFocusReceive(CUICellItem* itm)
+{
+	#ifdef INV_FLOAT_ITEM_INFO
+	SetCurrentItem	(NULL);
+	#endif
+	return true;
+}
+
+bool CUITradeWnd::OnItemFocusLost(CUICellItem* itm)
+{
+	#ifdef INV_FLOAT_ITEM_INFO
+	SetCurrentItem	(NULL);
+	#endif
+	return true;
+}
+
 
 CUICellItem* CUITradeWnd::CurrentItem()
 {
@@ -625,6 +676,9 @@ void CUITradeWnd::BindDragDropListEnents(CUIDragDropListEx* lst)
 	lst->m_f_item_db_click			= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUITradeWnd::OnItemDbClick);
 	lst->m_f_item_selected			= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUITradeWnd::OnItemSelected);
 	lst->m_f_item_rbutton_click		= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUITradeWnd::OnItemRButtonClick);
+	lst->m_f_item_focused_update	= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUITradeWnd::OnItemFocusedUpdate);
+	lst->m_f_item_focus_received	= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUITradeWnd::OnItemFocusReceive);
+	lst->m_f_item_focus_lost		= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUITradeWnd::OnItemFocusLost);
 }
 
 void CUITradeWnd::ColorizeItem(CUICellItem* itm, bool b)
@@ -632,6 +686,8 @@ void CUITradeWnd::ColorizeItem(CUICellItem* itm, bool b)
 	PIItem iitem		= (PIItem)itm->m_pData;
 	if(!b)
 		itm->SetTextureColor		(color_rgba(255,100,100,255));
+	#ifdef INV_COLORIZE
 	else if (iitem->m_eItemPlace == eItemPlaceSlot || iitem->m_eItemPlace == eItemPlaceBelt)
 		itm->SetTextureColor		(color_rgba(100,255,100,255));
+	#endif
 }

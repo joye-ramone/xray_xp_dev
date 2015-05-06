@@ -404,12 +404,19 @@ void CUIWindow::OnFocusReceive()
 {
 	m_dwFocusReceiveTime	= Device.dwTimeGlobal;
 	m_bCursorOverWindow		= true;	
+	
+
+	if (GetMessageTarget())
+        GetMessageTarget()->SendMessage(this, WINDOW_FOCUS_RECEIVED, NULL);
 }
 
 void CUIWindow::OnFocusLost()
 {
 	m_dwFocusReceiveTime	= 0;
 	m_bCursorOverWindow		= false;	
+	
+	if (GetMessageTarget())
+        GetMessageTarget()->SendMessage(this, WINDOW_FOCUS_LOST, NULL);	
 }
 
 

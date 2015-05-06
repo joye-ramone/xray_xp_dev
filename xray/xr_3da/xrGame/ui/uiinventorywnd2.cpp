@@ -695,13 +695,45 @@ bool CUIInventoryWnd::OnItemFocusedUpdate(CUICellItem* itm)
 	if ( itm )
 	{
 		#ifdef INV_FLOAT_ITEM_INFO
-		Fvector2 pos = GetUICursor()->GetCursorPosition();
+		Fvector2 c_pos			= GetUICursor()->GetCursorPosition();
+		Frect vis_rect;
+		vis_rect.set			(0,0,UI_BASE_WIDTH, UI_BASE_HEIGHT);
+
+		Frect r;
+		r.set					(0.0f, 0.0f, UIItemInfo.GetWidth(), UIItemInfo.GetHeight());
+		r.add					(c_pos.x, c_pos.y);
+
+		r.sub					(0.0f,r.height());
+		if (false==((vis_rect.x1<r.x1)&&(vis_rect.x2>r.x2)&&(vis_rect.y1<r.y1)&&(vis_rect.y2>r.y2)))
+			r.sub				(r.width(),0.0f);
+		if (false==((vis_rect.x1<r.x1)&&(vis_rect.x2>r.x2)&&(vis_rect.y1<r.y1)&&(vis_rect.y2>r.y2)))
+			r.add				(0.0f,r.height());
+		if (false==((vis_rect.x1<r.x1)&&(vis_rect.x2>r.x2)&&(vis_rect.y1<r.y1)&&(vis_rect.y2>r.y2)))
+			r.add				(r.width(), 45.0f);
+
+		UIItemInfo.SetWndPos(r.lt);
 		SetCurrentItem	(itm);
-		UIItemInfo.SetWndPos( pos );
 		#endif
 	}
 	return true;
 }
+
+bool CUIInventoryWnd::OnItemFocusReceive(CUICellItem* itm)
+{
+	#ifdef INV_FLOAT_ITEM_INFO
+	SetCurrentItem	(NULL);
+	#endif
+	return true;
+}
+
+bool CUIInventoryWnd::OnItemFocusLost(CUICellItem* itm)
+{
+	#ifdef INV_FLOAT_ITEM_INFO
+	SetCurrentItem	(NULL);
+	#endif
+	return true;
+}
+
 
 CUIDragDropListEx* CUIInventoryWnd::GetSlotList(u32 slot_idx)
 {	
