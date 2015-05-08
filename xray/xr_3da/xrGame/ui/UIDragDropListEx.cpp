@@ -246,6 +246,7 @@ void  CUIDragDropListEx::OnItemFocusedUpdate(CUIWindow* w, void* pData)
 
 void  CUIDragDropListEx::OnItemFocusReceived(CUIWindow* w, void* pData)
 {	
+	OnItemSelected						(w, pData);
 	if(m_f_item_focus_received)
 	{
 		CUICellItem* itm				= smart_cast<CUICellItem*>(w);
@@ -255,6 +256,7 @@ void  CUIDragDropListEx::OnItemFocusReceived(CUIWindow* w, void* pData)
 
 void  CUIDragDropListEx::OnItemFocusLost(CUIWindow* w, void* pData)
 {	
+	OnItemSelected						(w, pData);
 	if(m_f_item_focus_lost)
 	{
 		CUICellItem* itm				= smart_cast<CUICellItem*>(w);

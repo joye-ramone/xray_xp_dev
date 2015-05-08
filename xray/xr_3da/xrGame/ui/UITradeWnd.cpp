@@ -7,6 +7,7 @@
 #include "../Entity.h"
 #include "../HUDManager.h"
 #include "../WeaponAmmo.h"
+#include "../WeaponMagazined.h"
 #include "../Actor.h"
 #include "../Trade.h"
 #include "../UIGameSP.h"
@@ -541,6 +542,21 @@ bool CUITradeWnd::OnItemStartDrag(CUICellItem* itm)
 bool CUITradeWnd::OnItemSelected(CUICellItem* itm)
 {
 	SetCurrentItem		(itm);
+	#ifdef INV_COLORIZE_AMMO
+	ClearColorize	();
+	
+	u32 item_count;
+
+    item_count = m_uidata->UIOurBagList.ItemsCount();
+    for (u32 i=0; i<item_count; ++i)
+    {
+        CUICellItem* ourBag_item = m_uidata->UIOurBagList.GetItemIdx(i);
+		PIItem invitem = (PIItem) ourBag_item->m_pData;
+        ColorizeItem		(ourBag_item, CanMoveToOther(invitem));
+    }
+	
+	ColorizeAmmo		(itm);
+	#endif
 	return				false;
 }
 
@@ -619,6 +635,20 @@ bool CUITradeWnd::OnItemFocusedUpdate(CUICellItem* itm)
 
 bool CUITradeWnd::OnItemFocusReceive(CUICellItem* itm)
 {
+	#ifdef INV_COLORIZE_AMMO
+	ClearColorize();
+	
+	u32 item_count;
+
+    item_count = m_uidata->UIOurBagList.ItemsCount();
+    for (u32 i=0; i<item_count; ++i)
+    {
+        CUICellItem* ourBag_item = m_uidata->UIOurBagList.GetItemIdx(i);
+		PIItem invitem = (PIItem) ourBag_item->m_pData;
+        ColorizeItem		(ourBag_item, CanMoveToOther(invitem));
+    }
+	#endif
+	
 	#ifdef INV_FLOAT_ITEM_INFO
 	SetCurrentItem	(NULL);
 	#endif
@@ -627,6 +657,20 @@ bool CUITradeWnd::OnItemFocusReceive(CUICellItem* itm)
 
 bool CUITradeWnd::OnItemFocusLost(CUICellItem* itm)
 {
+	#ifdef INV_COLORIZE_AMMO
+	ClearColorize();
+
+	u32 item_count;
+
+    item_count = m_uidata->UIOurBagList.ItemsCount();
+    for (u32 i=0; i<item_count; ++i)
+    {
+        CUICellItem* ourBag_item = m_uidata->UIOurBagList.GetItemIdx(i);
+		PIItem invitem = (PIItem) ourBag_item->m_pData;
+        ColorizeItem		(ourBag_item, CanMoveToOther(invitem));
+    }
+	#endif
+	
 	#ifdef INV_FLOAT_ITEM_INFO
 	SetCurrentItem	(NULL);
 	#endif
@@ -691,3 +735,114 @@ void CUITradeWnd::ColorizeItem(CUICellItem* itm, bool b)
 		itm->SetTextureColor		(color_rgba(100,255,100,255));
 	#endif
 }
+
+#ifdef INV_COLORIZE_AMMO
+void CUITradeWnd::ClearColorize()
+{
+	u32 item_count;
+
+    item_count = m_uidata->UIOurBagList.ItemsCount();
+    for (u32 i=0; i<item_count; ++i)
+    {
+        CUICellItem* ourBag_item = m_uidata->UIOurBagList.GetItemIdx(i);
+        ourBag_item->SetTextureColor				(0xffffffff);
+    }
+
+    item_count = m_uidata->UIOurTradeList.ItemsCount();
+    for (u32 i=0; i<item_count; ++i)
+    {
+        CUICellItem* ourTradeBag_item = m_uidata->UIOurTradeList.GetItemIdx(i);
+        ourTradeBag_item->SetTextureColor				(0xffffffff);
+    }
+
+    item_count = m_uidata->UIOthersBagList.ItemsCount();
+    for (u32 i=0; i<item_count; ++i)
+    {
+        CUICellItem* otherBag_item = m_uidata->UIOthersBagList.GetItemIdx(i);
+        otherBag_item->SetTextureColor				(0xffffffff);
+    }
+
+    item_count = m_uidata->UIOthersTradeList.ItemsCount();
+    for (u32 i=0; i<item_count; ++i)
+    {
+        CUICellItem* otherTradeBag_item = m_uidata->UIOthersTradeList.GetItemIdx(i);
+        otherTradeBag_item->SetTextureColor				(0xffffffff);
+    }
+}
+
+void CUITradeWnd::ColorizeAmmo(CUICellItem* itm)
+{
+	u32 item_count;
+
+    CInventoryItem* inventoryitem = (CInventoryItem*) itm->m_pData;
+    if (!inventoryitem) return;
+
+    CWeaponMagazined* weapon = smart_cast<CWeaponMagazined*>(inventoryitem);
+    if (!weapon) return;
+
+    xr_vector<shared_str> ammo_types = weapon->m_ammoTypes;
+
+    u32 color = pSettings->r_color("inventory_color_ammo","color");
+
+    for (size_t id = 0; id<ammo_types.size(); ++id)
+    {
+        item_count = m_uidata->UIOurBagList.ItemsCount();
+        for (u32 i=0; i<item_count; ++i)
+        {
+            CUICellItem* ourBag_item = m_uidata->UIOurBagList.GetItemIdx(i);
+            PIItem invitem = (PIItem) ourBag_item->m_pData;
+
+            if (invitem && xr_strcmp(invitem->object().cNameSect(), ammo_types[id])==0 && invitem->Useful())
+            {
+                ourBag_item->SetTextureColor				(color);
+            }
+        }
+    }
+    for (size_t id = 0; id<ammo_types.size(); ++id)
+    {
+        item_count = m_uidata->UIOurTradeList.ItemsCount();
+        for (u32 i=0; i<item_count; ++i)
+        {
+            CUICellItem* ourTradeBag_item = m_uidata->UIOurTradeList.GetItemIdx(i);
+            PIItem invitem = (PIItem) ourTradeBag_item->m_pData;
+
+            if (invitem && xr_strcmp(invitem->object().cNameSect(), ammo_types[id])==0 && invitem->Useful())
+            {
+                ourTradeBag_item->SetTextureColor				(color);
+                break;
+            }
+        }
+    }
+    for (size_t id = 0; id<ammo_types.size(); ++id)
+    {
+        item_count = m_uidata->UIOthersBagList.ItemsCount();
+        for (u32 i=0; i<item_count; ++i)
+        {
+            CUICellItem* otherBag_item = m_uidata->UIOthersBagList.GetItemIdx(i);
+            PIItem invitem = (PIItem) otherBag_item->m_pData;
+
+            if (invitem && xr_strcmp(invitem->object().cNameSect(), ammo_types[id])==0 && invitem->Useful())
+            {
+                otherBag_item->SetTextureColor				(color);
+                break;
+            }
+        }
+    }
+    for (size_t id = 0; id<ammo_types.size(); ++id)
+    {
+        item_count = m_uidata->UIOthersTradeList.ItemsCount();
+        for (u32 i=0; i<item_count; ++i)
+        {
+            CUICellItem* otherTradeBag_item = m_uidata->UIOthersTradeList.GetItemIdx(i);
+            PIItem invitem = (PIItem) otherTradeBag_item->m_pData;
+
+            if (invitem && xr_strcmp(invitem->object().cNameSect(), ammo_types[id])==0 && invitem->Useful())
+            {
+                otherTradeBag_item->SetTextureColor				(color);
+                break;
+            }
+        }
+    }
+
+}
+#endif

@@ -4,6 +4,8 @@
 #include "UIEditBox.h"
 #include "../inventory_space.h"
 
+#include "../../../build_config_defines.h"
+
 class CUIDragDropListEx;
 class CUIItemInfo;
 class CUICharacterInfo;
@@ -80,6 +82,10 @@ protected:
 	bool					ToOthersBag					();
 	
 	void					SetCurrentItem				(CUICellItem* itm);
+	#ifdef INV_COLORIZE_AMMO
+	void					ColorizeAmmo				(CUICellItem* itm);
+	void					ClearColorize				();
+	#endif
 	CUICellItem*			CurrentItem					();
 	PIItem					CurrentIItem				();
 

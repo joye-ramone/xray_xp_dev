@@ -572,8 +572,92 @@ bool CUICarBodyWnd::OnItemDbClick(CUICellItem* itm)
 bool CUICarBodyWnd::OnItemSelected(CUICellItem* itm)
 {
 	SetCurrentItem		(itm);
+	#ifdef INV_COLORIZE_AMMO
+	ClearColorize();
+	
+	u32 item_count;
+
+    item_count = m_pUIOurBagList->ItemsCount();
+    for (u32 i=0; i<item_count; ++i)
+    {
+        CUICellItem* ourBag_item = m_pUIOurBagList->GetItemIdx(i);
+        ColorizeItem		(ourBag_item);
+    }
+	
+	ColorizeAmmo		(itm);
+	#endif
 	return				false;
 }
+
+#ifdef INV_COLORIZE_AMMO
+void CUICarBodyWnd::ClearColorize()
+{
+    u32 item_count;
+
+    item_count = m_pUIOurBagList->ItemsCount();
+    for (u32 i=0; i<item_count; ++i)
+    {
+        CUICellItem* ourBag_item = m_pUIOurBagList->GetItemIdx(i);
+        ourBag_item->SetTextureColor				(0xffffffff);
+    }
+
+    item_count = m_pUIOthersBagList->ItemsCount();
+    for (u32 i=0; i<item_count; ++i)
+    {
+        CUICellItem* otherBag_item = m_pUIOthersBagList->GetItemIdx(i);
+        otherBag_item->SetTextureColor				(0xffffffff);
+    }
+}
+
+void CUICarBodyWnd::ColorizeAmmo(CUICellItem* itm)
+{
+    u32 item_count;
+
+	ClearColorize();
+	
+    CInventoryItem* inventoryitem = (CInventoryItem*) itm->m_pData;
+    if (!inventoryitem) return;
+
+    CWeaponMagazined* weapon = smart_cast<CWeaponMagazined*>(inventoryitem);
+    if (!weapon) return;
+
+    xr_vector<shared_str> ammo_types = weapon->m_ammoTypes;
+
+    u32 color = pSettings->r_color("inventory_color_ammo","color");
+
+    for (size_t id = 0; id<ammo_types.size(); ++id)
+    {
+        item_count = m_pUIOurBagList->ItemsCount();
+        for (u32 i=0; i<item_count; ++i)
+        {
+            CUICellItem* ourBag_item = m_pUIOurBagList->GetItemIdx(i);
+            PIItem invitem = (PIItem) ourBag_item->m_pData;
+
+            if (invitem && xr_strcmp(invitem->object().cNameSect(), ammo_types[id])==0 && invitem->Useful())
+            {
+                ourBag_item->SetTextureColor				(color);
+            }
+
+        }
+    }
+
+    for (size_t id = 0; id<ammo_types.size(); ++id)
+    {
+        item_count = m_pUIOthersBagList->ItemsCount();
+        for (u32 i=0; i<item_count; ++i)
+        {
+            CUICellItem* otherBag_item = m_pUIOthersBagList->GetItemIdx(i);
+            PIItem invitem = (PIItem) otherBag_item->m_pData;
+
+            if (invitem && xr_strcmp(invitem->object().cNameSect(), ammo_types[id])==0 && invitem->Useful())
+            {
+                otherBag_item->SetTextureColor				(color);
+            }
+
+        }
+    }
+}
+#endif
 
 bool CUICarBodyWnd::OnItemRButtonClick(CUICellItem* itm)
 {
@@ -612,6 +696,10 @@ bool CUICarBodyWnd::OnItemFocusedUpdate(CUICellItem* itm)
 
 bool CUICarBodyWnd::OnItemFocusReceive(CUICellItem* itm)
 {
+	#ifdef INV_COLORIZE_AMMO
+	ClearColorize();
+	#endif
+	
 	#ifdef INV_FLOAT_ITEM_INFO
 	SetCurrentItem	(NULL);
 	#endif
@@ -620,6 +708,10 @@ bool CUICarBodyWnd::OnItemFocusReceive(CUICellItem* itm)
 
 bool CUICarBodyWnd::OnItemFocusLost(CUICellItem* itm)
 {
+	#ifdef INV_COLORIZE_AMMO
+	ClearColorize();
+	#endif
+	
 	#ifdef INV_FLOAT_ITEM_INFO
 	SetCurrentItem	(NULL);
 	#endif

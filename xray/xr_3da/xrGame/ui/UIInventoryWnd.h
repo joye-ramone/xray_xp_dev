@@ -177,6 +177,7 @@ protected:
 	void						SetCurrentItem				(CUICellItem* itm);
 #ifdef INV_COLORIZE_AMMO
 	void						ColorizeAmmo				(CUICellItem* itm);
+	void						ClearColorizeAmmo				();
 #endif
 	CUICellItem*				CurrentItem					();
 	

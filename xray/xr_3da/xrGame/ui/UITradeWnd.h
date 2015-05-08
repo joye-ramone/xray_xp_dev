@@ -2,6 +2,8 @@
 #include "UIWindow.h"
 #include "../inventory_space.h"
 
+#include "../../../build_config_defines.h"
+
 class CInventoryOwner;
 class CEatableItem;
 class CTrade;
@@ -81,6 +83,10 @@ protected:
 
 
 	void				SetCurrentItem				(CUICellItem* itm);
+	#ifdef INV_COLORIZE_AMMO
+	void					ColorizeAmmo				(CUICellItem* itm);
+	void					ClearColorize				();
+	#endif
 	CUICellItem*		CurrentItem					();
 	PIItem				CurrentIItem				();
 
