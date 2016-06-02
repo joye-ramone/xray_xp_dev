@@ -101,10 +101,6 @@ namespace GameObject {
 		eUIMapSpotClick,
 		eUIPickUpItemShowing,
 		eUIGroupItems,
-		eOnCellItemMouse,
-		eOnActorStartShoot,
-		eOnWpnShellDrop,
-		eOnThrowGrenade,
 
 		// Cribbledirge End
 		eDummy = u32(-1),

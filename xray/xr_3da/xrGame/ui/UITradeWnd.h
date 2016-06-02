@@ -2,8 +2,6 @@
 #include "UIWindow.h"
 #include "../inventory_space.h"
 
-#include "../../../build_config_defines.h"
-
 class CInventoryOwner;
 class CEatableItem;
 class CTrade;
@@ -83,10 +81,6 @@ protected:
 
 
 	void				SetCurrentItem				(CUICellItem* itm);
-	#ifdef INV_COLORIZE_AMMO
-	void					ColorizeAmmo				(CUICellItem* itm);
-	void					ClearColorize				();
-	#endif
 	CUICellItem*		CurrentItem					();
 	PIItem				CurrentIItem				();
 
@@ -95,9 +89,6 @@ protected:
 	bool		xr_stdcall		OnItemDbClick		(CUICellItem* itm);
 	bool		xr_stdcall		OnItemSelected		(CUICellItem* itm);
 	bool		xr_stdcall		OnItemRButtonClick	(CUICellItem* itm);
-	bool		xr_stdcall		OnItemFocusedUpdate	(CUICellItem* itm);
-	bool		xr_stdcall		OnItemFocusReceive	(CUICellItem* itm);
-	bool		xr_stdcall		OnItemFocusLost		(CUICellItem* itm);
 
 	void				BindDragDropListEnents		(CUIDragDropListEx* lst);
 

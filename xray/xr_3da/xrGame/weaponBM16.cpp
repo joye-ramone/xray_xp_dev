@@ -96,16 +96,11 @@ void CWeaponBM16::switch2_Showing()
 	PlaySound(sndShow, get_LastFP());
 	m_bPending = true;
 
-	switch (this->GetAmmoElapsed() )
-	{
-	case 1:
+	if (this->GetAmmoCurrent() == 1)
 		m_pHUD->animPlay(random_anim(mhud_draw_empty_right), FALSE, this, GetState());
-		break;
-	case 0:
+	else if (this->GetAmmoCurrent() == 0)
 		m_pHUD->animPlay(random_anim(mhud_draw_empty_both), FALSE, this, GetState());
-		break;
-	default:
+	else
 		m_pHUD->animPlay(random_anim(mhud.mhud_show), FALSE, this, GetState());
-	}	
 }
 #endif

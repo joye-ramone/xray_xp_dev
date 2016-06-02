@@ -57,9 +57,7 @@ bool CUITrackBar::OnMouse(float x, float y, EUIMessages mouse_action)
 	}
 	// Finish.Real Wolf.06.11.14.
 
-	bool result = (mouse_action != WINDOW_MOUSE_WHEEL_DOWN) && (mouse_action != WINDOW_MOUSE_WHEEL_UP);
-
-	return result;
+	return true;
 }
 
 // Start.Real Wolf.06.11.14.

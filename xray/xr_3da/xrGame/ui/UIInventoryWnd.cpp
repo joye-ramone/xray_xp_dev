@@ -81,10 +81,9 @@ void CUIInventoryWnd::Init()
 	AttachChild							(&UIDescrWnd);
 	xml_init.InitStatic					(uiXml, "descr_static", 0, &UIDescrWnd);
 
-	#ifndef INV_FLOAT_ITEM_INFO
+
 	UIDescrWnd.AttachChild				(&UIItemInfo);
 	UIItemInfo.Init						(0, 0, UIDescrWnd.GetWidth(), UIDescrWnd.GetHeight(), INVENTORY_ITEM_XML);
-	#endif
 	
 #ifdef INV_NEW_SLOTS_SYSTEM
 	if (GameID() == GAME_SINGLE){
@@ -221,6 +220,7 @@ void CUIInventoryWnd::Init()
 		m_slots_array[PDA_SLOT]					= m_pUIPDAList;
 		m_slots_array[DETECTOR_SLOT]			= m_pUIDetectorList;
 		m_slots_array[TORCH_SLOT]				= m_pUITorchList;
+		m_slots_array[OUTFIT_SLOT]				= m_pUIOutfitList;
 		m_slots_array[HELMET_SLOT]				= m_pUIHelmetList;
 		m_slots_array[SLOT_QUICK_ACCESS_0]		= m_pUISlotQuickAccessList_0;
 		m_slots_array[SLOT_QUICK_ACCESS_1]		= m_pUISlotQuickAccessList_1;
@@ -238,7 +238,6 @@ void CUIInventoryWnd::Init()
 #endif	
 	m_slots_array[PISTOL_SLOT]				= m_pUIPistolList;
 	m_slots_array[RIFLE_SLOT]				= m_pUIAutomaticList;
-	m_slots_array[OUTFIT_SLOT]				= m_pUIOutfitList;
 	m_slots_array[GRENADE_SLOT]				= NULL;	
 	m_slots_array[BOLT_SLOT]				= NULL;		
 	m_slots_array[ARTEFACT_SLOT]		    = NULL; // m_pUIBeltList;
@@ -257,11 +256,6 @@ void CUIInventoryWnd::Init()
 	UIExitButton						= xr_new<CUI3tButton>();UIExitButton->SetAutoDelete(true);
 	AttachChild							(UIExitButton);
 	xml_init.Init3tButton				(uiXml, "exit_button", 0, UIExitButton);
-	
-	#ifdef INV_FLOAT_ITEM_INFO
-	AttachChild				(&UIItemInfo);
-	UIItemInfo.Init			(INVENTORY_ITEM_XML);
-	#endif
 
 //Load sounds
 
@@ -585,9 +579,6 @@ void CUIInventoryWnd::BindDragDropListEnents(CUIDragDropListEx* lst)
 	lst->m_f_item_db_click			= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUIInventoryWnd::OnItemDbClick);
 	lst->m_f_item_selected			= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUIInventoryWnd::OnItemSelected);
 	lst->m_f_item_rbutton_click		= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUIInventoryWnd::OnItemRButtonClick);
-	lst->m_f_item_focused_update	= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUIInventoryWnd::OnItemFocusedUpdate);
-	lst->m_f_item_focus_received	= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUIInventoryWnd::OnItemFocusReceive);
-	lst->m_f_item_focus_lost		= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUIInventoryWnd::OnItemFocusLost);
 }
 
 

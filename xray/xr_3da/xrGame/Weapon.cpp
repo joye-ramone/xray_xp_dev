@@ -33,8 +33,6 @@
 #include "script_game_object.h"
 #include "game_object_space.h"
 
-#include "../../build_config_defines.h"
-
 #define WEAPON_REMOVE_TIME		60000
 #define ROTATION_TIME			0.25f
 
@@ -966,20 +964,12 @@ int CWeapon::GetAmmoCurrent(bool use_item_to_spawn) const
 			}
 		}
 
-#if defined(AMMO_FROM_BELT)
-		auto parent			= const_cast<CObject*>(H_Parent());
-		auto entity_alive	= smart_cast<CEntityAlive*>(parent);
-
-		if (entity_alive == NULL || !entity_alive->cast_actor())
-#endif
+		for (TIItemContainer::iterator l_it = m_pCurrentInventory->m_ruck.begin(); m_pCurrentInventory->m_ruck.end() != l_it; ++l_it)
 		{
-			for (TIItemContainer::iterator l_it = m_pCurrentInventory->m_ruck.begin(); m_pCurrentInventory->m_ruck.end() != l_it; ++l_it)
+			CWeaponAmmo *l_pAmmo = smart_cast<CWeaponAmmo*>(*l_it);
+			if (l_pAmmo && !xr_strcmp(l_pAmmo->cNameSect(), l_ammoType))
 			{
-				CWeaponAmmo *l_pAmmo = smart_cast<CWeaponAmmo*>(*l_it);
-				if (l_pAmmo && !xr_strcmp(l_pAmmo->cNameSect(), l_ammoType))
-				{
-					iAmmoCurrent = iAmmoCurrent + l_pAmmo->m_boxCurr;
-				}
+				iAmmoCurrent = iAmmoCurrent + l_pAmmo->m_boxCurr;
 			}
 		}
 

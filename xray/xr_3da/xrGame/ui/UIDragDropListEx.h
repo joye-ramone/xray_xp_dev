@@ -46,7 +46,6 @@ private:
 	Flags8					m_flags;
 	CUICellItem*			m_selected_item;
 	Ivector2				m_orig_cell_capacity;
-	bool					m_bConditionProgBarVisible;
 
 protected:
 	
@@ -59,9 +58,7 @@ protected:
 	void	__stdcall		OnItemSelected			(CUIWindow* w, void* pData);
 	void	__stdcall		OnItemRButtonClick		(CUIWindow* w, void* pData);
 	void	__stdcall		OnItemDBClick			(CUIWindow* w, void* pData);
-	void	__stdcall		OnItemFocusedUpdate		(CUIWindow* w, void* pData);	
-	void	__stdcall		OnItemFocusReceived		(CUIWindow* w, void* pData);
-	void	__stdcall		OnItemFocusLost			(CUIWindow* w, void* pData);
+	
 public:
 	static CUIDragItem*		m_drag_item;
 							CUIDragDropListEx	();
@@ -75,9 +72,6 @@ public:
 	DRAG_DROP_EVENT			m_f_item_db_click;
 	DRAG_DROP_EVENT			m_f_item_selected;
 	DRAG_DROP_EVENT			m_f_item_rbutton_click;
-	DRAG_DROP_EVENT			m_f_item_focused_update;
-	DRAG_DROP_EVENT			m_f_item_focus_received;
-	DRAG_DROP_EVENT			m_f_item_focus_lost;
 
 	const	Ivector2&		CellsCapacity		();
 			void			SetCellsCapacity	(const Ivector2 c);
@@ -102,9 +96,6 @@ public:
 
 			void			SetDrawGrid			(bool b)	{ m_flags.set(flDrawGrid,b); }
 			bool			GetDrawGrid			()			{ return !!m_flags.test(flDrawGrid); }
-			
-			bool			GetConditionProgBarVisibility() {return m_bConditionProgBarVisible;};
-			void			SetConditionProgBarVisibility(bool b) {m_bConditionProgBarVisible = b;};
 public:
 			// items management
 			virtual void	SetItem				(CUICellItem* itm); //auto

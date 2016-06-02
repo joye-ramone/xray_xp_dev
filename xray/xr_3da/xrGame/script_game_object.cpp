@@ -809,7 +809,7 @@ void CScriptGameObject::SetDirection (const Fvector &dir, float bank)
 	}
 	
 	// alpet: сохранение направления в серверный экземпляр
-	CSE_ALifeDynamicObject* se_obj = object().alife_object();
+	CSE_ALifeDynamicObject* se_obj = alife_object();
 	if (se_obj)
 		se_obj->angle() = dir;	
 }
@@ -822,28 +822,24 @@ void CScriptGameObject::SetPosition(const Fvector &pos)
 		return;
 	}
 
-	if (IsActor() )
-		SetActorPosition(pos);
+	if (this->IsActor() )
+		this->SetActorPosition(pos);
 	else
 	{
 		NET_Packet						PP;
 		CGameObject::u_EventGen			(PP, GE_CHANGE_POS, object().ID() );
 		PP.w_vec3						(pos);
 		CGameObject::u_EventSend		(PP);
-		
-		// Real Wolf: Для инвентарных объектов из-за этого позиция не меняется.
-		if (smart_cast<CInventoryItem*>(&object()) == NULL)
-		{
-			// alpet: явное перемещение визуалов объектов
-			Fmatrix m = object().XFORM();
-			m.translate_over(pos);
-			object().UpdateXFORM(m);
-		}
+		// alpet: явное перемещение визуалов объектов
+		Fmatrix m = object().XFORM();
+		m.translate_over(pos);
+		object().UpdateXFORM(m);		
 
 		// alpet: сохранение позиции в серверный экземпляр
-		CSE_ALifeDynamicObject* se_obj = object().alife_object();
+		CSE_ALifeDynamicObject* se_obj = alife_object();
 		if (se_obj)
 			se_obj->position() = pos;
+
 	}
 }
 

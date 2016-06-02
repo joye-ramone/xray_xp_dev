@@ -4,8 +4,6 @@
 #include "UIEditBox.h"
 #include "../inventory_space.h"
 
-#include "../../../build_config_defines.h"
-
 class CUIDragDropListEx;
 class CUIItemInfo;
 class CUICharacterInfo;
@@ -20,7 +18,6 @@ class CUICarBodyWnd: public CUIDialogWnd
 private:
 	typedef CUIDialogWnd	inherited;
 	bool					m_b_need_update;
-	void 					ColorizeItem(CUICellItem* itm);
 public:
 							CUICarBodyWnd				();
 	virtual					~CUICarBodyWnd				();
@@ -82,10 +79,6 @@ protected:
 	bool					ToOthersBag					();
 	
 	void					SetCurrentItem				(CUICellItem* itm);
-	#ifdef INV_COLORIZE_AMMO
-	void					ColorizeAmmo				(CUICellItem* itm);
-	void					ClearColorize				();
-	#endif
 	CUICellItem*			CurrentItem					();
 	PIItem					CurrentIItem				();
 
@@ -98,9 +91,6 @@ protected:
 	bool		xr_stdcall	OnItemDbClick				(CUICellItem* itm);
 	bool		xr_stdcall	OnItemSelected				(CUICellItem* itm);
 	bool		xr_stdcall	OnItemRButtonClick			(CUICellItem* itm);
-	bool		xr_stdcall	OnItemFocusedUpdate			(CUICellItem* itm);
-	bool		xr_stdcall	OnItemFocusReceive			(CUICellItem* itm);
-	bool		xr_stdcall	OnItemFocusLost				(CUICellItem* itm); 
 
 	bool					TransferItem				(PIItem itm, CInventoryOwner* owner_from, CInventoryOwner* owner_to, bool b_check);
 	void					BindDragDropListEnents		(CUIDragDropListEx* lst);
