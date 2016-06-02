@@ -32,6 +32,8 @@ private:
 	// Real Wolf. 25.07.2014.
 	shared_str				m_texture;
 	shared_str				m_shader;
+
+
 public:
 	using CUISimpleWindow::SetWndRect;
 
@@ -78,7 +80,6 @@ public:
 			void		TextureAvailable			(bool value)				{ m_bAvailableTexture = value; }
 			bool		TextureAvailable			()							{ return m_bAvailableTexture;}
 
-	virtual void		SetColorAll					(u32);
 
 	// own
 	virtual void		SetHighlightColor			(const u32 uColor)	{ m_HighlightColor = uColor; }

@@ -326,41 +326,8 @@ void CWeaponShotgun::PlayAnimCloseWeapon()
 bool CWeaponShotgun::HaveCartridgeInInventory		(u8 cnt)
 {
 	if (unlimited_ammo()) return true;
-	m_pAmmo = NULL;
-	if(m_pCurrentInventory) 
-	{
-		//попытатьс€ найти в инвентаре патроны текущего типа 
-		#if defined(AMMO_FROM_BELT)
-		if (ParentIsActor())
-			m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAmmoOnBelt(*m_ammoTypes[m_ammoType]));
-		else
-			m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[m_ammoType]));
-		#else
-		m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[m_ammoType]));
-		#endif
-		if(!m_pAmmo )
-		{
-			for(u32 i = 0; i < m_ammoTypes.size(); ++i) 
-			{
-				//проверить патроны всех подход€щих типов
-				#if defined(AMMO_FROM_BELT)
-				if (ParentIsActor())
-					m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAmmoOnBelt(*m_ammoTypes[i]));
-				else
-					m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[i]));
-				#else
-				m_pAmmo = smart_cast<CWeaponAmmo*>(m_pCurrentInventory->GetAny(*m_ammoTypes[i]));
-				#endif
-
-				if(m_pAmmo) 
-				{ 
-					m_ammoType = i; 
-					break; 
-				}
-			}
-		}
-	}
-	return (m_pAmmo!=NULL)&&(m_pAmmo->m_boxCurr>=cnt) ;
+	FindAmmo();
+	return (m_pAmmo!=NULL)&&(m_pAmmo->get_box_curr() >=cnt);
 }
 
 u8 CWeaponShotgun::AddCartridge		(u8 cnt)
@@ -399,7 +366,7 @@ u8 CWeaponShotgun::AddCartridge		(u8 cnt)
 	VERIFY((u32)iAmmoElapsed == m_magazine.size());
 
 	//выкинуть коробку патронов, если она пуста€
-	if(m_pAmmo && !m_pAmmo->m_boxCurr && OnServer()) 
+	if(m_pAmmo && !m_pAmmo->get_box_curr() && OnServer()) 
 		m_pAmmo->SetDropManual(TRUE);
 
 	return cnt;

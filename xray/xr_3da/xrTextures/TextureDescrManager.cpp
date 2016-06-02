@@ -1,7 +1,12 @@
 #include "stdafx.h"
 #pragma hdrstop
+#include "../api_defines.h"
+#include "../render_headers.h"
+#include "../R_Backend.h"
 #include "TextureDescrManager.h"
 #include "ETextureParams.h"
+
+// #pragma optimize("gyts", off)
 
 // eye-params
 float					r__dtex_range	= 50;
@@ -28,7 +33,7 @@ void fix_texture_thm_name(LPSTR fn)
 		*_ext = 0;
 }
 void CTextureDescrMngr::LoadLTX()
-{
+{	// XR_3DA.exe!CTextureDescrMngr::LoadLTX + 0xE bytes
 	string_path				fname;		
 	FS.update_path			(fname,"$game_textures$","textures.ltx");
 
@@ -45,8 +50,9 @@ void CTextureDescrMngr::LoadLTX()
 				const CInifile::Item& item	= *I;
 
 				texture_desc& desc		= m_texture_details[item.first];
-				desc.m_assoc			= xr_new<texture_assoc>();
 
+
+				desc.m_assoc			= xr_new<texture_assoc>();
 				string_path				T;
 				float					s;
 
@@ -72,8 +78,8 @@ void CTextureDescrMngr::LoadLTX()
 			for (CInifile::SectCIt I2=sect.Data.begin(); I2!=sect.Data.end(); ++I2)	
 			{
 				const CInifile::Item& item	= *I2;
-
 				texture_desc& desc		= m_texture_details[item.first];
+
 				desc.m_spec				= xr_new<texture_spec>();
 
 				string_path				bmode, bparallax;
@@ -131,7 +137,7 @@ void CTextureDescrMngr::LoadTHM()
 		strcpy_s				(fn,(*It).name.c_str());
 		fix_texture_thm_name(fn);
 
-		R_ASSERT			(F->find_chunk(THM_CHUNK_TYPE));
+		R_ASSERT2			(F->find_chunk(THM_CHUNK_TYPE), fn);
 		F->r_u32			();
 		tp.Clear			();
 		tp.Load				(*F);
@@ -151,8 +157,11 @@ void CTextureDescrMngr::LoadTHM()
 			if( tp.detail_name.size() &&
 				tp.flags.is_any(STextureParams::flDiffuseDetail|STextureParams::flBumpDetail) )
 			{
-				if(desc.m_assoc)
-					xr_delete				(desc.m_assoc);
+				if (desc.m_assoc)
+				{
+					xr_delete(desc.m_assoc->cs);
+					xr_delete(desc.m_assoc);
+				}
 
 				desc.m_assoc				= xr_new<texture_assoc>();
 				desc.m_assoc->detail_name	= tp.detail_name;
@@ -191,14 +200,36 @@ void CTextureDescrMngr::Load()
 
 void CTextureDescrMngr::UnLoad()
 {
-	map_TD::iterator I = m_texture_details.begin();
-	map_TD::iterator E = m_texture_details.end();
-	for(;I!=E;++I)
+	u32 count = 0;
+
+	try
 	{
-		xr_delete(I->second.m_assoc);
-		xr_delete(I->second.m_spec);
+		map_TD::iterator I = m_texture_details.begin();
+		map_TD::iterator E = m_texture_details.end();
+		
+		for(;I!=E;++I)
+		{
+			if (I->second.m_assoc)
+			{
+				if (I->second.m_assoc->cs)
+					xr_delete(I->second.m_assoc->cs); // alpet: memory leak detected by VLD						
+				xr_delete(I->second.m_assoc);
+			}
+			if (I->second.m_spec)
+				xr_delete(I->second.m_spec);
+			
+			I->second.m_assoc = NULL;
+			I->second.m_spec = NULL;
+			count++;
+		}
+		Msg("#PERF: %d texture descriptions was unloaded ", count);	
+		m_texture_details.clear();
+		R_ASSERT2(m_texture_details.empty(), "problem with descriptions unloading");
 	}
-	m_texture_details.clear	();
+	catch (...)
+	{
+		Msg("!#EXCEPTION: catched in CTextureDescrMngr::UnLoad(), unloaded now %d descriptions ", count);
+	}
 }
 /*
 		LPCSTR		descr			=	Device.Resources->m_description->r_string("specification",*cName);

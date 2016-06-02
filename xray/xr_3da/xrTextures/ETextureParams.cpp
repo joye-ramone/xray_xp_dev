@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "../api_defines.h"
 #pragma hdrstop          
 
 #include "ETextureParams.h"

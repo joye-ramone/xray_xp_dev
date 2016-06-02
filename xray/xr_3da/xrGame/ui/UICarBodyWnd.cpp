@@ -26,8 +26,6 @@
 #include "../script_game_object.h"
 #include "../BottleItem.h"
 
-#include "../../../build_config_defines.h"
-
 #define				CAR_BODY_XML		"carbody_new.xml"
 #define				CARBODY_ITEM_XML	"carbody_item.xml"
 
@@ -109,33 +107,25 @@ void CUICarBodyWnd::Init()
 	m_pUIStaticDesc					= xr_new<CUIStatic>(); m_pUIStaticDesc->SetAutoDelete(true);
 	m_pUIDescWnd->AttachChild		(m_pUIStaticDesc);
 	xml_init.InitStatic				(uiXml, "descr_static", 0, m_pUIStaticDesc);
-	
-	#ifndef INV_FLOAT_ITEM_INFO
+
 	m_pUIItemInfo					= xr_new<CUIItemInfo>(); m_pUIItemInfo->SetAutoDelete(true);
 	m_pUIDescWnd->AttachChild		(m_pUIItemInfo);
 	m_pUIItemInfo->Init				(0,0, m_pUIDescWnd->GetWidth(), m_pUIDescWnd->GetHeight(), CARBODY_ITEM_XML);
-	#endif
-	
-	m_pUIStaticDesc->SetText		(NULL);
-	
+
+
 	xml_init.InitAutoStatic			(uiXml, "auto_static", this);
 
 	m_pUIPropertiesBox				= xr_new<CUIPropertiesBox>(); m_pUIPropertiesBox->SetAutoDelete(true);
 	AttachChild						(m_pUIPropertiesBox);
 	m_pUIPropertiesBox->Init		(0,0,300,300);
 	m_pUIPropertiesBox->Hide		();
-	
+
+	SetCurrentItem					(NULL);
+	m_pUIStaticDesc->SetText		(NULL);
+
 	m_pUITakeAll					= xr_new<CUI3tButton>(); m_pUITakeAll->SetAutoDelete(true);
 	AttachChild						(m_pUITakeAll);
 	xml_init.Init3tButton				(uiXml, "take_all_btn", 0, m_pUITakeAll);
-
-	#ifdef INV_FLOAT_ITEM_INFO
-	m_pUIItemInfo					= xr_new<CUIItemInfo>(); m_pUIItemInfo->SetAutoDelete(true);
-	AttachChild		(m_pUIItemInfo);
-	m_pUIItemInfo->Init				(CARBODY_ITEM_XML);
-	#endif
-
-	SetCurrentItem					(NULL);
 
 	BindDragDropListEnents			(m_pUIOurBagList);
 	BindDragDropListEnents			(m_pUIOthersBagList);
@@ -143,7 +133,7 @@ void CUICarBodyWnd::Init()
 
 }
 
-void CUICarBodyWnd::InitCarBody(CInventoryOwner* pOur, CInventoryBox* pInvBox)
+void CUICarBodyWnd::InitCarBody(CInventoryOwner* pOur, IInventoryBox* pInvBox)
 {
     m_pOurObject									= pOur;
 	m_pOthersObject									= NULL;
@@ -159,7 +149,7 @@ void CUICarBodyWnd::InitCarBody(CInventoryOwner* pOur, CInventoryBox* pInvBox)
 	UpdateLists										();
 
 	// Real Wolf: колбек на открытие ящика. 02.08.2014.
-	pInvBox->callback(GameObject::eOnInvBoxOpen)();
+	pInvBox->object().callback(GameObject::eOnInvBoxOpen)();
 }
 
 void CUICarBodyWnd::InitCarBody(CInventoryOwner* pOur, CInventoryOwner* pOthers)
@@ -385,7 +375,7 @@ void CUICarBodyWnd::TakeAll()
 			if(m_pOthersObject)
 				TransferItem	(_itm, m_pOthersObject, m_pOurObject, false);
 			else{
-				move_item		(m_pInventoryBox->ID(), tmp_id, _itm->object().ID());
+				move_item		(m_pInventoryBox->object().ID(), tmp_id, _itm->object().ID());
 //.				Actor()->callback(GameObject::eInvBoxItemTake)( m_pInventoryBox->lua_game_object(), _itm->object().lua_game_object() );
 			}
 		
@@ -394,7 +384,7 @@ void CUICarBodyWnd::TakeAll()
 		if(m_pOthersObject)
 			TransferItem	(itm, m_pOthersObject, m_pOurObject, false);
 		else{
-			move_item		(m_pInventoryBox->ID(), tmp_id, itm->object().ID());
+			move_item		(m_pInventoryBox->object().ID(), tmp_id, itm->object().ID());
 //.			Actor()->callback(GameObject::eInvBoxItemTake)(m_pInventoryBox->lua_game_object(), itm->object().lua_game_object() );
 		}
 
@@ -418,6 +408,8 @@ bool CUICarBodyWnd::OnKeyboard(int dik, EUIMessages keyboard_action)
 
 #include "../Medkit.h"
 #include "../Antirad.h"
+
+
 
 void CUICarBodyWnd::ActivatePropertiesBox()
 {
@@ -464,6 +456,11 @@ void CUICarBodyWnd::ActivatePropertiesBox()
 	}
 }
 
+u16 CUICarBodyWnd::GetOwnerID () const
+{
+	return (m_pInventoryBox)?m_pInventoryBox->object().ID():smart_cast<CGameObject*>(m_pOthersObject)->ID();						
+}
+
 void CUICarBodyWnd::EatItem()
 {
 	CActor *pActor				= smart_cast<CActor*>(Level().CurrentEntity());
@@ -472,9 +469,9 @@ void CUICarBodyWnd::EatItem()
 	CUIDragDropListEx* owner_list		= CurrentItem()->OwnerList();
 	if(owner_list==m_pUIOthersBagList)
 	{
-		u16 owner_id				= (m_pInventoryBox)?m_pInventoryBox->ID():smart_cast<CGameObject*>(m_pOthersObject)->ID();
+		
 
-		move_item(	owner_id, //from
+		move_item(	GetOwnerID(), //from
 					Actor()->ID(), //to
 					CurrentIItem()->object().ID());
 	}
@@ -510,12 +507,11 @@ bool CUICarBodyWnd::OnItemDrop(CUICellItem* itm)
 	}else
 	{
 		u16 tmp_id	= (smart_cast<CGameObject*>(m_pOurObject))->ID();
-
+		u16 box_id				= m_pInventoryBox->object().ID();
 		bool bMoveDirection		= (old_owner==m_pUIOthersBagList);
-
 		move_item				(
-								bMoveDirection?m_pInventoryBox->ID():tmp_id,
-								bMoveDirection?tmp_id:m_pInventoryBox->ID(),
+								bMoveDirection? box_id : tmp_id,
+								bMoveDirection? tmp_id : box_id,
 								CurrentIItem()->object().ID());
 
 
@@ -557,9 +553,11 @@ bool CUICarBodyWnd::OnItemDbClick(CUICellItem* itm)
 		bool bMoveDirection		= (old_owner==m_pUIOthersBagList);
 
 		u16 tmp_id				= (smart_cast<CGameObject*>(m_pOurObject))->ID();
+		u16 box_id				= m_pInventoryBox->object().ID();
+
 		move_item				(
-								bMoveDirection?m_pInventoryBox->ID():tmp_id,
-								bMoveDirection?tmp_id:m_pInventoryBox->ID(),
+								bMoveDirection ? box_id : tmp_id,
+								bMoveDirection ? tmp_id : box_id,
 								CurrentIItem()->object().ID());
 //.		Actor()->callback		(GameObject::eInvBoxItemTake)(m_pInventoryBox->lua_game_object(), CurrentIItem()->object().lua_game_object() );
 
@@ -572,92 +570,8 @@ bool CUICarBodyWnd::OnItemDbClick(CUICellItem* itm)
 bool CUICarBodyWnd::OnItemSelected(CUICellItem* itm)
 {
 	SetCurrentItem		(itm);
-	#ifdef INV_COLORIZE_AMMO
-	ClearColorize();
-	
-	u32 item_count;
-
-    item_count = m_pUIOurBagList->ItemsCount();
-    for (u32 i=0; i<item_count; ++i)
-    {
-        CUICellItem* ourBag_item = m_pUIOurBagList->GetItemIdx(i);
-        ColorizeItem		(ourBag_item);
-    }
-	
-	ColorizeAmmo		(itm);
-	#endif
 	return				false;
 }
-
-#ifdef INV_COLORIZE_AMMO
-void CUICarBodyWnd::ClearColorize()
-{
-    u32 item_count;
-
-    item_count = m_pUIOurBagList->ItemsCount();
-    for (u32 i=0; i<item_count; ++i)
-    {
-        CUICellItem* ourBag_item = m_pUIOurBagList->GetItemIdx(i);
-        ourBag_item->SetTextureColor				(0xffffffff);
-    }
-
-    item_count = m_pUIOthersBagList->ItemsCount();
-    for (u32 i=0; i<item_count; ++i)
-    {
-        CUICellItem* otherBag_item = m_pUIOthersBagList->GetItemIdx(i);
-        otherBag_item->SetTextureColor				(0xffffffff);
-    }
-}
-
-void CUICarBodyWnd::ColorizeAmmo(CUICellItem* itm)
-{
-    u32 item_count;
-
-	ClearColorize();
-	
-    CInventoryItem* inventoryitem = (CInventoryItem*) itm->m_pData;
-    if (!inventoryitem) return;
-
-    CWeaponMagazined* weapon = smart_cast<CWeaponMagazined*>(inventoryitem);
-    if (!weapon) return;
-
-    xr_vector<shared_str> ammo_types = weapon->m_ammoTypes;
-
-    u32 color = pSettings->r_color("inventory_color_ammo","color");
-
-    for (size_t id = 0; id<ammo_types.size(); ++id)
-    {
-        item_count = m_pUIOurBagList->ItemsCount();
-        for (u32 i=0; i<item_count; ++i)
-        {
-            CUICellItem* ourBag_item = m_pUIOurBagList->GetItemIdx(i);
-            PIItem invitem = (PIItem) ourBag_item->m_pData;
-
-            if (invitem && xr_strcmp(invitem->object().cNameSect(), ammo_types[id])==0 && invitem->Useful())
-            {
-                ourBag_item->SetTextureColor				(color);
-            }
-
-        }
-    }
-
-    for (size_t id = 0; id<ammo_types.size(); ++id)
-    {
-        item_count = m_pUIOthersBagList->ItemsCount();
-        for (u32 i=0; i<item_count; ++i)
-        {
-            CUICellItem* otherBag_item = m_pUIOthersBagList->GetItemIdx(i);
-            PIItem invitem = (PIItem) otherBag_item->m_pData;
-
-            if (invitem && xr_strcmp(invitem->object().cNameSect(), ammo_types[id])==0 && invitem->Useful())
-            {
-                otherBag_item->SetTextureColor				(color);
-            }
-
-        }
-    }
-}
-#endif
 
 bool CUICarBodyWnd::OnItemRButtonClick(CUICellItem* itm)
 {
@@ -665,59 +579,6 @@ bool CUICarBodyWnd::OnItemRButtonClick(CUICellItem* itm)
 	ActivatePropertiesBox		();
 	return						false;
 }
-
-bool CUICarBodyWnd::OnItemFocusedUpdate(CUICellItem* itm)
-{
-	if ( itm )
-	{
-		#ifdef INV_FLOAT_ITEM_INFO
-		Fvector2 c_pos			= GetUICursor()->GetCursorPosition();
-		Frect vis_rect;
-		vis_rect.set			(0,0,UI_BASE_WIDTH, UI_BASE_HEIGHT);
-
-		Frect r;
-		r.set					(0.0f, 0.0f, m_pUIItemInfo->GetWidth(), m_pUIItemInfo->GetHeight());
-		r.add					(c_pos.x, c_pos.y);
-
-		r.sub					(0.0f,r.height());
-		if (false==((vis_rect.x1<r.x1)&&(vis_rect.x2>r.x2)&&(vis_rect.y1<r.y1)&&(vis_rect.y2>r.y2)))
-			r.sub				(r.width(),0.0f);
-		if (false==((vis_rect.x1<r.x1)&&(vis_rect.x2>r.x2)&&(vis_rect.y1<r.y1)&&(vis_rect.y2>r.y2)))
-			r.add				(0.0f,r.height());
-		if (false==((vis_rect.x1<r.x1)&&(vis_rect.x2>r.x2)&&(vis_rect.y1<r.y1)&&(vis_rect.y2>r.y2)))
-			r.add				(r.width(), 45.0f);
-
-		m_pUIItemInfo->SetWndPos(r.lt);
-		SetCurrentItem	(itm);
-		#endif
-	}
-	return true;
-}
-
-bool CUICarBodyWnd::OnItemFocusReceive(CUICellItem* itm)
-{
-	#ifdef INV_COLORIZE_AMMO
-	ClearColorize();
-	#endif
-	
-	#ifdef INV_FLOAT_ITEM_INFO
-	SetCurrentItem	(NULL);
-	#endif
-	return true;
-}
-
-bool CUICarBodyWnd::OnItemFocusLost(CUICellItem* itm)
-{
-	#ifdef INV_COLORIZE_AMMO
-	ClearColorize();
-	#endif
-	
-	#ifdef INV_FLOAT_ITEM_INFO
-	SetCurrentItem	(NULL);
-	#endif
-	return true;
-}
-
 
 void move_item (u16 from_id, u16 to_id, u16 what_id)
 {
@@ -767,16 +628,4 @@ void CUICarBodyWnd::BindDragDropListEnents(CUIDragDropListEx* lst)
 	lst->m_f_item_db_click			= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUICarBodyWnd::OnItemDbClick);
 	lst->m_f_item_selected			= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUICarBodyWnd::OnItemSelected);
 	lst->m_f_item_rbutton_click		= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUICarBodyWnd::OnItemRButtonClick);
-	lst->m_f_item_focused_update	= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUICarBodyWnd::OnItemFocusedUpdate);
-	lst->m_f_item_focus_received	= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUICarBodyWnd::OnItemFocusReceive);
-	lst->m_f_item_focus_lost		= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUICarBodyWnd::OnItemFocusLost);
-}
-
-void CUICarBodyWnd::ColorizeItem(CUICellItem* itm)
-{
-	#ifdef INV_COLORIZE
-	PIItem iitem		= (PIItem)itm->m_pData;
-	if (iitem->m_eItemPlace == eItemPlaceSlot || iitem->m_eItemPlace == eItemPlaceBelt)
-		itm->SetTextureColor				(color_rgba(100,255,100,255));
-	#endif
 }

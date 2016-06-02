@@ -1,12 +1,11 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: derived_client_classes.h
 //	Created 	: 16.08.2014
-//  Modified 	: 20.10.2014
+//  Modified 	: 07.12.2014
 //	Author		: Alexander Petrov
 //	Description : XRay derived client classes script export
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
 #include "pch_script.h"
 #include "base_client_classes.h"
 #include "derived_client_classes.h"
@@ -139,33 +138,6 @@ CScriptGameObject  *get_inventory_target(CInventory *I)		{ return item_lua_objec
 LPCSTR get_item_name				(CInventoryItem *I) { return I->Name(); }
 LPCSTR get_item_name_short			(CInventoryItem *I) { return I->NameShort(); }
 
-#include "string_table.h"
-void set_item_name(CInventoryItem *item, LPCSTR name)
-{
-	if (!name || name[0] == '\0')
-		name = "";
-
-	item->m_name = CStringTable().translate(name);
-}
-
-void set_item_name_short(CInventoryItem *item, LPCSTR name)
-{
-	if (!name || name[0] == '\0')
-		name = "";
-
-	item->m_nameShort = CStringTable().translate(name);
-}
-
-LPCSTR get_item_description				(CInventoryItem *I) { return I->m_Description.c_str(); }
-
-void set_item_description(CInventoryItem *item, LPCSTR text)
-{
-	if (!text || text[0] == '\0')
-		text = "";
-
-	item->m_Description = CStringTable().translate(text);
-}
-
 
 void item_to_belt(CInventory *I, lua_State *L)
 {   // 1st param: CInventory*, 2nd param: item?
@@ -216,6 +188,12 @@ void get_slots(luabind::object O)
 void fake_set_slots(CInventoryItem *I, luabind::object T) { } // модифицировать слоты можно, если GetSlots не будет возвращать константу
 #endif
 
+bool is_quest_item(const CInventoryItem *I)  { return !!I->IsQuestItem(); }
+void set_is_quest_item(CInventoryItem *I, bool yep)
+{
+	I->m_flags.set(CInventoryItem::FIsQuestItem, yep);
+}
+
 void CInventoryScript::script_register(lua_State *L)
 {
 	module(L)
@@ -226,14 +204,16 @@ void CInventoryScript::script_register(lua_State *L)
 			.def_readwrite("item_condition"				,			&CInventoryItem::m_fCondition)
 			.def_readwrite("inv_weight"					,			&CInventoryItem::m_weight)
 			.property("class_name"						,			&get_lua_class_name)
-			.property("inv_name"						,			&get_item_name, &set_item_name)
-			.property("inv_name_short"					,			&get_item_name_short, &set_item_name_short)
+			.property("item_name"						,			&get_item_name)
+			.property("item_name_short"					,			&get_item_name_short)
+			.property("quest_item"						,			&is_quest_item, &set_is_quest_item)
 			.property("cost"							,			&CInventoryItem::Cost,  &CInventoryItem::SetCost)
 			.property("slot"							,			&CInventoryItem::GetSlot, &CInventoryItem::SetSlot)
 #ifdef INV_NEW_SLOTS_SYSTEM
 			.property("slots"							,			&get_slots,    &fake_set_slots, raw(_2))	
 #endif
-			.property("description"						,			&get_item_description, &set_item_description)
+			.def("visible_in_slot"						,			&CInventoryItem::VisibleInSlot)
+			.def("set_visible_in_slot"					,			&CInventoryItem::SetVisibleInSlot)
 			,
 			class_<CInventoryItemObject, bases<CInventoryItem, CGameObject>>("CInventoryItemObject"),
 
@@ -249,6 +229,23 @@ void CInventoryScript::script_register(lua_State *L)
 			.def		  ("to_belt"					,			&item_to_slot,   raw(_2))
 			.def		  ("to_slot"					,			&item_to_slot,   raw(_2))
 			.def		  ("to_ruck"					,			&item_to_ruck,   raw(_2))
+			,
+			class_<IInventoryBox>("IInventoryBox")			
+			.def	  	 ("object"						,			&IInventoryBox::GetObjectByIndex)
+			.def	  	 ("object"						,			&IInventoryBox::GetObjectByName)
+			.def	  	 ("object_count"				,			&IInventoryBox::GetSize)
+			.def		 ("empty"						,			&IInventoryBox::IsEmpty)
+			,
+			class_<CInventoryBox, bases<IInventoryBox, CGameObject>>("CInventoryBox")
+			,
+			class_<CInventoryContainer, bases<IInventoryBox, CInventoryItemObject>>("CInventoryContainer")
+			.property	 ("cost"						,			&CInventoryContainer::Cost)
+			.property	 ("weight"						,			&CInventoryContainer::Weight)
+			.property	 ("is_opened"					,			&CInventoryContainer::IsOpened)
+			.def		  ("open"						,			&CInventoryContainer::open)
+			.def		  ("close"						,			&CInventoryContainer::close)
+			
+			
 			,
 			class_<CInventoryOwner>("CInventoryOwner")
 			.def_readonly ("inventory"					,			&CInventoryOwner::m_inventory)
@@ -296,17 +293,19 @@ void COutfitScript::script_register(lua_State *L)
 			.def_readwrite("additional_inventory_weight"		,		&CCustomOutfit::m_additional_weight)
 			.def_readwrite("additional_inventory_weight2"		,		&CCustomOutfit::m_additional_weight2)
 			.def_readwrite("power_loss"							,		&CCustomOutfit::m_fPowerLoss)			
-			.property("burn_protection"					,			&get_protection<ALife::eHitTypeBurn>					, 	&set_protection<ALife::eHitTypeBurn>)			
-			.property("strike_protection"				,			&get_protection<ALife::eHitTypeStrike>					,	&set_protection<ALife::eHitTypeStrike >)
-			.property("shock_protection"				,			&get_protection<ALife::eHitTypeShock>					,	&set_protection<ALife::eHitTypeShock>)
-			.property("wound_protection"				,			&get_protection<ALife::eHitTypeWound>					,	&set_protection<ALife::eHitTypeWound>)
-			.property("radiation_protection"			,			&get_protection<ALife::eHitTypeRadiation>				,	&set_protection<ALife::eHitTypeRadiation>)
-			.property("telepatic_protection"			,			&get_protection<ALife::eHitTypeTelepatic>				,	&set_protection<ALife::eHitTypeTelepatic>)
-			.property("chemical_burn_protection"		,			&get_protection<ALife::eHitTypeChemicalBurn>			,	&set_protection<ALife::eHitTypeChemicalBurn>)
-			.property("explosion_protection"			,			&get_protection<ALife::eHitTypeExplosion>				,	&set_protection<ALife::eHitTypeExplosion>)
-			.property("fire_wound_protection"			,			&get_protection<ALife::eHitTypeFireWound>				,	&set_protection<ALife::eHitTypeFireWound>)
-			.property("wound_2_protection"				,			&get_protection<ALife::eHitTypeWound_2>					,	&set_protection<ALife::eHitTypeWound_2>)			
-			.property("physic_strike_protection"		,			&get_protection<ALife::eHitTypePhysicStrike>			,	&set_protection<ALife::eHitTypePhysicStrike>)			
+			.property("battery_charge"							,		&CCustomOutfit::GetBatteryCharge						,   &CCustomOutfit::SetBatteryCharge)
+			.property("burn_protection"							,		&get_protection<ALife::eHitTypeBurn>					, 	&set_protection<ALife::eHitTypeBurn>)			
+			.property("strike_protection"						,		&get_protection<ALife::eHitTypeStrike>					,	&set_protection<ALife::eHitTypeStrike >)
+			.property("shock_protection"						,		&get_protection<ALife::eHitTypeShock>					,	&set_protection<ALife::eHitTypeShock>)
+			.property("wound_protection"						,		&get_protection<ALife::eHitTypeWound>					,	&set_protection<ALife::eHitTypeWound>)
+			.property("radiation_protection"					,		&get_protection<ALife::eHitTypeRadiation>				,	&set_protection<ALife::eHitTypeRadiation>)
+			.property("telepatic_protection"					,		&get_protection<ALife::eHitTypeTelepatic>				,	&set_protection<ALife::eHitTypeTelepatic>)
+			.property("chemical_burn_protection"				,		&get_protection<ALife::eHitTypeChemicalBurn>			,	&set_protection<ALife::eHitTypeChemicalBurn>)
+			.property("explosion_protection"					,		&get_protection<ALife::eHitTypeExplosion>				,	&set_protection<ALife::eHitTypeExplosion>)
+			.property("fire_wound_protection"					,		&get_protection<ALife::eHitTypeFireWound>				,	&set_protection<ALife::eHitTypeFireWound>)
+			.property("wound_2_protection"						,		&get_protection<ALife::eHitTypeWound_2>					,	&set_protection<ALife::eHitTypeWound_2>)			
+			.property("physic_strike_protection"				,		&get_protection<ALife::eHitTypePhysicStrike>			,	&set_protection<ALife::eHitTypePhysicStrike>)			
+			.def("condition_ex"									,		&CCustomOutfit::GetConditionEx)
 		];
 
 }
@@ -327,7 +326,7 @@ SRotation& CWeaponScript::FireDeviation(CWeapon *wpn)
 
 luabind::object CWeaponScript::get_fire_modes(CWeaponMagazined *wpn)
 {
-   lua_State *L = wpn->lua_game_object()->lua_state();
+   lua_State *L = wpn->lua_game_object()->lua_state();   
    luabind::object t = newtable(L);   
    auto &vector = wpn->m_aFireModes;
    int index = 1;
@@ -349,30 +348,32 @@ void CWeaponScript::set_fire_modes(CWeaponMagazined *wpn, luabind::object const&
 	}	
 }
 
-luabind::object CWeaponScript::get_hit_power(CWeapon *wpn)
+bool is_ammo_compatible(CWeapon *wpn, LPCSTR section)
 {
-   lua_State *L = wpn->lua_game_object()->lua_state();
-   luabind::object t = newtable(L);   
-   auto &vector = wpn->fvHitPower;
-   
-   t[1] = vector.x;
-   t[2] = vector.y;
-   t[3] = vector.z;
-   t[4] = vector.w;
-
-   return t;
+	for (int i = 0; i < wpn->m_ammoTypes.size(); i++)
+	{
+		if (wpn->m_ammoTypes[i] == section) return true;
+	}	
+	return false;
 }
 
-void CWeaponScript::set_hit_power(CWeapon *wpn, luabind::object const& t)
+LPCSTR get_ammo_type(CWeapon *wpn, int t)
 {
-	if (LUA_TTABLE != t.type()) return;
-	auto &vector = wpn->fvHitPower;
-
-	vector.x = object_cast<float>(t[1]);
-	vector.y = object_cast<float>(t[2]);
-	vector.z = object_cast<float>(t[3]);
-	vector.w = object_cast<float>(t[4]);	
+	if (t < 0) 		
+		t = (int) wpn->m_ammoType;
+	if (t >= 0 && t < wpn->m_ammoTypes.size())
+		return *wpn->m_ammoTypes[t];
+	else
+		return "";
 }
+
+LPCSTR charged_ammo(CWeapon *wpn)
+{
+	if (wpn->m_pAmmo)
+		return wpn->m_pAmmo->cNameSect().c_str();
+	return "";
+}
+
 
 void CWeaponScript::script_register(lua_State *L)
 {
@@ -387,14 +388,19 @@ void CWeaponScript::script_register(lua_State *L)
 			.property("fire_point2"						,			&get_fire_point2)
 			
 			.property("visual"							,			&get_hud_visual)
+			.def_readwrite("zoom_offset"				,			&CWeaponHUD::m_fZoomOffset)   //  ZoomOffset,  &CWeaponHUD::SetZoomOffset)
+			.def_readwrite("zoom_rotate_x"				,			&CWeaponHUD::m_fZoomRotateX)
+			.def_readwrite("zoom_rotate_y"				,			&CWeaponHUD::m_fZoomRotateY)
+
 			.def_readonly("transform"					,			&CWeaponHUD::m_Transform)
 			.def_readonly("visible"						,			&CWeaponHUD::m_bVisible)
 			,
 
 			class_<CWeapon,	CInventoryItemObject>		("CWeapon")
 			// из неэкспортируемого класса CHudItemObject:
-			.property("state", &CHudItemObject::GetState)
-			.property("next_state", &CHudItemObject::GetNextState)
+			.property("state"							,			&CHudItemObject::GetState)
+			.property("next_state"						,			&CHudItemObject::GetNextState)
+			.property("ammo_charged"					,			&charged_ammo)
 			// ============================================================================= //
 			// параметры отдачи вли€ющие на камеру
 			.def_readwrite("cam_max_angle"				,			&CWeapon::camMaxAngle)
@@ -411,34 +417,18 @@ void CWeaponScript::script_register(lua_State *L)
 			.def_readwrite("misfire_condition_k"		,			&CWeapon::misfireConditionK)	
 			.def_readwrite("condition_shot_dec"			,			&CWeapon::conditionDecreasePerShot)
 
-
-			.def_readwrite("PDM_disp_base"				,			&CWeapon::m_fPDM_disp_base)
-			.def_readwrite("PDM_disp_vel_factor"		,			&CWeapon::m_fPDM_disp_vel_factor)
-			.def_readwrite("PDM_disp_accel_factor"		,			&CWeapon::m_fPDM_disp_accel_factor)
-			.def_readwrite("PDM_crouch"					,			&CWeapon::m_fPDM_disp_crouch)
-			.def_readwrite("PDM_crouch_no_acc"			,			&CWeapon::m_fPDM_disp_crouch_no_acc)
-
-			.def_readwrite("hit_type"					,			&CWeapon::m_eHitType)
-			.def_readwrite("hit_impulse"				,			&CWeapon::fHitImpulse)
-			.def_readwrite("bullet_speed"				,			&CWeapon::m_fStartBulletSpeed)
-			.def_readwrite("fire_distance"				,			&CWeapon::fireDistance)
-			.def_readwrite("fire_dispersion_base"		,			&CWeapon::fireDispersionBase)
-			.def_readwrite("time_to_aim"				,			&CWeapon::m_fTimeToAim)
-			.def_readwrite("use_aim_bullet"				,			&CWeapon::m_bUseAimBullet)
-			.property("hit_power"						,			&get_hit_power, &set_hit_power)
-
-
 			.def_readwrite("ammo_mag_size"				,			&CWeapon::iMagazineSize)
 			.def_readwrite("scope_dynamic_zoom"			,			&CWeapon::m_bScopeDynamicZoom)
 			.def_readwrite("zoom_enabled"				,			&CWeapon::m_bZoomEnabled)
 			.def_readwrite("zoom_factor"				,			&CWeapon::m_fZoomFactor)
 			.def_readwrite("zoom_rotate_time"			,			&CWeapon::m_fZoomRotateTime)
-			.def_readwrite("iron_sight_zoom_factor"		,			&CWeapon::m_fIronSightZoomFactor)
-			.def_readwrite("scrope_zoom_factor"			,			&CWeapon::m_fScopeZoomFactor)
+			.def_readwrite("ironsight_zoom_factor"		,			&CWeapon::m_fIronSightZoomFactor)
+			.def_readwrite("scope_zoom_factor"			,			&CWeapon::m_fScopeZoomFactor)
 			// переменные дл€ подстройки положени€ аддонов из скриптов:
 			
 			.def_readwrite("grenade_launcher_x"			,			&CWeapon::m_iGrenadeLauncherX)
 			.def_readwrite("grenade_launcher_y"			,			&CWeapon::m_iGrenadeLauncherY)
+			.def_readonly ("scope_mode"					,			&CWeapon::m_eScopeMode)
 			.def_readwrite("scope_x"					,			&CWeapon::m_iScopeX)
 			.def_readwrite("scope_y"					,			&CWeapon::m_iScopeY)
 			.def_readwrite("silencer_x"					,			&CWeapon::m_iSilencerX)
@@ -450,7 +440,11 @@ void CWeaponScript::script_register(lua_State *L)
 
 			.property("ammo_elapsed"					,			&CWeapon::GetAmmoElapsed, &CWeapon::SetAmmoElapsed)
 			.property("const_deviation"					,			&CWeaponScript::FireDeviation)	// отклонение при стрельбе от целика (дл€ непристрелл€ного оружи€).
+			.property("scope_attached"					,			&CWeapon::IsScopeAttached)
+			.property("scope_name"						,			&CWeapon::GetScopeNameScript)
 			.def("get_ammo_current"						,			&CWeapon::GetAmmoCurrent)
+			.def("get_ammo_type"						,			&get_ammo_type)
+			.def("is_ammo_compat"						,			&is_ammo_compatible)			
 			//.def("load_config"						,			&CWeapon::Load)
 			.def("start_fire"							,			&CWeapon::FireStart)
 			.def("stop_fire"							,			&CWeapon::FireEnd)
@@ -477,16 +471,9 @@ void CWeaponScript::script_register(lua_State *L)
 			class_<CMissile, CInventoryItemObject>		("CMissile")
 			.def_readwrite("destroy_time"				,			&CMissile::m_dwDestroyTime)
 			.def_readwrite("destroy_time_max"			,			&CMissile::m_dwDestroyTimeMax)			
-			
-		];
-}
-
-
-void CCustomMonsterScript::script_register(lua_State *L)
-{
-	module(L)
-		[
-			class_<CCustomMonster, bases<CEntityAlive>>("CCustomMonster")
-			.def("get_dest_vertex_id", &CCustomMonsterScript::GetDestVertexId)
+			,
+			class_<CWeaponAmmo, CInventoryItemObject>	("CWeaponAmmo")
+			.property("current"							,			&CWeaponAmmo::get_box_curr,				&CWeaponAmmo::set_box_curr)
+			.def_readwrite("size"						,			&CWeaponAmmo::m_boxSize)
 		];
 }

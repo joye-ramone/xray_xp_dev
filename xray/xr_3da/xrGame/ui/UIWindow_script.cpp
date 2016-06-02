@@ -10,6 +10,7 @@
 #include "UIMMShniaga.h"
 #include "UITextureMaster.h"
 #include "UIScrollView.h"
+#include "UICarBodyWnd.h"
 
 CFontManager& mngr(){
 	return *(UI()->Font());
@@ -74,6 +75,12 @@ CUIWindow *find_child_window(CUIWindow *wnd, LPCSTR name) // script wrapper LPCS
 
 
 using namespace luabind;
+
+
+CUICarBodyWnd* GetCarBodyWindow(CUIDialogWnd *self)
+{
+	return smart_cast<CUICarBodyWnd*>(self);
+}
 
 #pragma optimize("s",on)
 void CUIWindow::script_register(lua_State *L)
@@ -146,12 +153,17 @@ void CUIWindow::script_register(lua_State *L)
 		class_<CDialogHolder>("CDialogHolder")
 		.def("MainInputReceiver",		&CDialogHolder::MainInputReceiver)
 		.def("start_stop_menu",			&CDialogHolder::StartStopMenu)
+		.def("start_stop_dialog",		&CDialogHolder::StartStopMenu)
 		.def("AddDialogToRender",		&CDialogHolder::AddDialogToRender)
 		.def("RemoveDialogToRender",	&CDialogHolder::RemoveDialogToRender),
 
 		class_<CUIDialogWnd, CUIWindow>("CUIDialogWnd")
 		.def("GetHolder",				&CUIDialogWnd::GetHolder)
-		.def("SetHolder",				&CUIDialogWnd::SetHolder),
+		.def("SetHolder",				&CUIDialogWnd::SetHolder)
+		.def("GetCarBodyWnd",			&GetCarBodyWindow),
+		class_<CUICarBodyWnd, CUIDialogWnd>("CUICarBodyWnd")
+		.def("GetOwnerID",				&CUICarBodyWnd::GetOwnerID)
+		,
 
 		class_<CUIFrameWindow, CUIWindow>("CUIFrameWindow")
 		.def(					constructor<>())
@@ -188,12 +200,6 @@ void CUIWindow::script_register(lua_State *L)
 		.def("GetMinScrollPos",			&CUIScrollView::GetMinScrollPos)
 		.def("GetMaxScrollPos",			&CUIScrollView::GetMaxScrollPos)
 		.def("GetCurrentScrollPos",		&CUIScrollView::GetCurrentScrollPos)
-		.def("InitScrollView",			(void(CUIScrollView::*)(void))&CUIScrollView::Init)
-		.def("ShowScroll",				&CUIScrollView::ShowScroll)
-		.def("SetScrollStepSize",		&CUIScrollView::SetScrollStepSize)
-		.def("UpdateScroll",			&CUIScrollView::UpdateScroll)
-		.def("RecalcSize",				&CUIScrollView::RecalcSize)
-		.def("SetScrollRange",			&CUIScrollView::SetScrollRange)
 		.def("SetScrollPos",			&CUIScrollView::SetScrollPos),
 
 		class_<CUIDragDropListEx, CUIWindow>("CUIDragDropListEx")
@@ -211,10 +217,8 @@ void CUIWindow::script_register(lua_State *L)
 	// CUIWindow
 				value("WINDOW_LBUTTON_DOWN",			int(WINDOW_LBUTTON_DOWN)),
 				value("WINDOW_RBUTTON_DOWN",			int(WINDOW_RBUTTON_DOWN)),
-				value("WINDOW_CBUTTON_DOWN",			int(WINDOW_CBUTTON_DOWN)),
 				value("WINDOW_LBUTTON_UP",				int(WINDOW_LBUTTON_UP)),
 				value("WINDOW_RBUTTON_UP",				int(WINDOW_RBUTTON_UP)),
-				value("WINDOW_CBUTTON_UP",				int(WINDOW_CBUTTON_UP)),
 				value("WINDOW_MOUSE_MOVE",				int(WINDOW_MOUSE_MOVE)),
 				value("WINDOW_LBUTTON_DB_CLICK",		int(WINDOW_LBUTTON_DB_CLICK)),
 				value("WINDOW_KEY_PRESSED",				int(WINDOW_KEY_PRESSED)),
@@ -245,7 +249,7 @@ void CUIWindow::script_register(lua_State *L)
 
 	// CUIdragDropItem
 				value("DRAG_DROP_ITEM_DRAG",			int(DRAG_DROP_ITEM_DRAG)),
-				value("DRAG_DROP_ITEM_DROP",			int(DRAG_DROP_ITEM_DROP)),
+				value("DRAG_DROP_ITEM_DROP ",			int(DRAG_DROP_ITEM_DROP )),
 				value("DRAG_DROP_ITEM_DB_CLICK",		int(DRAG_DROP_ITEM_DB_CLICK)),
 				value("DRAG_DROP_ITEM_RBUTTON_CLICK",	int(DRAG_DROP_ITEM_RBUTTON_CLICK)),
 

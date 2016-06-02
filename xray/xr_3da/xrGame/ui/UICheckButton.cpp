@@ -12,7 +12,6 @@ CUICheckButton::CUICheckButton(void)
 	SetTextAlignment(CGameFont::alLeft);
 	m_bCheckMode = true;
 	m_pDependControl = NULL;
-	m_bSetStateAfterFocusLost	= false;
 }
 
 CUICheckButton::~CUICheckButton(void)

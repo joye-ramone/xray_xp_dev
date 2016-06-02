@@ -10,6 +10,9 @@
 #include "Actor_Flags.h"
 #include "../SkeletonAnimated.h"
 #include "game_cl_single.h"
+#include <ComplexVar.h>
+
+#define MAX_SCOPE_SUPPORT 4
 
 // refs
 class CEntity;
@@ -33,6 +36,7 @@ public:
 	virtual					~CWeapon();
 
 	// Generic
+	virtual void			ChangeSection(LPCSTR section);
 	virtual void			Load(LPCSTR section);
 
 	virtual BOOL			net_Spawn(CSE_Abstract* DC);
@@ -130,6 +134,13 @@ public:
 		eSubstateReloadEnd,
 	};
 
+	enum EWeaponScopeModes {
+		eScopeAuto	  = 0,
+		eScopeIronsight,
+		eScopeZoom,
+		eScopeHybrid
+	};
+
 	virtual bool			IsHidden()	const		{ return GetState() == eHidden; }						// Does weapon is in hidden state
 	virtual bool			IsHiding()	const		{ return GetState() == eHiding; }
 	virtual bool			IsShowing()	const		{ return GetState() == eShowing; }
@@ -168,7 +179,7 @@ public:
 	virtual bool GrenadeLauncherAttachable();
 	virtual bool ScopeAttachable();
 	virtual bool SilencerAttachable();
-	virtual bool UseScopeTexture() { return true; };
+	virtual bool UseScopeTexture();
 
 	//обновление видимости для косточек аддонов
 	void UpdateAddonsVisibility();
@@ -184,15 +195,20 @@ public:
 	int	GetGrenadeLauncherX() { return m_iGrenadeLauncherX; }
 	int	GetGrenadeLauncherY() { return m_iGrenadeLauncherY; }
 
-	const shared_str& GetGrenadeLauncherName()		{ return m_sGrenadeLauncherName; }
-	const shared_str& GetScopeName()		{ return m_sScopeName; }
-	const shared_str& GetSilencerName()		{ return m_sSilencerName; }
+	const shared_str& GetGrenadeLauncherName()	const	{ return m_sGrenadeLauncherName; }
+	const shared_str& GetScopeName()			const;
+	const shared_str& GetSilencerName()			const	{ return m_sSilencerName; }
 
-	u8		GetAddonsState()		const		{ return m_flagsAddOnState; };
-	void	SetAddonsState(u8 st)	{ m_flagsAddOnState = st; }//dont use!!! for buy menu only!!!
+	LPCSTR				GetScopeNameScript()	const   { return IsScopeAttached() && !!GetScopeName() ? GetScopeName().c_str() : ""; }
+
+
+	u8		GetAddonsState()		const		{ return (m_flagsAddOnState); };
+	void	SetAddonsState(u8 st)	{ m_flagsAddOnState = (st & 7) | (m_flagsAddOnState & 0xF8); }//dont use!!! for buy menu only!!!
+	char	IsScopeSupported		(const shared_str name) const;
 protected:
 	//состояние подключенных аддонов
-	u8 m_flagsAddOnState;
+	u8 m_flagsAddOnState; // младшие три бита - флаги, 0, индекс прицела (0-3), 0, 0
+	u8 m_eScopeMode;		  // 0 - авто, 1 - всегда ironsight, 2 - зум режим	
 
 	//возможность подключения различных аддонов
 	ALife::EWeaponAddonStatus	m_eScopeStatus;
@@ -200,18 +216,30 @@ protected:
 	ALife::EWeaponAddonStatus	m_eGrenadeLauncherStatus;
 
 	//названия секций подключаемых аддонов
-	shared_str		m_sScopeName;
+	// shared_str			m_sScopeName;
+	
+	ICF bool		AddonFlagsTest				(u8 mask) const { return (m_flagsAddOnState & mask) == mask; }
+
+	ICF u8			AttachedScopeIndex			(		) const { return (m_flagsAddOnState >> 4) & 3; }
+	int				m_iScopeSupport; // реальное число поддерживаемых прицелов
+
+	shared_str		m_vScopeSupport[MAX_SCOPE_SUPPORT]; // alpet: до 4-х вариантов прицелов
 	shared_str		m_sSilencerName;
 	shared_str		m_sGrenadeLauncherName;
 
 	//смещение иконов апгрейдов в инвентаре
-	int	m_iScopeX, m_iScopeY;
-	int	m_iSilencerX, m_iSilencerY;
-	int	m_iGrenadeLauncherX, m_iGrenadeLauncherY;
+	int				m_iScopeX, m_iScopeY;
+	int				m_iSilencerX, m_iSilencerY;
+	int				m_iGrenadeLauncherX, m_iGrenadeLauncherY;
+
+	void			InitScope();
+	void			SelectScope (char index); // -1 = disabled, else one from list m_vScopeSupport
+
 
 	///////////////////////////////////////////////////
 	//	для режима приближения и снайперского прицела
 	///////////////////////////////////////////////////
+	
 protected:
 	// разрешение регулирования приближения. Real Wolf.
 	bool			m_bScopeDynamicZoom;
@@ -243,22 +271,23 @@ public:
 
 	virtual void			OnZoomIn();
 	virtual void			OnZoomOut();
-	bool			IsZoomed()	const	{ return m_bZoomMode; };
+	bool					IsZoomed()	const	{ return m_bZoomMode; };
 	CUIStaticItem*			ZoomTexture();
-	bool			ZoomHideCrosshair()			{ return m_bHideCrosshairInZoom || ZoomTexture(); }
+	bool					ZoomHideCrosshair()			{ return m_bHideCrosshairInZoom || ZoomTexture(); }
 
 	IC float				GetZoomFactor() const		{ return m_fZoomFactor; }
 	virtual	float			CurrentZoomFactor();
 	//показывает, что оружие находится в соостоянии поворота для приближенного прицеливания
-	bool			IsRotatingToZoom() const		{ return (m_fZoomRotationFactor < 1.f); }
+	bool					IsRotatingToZoom() const		{ return (m_fZoomRotationFactor < 1.f); }
 
-	void			LoadZoomOffset(LPCSTR section, LPCSTR prefix);
+	virtual void			AdjustZoomOffset();
+	virtual void			LoadZoomOffset(LPCSTR section, LPCSTR prefix);
 
-	virtual float				Weight();
+	virtual float			Weight() const;
 
 public:
 	virtual EHandDependence		HandDependence()	const		{ return eHandDependence; }
-	bool				IsSingleHanded()	const		{ return m_bIsSingleHanded; }
+	bool					IsSingleHanded()	const		{ return m_bIsSingleHanded; }
 
 public:
 	IC		LPCSTR			strap_bone0() const { return m_strap_bone0; }
@@ -302,15 +331,13 @@ private:
 	}						m_firedeps;
 protected:
 	virtual void			UpdateFireDependencies_internal();
-	
+	virtual void			UpdatePosition(const Fmatrix& transform);	//.
 	virtual void			UpdateXForm();
 	virtual void			UpdateHudAdditonal(Fmatrix&);
 	IC		void			UpdateFireDependencies()			{ if (dwFP_Frame == Device.dwFrame) return; UpdateFireDependencies_internal(); };
 
 	virtual void			LoadFireParams(LPCSTR section, LPCSTR prefix);
 public:
-	virtual void			UpdatePosition(const Fmatrix& transform);	//.
-
 	IC		const Fvector&	get_LastFP()			{ UpdateFireDependencies(); return m_firedeps.vLastFP; }
 	IC		const Fvector&	get_LastFP2()			{ UpdateFireDependencies(); return m_firedeps.vLastFP2; }
 	IC		const Fvector&	get_LastFD()			{ UpdateFireDependencies(); return m_firedeps.vLastFD; }
@@ -413,16 +440,26 @@ protected:
 	// Weapon and ammo
 	//////////////////////////////////////////////////////////////////////////
 public:
+	bool					CheckHaveAmmo();
+	CWeaponAmmo*			FindAmmo(bool lock_type = false);
+	CWeaponAmmo*			GetAmmo (const shared_str &section);
 	IC int					GetAmmoElapsed()	const		{ return /*int(m_magazine.size())*/iAmmoElapsed; }
-	IC int					GetAmmoMagSize()	const		{ return iMagazineSize; }
+	IC int					GetAmmoMagSize()	const	 
+#ifdef NLC_EXTENSIONS
+	{ return (int)ceil(GetCondition() * iMagazineSize + 0.5); } 
+#else
+	{ return iMagazineSize; }
+#endif
+	
 	int						GetAmmoCurrent(bool use_item_to_spawn = false)  const;
 
 	void					SetAmmoElapsed(int ammo_count);
 
-	virtual void			OnMagazineEmpty();
-	void			SpawnAmmo(u32 boxCurr = 0xffffffff,
+	virtual void			OnMagazineEmpty();	
+	void					SpawnAmmo(u32 boxCurr = 0xffffffff,
 		LPCSTR ammoSect = NULL,
 		u32 ParentID = 0xffffffff);
+
 
 	//  [8/3/2005]
 	virtual	float			Get_PDM_Base()	const	{ return m_fPDM_disp_base; };

@@ -12,9 +12,11 @@
 #include "CustomHUD.h"
 #include "SkeletonAnimated.h"
 #include "ResourceManager.h"
+#include "../../build_config_defines.h"
 
 #include "xr_object.h"
-#include "../../build_config_defines.h"
+
+#pragma optimize("gyts", off)
 
 xr_token							snd_freq_token							[ ]={
 	{ "22khz",						sf_22K										},
@@ -43,6 +45,8 @@ xr_token							vid_bpp_token							[ ]={
 	{ "32",							32											},
 	{ 0,							0											}
 };
+
+
 //-----------------------------------------------------------------------
 class CCC_Quit : public IConsole_Command
 {
@@ -77,7 +81,7 @@ class CCC_DbgMemCheck : public IConsole_Command
 {
 public:
 	CCC_DbgMemCheck(LPCSTR N) : IConsole_Command(N)  { bEmptyArgsHandled = TRUE; };
-	virtual void Execute(LPCSTR args) { if (Memory.debug_mode){ Memory.dbg_check();}else{Msg("~ Run with -mem_debug options.");} }
+	virtual void Execute(LPCSTR args) { if (Memory.debug_mode){ Memory.dbg_check();}else{Msg("# Run with -mem_debug options.");} }
 };
 #endif // DEBUG_MEMORY_MANAGER
 
@@ -145,8 +149,9 @@ public:
 			IConsole_Command &C = *(it->second);
 			TStatus _S; C.Status(_S);
 			TInfo	_I;	C.Info	(_I);
-			
-			Msg("%-20s (%-10s) --- %s",	C.Name(), _S, _I);
+			LPCSTR cmd_name = C.Name();
+			if (NULL == args || strstr(cmd_name, args))
+				Msg("%-20s (%-10s) --- %s",	cmd_name, _S, _I);
 		}
 		Log("- --- Command listing: end ----");
 	}
@@ -155,7 +160,7 @@ public:
 void 			crashthread			( void* )
 {
 	Sleep		(1000);
-	Msg			("~ crash thread activated")	;
+	Msg			("! crash thread activated")	;
 	u64			clk		= CPU::GetCLK		()	;
 	CRandom		rndg;
 	rndg.seed	(s32(clk));
@@ -241,11 +246,11 @@ public:
 
 		if ( b_allow ){
 			IWriter* F			= FS.w_open(cfg_full_name);
-				CConsole::vecCMD_IT it;
-				for (it=Console->Commands.begin(); it!=Console->Commands.end(); it++)
-					it->second->Save(F);
-				FS.w_close			(F);
-				Msg("Config-file [%s] saved successfully",cfg_full_name);
+			CConsole::vecCMD_IT it;
+			for (it=Console->Commands.begin(); it!=Console->Commands.end(); it++)
+				it->second->Save(F);
+			FS.w_close			(F);
+			Msg("Config-file [%s] saved successfully",cfg_full_name);
 		}else
 			Msg("!Cannot store config file [%s]", cfg_full_name);
 	}
@@ -378,6 +383,9 @@ public :
 
 
 };
+
+extern int			g_iTargetFPS;
+
 //-----------------------------------------------------------------------
 class CCC_SND_Restart : public IConsole_Command
 {
@@ -451,6 +459,31 @@ public:
 	virtual void	Save	(IWriter *F)	{};
 };
 
+extern xr_vector<shared_str> g_shader_defines;
+
+class CCC_Shader_defines : public IConsole_Command
+{
+public:
+	CCC_Shader_defines(LPCSTR N) : IConsole_Command(N)	{ bEmptyArgsHandled = TRUE; bLowerCaseArgs = FALSE; };
+	virtual void Execute(LPCSTR args) {
+		g_shader_defines.clear();
+		for (int i = 0; i < _GetItemCount(args); i++)
+		{
+			string128 temp;				
+			g_shader_defines.push_back ( _GetItem(args, i, temp));
+		}
+	};
+	virtual void	Save(IWriter *F)	{
+		xr_string c_text = "";
+		for (u32 i = 0; i < g_shader_defines.size(); i++)
+		{
+			if (i > 0) c_text += ",";
+			c_text += g_shader_defines[i].c_str();
+		}
+		F->w_printf("%s %s\r\n", cName, c_text.c_str());
+	}
+};
+
 
 
 ENGINE_API BOOL r2_sun_static = TRUE;
@@ -467,17 +500,10 @@ public:
 #ifdef DEDICATED_SERVER
 		inherited::Execute	("renderer_r1");
 #else
-
-#if defined(R1_EXCLUDE)
-		inherited::Execute	("renderer_r2");
-		renderer_value = 2;
-#else
 		inherited::Execute	(args);
-#endif
-
 #endif // DEDICATED_SERVER
 
-		psDeviceFlags.set	(rsR2, (renderer_value>0) );
+		psDeviceFlags.set	(rsR2, (renderer_value > 0) );
 		r2_sun_static =		(renderer_value!=2);
 	}
 
@@ -505,9 +531,12 @@ extern Flags32		psEnvFlags;
 extern float		r__dtex_range;
 
 extern int			g_ErrorLineCount;
+extern int			g_iTargetFPS;
 
 
-ENGINE_API int			ps_r__Supersample			= 1;
+// ENGINE_API int			ps_r__Supersample			= 1;
+ENGINE_API float	    g_up_speed_k				= 1.35;
+
 void CCC_Register()
 {
 	// General
@@ -557,8 +586,7 @@ void CCC_Register()
 #endif
 
 	// Render device states
-	CMD4(CCC_Integer,	"r__supersample",		&ps_r__Supersample,			1,		4		);
-
+	// CMD4(CCC_Integer,	"r__supersample",		&ps_r__Supersample,			1,		4		); // alpet: replaced by r__msaa_level
 
 	CMD3(CCC_Mask,		"rs_v_sync",			&psDeviceFlags,		rsVSync				);
 //	CMD3(CCC_Mask,		"rs_disable_objects_as_crows",&psDeviceFlags,	rsDisableObjectsAsCrows	);
@@ -577,15 +605,23 @@ void CCC_Register()
 	CMD2(CCC_Gamma,		"rs_c_gamma"			,&ps_gamma			);
 	CMD2(CCC_Gamma,		"rs_c_brightness"		,&ps_brightness		);
 	CMD2(CCC_Gamma,		"rs_c_contrast"			,&ps_contrast		);
-//	CMD4(CCC_Integer,	"rs_vb_size",			&rsDVB_Size,		32,		4096);
-//	CMD4(CCC_Integer,	"rs_ib_size",			&rsDIB_Size,		32,		4096);
+	CMD4(CCC_Integer,	"rs_vb_size",			&rsDVB_Size,		1024,		8192);
+	CMD4(CCC_Integer,	"rs_ib_size",			&rsDIB_Size,		256,		8192);
 
 	// Texture manager	
 	CMD4(CCC_Integer,	"texture_lod",			&psTextureLOD,				0,	4	);
 	CMD4(CCC_Integer,	"net_dedicated_sleep",	&psNET_DedicatedSleep,		0,	64	);
 
+	// shader manager
+	CMD1(CCC_Shader_defines,	"shader_defines");
+
+
 	// General video control
 	CMD1(CCC_VidMode,	"vid_mode"				);
+#ifdef ECO_RENDER
+	CMD4(CCC_Integer,	"target_fps",			&g_iTargetFPS,				20, 1000 );	
+#endif
+	CMD4(CCC_Float,		"up_speed_k",			&g_up_speed_k,				0.1, 1e9);
 
 #ifdef DEBUG
 	CMD3(CCC_Token,		"vid_bpp",				&psCurrentBPP,	vid_bpp_token );
@@ -633,14 +669,14 @@ void CCC_Register()
 	CMD4(CCC_Integer,	"net_dbg_dump_export_obj",	&g_Dump_Export_Obj, 0, 1);
 	CMD4(CCC_Integer,	"net_dbg_dump_import_obj",	&g_Dump_Import_Obj, 0, 1);
 
-if(strstr(Core.Params,"designer"))	
-{
-	CMD1(CCC_DR_TakePoint,		"demo_record_take_point");
-	CMD1(CCC_DR_ClearPoint,		"demo_record_clear_points");
-	CMD4(CCC_DR_UsePoints,		"demo_record_use_points",	&g_bDR_LM_UsePointsBBox, 0, 1);
-	CMD4(CCC_DR_UsePoints,		"demo_record_4step",		&g_bDR_LM_4Steps, 0, 1);
-	CMD4(CCC_DR_UsePoints,		"demo_record_step",			&g_iDR_LM_Step, 0, 3);
-}
+	if(strstr(Core.Params,"designer"))	
+	{
+		CMD1(CCC_DR_TakePoint,		"demo_record_take_point");
+		CMD1(CCC_DR_ClearPoint,		"demo_record_clear_points");
+		CMD4(CCC_DR_UsePoints,		"demo_record_use_points",	&g_bDR_LM_UsePointsBBox, 0, 1);
+		CMD4(CCC_DR_UsePoints,		"demo_record_4step",		&g_bDR_LM_4Steps, 0, 1);
+		CMD4(CCC_DR_UsePoints,		"demo_record_step",			&g_iDR_LM_Step, 0, 3);
+	}
 	CMD1(CCC_DumpResources,		"dump_resources");
 	CMD1(CCC_DumpOpenFiles,		"dump_open_files");
 //#endif

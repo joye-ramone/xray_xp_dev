@@ -5,7 +5,6 @@
 //	Author		: Alexander Petrov
 //	Description : Script Actor (params)
 ////////////////////////////////////////////////////////////////////////////
-#include "StdAfx.h"
 #include "pch_script.h"
 #include "base_client_classes.h"
 #include "script_game_object.h"
@@ -14,17 +13,22 @@
 #include "PHSimpleCharacter.h"
 #include "Inventory.h"
 #include "Wound.h"
+#include "ActorStats.h"
+#include "CustomOutfit.h"
+#include "nvd.h"
 
 #include "../lua_tools.h"
 
 using namespace luabind;
+
+#pragma optimize("gyts", off)
+
 
 CPHMovementControl *get_movement(CActor *pActor)
 {
 	return pActor->character_physics_support()->movement();
 }
 
-#pragma optimize("s",on)
 
 typedef CScriptActor::SConditionChangeV  SConditionChangeV;
 typedef float SConditionChangeV::*		 SConditionChangeVField;
@@ -94,6 +98,27 @@ SRotation& get_actor_orientation(CActor *pActor)
 
 extern LPCSTR get_lua_class_name(luabind::object O);
 
+CNightVisionDevice* get_nvd(CActor* pActor)
+{
+	PIItem item = pActor->m_inventory->ItemFromSlot(TORCH_SLOT);
+	CNightVisionDevice* nvd = NULL;
+	if (item)
+		nvd = smart_cast<CNightVisionDevice*> ( &item->object() );
+	if (nvd) return nvd;
+
+	item = pActor->m_inventory->ItemFromSlot(OUTFIT_SLOT);
+	if (item)
+	{
+		CCustomOutfit* outfit = smart_cast<CCustomOutfit*> ( &item->object() );
+		if (outfit) nvd = outfit->NightVisionDevice();
+	}
+
+	return nvd;
+}
+
+
+#pragma optimize("s", on)
+
 void CScriptActor::script_register(lua_State *L)
 {
 	module(L)
@@ -150,8 +175,7 @@ void CScriptActor::script_register(lua_State *L)
 			.def_readwrite("crash_speed_max",			&CPHMovementControl::fMaxCrashSpeed)
 			.def_readwrite("crash_speed_min",			&CPHMovementControl::fMinCrashSpeed)
 			.def_readwrite("collision_damage_factor",	&CPHMovementControl::fCollisionDamageFactor)
-			.def_readwrite("air_control_param",			&CPHMovementControl::fAirControlParam)
-			.property("jump_up_velocity",				&get_jump_up_velocity,				    &CPHMovementControl::SetJumpUpVelocity)			
+			.def_readwrite("air_control_param",			&CPHMovementControl::fAirControlParam)			
 			.property("jump_up_velocity",				&get_jump_up_velocity,					&CPHMovementControl::SetJumpUpVelocity)
 			.property("class_name",						&get_lua_class_name)
 			,
@@ -182,13 +206,16 @@ void CScriptActor::script_register(lua_State *L)
 			.property("state",							&get_actor_state)	
 			.property("orientation",					&get_actor_orientation)
 
+			.property("night_vision_device",			&get_nvd)
+#ifdef		ACTOR_STATS
+			.def("save_stat_event",						&save_stat_event)
+#endif	
 			// Real Wolf. Start. 14.10.2014.
 			.def("block_action",						&CActor::block_action)
 			.def("unblock_action",						&CActor::unblock_action)
 			.def("press_action",						&CActor::IR_OnKeyboardPress)
 			.def("hold_action",							&CActor::IR_OnKeyboardHold)
 			.def("release_action",						&CActor::IR_OnKeyboardRelease)
-			.def("is_zoom_aiming_mode",					&CActor::IsZoomAimingMode)
 			// Real Wolf. End. 14.10.2014.
 			,
 			class_<CActorObject, bases<CActor, CEntityAlive>>("CActor")	// хак с наследованием нужен для переопределения свойств. Luabind не поддерживает property getters override			

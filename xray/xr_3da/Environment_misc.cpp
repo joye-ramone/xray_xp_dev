@@ -7,26 +7,22 @@
 #include "rain.h"
 #include "resourcemanager.h"
 
+// #pragma optimize("gyts", off)
 //-----------------------------------------------------------------------------
 // Environment modifier
 //-----------------------------------------------------------------------------
-bool	CEnvModifier::load	(IReader* fs)
+void	CEnvModifier::load	(IReader* fs)
 {
-	// Проверка на корректность файла. Real Wolf.
-	if (fs->tell() + 76 > fs->length())
-		return false;
-
-	fs->r_fvector3	(position);			// 4*3=12
-	radius			= fs->r_float	();	// 4
-	power			= fs->r_float	();	// 4
-	far_plane		= fs->r_float	();	// 4
-	fs->r_fvector3	(fog_color);		// 4*3=12
-	fog_density		= fs->r_float	();	// 4
-	fs->r_fvector3	(ambient);			// 4*3=12
-	fs->r_fvector3	(sky_color);		// 4*3=12
-	fs->r_fvector3	(hemi_color);		// 4*3=12
-
-	return true;
+//	Fvector			dummy;
+	fs->r_fvector3	(position);
+	radius			= fs->r_float	();
+	power			= fs->r_float	();
+	far_plane		= fs->r_float	();
+	fs->r_fvector3	(fog_color);
+	fog_density		= fs->r_float	();
+	fs->r_fvector3	(ambient);
+	fs->r_fvector3	(sky_color);
+	fs->r_fvector3	(hemi_color);
 }
 float	CEnvModifier::sum	(CEnvModifier& M, Fvector3& view)
 {
@@ -127,45 +123,80 @@ CEnvDescriptor::CEnvDescriptor()
 }
 
 #define	C_CHECK(C)	if (C.x<0 || C.x>2 || C.y<0 || C.y>2 || C.z<0 || C.z>2)	{ Msg("! Invalid '%s' in env-section '%s'",#C,S);}
+
+
+static 	xr_map<shared_str, shared_str>   scmap;
+
+IC const shared_str r_string(LPCSTR S, shared_str key, LPCSTR def = NULL)
+{
+	
+
+	auto it = scmap.find(key);
+	if (it != scmap.end())
+		return it->second;
+	if (def)
+		return shared_str(def);
+	else
+		return "";
+}
+
+IC float r_float(LPCSTR S, shared_str key)
+{
+	return (float)atof(* r_string(S, key));
+}
+
+Fvector3 r_fvector3(LPCSTR S, shared_str key)
+{
+	LPCSTR		C = *r_string(S, key);
+	Fvector3	V = { 0.f, 0.f, 0.f };
+	sscanf		(C, "%f,%f,%f", &V.x, &V.y, &V.z);
+	return      V;
+}
+
 void CEnvDescriptor::load	(LPCSTR exec_tm, LPCSTR S, CEnvironment* parent)
 {
 	Ivector3 tm				={0,0,0};
 	sscanf					(exec_tm,"%d:%d:%d",&tm.x,&tm.y,&tm.z);
+	auto &sect = pSettings->r_section(S);
+	for (auto it = sect.Data.begin(); it != sect.Data.end(); it++)
+		scmap[it->first] = it->second;
+
+
 	R_ASSERT3				((tm.x>=0)&&(tm.x<24)&&(tm.y>=0)&&(tm.y<60)&&(tm.z>=0)&&(tm.z<60),"Incorrect weather time",S);
 	exec_time				= tm.x*3600.f+tm.y*60.f+tm.z;
 	exec_time_loaded		= exec_time;
 	string_path				st,st_env;
-	strcpy_s					(st,pSettings->r_string	(S,"sky_texture"));
+	strcpy_s					(st, *r_string	(S,"sky_texture"));
 	strconcat				(sizeof(st_env),st_env,st,"#small"		);
 	sky_texture_name		= st;
 	sky_texture_env_name	= st_env;
-	clouds_texture_name		= pSettings->r_string	(S,"clouds_texture");
-	LPCSTR	cldclr			= pSettings->r_string	(S,"clouds_color");
+	clouds_texture_name		= r_string(S, "clouds_texture"); //   pSettings->r_string(S, "clouds_texture");
+	LPCSTR	cldclr			= *r_string(S, "clouds_color"); // pSettings->r_string	(S,"clouds_color");
 	float	multiplier		= 0, save=0;
 	sscanf					(cldclr,"%f,%f,%f,%f,%f",&clouds_color.x,&clouds_color.y,&clouds_color.z,&clouds_color.w,&multiplier);
 	save=clouds_color.w;	clouds_color.mul		(.5f*multiplier);		clouds_color.w	= save; 
-	sky_color				= pSettings->r_fvector3	(S,"sky_color");		sky_color.mul(.5f);
-	if (pSettings->line_exist(S,"sky_rotation"))	sky_rotation	= deg2rad(pSettings->r_float(S,"sky_rotation"));
+	sky_color				= r_fvector3	(S,"sky_color");		sky_color.mul(.5f);
+	if (pSettings->line_exist(S,"sky_rotation"))		sky_rotation	= deg2rad(pSettings->r_float(S,"sky_rotation"));
 	else											sky_rotation	= 0;
-	far_plane				= pSettings->r_float	(S,"far_plane");
-	fog_color				= pSettings->r_fvector3	(S,"fog_color");
-	fog_density				= pSettings->r_float	(S,"fog_density");
-	fog_distance			= pSettings->r_float	(S,"fog_distance");
-	rain_density			= pSettings->r_float	(S,"rain_density");		clamp(rain_density,0.f,1.f);
-	rain_color				= pSettings->r_fvector3	(S,"rain_color");            
-	wind_velocity			= pSettings->r_float	(S,"wind_velocity");
-	wind_direction			= deg2rad(pSettings->r_float(S,"wind_direction"));
-	ambient					= pSettings->r_fvector3	(S,"ambient");
+	far_plane				= r_float   (S, "far_plane");
+	fog_color				= r_fvector3	(S,"fog_color");
+	fog_density				= r_float	(S,"fog_density");
+	fog_distance			= r_float	(S,"fog_distance");
+	rain_density			= r_float	(S,"rain_density");		clamp(rain_density,0.f,1.f);
+	rain_color				= r_fvector3	(S,"rain_color");            
+	wind_velocity			= r_float	(S,"wind_velocity");
+	wind_direction			= deg2rad(r_float(S, "wind_direction"));
+	ambient					= r_fvector3	(S,"ambient");
 	hemi_color				= pSettings->r_fvector4	(S,"hemi_color");
-	sun_color				= pSettings->r_fvector3	(S,"sun_color");
+	sun_color				= r_fvector3	(S,"sun_color");
 	Fvector2 sund			= pSettings->r_fvector2	(S,"sun_dir");	sun_dir.setHP	(deg2rad(sund.y),deg2rad(sund.x));
 	VERIFY2					(sun_dir.y<0,"Invalid sun direction settings while loading");
 
-	lens_flare_id			= parent->eff_LensFlare->AppendDef(pSettings,pSettings->r_string(S,"flares"));
-	tb_id					= parent->eff_Thunderbolt->AppendDef(pSettings,pSettings->r_string(S,"thunderbolt"));
-	bolt_period				= (tb_id>=0)?pSettings->r_float	(S,"bolt_period"):0.f;
-	bolt_duration			= (tb_id>=0)?pSettings->r_float	(S,"bolt_duration"):0.f;
-	env_ambient				= pSettings->line_exist(S,"env_ambient")?parent->AppendEnvAmb	(pSettings->r_string(S,"env_ambient")):0;
+	lens_flare_id			= parent->eff_LensFlare->AppendDef(pSettings,   *r_string(S,"flares"));
+	tb_id					= parent->eff_Thunderbolt->AppendDef(pSettings, *r_string(S,"thunderbolt"));
+	bolt_period				= (tb_id>=0)?r_float	(S,"bolt_period"):0.f;
+	bolt_duration			= (tb_id>=0)?r_float	(S,"bolt_duration"):0.f;
+	env_ambient				= sect.line_exist("env_ambient")?parent->AppendEnvAmb	(r_string(S,"env_ambient")):0;
 
 	C_CHECK					(clouds_color);
 	C_CHECK					(sky_color	);
@@ -297,14 +328,17 @@ void	CEnvironment::mods_load			()
 	{
 		IReader*	fs	= FS.r_open		(path);
 		u32			id	= 0;
-		while		(fs->find_chunk(id))	
+		while (fs->find_chunk(id))
 		{
 			CEnvModifier		E;
-			// Надо обязательно проверять, что файл корректный, даже если чанк был найден. Real Wolf.
-			if (!E.load(fs))
-				break;
-			Modifiers.push_back	(E);
-			id					++;
+			if (fs->elapsed64() >= 19 * sizeof(float))
+			{
+				E.load(fs);
+				Modifiers.push_back(E);
+			}
+			else
+				Msg("!#ERROR(CEnvironment::mods_load): reading from %s failed due not expected EOF", path);
+			id++;
 		}
 		FS.r_close	(fs);
 	}
@@ -314,6 +348,7 @@ void	CEnvironment::mods_unload		()
 	Modifiers.clear_and_free			();
 }
 
+#pragma optimize("gyts", off)
 void CEnvironment::load		()
 {
 	tonemap					= Device.Resources->_CreateTexture("$user$tonemap");	//. hack
@@ -321,27 +356,41 @@ void CEnvironment::load		()
 	if (!eff_LensFlare)		eff_LensFlare 	= xr_new<CLensFlare>();
 	if (!eff_Thunderbolt)	eff_Thunderbolt	= xr_new<CEffect_Thunderbolt>();
 	// load weathers
-	if (WeatherCycles.empty()){
+	if (WeatherCycles.empty() && pSettings->section_exist("weathers")){
 		LPCSTR first_weather=0;
-		int weather_count	= pSettings->line_count("weathers");
-		for (int w_idx=0; w_idx<weather_count; w_idx++){
+		auto &weathers = pSettings->r_section("weathers");
+		// int weather_count = weathers.Data.size(); // line_count("weathers");
+		auto w_it = weathers.Data.begin();
+		// for (int w_idx=0; w_idx<weather_count; w_idx++){
+		while (w_it != weathers.Data.end()) {
 			LPCSTR weather, sect_w;
-			if (pSettings->r_line("weathers",w_idx,&weather,&sect_w)){
-				if (0==first_weather) first_weather=weather;
-				int env_count	= pSettings->line_count(sect_w);
-				LPCSTR exec_tm, sect_e;
-				for (int env_idx=0; env_idx<env_count; env_idx++){
-					if (pSettings->r_line(sect_w,env_idx,&exec_tm,&sect_e)){
-						CEnvDescriptor*		D=xr_new<CEnvDescriptor>();
-						D->load				(exec_tm,sect_e,this);
-						WeatherCycles[weather].push_back	(D);
+			weather = *w_it->first;
+			sect_w = *w_it->second;
+			w_it++;
+			auto &map = WeatherCycles[weather];
+			// if (pSettings->r_line("weathers",w_idx,&weather,&sect_w)){
+			if (0==first_weather) first_weather=weather;
+
+			const auto &sect = pSettings->r_section(sect_w);
+			// int env_count = sect.Data.size(); // 				
+			LPCSTR exec_tm, sect_e;
+			auto it = sect.Data.begin();
+			while (it != sect.Data.end()) {
+				// pSettings->r_line(sect_w,env_idx,&exec_tm,&sect_e)					
+				CEnvDescriptor*		D=xr_new<CEnvDescriptor>();
+				exec_tm = *it->first;
+				sect_e  = *it->second;
+				D->load				(exec_tm,sect_e,this);
+				map.push_back	(D);
+				it ++;
 #ifdef DEBUG
-						D->sect_name		= sect_e;
-#endif
-					}
-				}
+				D->sect_name		= sect_e;
+#endif				
+					
 			}
+			
 		}
+		Msg("##PERF: Loaded %d weather cycles ", WeatherCycles.size());
 		// sorting weather envs
 		EnvsMapIt _I=WeatherCycles.begin();
 		EnvsMapIt _E=WeatherCycles.end();
@@ -351,6 +400,8 @@ void CEnvironment::load		()
 		}
 		R_ASSERT2	(!WeatherCycles.empty(),"Empty weathers.");
 		SetWeather	(first_weather);
+		// Log("##PERF: Sorted weathers ");
+		
 	}
 	// load weather effects
 	if (WeatherFXs.empty()){

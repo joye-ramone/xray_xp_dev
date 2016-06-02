@@ -2,7 +2,6 @@
 
 #include "UIWindow.h"
 #include "UIWndCallback.h"
-#include "UIScrollBar.h"
 
 class CUIScrollBar;
 
@@ -25,6 +24,8 @@ enum {eVertFlip=(1<<0),eNeedRecalc=(1<<1),eFixedScrollBar=(1<<2),eItemsSelectabe
 	Flags16			m_flags;
 	shared_str		m_scrollbar_profile;
 
+virtual void		RecalcSize			();
+		void		UpdateScroll		();	
 		void __stdcall	OnScrollV		(CUIWindow*, void*);
 		void		SetRightIndention	(float val);
 		void		SetLeftIndention	(float val);
@@ -34,9 +35,6 @@ enum {eVertFlip=(1<<0),eNeedRecalc=(1<<1),eFixedScrollBar=(1<<2),eItemsSelectabe
 public:
 	using CUIWindow::Init;
 			
-		void		UpdateScroll		();	
-virtual void		RecalcSize			();
-
 					CUIScrollView		();
 	virtual			~CUIScrollView		();
 			void	Init				();// need parent to be initialized
@@ -67,11 +65,6 @@ IC			bool	NeedShowScrollBar	();		// no comment
 			float	GetVertIndent		();		// top + bottom indent
 			void	UpdateChildrenLenght();		// set default width for all children
 			float	Scroll2ViewV		();		// calculate scale for scroll position
-
-			void	ShowScroll			(bool);
-			void	SetScrollStepSize	(int);
-			void	SetScrollRange		(int, int);
-
 	CUIScrollBar*	ScrollBar			() {return m_VScrollBar;}
 };
 

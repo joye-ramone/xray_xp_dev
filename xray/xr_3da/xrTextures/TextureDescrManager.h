@@ -2,9 +2,11 @@
 #define _TextureDescrManager_included_
 
 #pragma once
+#include "../api_defines.h"
+#include "../render_headers.h"
 #include "ETextureParams.h"
 
-class CTextureDescrMngr
+class XRTEXTURES_API CTextureDescrMngr
 {
 	struct texture_assoc
 	{
@@ -35,6 +37,7 @@ class CTextureDescrMngr
 	void		LoadTHM		();
 
 public:
+				~CTextureDescrMngr()	{ UnLoad(); }
 	void		Load		();
 	void		UnLoad		();
 public:

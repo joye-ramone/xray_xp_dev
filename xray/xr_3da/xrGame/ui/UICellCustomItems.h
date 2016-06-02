@@ -18,7 +18,6 @@ public:
 	// Real Wolf: Для коллбеков. 25.07.2014.
 	virtual void			OnFocusReceive				();
 	virtual void			OnFocusLost					();
-	virtual bool			OnMouse						(float, float, EUIMessages);
 	// Real Wolf: Для метода get_cell_item(). 25.07.2014.
 	virtual					~CUIInventoryCellItem		();
 	// Real Wolf: Улучшение отображения драг-объектов. 25.07.2014.
@@ -46,10 +45,10 @@ public:
 protected:
 	CUIStatic*					m_addons					[eMaxAddon];
 	Fvector2					m_addon_offset				[eMaxAddon];	
-	void						CreateIcon					(eAddonType);
+	void						CreateIcon					(eAddonType, CIconParams &params);
 	void						DestroyIcon					(eAddonType);
 	CUIStatic*					GetIcon						(eAddonType);
-	void						InitAddon					(CUIStatic* s, LPCSTR section, Fvector2 offset, bool b_rotate);
+	void						InitAddon					(CUIStatic* s, CIconParams &params, Fvector2 offset, bool b_rotate);
 	void						InitAllAddons				(CUIStatic* s_silencer, CUIStatic* s_scope, CUIStatic* s_launcher,  bool b_vertical);
 	bool						is_scope					();
 	bool						is_silencer					();
@@ -64,8 +63,6 @@ public:
 	virtual		bool			EqualTo						(CUICellItem* itm);
 	CUIStatic*					get_addon_static			(u32 idx)				{return m_addons[idx];}
 	Fvector2					get_addon_offset			(u32 idx)				{ return m_addon_offset[idx]; }
-	
-	virtual		Ivector2		GetGridSize					(bool);
 };
 
 class CBuyItemCustomDrawCell :public ICustomDrawCell

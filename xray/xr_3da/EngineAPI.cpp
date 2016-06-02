@@ -5,7 +5,6 @@
 #include "stdafx.h"
 #include "EngineAPI.h"
 #include "xrXRC.h"
-#include "../../build_config_defines.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -33,34 +32,33 @@ void CEngineAPI::Initialize(void)
 {
 	//////////////////////////////////////////////////////////////////////////
 	// render
-#if defined(R1_EXCLUDE)
-	LPCSTR			r1_name	= "xrRender_R2.dll";
-#else
-	LPCSTR			r1_name	= "xrRender_R1.dll";
-#endif
+	// LPCSTR			r1_name	= "xrRender_R1.dll";
 	LPCSTR			r2_name	= "xrRender_R2.dll";
 
 #ifndef DEDICATED_SERVER
-	if (psDeviceFlags.test(rsR2) )	{
+	// if (psDeviceFlags.test(rsR2) )	{
 		// try to initialize R2
-		Log				("Loading DLL:",	r2_name);
-		hRender			= LoadLibrary		(r2_name);
-		if (0==hRender)	{
-			// try to load R1
-			Msg			("...Failed - incompatible hardware.");
-		}
+	Log				("Loading DLL:",	r2_name);
+	hRender			= LoadLibrary		(r2_name);
+	if (0==hRender)	{
+		// try to load R1
+		Msg			("!#FATAL: ...Failed - incompatible hardware.");
 	}
+	// }
 #endif
 
 	if (0==hRender)		{
 		// try to load R1
-		psDeviceFlags.set	(rsR2,FALSE);
-		renderer_value		= 0; //con cmd
+		MessageBox(0, "Критическая ошибка инициализации рендера R2", "Фатальный сбой", MB_OK | MB_ICONERROR);
+		ExitProcess((UINT)-35);
 
-		Log				("Loading DLL:",	r1_name);
-		hRender			= LoadLibrary		(r1_name);
-		if (0==hRender)	R_CHK				(GetLastError());
-		R_ASSERT		(hRender);
+		//psDeviceFlags.set	(rsR2,FALSE);
+		//renderer_value		= 0; //con cmd
+
+		//Log				("Loading DLL:",	r1_name);
+		//hRender			= LoadLibrary		(r1_name);
+		//if (0==hRender)	R_CHK				(GetLastError());
+		//R_ASSERT		(hRender);
 	}
 
 	// game	

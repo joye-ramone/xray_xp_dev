@@ -6,7 +6,6 @@
 class CUIDragItem;
 class CUIDragDropListEx;
 class CUICellItem;
-class CUIProgressBar;
 
 class ICustomDrawCell
 {
@@ -23,14 +22,11 @@ protected:
 	xr_vector<CUICellItem*> m_childs;
 
 	CUIDragDropListEx*		m_pParentList;
-	CUIProgressBar* 		m_pConditionState;
 	Ivector2				m_grid_size;
 	ICustomDrawCell*		m_custom_draw;
 	Fvector2				m_cell_size;				// alpet: реальные размеры €чейки инветар€ вместо 50.f
 	int						m_accelerator;
-	CUIStatic*				m_text; 
 	virtual void			UpdateItemText			();
-	void					init					();
 public:
 							CUICellItem				();
 	virtual					~CUICellItem			();
@@ -41,7 +37,6 @@ public:
 	virtual		void		Update					();
 				
 	virtual		void		OnAfterChild			(CUIDragDropListEx* parent_list)						{};
-	virtual		void		OnBeforeChild			(CUIDragDropListEx* parent_list)						{};
 
 				u32			ChildsCount				();
 				void		 PushChild				(CUICellItem*);
@@ -49,8 +44,7 @@ public:
 				CUICellItem* Child					(u32 idx)				{return m_childs[idx];};
 				bool		HasChild					(CUICellItem* item);
 	virtual		bool		EqualTo					(CUICellItem* itm);
-	virtual		Ivector2	GetGridSize				(bool);
-
+	IC const	Ivector2&	GetGridSize				()						{return m_grid_size;}; //size in grid
 	IC			void		SetAccelerator			(int dik)				{m_accelerator=dik;};
 	IC			int			GetAccelerator			()		const			{return m_accelerator;};
 
@@ -58,7 +52,6 @@ public:
 
 	CUIDragDropListEx*		OwnerList				()						{return m_pParentList;}
 				void		SetOwnerList			(CUIDragDropListEx* p);
-				void		UpdateConditionProgressBar();
 				void		SetCustomDraw			(ICustomDrawCell* c);
 				void*		m_pData;
 				int			m_index;

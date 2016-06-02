@@ -21,7 +21,7 @@ namespace GameObject {
 		eTaskStateChange,
 		eMapLocationAdded,
 
-		eUseObject,
+		eUseObject, eSawObject,
 
 		eHit,
 
@@ -100,12 +100,7 @@ namespace GameObject {
 		eUIMapClick,
 		eUIMapSpotClick,
 		eUIPickUpItemShowing,
-		eUIGroupItems,
-		eOnCellItemMouse,
-		eOnActorStartShoot,
-		eOnWpnShellDrop,
-		eOnThrowGrenade,
-
+		eUIGroupItems,		
 		// Cribbledirge End
 		eDummy = u32(-1),
 	};

@@ -30,6 +30,7 @@ protected:
 	HUD_SOUND		sndSightsDown;		//added by Daemonion for iron sight audio parameter - sights being lowered
 	//звук текущего выстрела
 	HUD_SOUND*		m_pSndShotCurrent;
+	int				m_iLastSndShot;
 
 	virtual void	StopHUDSounds		();
 
@@ -81,7 +82,7 @@ protected:
 	virtual void	UpdateSounds	();
 
 	bool			TryReload		();
-	bool			TryPlayAnimIdle	();
+	virtual bool	TryPlayAnimIdle	();
 
 protected:
 	virtual void	ReloadMagazine	();
@@ -175,9 +176,6 @@ public:
 	virtual	int		GetCurrentFireMode	() { return m_aFireModes[m_iCurFireMode]; };	
 	virtual LPCSTR	GetCurrentFireModeStr	() {return m_sCurFireMode;};
 
-	virtual const	xr_vector<int>&	GetFireModes() const				{return m_aFireModes;}
-	virtual	void					SetCurFireMode(int fire_mode)		{m_iCurFireMode = fire_mode;}
-
 	virtual void	save				(NET_Packet &output_packet);
 	virtual void	load				(IReader &input_packet);
 
@@ -199,8 +197,6 @@ protected:
 	// Callback function added by Cribbledirge.
 	virtual IC void	StateSwitchCallback(GameObject::ECallbackType actor_type, GameObject::ECallbackType npc_type);
 
-	// Real Wolf.20.01.15
-	IC			bool TryToGetAmmo(u32);
 };
 
 #endif //__XR_WEAPON_MAG_H__

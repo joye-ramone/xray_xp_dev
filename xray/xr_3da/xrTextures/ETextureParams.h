@@ -2,7 +2,7 @@
 #define ETextureParamsH
 
 #pragma pack(push,1)
-struct ECORE_API STextureParams{
+struct XRTEXTURES_API STextureParams{
 	enum ETType{
     	ttImage	= 0,
         ttCubeMap,

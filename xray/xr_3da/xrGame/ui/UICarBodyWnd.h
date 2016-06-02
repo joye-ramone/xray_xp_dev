@@ -4,23 +4,22 @@
 #include "UIEditBox.h"
 #include "../inventory_space.h"
 
-#include "../../../build_config_defines.h"
-
 class CUIDragDropListEx;
 class CUIItemInfo;
 class CUICharacterInfo;
 class CUIPropertiesBox;
 class CUI3tButton;
 class CUICellItem;
-class CInventoryBox;
+class IInventoryBox;
 class CInventoryOwner;
 
 class CUICarBodyWnd: public CUIDialogWnd
 {
+friend class CUIWindow;
+
 private:
 	typedef CUIDialogWnd	inherited;
 	bool					m_b_need_update;
-	void 					ColorizeItem(CUICellItem* itm);
 public:
 							CUICarBodyWnd				();
 	virtual					~CUICarBodyWnd				();
@@ -31,7 +30,8 @@ public:
 	virtual void			SendMessage					(CUIWindow *pWnd, s16 msg, void *pData);
 
 	void					InitCarBody					(CInventoryOwner* pOurInv, CInventoryOwner* pOthersInv);
-	void					InitCarBody					(CInventoryOwner* pOur, CInventoryBox* pInvBox);
+	void					InitCarBody					(CInventoryOwner* pOur, IInventoryBox* pInvBox);
+	u16						GetOwnerID					() const;
 	virtual void			Draw						();
 	virtual void			Update						();
 		
@@ -48,7 +48,7 @@ protected:
 	CInventoryOwner*		m_pOurObject;
 
 	CInventoryOwner*		m_pOthersObject;
-	CInventoryBox*			m_pInventoryBox;
+	IInventoryBox*			m_pInventoryBox;
 
 	CUIDragDropListEx*		m_pUIOurBagList;
 	CUIDragDropListEx*		m_pUIOthersBagList;
@@ -82,10 +82,6 @@ protected:
 	bool					ToOthersBag					();
 	
 	void					SetCurrentItem				(CUICellItem* itm);
-	#ifdef INV_COLORIZE_AMMO
-	void					ColorizeAmmo				(CUICellItem* itm);
-	void					ClearColorize				();
-	#endif
 	CUICellItem*			CurrentItem					();
 	PIItem					CurrentIItem				();
 
@@ -98,11 +94,9 @@ protected:
 	bool		xr_stdcall	OnItemDbClick				(CUICellItem* itm);
 	bool		xr_stdcall	OnItemSelected				(CUICellItem* itm);
 	bool		xr_stdcall	OnItemRButtonClick			(CUICellItem* itm);
-	bool		xr_stdcall	OnItemFocusedUpdate			(CUICellItem* itm);
-	bool		xr_stdcall	OnItemFocusReceive			(CUICellItem* itm);
-	bool		xr_stdcall	OnItemFocusLost				(CUICellItem* itm); 
 
 	bool					TransferItem				(PIItem itm, CInventoryOwner* owner_from, CInventoryOwner* owner_to, bool b_check);
 	void					BindDragDropListEnents		(CUIDragDropListEx* lst);
+	
 
 };

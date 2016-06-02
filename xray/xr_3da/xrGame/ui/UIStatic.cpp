@@ -10,6 +10,7 @@
 #include "../ui_base.h"
 
 const char * const	clDefault	= "default";
+#pragma optimize("gyts", off)
 #define CREATE_LINES if (!m_pLines) {m_pLines = xr_new<CUILines>(); m_pLines->SetTextAlignment(CGameFont::alLeft);}
 #define LA_CYCLIC			(1<<0)
 #define LA_ONLYALPHA		(1<<1)
@@ -52,6 +53,8 @@ CUIStatic:: CUIStatic()
 	// Real Wolf: Обнуляем свои переменные. 27.07.2014.
 	m_texture				= NULL;
 	m_shader				= NULL;
+	// alpet: reset sliding
+	StartSlide(1.f, 0.f);	
 }
 
 CUIStatic::~ CUIStatic()
@@ -147,6 +150,8 @@ void CUIStatic::InitTextureEx(LPCSTR tex_name, LPCSTR sh_name)
 
 void  CUIStatic::Draw()
 {
+
+
 	if(m_bClipper){
 		Frect clip_rect;
 		if (-1 == m_ClipRect.left && -1 == m_ClipRect.right && -1 == m_ClipRect.top && -1 == m_ClipRect.left){
@@ -225,7 +230,10 @@ void CUIStatic::DrawTexture(){
 				m_UIStaticItem.SetRect(r);
 			}
 		}
-
+		LPCSTR szTexture = GetTextureName();
+		if (!szTexture)
+			 szTexture = "NULL!!!";
+		// MsgCB("$#CONTEXT: DrawTexture %s for static %s ",  WindowName_script());
 		if( Heading() ){
 			m_UIStaticItem.Render( GetHeading() );
 		}else
@@ -514,10 +522,7 @@ void CUIStatic::SetMask(CUIFrameWindow *pMask)
 //}
 
 CGameFont::EAligment CUIStatic::GetTextAlignment(){
-	if (m_pLines != NULL)
-		return m_pLines->GetTextAlignment();
-
-	return CGameFont::EAligment::alLeft;
+	return m_pLines->GetTextAlignment();
 }
 
 //void CUIStatic::SetTextAlign(CGameFont::EAligment align){
@@ -647,18 +652,4 @@ void CUIStatic::DrawHighlightedText(){
 bool CUIStatic::IsHighlightText()
 {
 	return m_bCursorOverWindow;
-}
-
-// Real Wolf: установка цвета для статика и его детей.
-void CUIStatic::SetColorAll(u32 color)
-{
-	SetColor(color);
-
-	//for (auto it = m_ChildWndList.begin(); it != m_ChildWndList.end(); ++it)
-	//{
-	//	if (auto s = smart_cast<CUIStatic*>(*it))
-	//	{
-	//		s->SetColor(color);
-	//	}
-	//}
 }

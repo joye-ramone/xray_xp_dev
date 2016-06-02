@@ -8,6 +8,12 @@
 
 poolSS< _12b, 128>	ui_allocator;
 
+
+#pragma optimize("gyts", off)
+
+xr_map<CUIWindow*, bool> g_windows;
+
+
 //#define LOG_ALL_WNDS
 #ifdef LOG_ALL_WNDS
 	int ListWndCount = 0;
@@ -116,6 +122,7 @@ CUIWindow::CUIWindow()
 	m_bClickable			= false;
 	m_bPP					= false;
 	m_dwFocusReceiveTime	= 0;
+	g_windows [this]		= true;
 #ifdef LOG_ALL_WNDS
 	ListWndCount++;
 	m_dbg_id = ListWndCount;
@@ -128,6 +135,10 @@ CUIWindow::CUIWindow()
 CUIWindow::~CUIWindow()
 {
 	VERIFY( !(GetParent()&&IsAutoDelete()) );
+
+	auto it = g_windows.find(this);
+	if (it != g_windows.end())
+		g_windows.erase(it);
 
 	CUIWindow* parent	= GetParent();
 	bool ad				= IsAutoDelete();
@@ -187,6 +198,21 @@ void CUIWindow::Draw(float x, float y){
 
 void CUIWindow::Update()
 {
+	if (*m_windowName && m_slide_inc > 0)
+		MsgCB("##DBG: %s.m_slide_stage = %.3f, m_slide_inc = %.3f ", *m_windowName, m_slide_stage, m_slide_inc);
+
+	if (m_slide_stage < 1.f && m_slide_inc > 0.f)
+	{
+		m_slide_stage += m_slide_inc;
+		Fvector2  pos;
+		pos.sub(m_slide.rb, m_slide.lt);				
+		pos.mul(m_slide_stage);
+		pos.add(m_slide.lt);
+		SetWndPos(pos);
+	}
+	else m_slide_inc = 0.f;
+
+
 	if (GetUICursor()->IsVisible())
 	{
 		bool cursor_on_window;
@@ -345,6 +371,7 @@ bool CUIWindow::OnMouse(float x, float y, EUIMessages mouse_action)
 	for(; it!=m_ChildWndList.rend(); ++it)
 	{
 		CUIWindow* w	= (*it);
+		if (!w) continue;
 		Frect wndRect	= w->GetWndRect();
 		if (wndRect.in(cursor_pos) )
 		{
@@ -404,19 +431,12 @@ void CUIWindow::OnFocusReceive()
 {
 	m_dwFocusReceiveTime	= Device.dwTimeGlobal;
 	m_bCursorOverWindow		= true;	
-	
-
-	if (GetMessageTarget())
-        GetMessageTarget()->SendMessage(this, WINDOW_FOCUS_RECEIVED, NULL);
 }
 
 void CUIWindow::OnFocusLost()
 {
 	m_dwFocusReceiveTime	= 0;
 	m_bCursorOverWindow		= false;	
-	
-	if (GetMessageTarget())
-        GetMessageTarget()->SendMessage(this, WINDOW_FOCUS_LOST, NULL);	
 }
 
 

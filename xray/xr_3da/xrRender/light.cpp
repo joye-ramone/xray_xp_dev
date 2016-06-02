@@ -1,6 +1,8 @@
 #include "StdAfx.h"
 #include "light.h"
 
+volatile ULONG g_id_counter = 0;
+
 light::light		(void)	: ISpatial(g_SpatialSpace)
 {
 	spatial.type	= STYPE_LIGHTSOURCE;
@@ -15,18 +17,20 @@ light::light		(void)	: ISpatial(g_SpatialSpace)
 	cone			= deg2rad(60.f);
 	color.set		(1,1,1,1);
 
+	light_id		= InterlockedIncrement(&g_id_counter);
 	frame_render	= 0;
 
 #if RENDER==R_R2
-	virtual_size	= .1f; // Ray Twitty (aka Shadows): по умолчанию надо 0.1, чтобы не пришлось вызывать для каждого лайта установку виртуального размера
+	virtual_size	= 0;
 	ZeroMemory		(omnipart,sizeof(omnipart));
 	s_spot			= NULL;
 	s_point			= NULL;
 	vis.frame2test	= 0;	// xffffffff;
-	vis.query_id	= 0;
+	vis.query_id	= (u32)-1;
 	vis.query_order	= 0;
 	vis.visible		= true;
 	vis.pending		= false;
+	
 #endif
 }
 
@@ -270,10 +274,6 @@ void	light::export		(light_Package& package)
 						L->set_rotation		(cmDir[f],	R);
 						L->set_cone			(PI_DIV_2);
 						L->set_range		(range);
-						/************************************************** added by Ray Twitty (aka Shadows) START **************************************************/
-						// надо еще экспортировать
-						L->set_virtual_size	(virtual_size);
-						/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
 						L->set_color		(color);
 						L->spatial.sector	= spatial.sector;	//. dangerous?
 						L->s_spot			= s_spot	;

@@ -49,7 +49,7 @@ extern int keyname_to_dik(LPCSTR);
 
 #define DI_FONT_NAME			"di"
 
-
+#pragma optimize("gyts", off)
 ////
 
 //////////////////////////////////////////////////////////////////////////
@@ -294,10 +294,9 @@ bool CUIXmlInit::InitText(CUIXml& xml_doc, const char* path, int index, IUITextC
 	else if (0 == xr_strcmp(al, "l"))
 		pWnd->SetTextAlignment(CGameFont::alLeft);
 
-	shared_str text = xml_doc.Read(path, index, NULL);
-	CStringTable st;
-	if (!!text){
-        pWnd->SetText(*st.translate(*text));
+	shared_str text = xml_doc.Read(path, index, NULL);	
+	if (!!text){		 
+        pWnd->SetText(*CStringTable().translate(*text));
 	}
 
 	return true;
@@ -463,8 +462,7 @@ bool CUIXmlInit::InitDragDropListEx(CUIXml& xml_doc, const char* path, int index
 	pWnd->SetVerticalPlacement(tmp!=0); 
 	tmp						= xml_doc.ReadAttribInt(path, index, "show_grid", 1);
 	pWnd->SetDrawGrid		(tmp != 0);
-	tmp 					= xml_doc.ReadAttribInt(path, index, "condition_progress_bar", 0);
-	pWnd->SetConditionProgBarVisibility(tmp!=0);	
+	
 
 	if (xr_strlen(path))
 		pWnd->SetWindowName (path, TRUE);
@@ -1007,7 +1005,7 @@ bool CUIXmlInit::InitTexture(CUIXml& xml_doc, const char* path, int index, IUIMu
 	{
         pWnd->InitTexture(*texture);
 		return true;
-	}
+	}		
 
 	return false;
 }
@@ -1104,7 +1102,9 @@ bool CUIXmlInit::InitMultiTexture(CUIXml &xml_doc, LPCSTR path, int index, CUI3t
 
 bool CUIXmlInit::InitMultiText(CUIXml& xml_doc, LPCSTR path, int index, CUIStatic* pWnd){
 	string256			buf;
-	InitText			(xml_doc, strconcat(sizeof(buf),buf,path,":text"), index, pWnd);
+	strconcat(sizeof(buf), buf, path, ":text");
+		
+	InitText			(xml_doc, buf, index, pWnd);
 	u32					color;
 
 	strconcat(sizeof(buf),buf,path,":text_color:e");

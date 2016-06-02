@@ -32,6 +32,8 @@ public:
 							CUIInventoryWnd				();
 	virtual					~CUIInventoryWnd			();
 
+	CUIDragDropListEx*		AddDragDropList				(CUIXml &uiXml, LPCSTR name, CUIWindow *parent, bool auto_delete = true);
+
 	virtual void			Init						();
 
 	void					InitInventory				();
@@ -52,7 +54,8 @@ public:
 	virtual void			Hide						();
 
 	void					AddItemToBag				(PIItem pItem);
-
+	EListType				GetType						(CUIDragDropListEx* l);
+	u32						GetSlot						(CUIDragDropListEx* l);
 	
 protected:
 	enum eInventorySndAction{	eInvSndOpen	=0,
@@ -88,6 +91,8 @@ protected:
 	CUIStatic					UIStaticTimeString;
 
 	CUIStatic					UIStaticPersonal;
+
+	CUIStatic					UIAccumStatic;
 		
 	CUIDragDropListEx*			m_pUIBagList;
 	CUIDragDropListEx*			m_pUIBeltList;
@@ -119,7 +124,7 @@ protected:
 	void						ClearAllLists				();
 	void						BindDragDropListEnents		(CUIDragDropListEx* lst);
 	
-	EListType					GetType						(CUIDragDropListEx* l);
+	
 	CUIDragDropListEx*			GetSlotList					(u32 slot_idx);
 
 	bool		xr_stdcall		OnItemDrop					(CUICellItem* itm);
@@ -127,9 +132,7 @@ protected:
 	bool		xr_stdcall		OnItemDbClick				(CUICellItem* itm);
 	bool		xr_stdcall		OnItemSelected				(CUICellItem* itm);
 	bool		xr_stdcall		OnItemRButtonClick			(CUICellItem* itm);
-	bool		xr_stdcall		OnItemFocusedUpdate			(CUICellItem* itm);
-	bool		xr_stdcall		OnItemFocusReceive			(CUICellItem* itm);
-	bool		xr_stdcall		OnItemFocusLost				(CUICellItem* itm);
+
 
 	CUIStatic					UIProgressBack;
 	CUIStatic					UIProgressBack_rank;
@@ -175,10 +178,6 @@ protected:
 	void						DetachAddon					(const char* addon_name);
 
 	void						SetCurrentItem				(CUICellItem* itm);
-#ifdef INV_COLORIZE_AMMO
-	void						ColorizeAmmo				(CUICellItem* itm);
-	void						ClearColorizeAmmo				();
-#endif
 	CUICellItem*				CurrentItem					();
 	
 

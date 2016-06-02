@@ -9,6 +9,11 @@
 
 XRCORE_API void VerifyPath	(LPCSTR path);
 
+extern XRCORE_API PVOID fs_alloc(size_t cb);
+extern XRCORE_API PVOID fs_realloc(PVOID data, size_t cb);
+extern XRCORE_API void  fs_free(PVOID data);
+
+
 #ifdef DEBUG
 	XRCORE_API	extern	u32		g_file_mapped_memory;
 	XRCORE_API	extern	u32		g_file_mapped_count;
@@ -17,10 +22,53 @@ XRCORE_API void VerifyPath	(LPCSTR path);
 				extern	void	unregister_file_mapping	(void *address, const u32 &size);
 #endif // DEBUG
 
+IC int			limit32		(const s64 v) 
+{ 
+	return v <= int_max ? (int)v : int_max;  
+}
+IC u32			limit32u	(const u64 v) 
+{ 
+	return v <= type_max(u32) ? (int)v : type_max(u32);  
+}
+
+#pragma pack(push, 4)
+
+class CResourceDesc
+{
+public:
+	const void*			 owner_ref;	
+	shared_str			 name_ref;
+	CResourceDesc					(const void *owner) 		{ owner_ref = owner; }	
+	virtual ~CResourceDesc			()							{ R_ASSERT(this); }
+};
+
+ICF f64 size_in_mib(const u64 size) {	return ((f64)size) / 1048576.l; }
+
+
+
+class XRCORE_API IFileSystemResource
+{
+
+public:
+    CResourceDesc  *m_resource_desc;
+
+					IFileSystemResource	()				{ m_resource_desc = NULL; }
+	virtual			~IFileSystemResource()				{ xr_delete(m_resource_desc); }	
+};
+
+extern XRCORE_API bool check_position(const IFileSystemResource *R, const u64 ptr, const u64 size, LPCSTR context);
+
+
+XRCORE_API void* do_before_find (const IFileSystemResource *R, u32 ID);	// IReaderBase::find_chunk
+XRCORE_API void   do_after_find (void *param);
+
+
+
 //------------------------------------------------------------------------------------
 // Write
 //------------------------------------------------------------------------------------
-class XRCORE_API IWriter
+class XRCORE_API IWriter:
+	public IFileSystemResource
 {
 private:
 	xr_stack<u32>		chunk_pos;
@@ -121,7 +169,7 @@ public:
 	IC void			clear		()			{	file_size=0; position=0;	}
 #pragma warning(push)
 #pragma warning(disable:4995)
-	IC void			free		()			{	file_size=0; position=0; mem_size=0; xr_free(data);	}
+	IC void			free		()			{	file_size=0; position=0; mem_size=0; fs_free(data);	}
 #pragma warning(pop)
 	bool			save_to		(LPCSTR fn);
 };
@@ -130,16 +178,18 @@ public:
 // Read
 //------------------------------------------------------------------------------------
 template <typename implementation_type>
-class IReaderBase {
+class IReaderBase:
+	public IFileSystemResource 
+{
 public:
-	virtual			~IReaderBase()				{}
+
 
 	IC implementation_type&impl	()				{return *(implementation_type*)this;}
 	IC const implementation_type&impl() const	{return *(implementation_type*)this;}
 
-	IC BOOL			eof			()	const		{return impl().elapsed()<=0;	};
+	IC BOOL			eof			()	const		{return impl().elapsed64()<=0;	};
 	
-	IC void			r			(void *p,int cnt) {impl().r(p,cnt);}
+	IC void			r			(void *p, int cnt) {impl().r(p,cnt);}
 
 	IC Fvector		r_vec3		()			{Fvector tmp;r(&tmp,3*sizeof(float));return tmp;	};
 	IC Fvector4		r_vec4		()			{Fvector4 tmp;r(&tmp,4*sizeof(float));return tmp;	};
@@ -186,26 +236,54 @@ public:
 	}
 	// Set file pointer to start of chunk data (0 for root chunk)
 	IC	void		rewind		()			{	impl().seek(0); }
-
+		
+	
 	IC	u32 		find_chunk	(u32 ID, BOOL* bCompressed = 0)	
 	{
-		u32	dwSize,dwType;
+		u32	dwSize = 0, dwType = 0, result = 0;
+		void *tmp = do_before_find(this, ID);
+		
+		__try
+		{	
+			
+			if (!impl().chunk_at(ID, -1, 7)) // базова€ оптимизаци€ дл€ последовательного однопоточного доступа. ћожно начинать с чанка -7
+				rewind();
 
-		rewind();
-		auto length = (u32)impl().length();
-		while ( (u32)impl().tell() + 8 <= length)
-		{
-			dwType = r_u32();
-			dwSize = r_u32();
-			if ((dwType&(~CFS_CompressMark)) == ID) {
-				
-				VERIFY	((u32)impl().tell() + dwSize <= (u32)impl().length());
-				if (bCompressed) *bCompressed = dwType&CFS_CompressMark;
-				return dwSize;
+			while (impl().elapsed64 () > 8) {							
+				dwType = r_u32();
+				dwSize = r_u32();			
+				if (dwSize > 0)
+					impl().remember_chunk( impl().tell64() - 8 );
+
+				const u32 test = dwType & (~CFS_CompressMark);
+
+				if ( test == ID ) {				
+					const s64 _next = impl().tell64() + (s64) dwSize;	
+					FORCE_VERIFY(_next <= (s64) impl().length64());
+
+					if (bCompressed) 
+						*bCompressed = dwType & CFS_CompressMark;
+
+					if (dwSize > 0)
+						impl().set_next_chunk(_next);
+					result = dwSize;
+					break;
+				}
+				if ( impl().elapsed64() < dwSize ) break;				
+				impl().advance64(dwSize);
 			}
-			else	impl().advance(dwSize);
 		}
-		return 0;
+		__except (EXCEPTION_EXECUTE_HANDLER)
+		{
+			u32 *self = (u32*) this;
+			Msg("!#EXCEPTION: IReaderBase::find_chunk(%d) this = 0x%p, dwSize = %d, chunk size = %.5lf MiB ",
+						ID, this, dwSize, size_in_mib (impl().length64()));
+			if (!IsBadReadPtr(self, 16))
+			    Msg(" IReader contents: 0x%X, 0x%X, 0x%X, 0x%X ", self[0], self[1], self[2], self[2]);
+		}
+
+		do_after_find(tmp);
+		return result;
 	}
 	
 	IC	BOOL		r_chunk		(u32 ID, void *dest)	// чтение XR Chunk'ов (4b-ID,4b-size,??b-data)
@@ -228,26 +306,45 @@ public:
 	}
 };
 
+#define MAX_LAST_CHUNKS 8
+
+// alpet: подготовка к 64-битной сборке
 class XRCORE_API IReader : public IReaderBase<IReader> {
-protected:
+protected:	
+	s64				Pos		;
+	s64				Size	;
+	s64				iterpos	;
 	char *			data	;
-	int				Pos		;
-	int				Size	;
-	int				iterpos	;
+	s64				last_chunks[MAX_LAST_CHUNKS];
+	volatile ULONG	  last_chunk_idx;
+	volatile LONGLONG next_chunk_pos;	
+	
+	IC void			ZeroInit()
+	{
+	 	next_chunk_pos = Pos = iterpos = Size = 0;
+		data		   = NULL;
+		last_chunk_idx = 0;
+		memset(last_chunks, 0, sizeof(last_chunks));
+	}
 
 public:
 	IC				IReader			()
 	{
-		Pos			= 0;
+		ZeroInit();
 	}
 
-	IC				IReader			(void *_data, int _size, int _iterpos=0)
+	IC				IReader			(void *_data, s64 _size, s64 _iterpos = 0)
 	{
+		ZeroInit();
 		data		= (char *)_data	;
 		Size		= _size			;
 		Pos			= 0				;
 		iterpos		= _iterpos		;
 	}
+
+	IC s64			next_chunk()						{  return next_chunk_pos; };
+	IC void 		set_next_chunk(s64 pos)				{  InterlockedExchange64(&next_chunk_pos, pos); }
+	IC s64			header_offset()						{  return iterpos - Size - 8;  }
 
 protected:
 	IC u32			correction					(u32 p)
@@ -257,18 +354,24 @@ protected:
 		} return 0;
 	}
 	
-	u32 			advance_term_string			();
+	s32				advance_term_string			();	
+public:
+	IC int			elapsed		()	const		{	return limit32 (elapsed64());		};
+	IC int			tell		()	const		{	return limit32 (tell64());				};
+	IC void			seek		(int ptr)		{	seek64(ptr); };
+	IC int			length		()	const		{	return limit32 (Size);				};
+	IC void*		pointer		()	const		{	return &(data[(size_t)Pos]);	};
+	IC void			advance		(int cnt)		{	advance64(cnt); };	
+	IC s64			elapsed64	()	const		{	return Size >= Pos ? Size-Pos : 0;	};
+	IC s64			tell64		()	const		{	check_position(this, Pos, Size, "tell64"); return Pos; };
+	IC f64			tell_mib	()  const       {   return size_in_mib (Pos); } 
+	IC void			seek64		(s64 ptr)		{	Pos=ptr; check_position(this, Pos, Size, "seek64"); };
+	IC s64			length64	()	const		{	return Size;			};
+	IC f64			length_mib  ()  const		{   return size_in_mib (Size); } 
+	IC void			advance64	(s64 cnt)		{	Pos+=cnt; check_position(this, Pos, Size, "advance64"); };
 
 public:
-	IC int			elapsed		()	const		{	return Size-Pos;		};
-	IC int			tell		()	const		{	return Pos;				};
-	IC void			seek		(int ptr)		{	Pos=ptr; VERIFY((Pos<=Size) && (Pos>=0));};
-	IC int			length		()	const		{	return Size;			};
-	IC void*		pointer		()	const		{	return &(data[Pos]);	};
-	IC void			advance		(int cnt)		{	Pos+=cnt;VERIFY((Pos<=Size) && (Pos>=0));};
-
-public:
-	void			r			(void *p,int cnt);
+	void			r			(void *p, __int64 cnt);
 
 	void			r_string	(char *dest, u32 tgt_sz);
 	void			r_string	(xr_string& dest);
@@ -283,12 +386,17 @@ public:
 	void			close		();
 
 public:
+	
+	bool			chunk_at (u32 ID, s64 pos, u32 max_diff = 0);
 	// поиск XR Chunk'ов - возврат - размер или 0
-	IReader*		open_chunk	(u32 ID);
+	IReader*		open_chunk	(u32 ID, const s64 pos = 0);
 
 	// iterators
-	IReader*		open_chunk_iterator		(u32& ID, IReader* previous=NULL);	// NULL=first
+	IReader*		open_chunk_iterator		(u32& ID, IReader* previous=NULL);	// NULL=first	
+	void			remember_chunk (const s64 pos);
 };
+
+
 
 class XRCORE_API CVirtualFileRW : public IReader
 {
@@ -299,4 +407,5 @@ public:
 	virtual ~CVirtualFileRW		();
 };
 
+#pragma pack(pop)
 #endif // fsH

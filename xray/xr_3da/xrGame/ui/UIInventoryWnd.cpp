@@ -53,6 +53,17 @@ CUIInventoryWnd::CUIInventoryWnd()
 	Hide								();	
 }
 
+CUIDragDropListEx *CUIInventoryWnd::AddDragDropList(CUIXml &uiXml, LPCSTR name, CUIWindow *parent, bool auto_delete)
+{
+	CUIXmlInit							xml_init;
+	CUIDragDropListEx *result			= xr_new<CUIDragDropListEx>(); 
+	parent->AttachChild(result); 
+	result->SetAutoDelete(auto_delete);
+	xml_init.InitDragDropListEx			(uiXml, name, 0, result);
+	BindDragDropListEnents				(result);
+	return result;
+}
+
 void CUIInventoryWnd::Init()
 {
 	CUIXml								uiXml;
@@ -81,10 +92,12 @@ void CUIInventoryWnd::Init()
 	AttachChild							(&UIDescrWnd);
 	xml_init.InitStatic					(uiXml, "descr_static", 0, &UIDescrWnd);
 
-	#ifndef INV_FLOAT_ITEM_INFO
+	AttachChild							(&UIAccumStatic);
+	xml_init.InitStatic					(uiXml, "accum_static", 0, &UIAccumStatic);
+
+
 	UIDescrWnd.AttachChild				(&UIItemInfo);
 	UIItemInfo.Init						(0, 0, UIDescrWnd.GetWidth(), UIDescrWnd.GetHeight(), INVENTORY_ITEM_XML);
-	#endif
 	
 #ifdef INV_NEW_SLOTS_SYSTEM
 	if (GameID() == GAME_SINGLE){
@@ -149,6 +162,7 @@ void CUIInventoryWnd::Init()
 		UIRankFrame->AttachChild(UIRank);		
 	}
 
+#ifdef OLD_INVENTORY_INIT
 	m_pUIBagList						= xr_new<CUIDragDropListEx>(); UIBagWnd.AttachChild(m_pUIBagList); m_pUIBagList->SetAutoDelete(true);
 	xml_init.InitDragDropListEx			(uiXml, "dragdrop_bag", 0, m_pUIBagList);
 	BindDragDropListEnents				(m_pUIBagList);
@@ -156,6 +170,10 @@ void CUIInventoryWnd::Init()
 	m_pUIBeltList						= xr_new<CUIDragDropListEx>(); AttachChild(m_pUIBeltList); m_pUIBeltList->SetAutoDelete(true);
 	xml_init.InitDragDropListEx			(uiXml, "dragdrop_belt", 0, m_pUIBeltList);
 	BindDragDropListEnents				(m_pUIBeltList);
+#else
+	m_pUIBagList						= AddDragDropList(uiXml, "dragdrop_bag", &UIBagWnd);
+    m_pUIBeltList						= AddDragDropList(uiXml, "dragdrop_belt", this);
+#endif
 
 #if defined(INV_OUTFIT_FULL_ICON_HIDE)
 	m_pUIOutfitList						= xr_new<CUIDragDropListEx>(); AttachChild(m_pUIOutfitList); m_pUIOutfitList->SetAutoDelete(true);
@@ -221,6 +239,7 @@ void CUIInventoryWnd::Init()
 		m_slots_array[PDA_SLOT]					= m_pUIPDAList;
 		m_slots_array[DETECTOR_SLOT]			= m_pUIDetectorList;
 		m_slots_array[TORCH_SLOT]				= m_pUITorchList;
+		m_slots_array[OUTFIT_SLOT]				= m_pUIOutfitList;
 		m_slots_array[HELMET_SLOT]				= m_pUIHelmetList;
 		m_slots_array[SLOT_QUICK_ACCESS_0]		= m_pUISlotQuickAccessList_0;
 		m_slots_array[SLOT_QUICK_ACCESS_1]		= m_pUISlotQuickAccessList_1;
@@ -238,10 +257,9 @@ void CUIInventoryWnd::Init()
 #endif	
 	m_slots_array[PISTOL_SLOT]				= m_pUIPistolList;
 	m_slots_array[RIFLE_SLOT]				= m_pUIAutomaticList;
-	m_slots_array[OUTFIT_SLOT]				= m_pUIOutfitList;
 	m_slots_array[GRENADE_SLOT]				= NULL;	
 	m_slots_array[BOLT_SLOT]				= NULL;		
-	m_slots_array[ARTEFACT_SLOT]		    = NULL; // m_pUIBeltList;
+	m_slots_array[ARTEFACT_SLOT]		    = NULL; // m_pUIBeltList;	
 
 	//pop-up menu
 	AttachChild							(&UIPropertiesBox);
@@ -257,11 +275,6 @@ void CUIInventoryWnd::Init()
 	UIExitButton						= xr_new<CUI3tButton>();UIExitButton->SetAutoDelete(true);
 	AttachChild							(UIExitButton);
 	xml_init.Init3tButton				(uiXml, "exit_button", 0, UIExitButton);
-	
-	#ifdef INV_FLOAT_ITEM_INFO
-	AttachChild				(&UIItemInfo);
-	UIItemInfo.Init			(INVENTORY_ITEM_XML);
-	#endif
 
 //Load sounds
 
@@ -289,29 +302,18 @@ EListType CUIInventoryWnd::GetType(CUIDragDropListEx* l)
 	for (u32 i = 0; i < SLOTS_TOTAL; i++)
 		if (m_slots_array[i] == l)
 			return iwSlot;
-#pragma todo("alpet: после теста удалить")
-/* 
-	if(l==m_pUIAutomaticList)	return iwSlot;
-	if(l==m_pUIPistolList)		return iwSlot;
-	if(l==m_pUIOutfitList)		return iwSlot;
-
-#ifdef INV_NEW_SLOTS_SYSTEM
-	if(l==m_pUIKnifeList)				return iwSlot;
-	if(l==m_pUIBinocularList)			return iwSlot;
-	if(l==m_pUIDetectorList)			return iwSlot;
-	if(l==m_pUITorchList)				return iwSlot;
-	if(l==m_pUIPDAList)					return iwSlot;
-	if(l==m_pUIHelmetList)				return iwSlot;
-	if(l==m_pUISlotQuickAccessList_0)	return iwSlot;
-	if(l==m_pUISlotQuickAccessList_1)	return iwSlot;
-	if(l==m_pUISlotQuickAccessList_2)	return iwSlot;
-	if(l==m_pUISlotQuickAccessList_3)	return iwSlot;
-#endif
-	*/
 	NODEFAULT;
 #ifdef DEBUG
 	return iwSlot;
 #endif // DEBUG
+}
+
+u32 CUIInventoryWnd::GetSlot(CUIDragDropListEx* l)
+{
+	for (u32 i = 0; i < SLOTS_TOTAL; i++)
+		if (m_slots_array[i] == l)
+			return i;
+	return NO_ACTIVE_SLOT;
 }
 
 void CUIInventoryWnd::PlaySnd(eInventorySndAction a)
@@ -581,13 +583,10 @@ void	CUIInventoryWnd::SendEvent_Item_Eat			(PIItem	pItem)
 void CUIInventoryWnd::BindDragDropListEnents(CUIDragDropListEx* lst)
 {
 	lst->m_f_item_drop				= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUIInventoryWnd::OnItemDrop);
-	lst->m_f_item_start_drag		= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUIInventoryWnd::OnItemStartDrag);
+	lst->m_f_item_start_drag			= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUIInventoryWnd::OnItemStartDrag);
 	lst->m_f_item_db_click			= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUIInventoryWnd::OnItemDbClick);
 	lst->m_f_item_selected			= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUIInventoryWnd::OnItemSelected);
 	lst->m_f_item_rbutton_click		= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUIInventoryWnd::OnItemRButtonClick);
-	lst->m_f_item_focused_update	= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUIInventoryWnd::OnItemFocusedUpdate);
-	lst->m_f_item_focus_received	= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUIInventoryWnd::OnItemFocusReceive);
-	lst->m_f_item_focus_lost		= CUIDragDropListEx::DRAG_DROP_EVENT(this,&CUIInventoryWnd::OnItemFocusLost);
 }
 
 

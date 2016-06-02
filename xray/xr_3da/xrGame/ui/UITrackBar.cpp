@@ -6,7 +6,6 @@
 #include "UI3tButton.h"
 #include "UITextureMaster.h"
 #include "../../xr_input.h"
-#include "../UICursor.h"
 
 #define DEF_CONTROL_HEIGHT		21
 #define FRAME_LINE_TEXTURE		"ui_slider_e"
@@ -32,12 +31,6 @@ CUITrackBar::CUITrackBar()
 	m_pSlider						= xr_new<CUI3tButton>();			
 	AttachChild						(m_pSlider);		
 	m_pSlider->SetAutoDelete		(true);
-
-	// Start.Real Wolf.06.11.14.
-	m_pSlider->m_bSetStateAfterFocusLost = false;
-	m_bState = false;
-	// Finish.Real Wolf.06.11.14.
-
 //.	m_pSlider->SetOwner				(this);
 }
 
@@ -45,35 +38,13 @@ bool CUITrackBar::OnMouse(float x, float y, EUIMessages mouse_action)
 {
 	CUIWindow::OnMouse(x, y, mouse_action);
 
-	// Start.Real Wolf.06.11.14.
-	if (m_bCursorOverWindow && mouse_action == WINDOW_LBUTTON_DOWN)
+	if (m_bCursorOverWindow)
 	{
-		m_bState = true;
+		if (pInput->iGetAsyncBtnState(0))
+			UpdatePosRelativeToMouse();
 	}
-	else if (mouse_action == WINDOW_LBUTTON_UP)
-	{
-		m_bState = false;
-		m_pSlider->SetCheck(false);
-	}
-	// Finish.Real Wolf.06.11.14.
-
-	bool result = (mouse_action != WINDOW_MOUSE_WHEEL_DOWN) && (mouse_action != WINDOW_MOUSE_WHEEL_UP);
-
-	return result;
+	return true;
 }
-
-// Start.Real Wolf.06.11.14.
-void CUITrackBar::Update()
-{	
-	if (m_bState && !pInput->iGetAsyncBtnState(0) )
-		OnMouse(0.f, 0.f, WINDOW_LBUTTON_UP);
-
-	if (m_bState)
-		UpdatePosRelativeToMouse();
-
-	CUIWindow::Update();
-}
-// Finish.Real Wolf.06.11.14.
 
 void CUITrackBar::Init(float x, float y, float width, float height){
 	string128			buf;
@@ -181,13 +152,7 @@ void CUITrackBar::UpdatePosRelativeToMouse()
 
 	float btn_width				= m_pSlider->GetWidth();
 	float window_width			= GetWidth();		
-	//float fpos					= cursor_pos.x;
-
-	// Start.Real Wolf.06.11.14.
-	Fvector2 pos;
-	GetAbsolutePos(pos);
-	float fpos = GetUICursor()->GetCursorPosition().x - pos.x; 
-	// Finish.Real Wolf.06.11.14.
+	float fpos					= cursor_pos.x;
 
 	if( GetInvert() )
 		fpos					= window_width - fpos;

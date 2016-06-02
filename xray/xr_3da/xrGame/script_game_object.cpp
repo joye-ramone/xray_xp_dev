@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: script_game_object.cpp
 //	Created 	: 25.09.2003
-//  Modified 	: 29.06.2004
+//  Modified 	: 19.12.2014
 //	Author		: Dmitriy Iassenev
 //	Description : Script game object class
 ////////////////////////////////////////////////////////////////////////////
@@ -383,8 +383,8 @@ void CScriptGameObject::SetCondition	(float val)
 		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CSciptEntity : cannot access class member SetCondition!");
 		return;
 	}
-	val					-= inventory_item->GetCondition();
-	inventory_item->ChangeCondition			(val);
+	// val					-= inventory_item->GetCondition();
+	inventory_item->SetCondition			(val);
 }
 
 void CScriptGameObject::eat				(CScriptGameObject *item)
@@ -628,7 +628,7 @@ u16 CScriptGameObject::GetAmmoBoxCurr() const
 		return 0;
 	}
 
-	return obj->m_boxCurr;
+	return obj->get_box_curr();
 }
 
 u16 CScriptGameObject::GetAmmoBoxSize() const
@@ -682,7 +682,7 @@ void CScriptGameObject::SetAmmoBoxCurr(u16 curr)
 		return;
 	}
 
-	obj->m_boxCurr = curr;
+	obj->set_box_curr(curr);
 }
 
 LPCSTR CScriptGameObject::GetVisualName()
@@ -787,31 +787,40 @@ void CScriptGameObject::SetDirection (const Fvector &dir, float bank)
 		Msg("Error! CScriptGameObject::SetDirection : game level doesn't exist.");
 		return;
 	}
+		
+	SRotation rot;
+	dir.getHP(rot.yaw, rot.pitch);
+	rot.roll = bank;
+	SetRotation(rot);	
+}
 
-	float h, p;
-	dir.getHP(h, p);
-
+void CScriptGameObject::SetRotation (const SRotation &rot)
+{
 	if (this->IsActor())
 	{
-		SRotation &R = Actor()->Orientation();
-		R.pitch = p;
-		R.yaw = h;
-		R.roll = bank;
+		Actor()->Orientation() = rot;		
 	}
 	else
-	{		
+	{	
 		Fmatrix m = object().XFORM();
-		Fmatrix r = Fidentity;				
-		r.setHPB (h, p, bank);				// set 2-axis direction 
-		m.set(r.i, r.j, r.k, m.c);		
-		object().XFORM() = m; // only visual update
-		// object().UpdateXFORM(m);
+		Fmatrix r = Fidentity;					
+		r.setHPB(rot.yaw, rot.pitch, rot.roll);			// set 3-axis direction 
+		m.set(r.i, r.j, r.k, m.c);		// saved position in c		
+		object().UpdateXFORM(m);		// apply to physic shell
+		object().XFORM() = m;			// normal visual update
+		CKinematics *pK = PKinematics(object().Visual());
+		if (pK)					
+			pK->CalculateBones_Invalidate();	 // пересчитать ротацию
+		
 	}
 	
 	// alpet: сохранение направлени€ в серверный экземпл€р
-	CSE_ALifeDynamicObject* se_obj = object().alife_object();
+	CSE_ALifeDynamicObject* se_obj = alife_object();
 	if (se_obj)
-		se_obj->angle() = dir;	
+	{
+		object().XFORM().getXYZ(se_obj->angle()); // used for setXYZ	(T x, T y, T z)	{return setHPB(y,x,z);}
+	}
+
 }
 
 void CScriptGameObject::SetPosition(const Fvector &pos)
@@ -822,29 +831,12 @@ void CScriptGameObject::SetPosition(const Fvector &pos)
 		return;
 	}
 
-	if (IsActor() )
-		SetActorPosition(pos);
-	else
-	{
-		NET_Packet						PP;
-		CGameObject::u_EventGen			(PP, GE_CHANGE_POS, object().ID() );
-		PP.w_vec3						(pos);
-		CGameObject::u_EventSend		(PP);
-		
-		// Real Wolf: ƒл€ инвентарных объектов из-за этого позици€ не мен€етс€.
-		if (smart_cast<CInventoryItem*>(&object()) == NULL)
-		{
-			// alpet: €вное перемещение визуалов объектов
-			Fmatrix m = object().XFORM();
-			m.translate_over(pos);
-			object().UpdateXFORM(m);
-		}
+	object().ChangePosition(pos);
+}
 
-		// alpet: сохранение позиции в серверный экземпл€р
-		CSE_ALifeDynamicObject* se_obj = object().alife_object();
-		if (se_obj)
-			se_obj->position() = pos;
-	}
+Fmatrix *CScriptGameObject::GetXFORM()
+{ 
+	return &object().XFORM(); 
 }
 
 void CScriptGameObject::HealWounds(float percent)
@@ -890,26 +882,26 @@ LPCSTR CScriptGameObject::GetDescription() const
 	return "";
 }
 
-void CScriptGameObject::SetName(LPCSTR name)
+void CScriptGameObject::SetItemName(LPCSTR name)
 {
 	if (auto obj = smart_cast<CInventoryItem*>(&object() ) )
 		obj->m_name = name? name: "";
 }
 
-LPCSTR CScriptGameObject::GetName() const
+LPCSTR CScriptGameObject::GetItemName() const
 {
 	if (auto obj = smart_cast<CInventoryItem*>(&object() ) )
 		return obj->m_name.c_str();
 	return "";
 }
 
-void CScriptGameObject::SetNameShort(LPCSTR name)
+void CScriptGameObject::SetItemNameShort(LPCSTR name)
 {
 	if (auto obj = smart_cast<CInventoryItem*>(&object() ) )
 		obj->m_nameShort = name? name: "";
 }
 
-LPCSTR CScriptGameObject::GetNameShort() const
+LPCSTR CScriptGameObject::GetItemNameShort() const
 {
 	if (auto obj = smart_cast<CInventoryItem*>(&object() ) )
 		return obj->m_nameShort.c_str();
@@ -968,3 +960,12 @@ LPCSTR CScriptGameObject::GetBoneName(u16 id) const
 		return K->LL_BoneName_dbg(id);
 	return 0;
 }
+
+void CScriptGameObject::SetObjectName(LPCSTR szName)
+{
+	CObject &obj = object();
+	obj.cName_set(szName);
+	auto *aobj = alife_object();
+	if (aobj) aobj->set_name_replace(szName);
+}
+

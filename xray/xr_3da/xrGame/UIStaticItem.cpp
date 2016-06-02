@@ -4,6 +4,8 @@
 
 ref_geom		hGeom_fan = NULL;	
 
+#pragma optimize("gyts", off)
+
 void CreateUIGeom()
 {
 	hGeom_fan.create(FVF::F_TL, RCache.Vertex.Buffer(), 0);
@@ -38,9 +40,9 @@ CUIStaticItem::~CUIStaticItem()
 }
 
 void CUIStaticItem::CreateShader(LPCSTR tex, LPCSTR sh)
-{
+{	
 	hShader.create(sh,tex);
-
+	
 #ifdef DEBUG
 	dbg_tex_name = tex;
 #endif
@@ -65,8 +67,15 @@ void CUIStaticItem::Render()
 {
 	VERIFY(g_bRendering);
 	// установить обязательно перед вызовом CustomItem::Render() !!!
-	VERIFY(hShader);
-	RCache.set_Shader			(hShader);
+	FORCE_VERIFY(hShader);
+	__try
+	{
+		RCache.set_Shader(hShader);
+	}
+	__except (SIMPLE_FILTER)
+	{
+		Msg("!#EXCEPTION: in CUIStatic %p, shader assigned = %s ", (void*)this, hShader ? "yep" : "no" );
+	}
 	if(alpha_ref!=-1)
 		CHK_DX(HW.pDevice->SetRenderState(D3DRS_ALPHAREF,alpha_ref));
 	// convert&set pos
@@ -84,7 +93,7 @@ void CUIStaticItem::Render()
 	int tile_x					= fis_zero(iRemX)?iTileX:iTileX+1;
 	int tile_y					= fis_zero(iRemY)?iTileY:iTileY+1;
 	int							x,y;
-	if (!(tile_x > 0 && tile_y > 0))		return;
+	if (!(tile_x&&tile_y))		return;
 	// render
 	FVF::TL* start_pv			= (FVF::TL*)RCache.Vertex.Lock	(8*tile_x*tile_y,hGeom_fan.stride(),vOffset);
 	FVF::TL* pv					= start_pv;

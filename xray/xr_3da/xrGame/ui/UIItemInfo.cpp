@@ -54,9 +54,7 @@ void CUIItemInfo::Init(LPCSTR xml_name){
 		wnd_rect.x2		= uiXml.ReadAttribFlt("main_frame", 0, "width", 0);
 		wnd_rect.y2		= uiXml.ReadAttribFlt("main_frame", 0, "height", 0);
 		
-		wnd_rect.x2		+= wnd_rect.x1;
-		wnd_rect.y2		+= wnd_rect.y1;
-		inherited::SetWndRect(wnd_rect);
+		inherited::Init(wnd_rect.x1, wnd_rect.y1, wnd_rect.x2, wnd_rect.y2);
 	}
 
 	if(uiXml.NavigateToNode("static_name",0))
@@ -184,22 +182,17 @@ void CUIItemInfo::InitItem(CInventoryItem* pInvItem)
 	if(UIItemImage)
 	{
 		// Загружаем картинку
-		UIItemImage->SetShader				(InventoryUtilities::GetEquipmentIconsShader());
+		UIItemImage->SetShader				(pInvItem->m_icon_params.get_shader());
 
+		Frect rect = pInvItem->m_icon_params.original_rect();
 		int iGridWidth						= pInvItem->GetGridWidth();
 		int iGridHeight						= pInvItem->GetGridHeight();
-		int iXPos							= pInvItem->GetXPos();
-		int iYPos							= pInvItem->GetYPos();
-
-		UIItemImage->GetUIStaticItem().SetOriginalRect(	float(iXPos*INV_GRID_WIDTH), float(iYPos*INV_GRID_HEIGHT),
-														float(iGridWidth*INV_GRID_WIDTH),	float(iGridHeight*INV_GRID_HEIGHT));
+		UIItemImage->GetUIStaticItem().SetOriginalRect(rect);
 		UIItemImage->TextureOn				();
 		UIItemImage->ClipperOn				();
 		UIItemImage->SetStretchTexture		(true);
-		Frect v_r							= {	0.0f, 
-												0.0f, 
-												float(iGridWidth*INV_GRID_WIDTH),	
-												float(iGridHeight*INV_GRID_HEIGHT)};
+		Frect v_r							= {	0.0f, 0.0f, 
+												rect.width(), rect.height()};
 		if(UI()->is_16_9_mode())
 			v_r.x2 /= 1.328f;
 

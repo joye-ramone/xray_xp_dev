@@ -33,7 +33,9 @@ public:
 	adopt_sampler&			_clamp			()						{ if (C) C->i_Address	(stage,D3DTADDRESS_CLAMP);									return *this;	}
 	adopt_sampler&			_wrap			()						{ if (C) C->i_Address	(stage,D3DTADDRESS_WRAP);									return *this;	}
 	adopt_sampler&			_mirror			()						{ if (C) C->i_Address	(stage,D3DTADDRESS_MIRROR);									return *this;	}
-	adopt_sampler&			_f_anisotropic	()						{ if (C) C->i_Filter	(stage,D3DTEXF_ANISOTROPIC,D3DTEXF_LINEAR,D3DTEXF_ANISOTROPIC);	return *this;	}
+	adopt_sampler&			_f_gaussian		()						{ if (C) C->i_Filter	(stage,D3DTEXF_GAUSSIANQUAD,  D3DTEXF_LINEAR,  D3DTEXF_GAUSSIANQUAD);	return *this;	}
+	adopt_sampler&			_f_pyramidal	()						{ if (C) C->i_Filter	(stage,D3DTEXF_PYRAMIDALQUAD, D3DTEXF_LINEAR, D3DTEXF_PYRAMIDALQUAD);	return *this;	}
+	adopt_sampler&			_f_anisotropic	()						{ if (C) C->i_Filter	(stage,D3DTEXF_ANISOTROPIC,  D3DTEXF_LINEAR, D3DTEXF_ANISOTROPIC);	return *this;	}
 	adopt_sampler&			_f_trilinear	()						{ if (C) C->i_Filter	(stage,D3DTEXF_LINEAR,D3DTEXF_LINEAR,D3DTEXF_LINEAR);		return *this;	}
 	adopt_sampler&			_f_bilinear		()						{ if (C) C->i_Filter	(stage,D3DTEXF_LINEAR,D3DTEXF_POINT, D3DTEXF_LINEAR);		return *this;	}
 	adopt_sampler&			_f_linear		()						{ if (C) C->i_Filter	(stage,D3DTEXF_LINEAR,D3DTEXF_NONE,  D3DTEXF_LINEAR);		return *this;	}
@@ -82,16 +84,17 @@ void LuaLog(LPCSTR caMessage)
 }
 void LuaError(lua_State* L)
 {
-	LPCSTR traceback = get_lua_traceback(L, 1);
+	LPCSTR traceback = GetLuaTraceback(L, 1);
 	const char *error = lua_tostring(L, -1);
 	Debug.fatal(DEBUG_INFO,"LUA error: %s \n %s ", error ? error : "NULL", traceback);
 }
 
 #ifndef PURE_ALLOC
-#	ifndef USE_MEMORY_MONITOR
+// #	ifndef USE_MEMORY_MONITOR
 #		define USE_DL_ALLOCATOR
-#	endif // USE_MEMORY_MONITOR
+// #	endif // USE_MEMORY_MONITOR
 #endif // PURE_ALLOC
+
 
 #ifndef USE_DL_ALLOCATOR
 	static void *lua_alloc_xr	(void *ud, void *ptr, size_t osize, size_t nsize) {
@@ -109,7 +112,16 @@ void LuaError(lua_State* L)
 #	endif // DEBUG_MEMORY_MANAGER
 	}
 #else // USE_DL_ALLOCATOR
-#	include "doug_lea_memory_allocator.h"
+#	include "common/doug_lea_memory_allocator.h"
+
+	extern "C"
+	{
+		void dlfatal(char *file, int line, char *function)
+		{
+			Debug.fatal(file, line, function, "Doug lea fatal error!");
+		}
+	};
+
 
 	static void *lua_alloc_dl	(void *ud, void *ptr, size_t osize, size_t nsize) {
 	(void)ud;
@@ -137,7 +149,7 @@ void	CResourceManager::LS_Load			()
 		return;
 	}
 
-	//#pragma message ("_ITERATOR_DEBUG_LEVEL = " _STRINGIZE(_ITERATOR_DEBUG_LEVEL))
+	#pragma message ("_ITERATOR_DEBUG_LEVEL = " _STRINGIZE(_ITERATOR_DEBUG_LEVEL))
 	
 	// initialize lua standard library functions 
 	luaL_openlibs(LSVM);	//RvP
@@ -161,6 +173,9 @@ void	CResourceManager::LS_Load			()
 			.def("clamp",						&adopt_sampler::_clamp			,return_reference_to(_1))
 			.def("wrap",						&adopt_sampler::_wrap			,return_reference_to(_1))
 			.def("mirror",						&adopt_sampler::_mirror			,return_reference_to(_1))
+			.def("f_gaussian",					&adopt_sampler::_f_gaussian		,return_reference_to(_1))
+			.def("f_pyramidal",					&adopt_sampler::_f_pyramidal	,return_reference_to(_1))
+			.def("f_anisotropic",				&adopt_sampler::_f_anisotropic	,return_reference_to(_1))
 			.def("f_anisotropic",				&adopt_sampler::_f_anisotropic	,return_reference_to(_1))
 			.def("f_trilinear",					&adopt_sampler::_f_trilinear	,return_reference_to(_1))
 			.def("f_bilinear",					&adopt_sampler::_f_bilinear		,return_reference_to(_1))

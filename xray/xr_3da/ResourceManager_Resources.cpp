@@ -14,7 +14,12 @@
 #include "blenders\blender.h"
 #include "blenders\blender_recorder.h"
 
-void fix_texture_name(LPSTR fn);
+xr_vector<shared_str> g_shader_defines;
+
+#pragma optimize("gyts", off)
+
+
+XRTEXTURES_API void fix_texture_name(LPSTR fn);
 
 template <class T>
 BOOL	reclaim		(xr_vector<T*>& vec, const T* ptr)
@@ -41,10 +46,36 @@ public:
 			if (0==R)			return			E_FAIL;
 		}
 
+		xr_string		text; 
+		text.assign((LPCSTR)R->pointer(), R->length());		
+		const xr_string sub  = "/*XRAY_DEFINES*/";
+		// alpet: здесь небольшой хак, вставка полнотекстовой заменой дейфайнов из конфигурации движка
+		while (strstr(pname, ".cfg"))		
+		{						
+			auto it = text.find(sub);
+			if (it == xr_string::npos) break;
+			
+			xr_string def_text = "";
+			for (u32 i = 0; i < g_shader_defines.size(); i++)
+			{
+				LPCSTR def_name = g_shader_defines[i].c_str();
+				if (*def_name == '-')
+				{
+					def_text += "#undef ";
+					def_name++;
+				}
+				else
+					def_text += "#define ";
+				def_text += def_name;
+				def_text += "\n";
+			}
+			text.replace(it, sub.size(), def_text);			
+			// MsgCB("##DUMP_CONFIG:\n %s", text.c_str());
+		}				
 		// duplicate and zero-terminate
-		u32				size	= R->length();
+		u32				size	= text.size();
 		u8*				data	= xr_alloc<u8>	(size + 1);
-		CopyMemory			(data,R->pointer(),size);
+		CopyMemory			(data, text.c_str(), size);
 		data[size]				= 0;
 		FS.r_close				(R);
 
@@ -309,31 +340,28 @@ SPS*	CResourceManager::_CreatePS			(LPCSTR name)
 					{
 						pConstants				= LPD3DXSHADER_CONSTANTTABLE(data);
 						_ps->constants.parse	(pConstants,0x1);
-					} 
-					else	
-						_hr = E_FAIL;
+					} else	_hr = E_FAIL;
 				}
 			}
-			else	
-				_hr = E_FAIL;
+			else	_hr = E_FAIL;
 		}else
 		{
-			if (pErrorBuf)
-				last_error = (LPCSTR)pErrorBuf->GetBufferPointer();
+			R_ASSERT2(pErrorBuf, "Error buffer was not allocated");
+			last_error = (LPCSTR)pErrorBuf->GetBufferPointer();
+			Msg("error is %s", last_error);
 		}
 
-		// Real Wolf.10.12.2014
-		string1024 buff;
+
 		if (FAILED(_hr))
-		{
-			if (xr_strlen(last_error))
-				sprintf_s(buff, 1023, "ќшибка компил€ции шейдера %s: %s ", name, last_error);
-			else
-				sprintf_s(buff, 1023, "ќшибка компил€ции шейдера %s. ¬озможна ошибка в скрипте, или\n видеокарта не поддерживает пиксельные шейдеры 1.1", name);
+			Msg			("Can't compile shader %s",name);
+		
+		string1024 buff;
 
-			Msg(buff);
-		}
-
+		if (xr_strlen(last_error))
+			sprintf_s(buff, 1023, "ќшибка компил€ции шейдера %s:\n %s ", name, last_error);
+		else
+			sprintf_s(buff, 1023, "ќшибка компил€ции шейдера %s. ¬озможна ошибка в скрипте, или\n видеокарта не поддерживает пиксельные шейдеры 1.1", name);
+		
 		pConstants = NULL;
 		_RELEASE(pShaderBuf);
 		_RELEASE(pErrorBuf);
@@ -501,27 +529,36 @@ CTexture* CResourceManager::_CreateTexture	(LPCSTR _Name)
 	map_TextureIt I = m_textures.find	(N);
 	if (I!=m_textures.end())	return	I->second;
 	else
-	{
+	{		
 		CTexture *	T		=	xr_new<CTexture>();
 		T->dwFlags			|=	xr_resource_flagged::RF_REGISTERED;
+		T->reg_name			= Name;
 		m_textures.insert	(mk_pair(T->set_name(Name),T));
-		T->Preload			();
-		if (Device.b_is_Ready && !bDeferredLoad) T->Load();
+		if (!strstr(_Name, "~vmt\\"))
+		{
+			T->Preload();
+			if (Device.b_is_Ready && !bDeferredLoad) T->Load();
+		}
+		else
+			T->m_skip_prefetch = true;
 		return		T;
 	}
 }
 void	CResourceManager::_DeleteTexture		(const CTexture* T)
 {
 	// DBG_VerifyTextures	();
-
-	if (0==(T->dwFlags&xr_resource_flagged::RF_REGISTERED))	return;
-	LPSTR N					= LPSTR		(*T->cName);
+	if (0 == (T->dwFlags&xr_resource_flagged::RF_REGISTERED))
+	{
+		Msg("*#RENDER: not registered texture %s was not deleted. Size = %d K", *T->cName, T->flags.MemoryUsage / 1024);
+		return;
+	}
+	LPSTR N					= LPSTR		(*T->reg_name);
 	map_Texture::iterator I	= m_textures.find	(N);
 	if (I!=m_textures.end())	{
 		m_textures.erase(I);
 		return;
 	}
-	Msg	("! ERROR: Failed to find texture surface '%s'",*T->cName);
+	Msg	("! ERROR(_DeleteTexture): Failed to find texture surface '%s'",*T->cName);
 }
 
 #ifdef DEBUG

@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: level_script.cpp
 //	Created 	: 28.06.2004
-//  Modified 	: 28.06.2004
+//  Modified 	: 19.11.2014
 //	Author		: Dmitriy Iassenev
 //	Description : Level script export
 ////////////////////////////////////////////////////////////////////////////
@@ -80,9 +80,14 @@ CScriptGameObject *get_object_by_name(LPCSTR caObjectName)
 }
 #endif
 
+DLL_API CObject* client_object_by_id(u16 id)
+{
+	return Level().Objects.net_Find(id);
+}
+
 CScriptGameObject *get_object_by_id(u32 id)
 {
-	CGameObject* pGameObject = smart_cast<CGameObject*>(Level().Objects.net_Find(id));
+	CGameObject* pGameObject = smart_cast<CGameObject*>(client_object_by_id((u16)id));
 	if(!pGameObject)
 		return NULL;
 
@@ -277,6 +282,19 @@ CUIDialogWnd* main_input_receiver()
 {
 	return HUD().GetUI()->MainInputReceiver();
 }
+
+void destroy_dialog(CUIDialogWnd* pDialog)
+{
+	if (pDialog && !IsBadReadPtr(pDialog, 0x40))
+	{
+		remove_dialog_to_render(pDialog);
+		R_ASSERT2(pDialog != main_input_receiver(), "Dialog must be stopped before destroy!"); 
+		HUD().PostDestroy(pDialog, Device.dwTimeGlobal + 500);		
+		// Level().m_garbage.push_back(pDialog); // 
+	}
+}
+
+
 #include "UIGameCustom.h"
 void hide_indicators()
 {
@@ -361,10 +379,28 @@ void remove_calls_for_object(const luabind::object &lua_object)
 
 #pragma optimize("gyts", off)
 
-void level_on_frame()
+void level_net_update()
 {
-	Level().OnFrame();
+	Level().net_Update();	
 }
+
+
+void level_on_frame(bool upd)
+{
+	BOOL bSave = g_bDebugEvents;
+	g_bDebugEvents = upd;
+	Level().m_bForceUpdate = true;
+	__try
+	{
+		Level().OnFrame();
+	}
+	__finally
+	{
+		g_bDebugEvents = bSave;
+		Level().m_bForceUpdate = false;
+	}
+}
+
 
 
 bool receive_game_events()
@@ -376,7 +412,9 @@ bool receive_game_events()
 
 bool process_game_events()
 {
+	Level().m_bForceUpdate = true;
 	Level().ProcessGameEvents();
+	Level().m_bForceUpdate = false;
     // вернуть true если не все события обработаны
 	return !!Level().spawn_events->available(0);
 }
@@ -491,7 +529,7 @@ void set_snd_volume(float v)
 	clamp(psSoundVFactor,0.0f,1.0f);
 }
 #include "actor_statistic_mgr.h"
-void add_actor_points(LPCSTR sect, LPCSTR detail_key, int cnt, int pts)
+void add_actor_points(LPCSTR sect, LPCSTR detail_key, int cnt, float pts)
 {
 	return Actor()->StatisticMgr().AddPoints(sect, detail_key, cnt, pts);
 }
@@ -501,7 +539,7 @@ void add_actor_points_str(LPCSTR sect, LPCSTR detail_key, LPCSTR str_value)
 	return Actor()->StatisticMgr().AddPoints(sect, detail_key, str_value);
 }
 
-int get_actor_points(LPCSTR sect)
+float get_actor_points(LPCSTR sect)
 {
 	return Actor()->StatisticMgr().GetSectionPoints(sect);
 }
@@ -672,18 +710,10 @@ u8  get_level_id(CLevelGraph *graph) { return graph->level_id(); }
 
 u32 get_vertex_count(CLevelGraph *graph) { return graph->header().vertex_count(); }
 
-
-void reinit_shown_ui()
+void set_load_title(LPCSTR title)
 {
-	if (auto pUI = HUD().GetUI() )
-	{
-		if (auto pGameSP = smart_cast<CUIGameSP*>(pUI->UIGame()) )
-		{
-			pGameSP->ReInitShownUI();
-		}
-	}
+	g_pGamePersistent->LoadTitle(title);
 }
-
 
 
 #pragma optimize("s",on)
@@ -752,6 +782,8 @@ void CLevel::script_register(lua_State *L)
 		def("map_change_spot_hint",				map_change_spot_hint),
 
 		def("start_stop_menu",					start_stop_menu),
+		def("start_stop_dialog",				start_stop_menu),
+		def("destroy_dialog",					destroy_dialog),
 		def("add_dialog_to_render",				add_dialog_to_render),
 		def("remove_dialog_to_render",			remove_dialog_to_render),
 		def("main_input_receiver",				main_input_receiver),
@@ -797,10 +829,12 @@ void CLevel::script_register(lua_State *L)
 
 		// alpet 18.10.2014
 		// экспериментальное, для ускорения отработки спавна клиентских объектов.
-		def("on_frame",							&level_on_frame),
+		def("net_update",						&level_net_update),
+		def("on_frame",							&level_on_frame),		
 		def("receive_game_events",				&receive_game_events),
 		def("process_game_events",				&process_game_events),   
-		def("process_game_spawns",				&process_game_spawns) 
+		def("process_game_spawns",				&process_game_spawns),
+		def("set_load_title",					&set_load_title)	
 	],
 	
 	module(L,"actor_stats")
@@ -867,8 +901,8 @@ void CLevel::script_register(lua_State *L)
 		def("get_trade_wnd",		&get_trade_wnd),
 		// alpet: сокращенные функции запуска-остановки диалогов
 		def("start_dialog",			&start_dialog),
-		def("stop_dialog",			&stop_dialog),
-		def("reinit_shown_ui",		&reinit_shown_ui)
+		def("stop_dialog",			&stop_dialog)			
+
 	];
 }
  

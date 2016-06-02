@@ -11,8 +11,11 @@
 #include "xr_input.h"
 #include "xr_ioc_cmd.h"
 #include "GameFont.h"
+#include "Render.h"
 #include "xr_trims.h"
 #include "CustomHUD.h"
+#include "device.h"
+#include "ResourceManager.h"
 #include "../../build_config_defines.h"
 
 #pragma warning(push)
@@ -21,6 +24,8 @@
 #pragma warning(pop)
 
 #define  LDIST .05f
+
+#pragma optimize("gyts", off)
 
 ENGINE_API CConsole*	Console		=	NULL;
 const char *			ioc_prompt	=	">>> ";
@@ -75,6 +80,7 @@ void CConsole::Reset()
 void CConsole::Initialize()
 {
 	scroll_delta	= cmd_delta = old_cmd_delta = 0;
+	page_lines		= 25;
 	editor[0]       = 0;
 	bShift			= false;
 	RecordCommands	= false;
@@ -122,37 +128,70 @@ void CConsole::OnFrame	()
 */
 }
 
-void out_font(CGameFont* pFont, LPCSTR text, float& pos_y)
+void out_font_impl (CGameFont* pFont, LPCSTR text, float &pos_x, float& pos_y)
 {
-	float str_length = pFont->SizeOf_(text);
-	if(str_length>1024.0f)
+	float coef = float(::Render->getTarget()->get_width())  * 0.5f;
+	float right = pos_x + pFont->SizeOf_(text) / coef;
+	if(right > 1.f)
 	{
 		float _l			= 0.0f;
 		int _sz				= 0;
-		int _ln				= 0;
+		int _ln				= 0;		
 		string1024			_one_line;
 		
-		while( text[_sz] )
+		while( *text && _sz < (int) sizeof(_one_line))
 		{
-			_one_line[_ln+_sz]			= text[_sz];
-			_one_line[_ln+_sz+1]		= 0;
-			float _t					= pFont->SizeOf_(_one_line+_ln);
-			if(_t > 1024.0f)
+			// накопление символов в линии _one_line
+			_one_line[_sz ++]	 = *text;
+			_one_line[_sz] = 0;
+			right = pos_x + pFont->SizeOf_(_one_line) / coef;
+			if (right >= 1.f) // накопилось на один вывод
 			{
-				out_font				(pFont, text+_sz, pos_y);
-				pos_y					-= LDIST;
-				pFont->OutI				(-1.0f, pos_y, "%s", _one_line+_ln);
-				_l						= 0.0f;
-				_ln						= _sz;
-			}else
-				_l	= _t;
-
-			++_sz;
+				// out_font_impl		(pFont, text + _sz, pos_x, pos_y);				
+				pFont->OutI(pos_x, pos_y, "%s", _one_line);
+				pos_x = -1.f;   // с начала строки
+				pos_y -= LDIST;	 // сдвиг вниз в координатах D3D			 
+				_sz = 0;
+				_one_line[0] = 0;
+			}						
+			text++;
 		};
-	}else
-		pFont->OutI  (-1.0f, pos_y, "%s", text);
+		// вывод остатка строки		
+		pFont->OutI(pos_x, pos_y, "%s", _one_line);
+		pos_x = pos_x + pFont->SizeOf_(_one_line) / coef;
+	}
+	else
+	{
+		pFont->OutI(pos_x, pos_y, "%s", text);
+		pos_x = right;
+	}
+
 }
 
+void out_font(CGameFont* pFont, LPCSTR text, float& pos_y)
+{
+	float pos_x = -1.f;
+	
+	while (true)
+	{
+		xr_string msg = text;
+		u32 it = msg.find("%c["); // color tag
+		if (it == xr_string::npos)
+			it = msg.length();
+		xr_string cut;
+		cut.assign(msg.c_str(), it);
+		out_font_impl(pFont, cut.c_str(), pos_x, pos_y);
+		if (it >= msg.length()) break;				
+		text += (it + 3);
+		int a, r = 255, g = 255, b = 255;
+		sscanf_s(text, "%d,%d,%d,%d", &a, &r, &g, &b);
+		pFont->SetColor ( color_rgba (r, g, b, a) );
+		while (xr_strlen(text) && *text != ']') text++;
+		if (!*text) break;
+		text++; // skip last bracket
+	}
+
+}
 void CConsole::OnRender	()
 {
 	float			fMaxY;
@@ -172,69 +211,138 @@ void CConsole::OnRender	()
 	VERIFY	(HW.pDevice);
 
 	//*** Shadow
-	D3DRECT R = { 0,0,Device.dwWidth,Device.dwHeight};
-	if		(bGame) R.y2 /= 2;
-
-	CHK_DX	(HW.pDevice->Clear(1,&R,D3DCLEAR_TARGET,D3DCOLOR_ARGB(0,32,32,32),1,0));
+	D3DRECT R = { 0, 0, Device.dwWidth, Device.dwHeight };
+	if		(bGame) R.y2 = R.y2 * 3 / 4; // more-more- 
 
 
+	/*
+	HW.pDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+	HW.pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ONE);
+	HW.pDevice->SetRenderState(D3DRS_DESTBLEND,  D3DBLEND_INVSRCALPHA);
+	*/
+
+	struct vertex
+	{
+		float x, y, z, rhw;
+		DWORD color;
+	};
+
+	DWORD bg_color = D3DCOLOR_ARGB(192, 32, 255, 96);
+	vertex qV[4] = {
+			{ -1.f, 0.5f, 0.0f, 1.f, bg_color },
+			{ -1.f, -1.f, 0.0f, 1.f, bg_color },
+			{  1.f, 0.5f, 0.0f, 1.f, bg_color },
+			{  1.f, -1.f, 0.0f, 1.f, bg_color },
+
+	};
+
+	CHK_DX	(HW.pDevice->Clear(1, &R, D3DCLEAR_TARGET, D3DCOLOR_ARGB(192, 32, 32, 16), 1, 0));
+
+	const DWORD D3DFVF_TL = D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1;
+	// GenerateTexture( m_pD3Ddev, &Primitive, dWhite );
+	//CTexture *t = Device.Resources->_CreateTexture("detail\\detail_metall_02");			
+	//if (t)
+	//{		
+	//	u32 offset = 0;
+	//	FVF::TL *pv	= (FVF::TL*) RCache.Vertex.Lock(5, sizeof(vertex), offset);
+	//	/*
+	//	pv->set(-1.f,  0.5f, bg_color, 0, 0); pv++;
+	//	pv->set(-1.f, -1.0f, bg_color, 0, 0); pv++;
+	//	pv->set( 1.f,  0.5f, bg_color, 0, 0); pv++;
+	//	pv->set( 1.f, -1.0f, bg_color, 0, 0); 
+	//	pv->set( BR.x1,  BR.y2, bg_color, 0, 0); pv++;
+	//	pv->set( BR.x1,  BR.y1, bg_color, 0, 0); pv++;
+	//	pv->set( BR.x2,  BR.y2, bg_color, 0, 0); pv++;
+	//	pv->set( BR.x2,  BR.y1, bg_color, 0, 0); 
+
+	//	*/
+	//	Frect BR;
+	//	BR.set(0, 0, 1.f, 1.f);
+
+	//	pv->set( BR.x1,  BR.y2, bg_color, 0, 0); pv++;
+	//	pv->set( BR.x1,  BR.y1, bg_color, 0, 0); pv++;
+	//	pv->set( BR.x2,  BR.y2, bg_color, 0, 0); pv++;
+	//	pv->set( BR.x2,  BR.y1, bg_color, 0, 0); pv++;
+	//	pv->set( BR.x1,  BR.y2, bg_color, 0, 0);
+
+
+	//	RCache.Vertex.Unlock(4, sizeof(vertex));
+	//	// t->bind(D3DVERTEXTEXTURESAMPLER0);
+	//	t->bind(0);
+	//	RCache.Render (D3DPT_LINELIST, offset, 0, 5, 0, 2);
+	//	// HW.pDevice->SetFVF(D3DFVF_TL);
+	//	// HW.pDevice->SetTexture(0, t->pSurface());
+	//	// HW.pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, qV, sizeof(vertex));
+	//}
+	//
 	float dwMaxY=float(Device.dwHeight);
 	// float dwMaxX=float(Device.dwWidth/2);
-	if (bGame) { fMaxY=0.f; dwMaxY/=2; } else fMaxY=1.f;
+	if (bGame) { fMaxY = 0.5f; dwMaxY = dwMaxY * 3 / 4; } else fMaxY = 1.f;
 
 	char		buf	[MAX_LEN+5];
 	strcpy_s		(buf,ioc_prompt);
 	strcat		(buf,editor);
-
+		
 	if (bCursor) 
 		str_insert (buf,"|", n_char + xr_strlen(ioc_prompt));
 	else
 		str_insert(buf, ".", n_char + xr_strlen(ioc_prompt));
 
-	pFont->SetColor( color_rgba(128  ,128  ,255, 255) );
+	pFont->SetColor( color_rgba(128, 128, 255, 255) );
 	pFont->SetHeightI(0.025f);
-	pFont->OutI	( -1.f, fMaxY-LDIST, "%s", buf );
+	pFont->OutI	( -1.f, fMaxY - LDIST, "%s", buf ); // 
+	float ypos = fMaxY -LDIST-LDIST; // 
+	int start = LogFile->size() - 1 - scroll_delta;
+	int lines = 0;
 
-	float ypos=fMaxY-LDIST-LDIST;
-	for (int i=LogFile->size()-1-scroll_delta; i>=0; i--) 
+	for (int i = start; i >= 0; i--) 
 	{
-		ypos-=LDIST;
+		ypos-=LDIST;		
 		if (ypos<-1.f)	break;
+		lines ++;
 		LPCSTR			ls = *(*LogFile)[i];
 		if	(0==ls)		continue;
+
 		switch (ls[0]) {
-		case '~':
-			pFont->SetColor(color_rgba(255,255,0, 255));
+		case '~':;
+		case '$':
+			pFont->SetColor(color_rgba(255,255,0, 255));    // yellow
 			out_font		(pFont,&ls[2],ypos);
-//.			pFont->OutI  (-1.f,ypos,"%s",&ls[2]);
 			break;
 		case '!':
-			pFont->SetColor(color_rgba(255,0  ,0  , 255));
+			pFont->SetColor(color_rgba(255,0  ,0  , 255));   // red
 			out_font		(pFont,&ls[2],ypos);
-//.			pFont->OutI  (-1.f,ypos,"%s",&ls[2]);
 			break;
 		case '*':
-			pFont->SetColor(color_rgba(128,128,128, 255));
+			pFont->SetColor(color_rgba(255, 255, 255, 255));   // white
 			out_font		(pFont,&ls[2],ypos);
-//.			pFont->OutI  (-1.f,ypos,"%s",&ls[2]);
 			break;
 		case '-':
-			pFont->SetColor(color_rgba(0  ,255,0  , 255));
+			pFont->SetColor(color_rgba(0  ,255, 0, 255));     // green
 			out_font		(pFont,&ls[2],ypos);
-//.			pFont->OutI  (-1.f,ypos,"%s",&ls[2]);
 			break;
 		case '#':
-			pFont->SetColor(color_rgba(0  ,222, 205  ,145));
+			pFont->SetColor(color_rgba(0  ,222, 205, 145));  // aqua
 			out_font		(pFont,&ls[2],ypos);
-//.			pFont->OutI  (-1.f,ypos,"%s",&ls[2]);
+			break;
+		case '&':
+			pFont->SetColor(color_rgba(255, 128, 128, 145));  // blue
+			out_font		(pFont,&ls[2],ypos);
+			break;
+		case '^':
+			pFont->SetColor(color_rgba(255, 128, 255, 145));  // purple
+			out_font		(pFont,&ls[2],ypos);
 			break;
 		default:
-			pFont->SetColor(color_rgba(255,255,255, 255));
+			pFont->SetColor(color_rgba(128, 128, 128, 255));  // gray
 			out_font		(pFont,ls,ypos);
 //.			pFont->OutI  (-1.f,ypos,"%s",ls);
 		}
 	}
+
+	page_lines = __max(page_lines, lines);
 	pFont->OnRender();
+	// HW.pDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
 }
 
 
@@ -244,6 +352,7 @@ void CConsole::OnPressKey(int dik, BOOL bHold)
 
 	char append[MAX_LEN];
 	ZeroMemory (&append, MAX_LEN);
+	int max_line = int(LogFile->size()) - 1;
 	
 
 	switch (dik) {
@@ -261,12 +370,12 @@ void CConsole::OnPressKey(int dik, BOOL bHold)
 		}
 		break;
 	case DIK_PRIOR:
-		scroll_delta++;
-		if (scroll_delta > int(LogFile->size()) - 1) scroll_delta=LogFile->size()-1;
+		scroll_delta += bShift ? 1 : page_lines;
+		clamp<int>(scroll_delta, 0, max_line);		
 		break;
 	case DIK_NEXT:
-		scroll_delta--;
-		if (scroll_delta<0) scroll_delta=0;
+		scroll_delta -= bShift ? 1 : page_lines;
+		clamp<int>(scroll_delta, 0, max_line);
 		break;
 	case DIK_LEFT:
 		if (n_char > 0) n_char--;
@@ -290,7 +399,6 @@ void CConsole::OnPressKey(int dik, BOOL bHold)
 				IConsole_Command &O = *(I->second);
 				strcpy_s(editor+offset, sizeof(editor)-offset, O.Name());
 				strcat(editor+offset," ");
-				n_char = xr_strlen(editor + offset);
 			}
 		}
 		break;
@@ -550,7 +658,9 @@ outloop:
 	
 	// search
 	vecCMD_IT I = Commands.find(first_word);
+	int cnt = 0;
 	if (I!=Commands.end()) {
+		cnt++;
 		IConsole_Command &C = *(I->second);
 		if (C.bEnabled) {
 			if (C.bLowerCaseArgs) strlwr(last_word);
@@ -566,7 +676,7 @@ outloop:
 		}
 	}
 	else 
-		Log("! Unknown command: ",first_word);
+		Msg("! Unknown command %d: %s ", cnt, first_word);
 	editor[0]=0;
 }
 

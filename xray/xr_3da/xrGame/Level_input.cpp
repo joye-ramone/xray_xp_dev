@@ -26,6 +26,7 @@
 #include "saved_game_wrapper.h"
 #include "game_object_space.h"
 #include "script_callback_ex.h"
+#include "../../build_config_defines.h"
 
 #ifdef DEBUG
 #	include "ai/monsters/BaseMonster/base_monster.h"
@@ -129,13 +130,7 @@ void CLevel::IR_OnKeyboardPress	(int key)
 
 	if (!g_bDisableAllInput)
 	{
-		if (auto ui = HUD().GetUI())
-		{
-			if (ui->UIMainIngameWnd)
-			{
-				ui->UIMainIngameWnd->HudAdjustMode(key); // Real Wolf. 07.09.2014.
-			}
-		}
+		HUD().GetUI()->UIMainIngameWnd->HudAdjustMode(key); // Real Wolf. 07.09.2014.
 
 		/************************************************** added by Ray Twitty (aka Shadows) START **************************************************/
 		// Колбек на нажатие клавиши
@@ -143,6 +138,10 @@ void CLevel::IR_OnKeyboardPress	(int key)
 		/*************************************************** added by Ray Twitty (aka Shadows) END ***************************************************/
 	}
 
+
+//.	if (DIK_F10 == key)		vtune.enable();
+//.	if (DIK_F11 == key)		vtune.disable();
+	
 	EGameActions _curr = get_binded_action(key);
 	switch ( _curr ) 
 	{
@@ -201,7 +200,14 @@ void CLevel::IR_OnKeyboardPress	(int key)
 		FS.rescan_pathes			();
 #endif // DEBUG
 		string_path					saved_game,command;
+#ifdef USE_LAST_SAVE_VS_QUICK
+		xr_string saved_name = ai().alife().save_name(FALSE);
+		size_t p = saved_name.find(".sav");
+		if (p) saved_name[p] = 0;
+		strcpy_s (saved_game, sizeof(saved_game), saved_name.c_str());
+#else
 		strconcat					(sizeof(saved_game),saved_game,Core.UserName,"_","quicksave");
+#endif
 		if (!CSavedGameWrapper::valid_saved_game(saved_game))
 			return;
 
