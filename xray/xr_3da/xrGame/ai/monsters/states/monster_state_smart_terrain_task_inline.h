@@ -36,9 +36,10 @@ void CStateMonsterSmartTerrainTaskAbstract::initialize()
 	// save current task
 	CSE_ALifeMonsterAbstract		*monster = smart_cast<CSE_ALifeMonsterAbstract*>(ai().alife().objects().object(object->ID()));
 	VERIFY							(monster);
-	VERIFY							(monster->m_smart_terrain_id != 0xffff);
-
-	m_current_task					= monster->brain().smart_terrain().task(monster);
+	if (monster->m_smart_terrain_id != 0xffff)
+		m_current_task = monster->brain().smart_terrain().task(monster);
+	else
+		Log("! #ERROR: monster->m_smart_terrain_id == 0xffff in CStateMonsterSmartTerrainTaskAbstract::initialize()");
 }
 
 

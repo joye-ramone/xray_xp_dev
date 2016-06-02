@@ -87,7 +87,7 @@ template<class C>	void mdump(C c)
 CResourceManager::~CResourceManager		()
 {
 	DestroyNecessaryTextures	();
-	Dump						(false);
+	Dump						(true);
 }
 
 void CResourceManager::Dump(bool bBrief)

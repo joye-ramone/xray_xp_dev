@@ -9,6 +9,8 @@ float			psShedulerCurrent		= 10.f	;
 float			psShedulerTarget		= 10.f	;
 const	float	psShedulerReaction		= 0.1f	;
 BOOL			g_bSheduleInProgress	= FALSE	;
+extern  float   g_fTimeInteractive;
+
 
 //-------------------------------------------------------------------------------------
 void CSheduler::Initialize		()
@@ -427,14 +429,14 @@ void CSheduler::Update				()
 	cycles_limit					= CPU::qpc_freq * u64 (iCeil(psShedulerCurrent)) / 1000i64 + cycles_start;
 	internal_Registration			();
 	g_bSheduleInProgress			= TRUE;
-
+	busy_warn(DEBUG_INFO);
 #ifdef DEBUG_SCHEDULER
 	Msg								("SCHEDULER: PROCESS STEP %d",Device.dwFrame);
 #endif // DEBUG_SCHEDULER
 	// Realtime priority
 	m_processing_now				= true;
 	u32	dwTime						= Device.dwTimeGlobal;
-	for (u32 it=0; it<ItemsRT.size(); it++)
+	for (u32 it = 0; it < ItemsRT.size(); it++)
 	{
 		Item&	T					= ItemsRT[it];
 		R_ASSERT					(T.Object);
@@ -448,6 +450,7 @@ void CSheduler::Update				()
 			T.dwTimeOfLastExecute	= dwTime;
 			continue;
 		}
+				
 
 		u32	Elapsed					= dwTime-T.dwTimeOfLastExecute;
 #ifdef DEBUG
@@ -457,10 +460,16 @@ void CSheduler::Update				()
 		T.Object->shedule_Update	(Elapsed);
 		Device.Statistic->Sheduler.cycles++;
 		T.dwTimeOfLastExecute		= dwTime;
-	}
 
+		if (g_fTimeInteractive > 5.f && Device.frame_elapsed() > 50)
+		{
+			MsgCB("##PERF: CSheduler::Update breaked at '%s' due frame_elapsed timeout", *T.Object->shedule_Name());
+			break;
+		}
+	}
+	busy_warn(DEBUG_INFO);
 	// Normal (sheduled)
-	ProcessStep						();
+	ProcessStep						();	
 	m_processing_now				= false;
 #ifdef DEBUG_SCHEDULER
 	Msg								("SCHEDULER: PROCESS STEP FINISHED %d",Device.dwFrame);

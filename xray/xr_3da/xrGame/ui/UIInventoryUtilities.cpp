@@ -15,21 +15,26 @@
 #include "../game_base_space.h"
 #include "../actor.h"
 
-#define BUY_MENU_TEXTURE "ui\\ui_mp_buy_menu"
-#define EQUIPMENT_ICONS  "ui\\ui_icon_equipment"
-#define CHAR_ICONS		 "ui\\ui_icons_npc"
-#define MAP_ICONS		 "ui\\ui_icons_map"
-#define MP_CHAR_ICONS	 "ui\\ui_models_multiplayer"
+#define BUY_MENU_TEXTURE		"ui\\ui_mp_buy_menu"
+#define CHAR_ICONS				"ui\\ui_icons_npc"
+
+#define EQUIPMENT_ICONS			"ui\\ui_icon_equipment"
+#define EQUIPMENT_MAX_ICONS		16
+
+#define MAP_ICONS				"ui\\ui_icons_map"
+#define MP_CHAR_ICONS			"ui\\ui_models_multiplayer"
 
 const LPCSTR relationsLtxSection	= "game_relations";
 const LPCSTR ratingField			= "rating_names";
 const LPCSTR reputationgField		= "reputation_names";
 const LPCSTR goodwillField			= "goodwill_names";
 
-ref_shader	g_BuyMenuShader			= NULL;
-ref_shader	g_EquipmentIconsShader	= NULL;
-ref_shader	g_MPCharIconsShader		= NULL;
-ref_shader	g_tmpWMShader			= NULL;
+
+ref_shader	g_EquipmentIconsShader[EQUIPMENT_MAX_ICONS] = { NULL, NULL, NULL, NULL };
+
+ref_shader	g_BuyMenuShader				= NULL;
+ref_shader	g_MPCharIconsShader			= NULL;
+ref_shader	g_tmpWMShader				= NULL;
 static CUIStatic*	GetUIStatic				();
 
 typedef				std::pair<CHARACTER_RANK_VALUE, shared_str>	CharInfoStringID;
@@ -42,12 +47,16 @@ CharInfoStrings		*charInfoGoodwillStrings	= NULL;
 void InventoryUtilities::CreateShaders()
 {
 	g_tmpWMShader.create("effects\\wallmark",  "wm\\wm_grenade");
+	for (int i = 0; i < EQUIPMENT_MAX_ICONS; i++)
+		g_EquipmentIconsShader[i] = NULL;
 }
 
 void InventoryUtilities::DestroyShaders()
 {
+	for (int i = 0; i < EQUIPMENT_MAX_ICONS; i++)
+	 	 g_EquipmentIconsShader[i].destroy	();
+
 	g_BuyMenuShader.destroy			();
-	g_EquipmentIconsShader.destroy	();
 	g_MPCharIconsShader.destroy		();
 	g_tmpWMShader.destroy			();
 }
@@ -164,14 +173,22 @@ ref_shader& InventoryUtilities::GetBuyMenuShader()
 	return g_BuyMenuShader;
 }
 
-ref_shader& InventoryUtilities::GetEquipmentIconsShader()
+ref_shader& InventoryUtilities::GetEquipmentIconsShader(int icon_group)
 {	
-	if(!g_EquipmentIconsShader)
+	if(!g_EquipmentIconsShader[icon_group])
 	{
-		g_EquipmentIconsShader.create("hud\\default", EQUIPMENT_ICONS);
+		string_path file;
+		strcpy_s(file, sizeof(file), EQUIPMENT_ICONS);
+		if (icon_group > 0)
+		{
+			strcat_s(file, sizeof(file), "_");
+			itoa(icon_group, file + xr_strlen(file), 10);
+		}
+
+		g_EquipmentIconsShader[icon_group].create("hud\\default", file);
 	}
 
-	return g_EquipmentIconsShader;
+	return g_EquipmentIconsShader[icon_group];
 }
 
 ref_shader&	InventoryUtilities::GetMPCharIconsShader()

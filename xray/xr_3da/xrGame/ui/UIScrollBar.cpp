@@ -114,7 +114,12 @@ void CUIScrollBar::SetRange(int iMin, int iMax)
 }
 void CUIScrollBar::Show(bool b)
 {
-	if(!m_b_enabled)return;
+	//if(!m_b_enabled)return;
+
+	m_DecButton->Show(b);
+	m_IncButton->Show(b);
+	
+
 	inherited::Show(b);
 }
 
@@ -320,34 +325,37 @@ void CUIScrollBar::Reset()
 
 void CUIScrollBar::Draw()
 {
-	//нарисовать фоновую подложку
-	Frect rect;
-	GetAbsoluteRect(rect);
-	if(m_bIsHorizontal){
-		if (m_StaticBackground->GetOriginalRect().width()){
-			float size	= GetWidth() - m_DecButton->GetWidth() - m_IncButton->GetWidth();
-			float w		= m_StaticBackground->GetOriginalRect().width();
+	if (IsShown())
+	{
+		//нарисовать фоновую подложку
+		Frect rect;
+		GetAbsoluteRect(rect);
+		if(m_bIsHorizontal){
+			if (m_StaticBackground->GetOriginalRect().width()){
+				float size	= GetWidth() - m_DecButton->GetWidth() - m_IncButton->GetWidth();
+				float w		= m_StaticBackground->GetOriginalRect().width();
 
-			int tile	= iFloor(size/w);
-			float rem	= size - tile*w;
+				int tile	= iFloor(size/w);
+				float rem	= size - tile*w;
 
-			m_StaticBackground->SetTile(tile,1,rem,0.0f);
-			m_StaticBackground->SetPos(rect.left + m_DecButton->GetWidth(),rect.top);
+				m_StaticBackground->SetTile(tile,1,rem,0.0f);
+				m_StaticBackground->SetPos(rect.left + m_DecButton->GetWidth(),rect.top);
+			}
+		}else{
+			if (m_StaticBackground->GetOriginalRect().height()){
+				float size	= GetHeight()- m_IncButton->GetHeight() - m_DecButton->GetHeight();
+				float h		= m_StaticBackground->GetOriginalRect().height();
+
+				int tile	= iFloor(size/h);
+				float rem	= size - tile*h;
+
+				m_StaticBackground->SetTile(1,tile,0.0f,rem);
+				m_StaticBackground->SetPos(rect.left,rect.top + m_DecButton->GetHeight());
+			}
 		}
-	}else{
-		if (m_StaticBackground->GetOriginalRect().height()){
-			float size	= GetHeight()- m_IncButton->GetHeight() - m_DecButton->GetHeight();
-			float h		= m_StaticBackground->GetOriginalRect().height();
-
-			int tile	= iFloor(size/h);
-			float rem	= size - tile*h;
-
-			m_StaticBackground->SetTile(1,tile,0.0f,rem);
-			m_StaticBackground->SetPos(rect.left,rect.top + m_DecButton->GetHeight());
-		}
-	}
 	
-	m_StaticBackground->Render();
+		m_StaticBackground->Render();
+	}
 
 	inherited::Draw();
 }

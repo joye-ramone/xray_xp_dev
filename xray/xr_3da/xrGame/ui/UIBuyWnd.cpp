@@ -1358,7 +1358,7 @@ void CUIBuyWnd::DetachAddon(const char* addon_name)
 
 u32 CUIBuyWnd::GetMoneyAmount() const
 {
-	return m_bag.m_money;
+	return (int)(m_bag.m_money);
 }
 
 void CUIBuyWnd::SetSkin(u8 SkinID)
@@ -1376,7 +1376,7 @@ void CUIBuyWnd::SetSkin(u8 SkinID)
 
 void CUIBuyWnd::SetMoneyAmount(u32 money)
 {
-	m_bag.m_money		= money;
+	m_bag.m_money = money;
 	SendMessage			(this, MP_MONEY_CHANGE);
 }
 

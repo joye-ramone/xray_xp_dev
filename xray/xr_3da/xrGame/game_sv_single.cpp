@@ -9,7 +9,13 @@
 #include "object_broker.h"
 #include "gamepersistent.h"
 #include "xrServer.h"
+#include "string_table.h"
 #include "..\x_ray.h"
+
+#pragma optimize("gyts", off)
+
+ENGINE_API CTimer_paused g_GameLoaded;
+
 
 game_sv_Single::game_sv_Single			()
 {
@@ -107,47 +113,68 @@ BOOL	game_sv_Single::OnTouch			(u16 eid_who, u16 eid_what, BOOL bForced)
 
 void game_sv_Single::OnDetach(u16 eid_who, u16 eid_what)
 {
-	if (ai().get_alife()) 
-	{
-		CSE_Abstract*		e_who	= get_entity_from_eid(eid_who);		VERIFY(e_who	);
-		CSE_Abstract*		e_what	= get_entity_from_eid(eid_what);	VERIFY(e_what	);
+	if (!ai().get_alife()) return;
 
-		CSE_ALifeInventoryItem *l_tpALifeInventoryItem = smart_cast<CSE_ALifeInventoryItem*>(e_what);
-		if (!l_tpALifeInventoryItem)
-			return;
+	
+	CSE_Abstract*		e_who	= get_entity_from_eid(eid_who);		VERIFY(e_who	);
+	CSE_Abstract*		e_what	= get_entity_from_eid(eid_what);	VERIFY(e_what	);
 
-		CSE_ALifeDynamicObject *l_tpDynamicObject = smart_cast<CSE_ALifeDynamicObject*>(e_who);
-		if (!l_tpDynamicObject)
-			return;
+	CSE_ALifeInventoryItem *l_tpALifeInventoryItem = smart_cast<CSE_ALifeInventoryItem*>(e_what);
+	if (!l_tpALifeInventoryItem)
+		return;
+
+	CSE_ALifeDynamicObject *l_tpDynamicObject = smart_cast<CSE_ALifeDynamicObject*>(e_who);
+	if (!l_tpDynamicObject)
+		return;
+
+	auto &sim = ai().alife();
 		
-		if	(
-				ai().alife().objects().object(e_who->ID,true) && 
-				!ai().alife().graph().level().object(l_tpALifeInventoryItem->base()->ID,true) && 
-				ai().alife().objects().object(e_what->ID,true)
-			)
-			alife().graph().detach(*e_who,l_tpALifeInventoryItem,l_tpDynamicObject->m_tGraphID,false,false);
-		else {
-			if (!ai().alife().objects().object(e_what->ID,true)) {
-				u16				id = l_tpALifeInventoryItem->base()->ID_Parent;
-				l_tpALifeInventoryItem->base()->ID_Parent	= 0xffff;
+	if	(
+			sim.objects().object(e_who->ID,true) && 
+			!sim.graph().level().object(l_tpALifeInventoryItem->base()->ID,true) && 
+			sim.objects().object(e_what->ID,true)
+		)
+		alife().graph().detach(*e_who,l_tpALifeInventoryItem,l_tpDynamicObject->m_tGraphID,false,false);
+	else {
+
+		if (!sim.objects().object(e_what->ID,true)) {
+			// Msg("[~T]. #DBG: OnDetach(%d, %d) alife object not exist, creating new ", eid_who, eid_what);
+			u16				id = l_tpALifeInventoryItem->base()->ID_Parent;
+			l_tpALifeInventoryItem->base()->ID_Parent	= 0xffff;
 				
-				CSE_ALifeDynamicObject *dynamic_object = smart_cast<CSE_ALifeDynamicObject*>(e_what);
-				VERIFY			(dynamic_object);
-				dynamic_object->m_tNodeID		= l_tpDynamicObject->m_tNodeID;
-				dynamic_object->m_tGraphID		= l_tpDynamicObject->m_tGraphID;
-				dynamic_object->m_bALifeControl	= true;
-				dynamic_object->m_bOnline		= true;
-				alife().create	(dynamic_object);
-				l_tpALifeInventoryItem->base()->ID_Parent	= id;
-			}
-#ifdef DEBUG
-			else
-				if (psAI_Flags.test(aiALife)) {
-					Msg			("Cannot detach object [%s][%s][%d] from object [%s][%s][%d]",l_tpALifeInventoryItem->base()->name_replace(),*l_tpALifeInventoryItem->base()->s_name,l_tpALifeInventoryItem->base()->ID,l_tpDynamicObject->base()->name_replace(),l_tpDynamicObject->base()->s_name,l_tpDynamicObject->ID);
-				}
-#endif
+			CSE_ALifeDynamicObject *dynamic_object = smart_cast<CSE_ALifeDynamicObject*>(e_what);
+			VERIFY			(dynamic_object);
+			dynamic_object->m_tNodeID		= l_tpDynamicObject->m_tNodeID;
+			dynamic_object->m_tGraphID		= l_tpDynamicObject->m_tGraphID;
+			dynamic_object->m_bALifeControl	= true;
+			dynamic_object->m_bOnline		= true;		
+			alife().create	(dynamic_object);
+							
+			l_tpALifeInventoryItem->base()->ID_Parent	= id;
 		}
+						
+
+#ifdef DEBUG
+		else
+			if (psAI_Flags.test(aiALife)) {
+				Msg			("Cannot detach object [%s][%s][%d] from object [%s][%s][%d]",l_tpALifeInventoryItem->base()->name_replace(),*l_tpALifeInventoryItem->base()->s_name,l_tpALifeInventoryItem->base()->ID,l_tpDynamicObject->base()->name_replace(),l_tpDynamicObject->base()->s_name,l_tpDynamicObject->ID);
+			}
+#endif
 	}
+		
+	auto *obj = sim.objects().object(e_what->ID, true);
+	if (!obj) return;
+	LPCSTR name = l_tpDynamicObject->name();
+	if (  		 
+		 ( 0 == eid_who || strstr(name, "shadow_inventory") )
+		 
+		) {
+		Fvector angle ( Device.vCameraDirection );
+		angle.mul(2.f);
+		obj->position().add(angle);
+	}
+
+	
 }
 
 
@@ -203,8 +230,50 @@ void game_sv_Single::SetEnvironmentGameTimeFactor		(const float fTimeFactor)
 //	return(inherited::SetGameTimeFactor(fTimeFactor));
 }
 
+#if defined(LUAICP_COMPAT) && defined(NLC_EXTENSIONS)
+extern bool _give_news(LPCSTR text, LPCSTR texture_name, const Frect& tex_rect, int delay, int show_time);
+#endif
+
+
 bool game_sv_Single::change_level					(NET_Packet &net_packet, ClientID sender)
 {
+#if defined(LUAICP_COMPAT) && defined(NLC_EXTENSIONS)	
+	typedef bool (WINAPI *LUAICP_GETVARPROC) (LPCSTR var_name, shared_str &res);
+	static LUAICP_GETVARPROC get_var = NULL;
+	if (!get_var)
+	{
+		HMODULE hDLL = GetModuleHandle("luaicp.dll");
+		if (hDLL) get_var = (LUAICP_GETVARPROC)GetProcAddress(hDLL, "GetGlobalVar");
+	}
+
+
+	Frect rect;
+	rect.set(498,280,83,47);
+
+	if (get_var)
+	{			
+		shared_str sv;			 
+		bool res = get_var("change_level_allowed", sv);
+		if (res) res = (sv == "yes");
+		if (!res)
+		{						
+			_give_news(*CStringTable().translate("st_change_level_disabled"), "ui\\ui_iconsTotal", rect, 500, 3000);
+			return false;
+		}
+	}
+
+	if (g_GameLoaded.GetElapsed_ms() < 5000)
+	{
+		Msg("! #WARN: level changing disabled due after game load elapsed only %d ms ", g_GameLoaded.GetElapsed_ms());
+		_give_news(*CStringTable().translate("st_temporary_disabled"), "ui\\ui_iconsTotal", rect, 500, 3000);
+		return false;
+	}
+
+#endif
+	// игра больше не загружена
+	g_GameLoaded.Start();
+	g_GameLoaded.Pause(TRUE);
+
 	if (ai().get_alife())
 		return					(alife().change_level(net_packet));
 	else
@@ -327,7 +396,6 @@ void game_sv_Single::restart_simulator			(LPCSTR saved_game_name)
 
 	strcpy					(g_pGamePersistent->m_game_params.m_game_or_spawn,saved_game_name);
 	strcpy					(g_pGamePersistent->m_game_params.m_new_or_load,"load");
-
 	pApp->LoadBegin			();
 	m_alife_simulator		= xr_new<CALifeSimulator>(&server(),&options);
 	strcpy_s((LPSTR)alife().save_name(TRUE), sizeof(loaded), loaded);

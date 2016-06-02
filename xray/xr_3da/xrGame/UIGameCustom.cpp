@@ -252,11 +252,11 @@ void CMapListHelper::Load()
 	{
 		m_storage.resize		(m_storage.size()+1);
 		SGameTypeMaps&	Itm		= m_storage.back();
-		Itm.m_game_type_name	= (*it)->Name;
+		Itm.m_game_type_name	= it->first;
 		Itm.m_game_type_id		= (EGameTypes)get_token_id(game_types, Itm.m_game_type_name.c_str() );
 
-		CInifile::SectCIt sit	= (*it)->Data.begin();
-		CInifile::SectCIt sit_e	= (*it)->Data.end();
+		CInifile::SectCIt sit	= it->second->Data.begin();
+		CInifile::SectCIt sit_e	= it->second->Data.end();
 		
 		for( ;sit!=sit_e; ++sit)
 		{

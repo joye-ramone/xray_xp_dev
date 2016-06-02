@@ -22,6 +22,11 @@
 
 ENGINE_API	bool g_dedicated_server;
 
+namespace GameGraph
+{
+	GameGraph::SLevel g_invalid_level;
+}
+
 CAI_Space *g_ai_space = 0;
 
 CAI_Space::CAI_Space				()

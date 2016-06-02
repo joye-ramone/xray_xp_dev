@@ -1506,7 +1506,8 @@ public:
 
 	/** Walk the XML tree visiting this node and all of its children. 
 	*/
-	virtual bool Accept( TiXmlVisitor* content ) const;
+	virtual bool					Accept( TiXmlVisitor* content ) const;
+			size_t					DocumentLength()				const { return fileLength; }
 
 protected :
 	// [internal use]
@@ -1524,6 +1525,9 @@ private:
 	int tabsize;
 	TiXmlCursor errorLocation;
 	bool useMicrosoftBOM;		// the UTF-8 BOM were found when read. Note this, and try to write.
+	size_t  fileLength;
+
+
 };
 
 

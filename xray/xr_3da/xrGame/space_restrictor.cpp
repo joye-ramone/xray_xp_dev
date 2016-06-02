@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: space_restrictor.cpp
 //	Created 	: 17.08.2004
-//  Modified 	: 17.08.2004
+//  Modified 	: 24.12.2014
 //	Author		: Dmitriy Iassenev
 //	Description : Space restrictor
 ////////////////////////////////////////////////////////////////////////////
@@ -12,6 +12,8 @@
 #include "level.h"
 #include "space_restriction_manager.h"
 #include "restriction_space.h"
+#include "space_restriction_shape.h"
+#include "space_restriction_bridge.h"
 #include "ai_space.h"
 #include "CustomZone.h"
 
@@ -19,8 +21,26 @@
 #	include "debug_renderer.h"
 #endif
 
+#pragma optimize("gyts", off)
+
+#pragma todo("alpet: возможны утечки объектов между перезагрузками игры")
+xr_map<shared_str, CSpaceRestrictor*> g_restrictors; 
+
+
 CSpaceRestrictor::~CSpaceRestrictor	()
 {
+	// Msg("##DBG: processing CSpaceRestrictor::~CSpaceRestrictor	() for 0x%p, ID = %d ", this, ID());
+	if (m_owner_shape)
+	{
+	 	LPCSTR msg = xrx_sprintf(" late unregistration restrictor object %s", this->Name_script());
+		m_owner_shape->m_restrictor = NULL;
+		m_owner_shape				= NULL;
+		// m_owner_shape->m_bridge
+		Level().space_restriction_manager().unregister_restrictor(this, msg); // на всякий случай
+	}
+	auto it = g_restrictors.find(cName());
+	if (it != g_restrictors.end())
+		g_restrictors.erase(it);	
 }
 
 void CSpaceRestrictor::Center		(Fvector& C) const
@@ -35,6 +55,8 @@ float CSpaceRestrictor::Radius		() const
 
 BOOL CSpaceRestrictor::net_Spawn	(CSE_Abstract* data)
 {
+	if (m_spawned) return TRUE;
+
 	actual							(false);
 
 	CSE_Abstract					*abstract = (CSE_Abstract*)data;
@@ -64,35 +86,76 @@ BOOL CSpaceRestrictor::net_Spawn	(CSE_Abstract* data)
 
 	BOOL							result = inherited::net_Spawn(data);
 	
+	MsgCB("# #DBG: net_Spawn for restrictor <%s> type = %d ", Name_script(), (u32)m_space_restrictor_type);
 	if (!result)
 		return						(FALSE);
+	g_restrictors[cName()]			= this;
+	
+
 
 	setEnabled						(FALSE);
 	setVisible						(FALSE);
 
-	if (!ai().get_level_graph() || (RestrictionSpace::ERestrictorTypes(se_shape->m_space_restrictor_type) == RestrictionSpace::eRestrictorTypeNone))
+	m_spawned = true;
+
+	if (!ai().get_level_graph() || (RestrictionSpace::ERestrictorTypes(m_space_restrictor_type) == RestrictionSpace::eRestrictorTypeNone))
 		return						(TRUE);
 
-	Level().space_restriction_manager().register_restrictor(this,RestrictionSpace::ERestrictorTypes(se_shape->m_space_restrictor_type));
+	if (CFORM())
+		Level().space_restriction_manager().register_restrictor(this, RestrictionSpace::ERestrictorTypes(m_space_restrictor_type));
+	else
+		Msg("! #ERROR: CSpaceRestrictor::net_Spawn %s have no shape", Name_script());
+
+	
 
 	return							(TRUE);
 }
 
 void CSpaceRestrictor::net_Destroy	()
 {
-	inherited::net_Destroy			();
-	
-	if (!ai().get_level_graph())
-		return;
-	
-	if (RestrictionSpace::ERestrictorTypes(m_space_restrictor_type) == RestrictionSpace::eRestrictorTypeNone)
-		return;
+	// Msg("##DBG: processing CSpaceRestrictor::net_Destroy for 0x%p (#%d), Name = %s ", this, ID(), Name_script());
+	{
+		auto it = g_restrictors.find(cName());
+		if (it != g_restrictors.end())
+			g_restrictors.erase(it);
+	}
 
-	Level().space_restriction_manager().unregister_restrictor(this);
+	{
+		inherited::net_Destroy();
+
+		if (!ai().get_level_graph())
+			return;
+
+		if (RestrictionSpace::ERestrictorTypes(m_space_restrictor_type) == RestrictionSpace::eRestrictorTypeNone)
+			return;
+
+		if (m_owner_shape)		
+			m_owner_shape->m_restrictor = NULL;
+
+		Level().space_restriction_manager().unregister_restrictor(this);		
+	}
+	
 }
 
 bool CSpaceRestrictor::inside	(const Fsphere &sphere) const
 {
+	R_ASSERT2(this, "CSpaceRestrictor::inside this unassigned!");
+	u32 _ptr = (u32)CFORM();
+	if ( _ptr < 0x10000 || !m_spawned || ID() < 20)
+	{		
+		if (m_spawned)
+			Msg("!#ERROR: CSpaceRestrictor(0x%p)::inside id = #%d have no shape, m_spawned = yes", this, ID());
+		else
+		{			
+			Msg("!#WARN: CSpaceRestrictor(0x%p)::inside id = %d, trying use before net_Spawn complete ", this, ID());
+		}
+			
+		return (false);
+	}
+	if (Radius() > 500.f)
+		__asm nop;
+
+
 	if (!actual())
 		prepare	();
 
@@ -115,6 +178,12 @@ void CSpaceRestrictor::spatial_move		()
 
 void CSpaceRestrictor::prepare			() const
 {
+	R_ASSERT2 (this, "CSpaceRestrictor::prepare this unassigned!");
+	MsgCB("$#CONTEXT: check restrictor prepare %p, CFORM = %p ", this,  CFORM());
+	R_ASSERT3 (CFORM(), "CSpaceRestrictor::prepare CFORM unassigned for ", Name_script());
+	if (IsBadReadPtr(CFORM(), 24))
+		Debug.fatal(DEBUG_INFO, "not readable restrictor form object 0x%p, ID = %d ", this, ID());
+	__asm nop;
 	Center							(m_selfbounds.P);
 	m_selfbounds.R					= Radius();
 
@@ -139,8 +208,15 @@ void CSpaceRestrictor::prepare			() const
 			}
 			case 1 : { // box
 				Fmatrix					sphere;
-				const Fmatrix			&box = (*I).data.box;
-				sphere.mul_43			(XFORM(),box);
+				const Fmatrix			*box = &(*I).data.box;
+				Fmatrix			def_box;
+				if ( (uintptr_t)box < 0x1000 )
+				{
+					Msg("! #ERROR: %s shape.box ~= nil, probably bad space-restrictor initialization ", Name());
+					def_box.identity();
+					box = &def_box;				
+				}
+				sphere.mul_43			(XFORM(),*box);
 
 				// Build points
 				Fvector					A,B[8];

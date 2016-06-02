@@ -30,7 +30,7 @@
 #include "game_object_space.h"
 #include "alife_simulator.h"
 #include "alife_object_registry.h"
-
+#include "../luaicp_events.h"
 
 #ifdef DEBUG
 #	include "debug_renderer.h"
@@ -38,6 +38,8 @@
 #endif
 
 ENGINE_API bool g_dedicated_server;
+
+#pragma optimize("gyts", off)
 
 CGameObject::CGameObject()
 {
@@ -73,8 +75,11 @@ CGameObject::CGameObject()
 CGameObject::~CGameObject()
 {
 #ifdef LUAICP_COMPAT
-    MsgCB("cl destroying [%d][%d]", ID(), Device.dwFrame);
+    // MsgCB("cl destroying [%d][%d]", ID(), Device.dwFrame);
+	process_object_event(EVT_OBJECT_DESTROY | EVT_OBJECT_CLIENT, ID(), this, NULL, 1); // последнее предупреждение
+	MsgCB("$#CONTEXT: destructor of CGameObject for class = %s, name = '%s' ", CppClassName(), Name_script());
 #endif
+
 	VERIFY(!animation_movement());
 	VERIFY(!m_ini_file);
 	VERIFY(!m_lua_game_object);
@@ -91,6 +96,31 @@ CSE_ALifeDynamicObject* CGameObject::alife_object() const
 	return NULL;
 }
 
+void CGameObject::ChangePosition(const Fvector &pos)
+{
+	NET_Packet						PP;
+	CGameObject::u_EventGen			(PP, GE_CHANGE_POS, ID() );
+	PP.w_vec3						(pos);
+	CGameObject::u_EventSend		(PP);
+	// alpet: €вное перемещение визуалов объектов
+	Fmatrix m = XFORM();
+	m.translate_over(pos);
+	UpdateXFORM(m);		
+
+	// alpet: сохранение позиции в серверный экземпл€р
+	CSE_ALifeDynamicObject* se_obj = alife_object();
+	if (se_obj)
+	{
+		se_obj->position() = pos;
+		se_obj->synchronize_location();
+	}
+
+}
+
+void CGameObject::ChangeSection(LPCSTR name)
+{
+	cNameSect_set(name);
+}
 
 void CGameObject::init()
 {
@@ -265,13 +295,19 @@ BOOL CGameObject::net_Spawn(CSE_Abstract*	DC)
 		}
 	}
 
-	// Naming
-	cName_set(E->s_name);
+	// Naming	
 	cNameSect_set(E->s_name);
-	if (E->name_replace()[0])
+	if (xr_strlen(E->name_replace()))
 		cName_set(E->name_replace());
+	else
+	{
+		string256 temp;
+		sprintf_s(temp, 256, "%s#%d", E->s_name, E->ID); // anonymous object
+		cName_set(temp);
+	}
 
 	setID(E->ID);
+	Level().m_lastSpawn.push_back(ID());  // alpet: добавлен к заспавненым
 	//	if (GameID() != GAME_SINGLE)
 	//		Msg ("CGameObject::net_Spawn -- object %s[%x] setID [%d]", *(E->s_name), this, E->ID);
 	//	R_ASSERT(Level().Objects.net_Find(E->ID) == NULL);
@@ -279,6 +315,7 @@ BOOL CGameObject::net_Spawn(CSE_Abstract*	DC)
 	// XForm
 	XFORM().setXYZ(E->o_Angle);
 	Position().set(E->o_Position);
+	CheckPosition();
 #ifdef DEBUG
 	if (ph_dbg_draw_mask1.test(ph_m1_DbgTrackObject) && stricmp(PH_DBG_ObjectTrack(), *cName()) == 0)
 	{
@@ -553,7 +590,15 @@ void CGameObject::setup_parent_ai_locations(bool assign_position)
 
 	// get parent's position
 	if (assign_position && use_parent_ai_locations())
-		Position().set(l_tpGameObject->Position());
+	{
+		Fvector pos(l_tpGameObject->Position());		
+		Fvector dir(l_tpGameObject->Direction());
+		dir.setHP(dir.getH(), 0);
+		pos.add(dir);  // чтобы не подпрыгнул владелец
+		pos.y = pos.y + 0.7f;		
+		Position().set(pos);
+		Direction().set(dir);
+	}
 
 	// setup its ai locations
 	if (!UsedAI_Locations())
@@ -715,11 +760,17 @@ void CGameObject::OnH_B_Chield()
 
 void CGameObject::OnH_B_Independent(bool just_before_destroy)
 {
+	
+	
+	
+
 	inherited::OnH_B_Independent(just_before_destroy);
 
+	CGameObject			*parent = smart_cast<CGameObject*>(H_Parent());
+		
 	setup_parent_ai_locations(false);
 
-	CGameObject					*parent = smart_cast<CGameObject*>(H_Parent());
+	
 	VERIFY(parent);
 	if (ai().get_level_graph() && ai().level_graph().valid_vertex_id(parent->ai_location().level_vertex_id()))
 		validate_ai_locations(false);
@@ -796,6 +847,7 @@ CScriptGameObject *CGameObject::lua_game_object() const
 		Msg("! you are trying to use a destroyed object [%x]", this);
 #endif
 	THROW(m_spawned);
+	R_ASSERT(this);
 	if (!m_lua_game_object)
 		m_lua_game_object = xr_new<CScriptGameObject>(const_cast<CGameObject*>(this));
 	return							(m_lua_game_object);
@@ -830,6 +882,31 @@ void CGameObject::shedule_Update(u32 dt)
 #endif
 		DestroyObject();
 	}
+
+	if (!CheckPosition())
+	{
+		PositionStack.clear();
+		UpdateXFORM(XFORM());
+	}
+
+	if (H_Parent())
+	{
+		auto *aobj = alife_object();
+
+		if (aobj && aobj->ID_Parent != H_Parent()->ID())
+		{
+			Msg("! #WARN(shedule_Update): for item %s client object parent = %d, but alife object parent = %d. Forcing switch cl-parent...", Name_script(), H_Parent()->ID(), aobj->ID_Parent );
+			NET_Packet P;								
+			P.write_start();
+			P.read_start();
+			P.w_u16	 (u16(ID()));
+			// P.w_u16 (0); // без вызова скриптового колбека
+			Level().cl_Process_Event (H_Parent()->ID(), GE_OWNERSHIP_REJECT, P);
+			P.read_start();
+			if (aobj->ID_Parent < 0xffff) // попробовать ещЄ раз передать сообщение		
+				Level().cl_Process_Event (aobj->ID_Parent, GE_OWNERSHIP_TAKE, P); // fast sync
+		}
+	}	
 
 	// Msg							("-SUB-:[%x][%s] CGameObject::shedule_Update",smart_cast<void*>(this),*cName());
 	inherited::shedule_Update(dt);
@@ -901,9 +978,24 @@ void CGameObject::net_Relcase(CObject* O)
 		CScriptBinder::net_Relcase(O);
 }
 
-CGameObject::CScriptCallbackExVoid &CGameObject::callback(GameObject::ECallbackType type) const
+void CGameObject::SuppressCallback(GameObject::ECallbackType type, bool suppress)
 {
-	return ((*m_callbacks)[type]);
+	m_sup_callbacks[type] = suppress;
+}
+bool CGameObject::SuppressedCallback(GameObject::ECallbackType type) const
+{
+	auto it = m_sup_callbacks.find(type);
+	if (it != m_sup_callbacks.end())
+		return it->second;
+	return false;}
+
+
+CGameObject::CScriptCallbackExInt &CGameObject::callback(GameObject::ECallbackType type) const
+{
+	if (SuppressedCallback(type))
+		return ((*m_callbacks)[GameObject::eDummy]);
+	else
+		return ((*m_callbacks)[type]);
 }
 
 LPCSTR CGameObject::visual_name(CSE_Abstract *server_entity)
@@ -929,13 +1021,15 @@ void CGameObject::update_animation_movement_controller()
 void	CGameObject::UpdateCL()
 {
 	inherited::UpdateCL();
+	if (!CheckPosition())
+		UpdateXFORM(XFORM());
 }
 
 void	CGameObject::UpdateXFORM(const Fmatrix &upd)
 {
 	XFORM() = upd;	
 	IRender_Visual *pV = Visual();
-	CKinematics *pK = PKinematics(Visual());
+	CKinematics *pK = PKinematics(pV);
 	if (pK)
 	{
 		pK->vis.sphere.P = upd.c;		

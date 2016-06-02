@@ -7,6 +7,24 @@
 #include "GameObject.h"
 #include "pch_script.h"
 
+#pragma optimize("gyts", off)
+
+LPCSTR _imm_names [11] = {
+	"burn_immunity",
+	"strike_immunity",
+	"shock_immunity",
+	"wound_immunity",		
+	"radiation_immunity",
+	"telepatic_immunity",
+	"chemical_burn_immunity",
+	"explosion_immunity",
+	"fire_wound_immunity",
+	"wound_2_immunity",
+	"physic_strike_immunity"
+};
+
+
+
 CHitImmunity::CHitImmunity()
 {
 	m_HitTypeK.resize(ALife::eHitTypeMax);
@@ -14,14 +32,21 @@ CHitImmunity::CHitImmunity()
 		m_HitTypeK[i] = 1.0f;
 }
 
-
 CHitImmunity::~CHitImmunity()
 {
 }
+
+
 void CHitImmunity::LoadImmunities(LPCSTR imm_sect,CInifile* ini)
 {
 	R_ASSERT2	(ini->section_exist(imm_sect), imm_sect);
+	if (strstr(imm_sect, "af_dummy_spring_absorbation"))
+		__asm nop;
 
+	for (int i = ALife::eHitTypeBurn; i <= ALife::eHitTypePhysicStrike; i ++)
+		m_HitTypeK[i] = READ_IF_EXISTS(ini, r_float, imm_sect, _imm_names[i], 1.0f);
+
+	/*
 	m_HitTypeK[ALife::eHitTypeBurn]			= ini->r_float(imm_sect,"burn_immunity");
 	m_HitTypeK[ALife::eHitTypeStrike]		= ini->r_float(imm_sect,"strike_immunity");
 	m_HitTypeK[ALife::eHitTypeShock]		= ini->r_float(imm_sect,"shock_immunity");
@@ -32,12 +57,14 @@ void CHitImmunity::LoadImmunities(LPCSTR imm_sect,CInifile* ini)
 	m_HitTypeK[ALife::eHitTypeExplosion]	= ini->r_float(imm_sect,"explosion_immunity");
 	m_HitTypeK[ALife::eHitTypeFireWound]	= ini->r_float(imm_sect,"fire_wound_immunity");	
 	m_HitTypeK[ALife::eHitTypeWound_2]		= READ_IF_EXISTS(ini, r_float, imm_sect, "wound_2_immunity", 1.0f);
-	m_HitTypeK[ALife::eHitTypePhysicStrike]	= READ_IF_EXISTS(ini, r_float, imm_sect, "physic_strike_wound_immunity", 1.0f);
+	m_HitTypeK[ALife::eHitTypePhysicStrike]	= READ_IF_EXISTS(ini, r_float, imm_sect, "physic_strike_immunity", 1.0f);
+	*/
 }
 
 float CHitImmunity::AffectHit (float power, ALife::EHitType hit_type)
-{
-	return power*m_HitTypeK[hit_type];
+{	
+	float  k = m_HitTypeK[hit_type];
+	return power * k;
 }
 
 using namespace luabind;

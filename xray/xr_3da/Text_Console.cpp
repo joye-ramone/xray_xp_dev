@@ -1,9 +1,11 @@
 #include "stdafx.h"
 #include "Text_Console.h"
+#include <WinUser.h>
 
 //ENGINE_API CTextConsole* TextConsole = NULL;
 extern	const char *			ioc_prompt;
 int g_svTextConsoleUpdateRate = 1;
+
 
 CTextConsole::CTextConsole()
 {
@@ -249,12 +251,15 @@ void	CTextConsole::DrawLog(HDC hDC, RECT* pRect)
 	TextOut( hDC, 0, Height-tm.tmHeight, buf, xr_strlen(buf) );
 
 	int YPos = Height - tm.tmHeight - tm.tmHeight;
+	
+
 	for ( int i = LogFile->size() - 1 - scroll_delta; i >= 0; i-- ) 
 	{
 		YPos -= tm.tmHeight;
 		if ( YPos < y_top_max )	break;
 		LPCSTR Str = *(*LogFile)[i];
 		LPCSTR pOut = Str;
+	
 		if ( !Str ) continue;
 		switch ( Str[0] )
 		{
@@ -282,10 +287,29 @@ void	CTextConsole::DrawLog(HDC hDC, RECT* pRect)
 			SetTextColor(hDC, RGB(255, 255, 255));
 			break;
 		}
-		BOOL res = TextOut( hDC, 10, YPos, pOut, xr_strlen(pOut) );
-		if ( !res )
-		{
-			R_ASSERT(0);
+		// RECT rc;
+		// SetRect(&rc, 10, YPos, 800, 25);
+		// BOOL res =  DrawText (hDC, pOut, xr_strlen(pOut), &rc, DT_LEFT | DT_CALCRECT);
+		SIZE sz;
+		int XPos = 10;		
+		while (true)
+		{ 	
+			xr_string msg = pOut;
+			u32 it = msg.find("%c["); // color tag
+			if (it == xr_string::npos)
+				it = msg.length();
+
+			TextOut( hDC, XPos, YPos, pOut, it );				
+			if (it >= msg.length()) break;
+			GetTextExtentPoint( hDC, pOut, it, &sz );
+			XPos += sz.cx;
+			pOut += (it + 3);
+			int a, r = 255, g = 255, b = 255;
+			sscanf_s(pOut, "%d,%d,%d,%d", &a, &r, &g, &b);
+			SetTextColor (hDC, RGB(r, g, b));
+			while (xr_strlen(pOut) && *pOut != ']') pOut++;
+			if (!*pOut) break;
+			pOut++; // skip last bracket
 		}
 	}
 

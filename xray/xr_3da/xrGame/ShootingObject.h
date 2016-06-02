@@ -62,6 +62,7 @@ protected:
 	bool					bWorking;
 
 	float					fTimeToFire;
+	float					fTimeToFireFade;
 	ALife::EHitType			m_eHitType;
 	Fvector4				fvHitPower;
 	//float					fHitPower;

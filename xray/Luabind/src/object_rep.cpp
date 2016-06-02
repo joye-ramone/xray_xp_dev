@@ -50,7 +50,35 @@ namespace luabind { namespace detail
 
 	object_rep::~object_rep() 
 	{
-		if (m_flags & owner && m_destructor) m_destructor(m_object);
+		if (m_flags & owner && m_destructor)
+		{
+			string4096 name; 
+			strcpy_s(name, 32, "(null)");
+			if (crep())
+			{
+				LPCSTR cn = crep()->name();
+				if (IsBadReadPtr(cn, 4))
+					sprintf_s(name, 32, "bad_ptr_0x%p", (PVOID)cn);
+				else
+					strncpy_s(name, 32, cn, 31);
+			}
+
+			if (strstr(name, "Dialog"))
+				MsgCB("$#CONTEXT: m_destructor 0x%p for m_object 0x%p class = %s", (PVOID)m_destructor, m_object, name);
+			__try
+			{
+				m_destructor(m_object);
+			}
+			__except (EXCEPTION_EXECUTE_HANDLER)
+			{
+				DWORD disp = 0;
+				sprintf_s(name, 4096, "?0x%p", m_object);				
+				GetObjectInfo(m_object, name, &disp);
+				MsgCB("! #EXCEPTION: in object_rep destructor @0x%p object = %s ", m_destructor, name);
+				MsgCB("$#DUMP_CONTEXT");
+				Beep(1000, 100);
+			}
+		}
 	}
 
 	void object_rep::remove_ownership()

@@ -9,7 +9,24 @@
 
 #include "x_ray.h"
 #include "GameFont.h"
+#include "luaicp_events.h"
 #include "../../build_config_defines.h"
+
+#pragma optimize("gyts", off)
+
+ENGINE_API bool Name_validate(shared_str &N, const shared_str &NameSection, u32 ID)
+{
+	LPCSTR name = N.c_str();
+	for (size_t i = 0; i < N.size(); i++)
+	if (name[i] < 32)
+	{			
+		Msg("! #WARN: invalid symbol in object name %s, section = %s ", name, *NameSection);
+		N.sprintf("%s%04d", *NameSection, ID);
+		return false;		
+	}
+	return true;
+}
+
 
 void CObject::MakeMeCrow_internal	()
 {
@@ -18,6 +35,7 @@ void CObject::MakeMeCrow_internal	()
 
 void CObject::cName_set			(shared_str N)
 { 
+	Name_validate(N, NameSection, ID());
 	NameObject	=	N; 
 }
 void CObject::cNameSect_set		(shared_str N)
@@ -89,7 +107,32 @@ void CObject::setVisible			(BOOL _visible)
 	}
 }
 
-void	CObject::Center					(Fvector& C)	const	{ VERIFY2(renderable.visual,*cName()); renderable.xform.transform_tiny(C,renderable.visual->vis.sphere.P);	}
+bool CObject::CheckPosition()			const
+{
+	const Fvector& pos = Position();
+	bool result = abs(pos.x) < 5000.f && abs(pos.y) < 5000.f && abs(pos.z) < 5000.f;
+	if (!result)
+	{
+		Msg("!#ERR: object %s #%d position invalid = %f, %f, %f ", Name_script(), ID(), pos.x, pos.y, pos.z);		
+		LogStackTrace("!traceback");
+		((CObject*)(this))->Position().set(0.f, 0.f, 0.f); // dirty hack
+	}
+	return result;
+}
+
+
+void	CObject::Center					(Fvector& C)	const	
+{
+  if (!renderable.visual)
+  { 
+	  LPCSTR vis_name = *NameVisual ? *NameVisual : "(null)";
+	  Debug.fatal (DEBUG_INFO, "!#WARN: CObject::Center() const, not set visual for object %s (#%d), NameVisual = %s ", Name_script(), ID(), vis_name);
+  }
+
+  VERIFY2(renderable.visual,*cName()); 
+  Fvector &pos = renderable.visual->vis.sphere.P;
+  renderable.xform.transform_tiny(C, pos);
+}
 float	CObject::Radius					()				const	{ VERIFY2(renderable.visual,*cName()); return renderable.visual->vis.sphere.R;								}
 const	Fbox&	CObject::BoundingBox	()				const	{ VERIFY2(renderable.visual,*cName()); return renderable.visual->vis.box;									}
 
@@ -100,6 +143,7 @@ const	Fbox&	CObject::BoundingBox	()				const	{ VERIFY2(renderable.visual,*cName(
 CObject::CObject		( )		: ISpatial(g_SpatialSpace)
 {
 	// Transform
+	renderable.visual			= NULL;
 	Props.storage				= 0;
 
 	Parent						= NULL;
@@ -127,7 +171,7 @@ CObject::CObject		( )		: ISpatial(g_SpatialSpace)
 }
 
 CObject::~CObject				( )
-{
+{	
 	cNameVisual_set				( 0 );
 	cName_set					( 0 );
 	cNameSect_set				( 0 );
@@ -152,20 +196,29 @@ void CObject::Load				(LPCSTR section )
 	}
 	setVisible					(false);
 	config_loaded				= true;
+	CheckPosition();
 }
 
 BOOL CObject::net_Spawn			(CSE_Abstract* data)
-{
+{	
 	PositionStack.clear			();
 
 	VERIFY						(_valid(renderable.xform));
+	auto pVisual = Visual();
 
-	if (0==Visual() && pSettings->line_exist( cNameSect(), "visual" ) )
+	if ("wpn_addon_scope" == cNameSect())
+	{
+		LPCSTR cname = typeid((pVisual)).name();
+		if (!cname) cname = "NULL";
+		Msg("##DBG: %s Visual = %s, model = 0x%p ", Name_script(), cname, collidable.model);
+	}
+
+	if (0==pVisual && pSettings->line_exist( cNameSect(), "visual" ) )
 		cNameVisual_set	(pSettings->r_string( cNameSect(), "visual" ) );
 
 	if (0==collidable.model) 	{
 		if (pSettings->line_exist(cNameSect(),"cform")) {
-			VERIFY3				(*NameVisual, "Model isn't assigned for object, but cform requisted",*cName());
+			R_ASSERT3	(*NameVisual, "Model isn't assigned for object, but cform requisted", *cName());
 			collidable.model	= xr_new<CCF_Skeleton>	(this);
 		}
 	}
@@ -180,6 +233,9 @@ BOOL CObject::net_Spawn			(CSE_Abstract* data)
 
 	MakeMeCrow					();
 
+	CheckPosition				();
+	
+	process_object_event		(EVT_OBJECT_SPAWN | EVT_OBJECT_CLIENT, ID(), this, NULL, 1);
 	return TRUE					;
 }
 
@@ -194,6 +250,7 @@ void CObject::net_Destroy		()
 //	setDestroy					(true);
 	// remove visual
 	cNameVisual_set				( 0 );
+	process_object_event(EVT_OBJECT_DESTROY | EVT_OBJECT_CLIENT, ID(), this, NULL, 0);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -202,6 +259,7 @@ const	float	base_spu_epsR		= 0.05f;
 void	CObject::spatial_update		(float eps_P, float eps_R)
 {
 	//
+
 	BOOL	bUpdate=FALSE;
 	if (PositionStack.empty())
 	{
@@ -244,6 +302,8 @@ void	CObject::spatial_update		(float eps_P, float eps_R)
 			// else nothing to do :_)
 		}
 	}
+
+	CheckPosition();
 }
 
 // Updates
@@ -273,6 +333,7 @@ void CObject::shedule_Update	( u32 T )
 {
 	// consistency check
 	// Msg						("-SUB-:[%x][%s] CObject::shedule_Update",dynamic_cast<void*>(this),*cName());
+
 	ISheduled::shedule_Update	(T);
 	spatial_update				(base_spu_epsP*1,base_spu_epsR*1);
 
@@ -300,8 +361,11 @@ void	CObject::spatial_unregister()
 void	CObject::spatial_move()
 {
 	Center						(spatial.sphere.P);
+	if (!CheckPosition())
+		spatial.sphere.P.set(0, 0, 0);
+
 	spatial.sphere.R			= Radius();
-	ISpatial::spatial_move		();
+	ISpatial::spatial_move		();	
 }
 
 CObject::SavedPosition CObject::ps_Element(u32 ID) const
@@ -319,9 +383,15 @@ CObject* CObject::H_SetParent	(CObject* new_parent, bool just_before_destroy)
 {
 	if (new_parent==Parent)	return new_parent;
 
+	if (new_parent)
+		process_object_event(EVT_OBJECT_PARENT | EVT_OBJECT_CLIENT, ID(), this, NULL, new_parent->ID());
+	else
+		process_object_event(EVT_OBJECT_REJECT | EVT_OBJECT_CLIENT, ID(), this);
+
 	CObject* old_parent	= Parent; 
 	
 	VERIFY2((new_parent==0)||(old_parent==0),"Before set parent - execute H_SetParent(0)");
+	
 
 	// if (Parent) Parent->H_ChildRemove	(this);
 	if (0==old_parent)	OnH_B_Chield		();	// before attach
@@ -365,14 +435,14 @@ void CObject::setDestroy			(BOOL _destroy)
 
 	Props.bDestroy	= _destroy?1:0;
 	if (_destroy)
-	{
+	{		
 		g_pGameLevel->Objects.register_object_to_destroy	(this);
 #ifdef DEBUG
 		Msg("cl setDestroy [%d][%d]",ID(),Device.dwFrame);
 #endif
-
 #ifdef LUAICP_COMPAT
-		MsgCB("cl setDestroy [%d][%d]", ID(), Device.dwFrame);
+		// MsgCB("cl setDestroy [%d][%d]", ID(), Device.dwFrame);
+		process_object_event(EVT_OBJECT_DESTROY | EVT_OBJECT_CLIENT, ID(), this, NULL, 255); // раннее предупреждение
 #endif
 
 	}else

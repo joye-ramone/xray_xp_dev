@@ -43,18 +43,20 @@ public:
 	void			do_exit				(const std::string &message);
 };
 
+
 // warning
-// this function can be used for debug purposes only
-IC	std::string __cdecl	make_string		(LPCSTR format,...)
+// this function can be used for debug purposes only, not safe store result LPCSTR in memory. Result must be < 4KiB 
+IC std::string __cdecl	make_string(LPCSTR format, ...)	
 {
 	va_list		args;
 	va_start	(args,format);
-
 	char		temp[4096];
-	vsprintf	(temp,format,args);
-
+	vsprintf_s	(temp, 4095, format,args);
 	return		(temp);
 }
+
+
+
 
 extern XRCORE_API	xrDebug		Debug;
 

@@ -8,10 +8,15 @@
 
 #pragma once
 
-IC	CSpaceRestrictionBridge::CSpaceRestrictionBridge		(CSpaceRestrictionBase *object)
+IC	CSpaceRestrictionBridge::CSpaceRestrictionBridge		(CSpaceRestrictionHolder *owner, CSpaceRestrictionBase *object)
 {
 	VERIFY		(object);
 	m_object	= object;
+	m_owner		= owner;
+	extern	int g_game_cycle;
+	m_create_cycle = g_game_cycle;
+	m_create_time  = Device.fTimeGlobal;
+	m_used		   = true;
 }
 
 IC	CSpaceRestrictionBase &CSpaceRestrictionBridge::object	() const

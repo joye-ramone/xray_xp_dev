@@ -83,7 +83,7 @@ void CUIWpnParams::SetInfo(CGameObject *wpn)
 	if(!g_lua_wpn_params)
 		g_lua_wpn_params = xr_new<SLuaWpnParams>();
 
-	lua_State *L = game_lua();
+	lua_State *L = ActiveLua();
 	VERIFY(L);
 	lua_getglobal(L, "ui_wpn_params");
 	if (lua_istable(L, -1))

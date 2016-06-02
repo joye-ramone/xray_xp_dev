@@ -276,7 +276,7 @@ namespace luabind
 					int top = lua_gettop(L) - 2;
 
 					// pcall will pop the function and self reference
-					// and all the parameters
+					// and all the parameters					
 
 					detail::push_args_from_tuple<1>::apply(L, m_args, p);
 					if (pcall(L, boost::tuples::length<Tuple>::value + 1, 0))
@@ -338,6 +338,7 @@ namespace luabind
 		// this will be cleaned up by the proxy object
 		// once the call has been made
 
+		// int top = lua_gettop(obj.lua_state());
 		// get the function
 		obj.pushvalue();
 		lua_pushstring(obj.lua_state(), name);
@@ -350,7 +351,7 @@ namespace luabind
 		// now the function and self objects
 		// are on the stack. These will both
 		// be popped by pcall
-		return proxy_type(obj.lua_state(), args);
+		return proxy_type(obj.lua_state(), args);				
 	}
 
 #undef LUABIND_OPERATOR_PARAMS

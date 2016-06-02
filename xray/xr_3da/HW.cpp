@@ -9,6 +9,12 @@
 #pragma warning(default:4995)
 #include "HW.h"
 #include "xr_IOconsole.h"
+#include "device.h"
+#include "ResourceManager.h"
+
+extern float g_fTimeInteractive;
+
+#pragma optimize("gyts", off)
 
 #ifndef _EDITOR
 	void	fill_vid_mode_list			(CHW* _hw);
@@ -21,10 +27,65 @@
 	void	free_vid_mode_list			();
 
 ENGINE_API CHW			HW;
+ENGINE_API  int			ps_r_msaa_level = 0;
+
+
+struct DM1024
+{
+	DEVMODE		sys_mode;
+	string1024	sm_buffer;
+} g_dm;
 
 #ifdef DEBUG
 IDirect3DStateBlock9*	dwDebugSB = 0;
 #endif
+
+u32 UnloadTextures(BOOL bForceAll)
+{
+	u32 unloaded = 0;
+	if (!Device.Resources) return unloaded;
+	auto &tmap = Device.Resources->textures();
+	for (auto it = tmap.begin(); it != tmap.end(); it++) {
+		CTexture *t = it->second;
+		if (t && t->flags.bLoaded && !t->pOwner) {
+			LPCSTR tname = *t->cName;
+
+			if (bForceAll && strstr(tname, "$user$")) continue;
+
+			auto &ctx = t->get_context();
+			while (ctx.is_locked())	{
+				MsgCB("$#CONTEXT: device-reset, unlocking texture %s ", tname);
+				ctx.unlock_rect();
+			}
+
+			// выгрузка текстур, которые могут помешать сбросу устройства
+			if (D3DPOOL_DEFAULT == ctx.pool() || t->lua() || bForceAll)
+				__try {
+				auto *texture = t->surface_get();
+				MsgCB("$#CONTEXT: device-reset, unloading texture %s, pool = %d, mem_usage = %d ", tname, ctx.pool(), ctx.mem_usage());
+				ULONG refs = 0;
+				if (texture)
+					while ((refs = texture->Release()) > 2)
+						MsgCB("$#CONTEXT: device-reset, unloading texture surface %s, refs = %d ", tname, refs);
+
+				// ctx.set_owner(false); // prevent warnings
+				float mta = t->m_time_apply;
+				if (!bForceAll)
+					t->m_time_apply = 0.f; // грязный хак защиты выгрузки $user$ текстур
+				t->Unload();  // выгрузка любых текстур, включая даже $user$			
+				t->m_time_apply = mta;
+				unloaded++;
+			}
+			__except (EXCEPTION_EXECUTE_HANDLER) {
+				Msg("! #EXCEPTION: while UnloadTexture %s", tname);
+				MsgCB("$#DUMP_CONTEXT");
+			}
+
+		}
+	}
+	return unloaded;
+}
+
 
 void CHW::Reset		(HWND hwnd)
 {
@@ -43,21 +104,56 @@ void CHW::Reset		(HWND hwnd)
 
 	selectResolution		(DevPP.BackBufferWidth, DevPP.BackBufferHeight, bWindowed);
 	// Windoze
-	DevPP.SwapEffect			= bWindowed?D3DSWAPEFFECT_COPY:D3DSWAPEFFECT_DISCARD;
+	DevPP.SwapEffect			= bWindowed ? D3DSWAPEFFECT_COPY : D3DSWAPEFFECT_DISCARD;
 	DevPP.Windowed				= bWindowed;
 	DevPP.PresentationInterval	= D3DPRESENT_INTERVAL_IMMEDIATE;
-	if( !bWindowed )		DevPP.FullScreen_RefreshRateInHz	= selectRefresh	(DevPP.BackBufferWidth,DevPP.BackBufferHeight,Caps.fTarget);
-	else					DevPP.FullScreen_RefreshRateInHz	= D3DPRESENT_RATE_DEFAULT;
+	if( !bWindowed )		
+		  DevPP.FullScreen_RefreshRateInHz = selectRefresh	(DevPP.BackBufferWidth,DevPP.BackBufferHeight,Caps.fTarget);
+	else  DevPP.FullScreen_RefreshRateInHz	= D3DPRESENT_RATE_DEFAULT;
 #endif
+	u32 errs = 0;
+	// u32 unloaded = 0;
+	g_fTimeInteractive = 0.1f; // для предотвращения жалоб на лаги
+	
+	HRESULT _hr = 0;
+	__try {
+		u32 unloaded = UnloadTextures(FALSE);
+		ReleaseActiveDevice();
+		while (++errs < 5) {
+			_hr = pDevice->Reset(&DevPP);
+			if (SUCCEEDED(_hr))					break;
+			Msg		("! #WARN: IDirect3DDevice->Reset failed, resolution = [%dx%d]: %s, unloaded textures = %d", DevPP.BackBufferWidth, DevPP.BackBufferHeight, Debug.error2string(_hr), unloaded);
+			Msg		("# #DEBUG: TestCooperativeLevel returns '%s' ", Debug.error2string(pDevice->TestCooperativeLevel()));
+			Sleep	(100);				
+			// unloaded += UnloadTextures(TRUE);				
+		}
+		if (errs >= 5)
+		{
+			Msg("! #ERROR: Reset failed after %d attempts, process will be terminated quickly ", errs);
+			Device.Pause(TRUE, FALSE, FALSE, "destroy");			
+			Device.Destroy();
+			Device.b_is_Ready = FALSE;			
+			MessageBox			(NULL,"Failed to reset D3D device.\nPlease try to restart the game.","Error!",MB_OK|MB_ICONERROR|MB_TOPMOST);
+			TerminateProcess	(GetCurrentProcess(),0);
+		}
+		else
+		{
+			SetActiveDevice(pDevice);
+			R_CHK				(pDevice->GetRenderTarget(0, &pBaseRT));
+			R_CHK				(pDevice->GetDepthStencilSurface	(&pBaseZB));
+  			if (unloaded > 0 && g_fTimeInteractive > 1) 
+				Device.Resources->DeferredUpload();
+		}
 
-	while	(TRUE)	{
-		HRESULT _hr							= HW.pDevice->Reset	(&DevPP);
-		if (SUCCEEDED(_hr))					break;
-		Msg		("! ERROR: [%dx%d]: %s",DevPP.BackBufferWidth,DevPP.BackBufferHeight,Debug.error2string(_hr));
-		Sleep	(100);
 	}
-	R_CHK				(pDevice->GetRenderTarget			(0,&pBaseRT));
-	R_CHK				(pDevice->GetDepthStencilSurface	(&pBaseZB));
+	__except (SIMPLE_FILTER) {
+		Log("!EXCEPTION: in IDirect3DDevice9::Reset");
+		Beep(500, 500);
+		ExitProcess(UINT(-3));
+	}
+	
+	
+
 #ifdef DEBUG
 	R_CHK				(pDevice->CreateStateBlock			(D3DSBT_ALL,&dwDebugSB));
 #endif
@@ -75,6 +171,10 @@ void CHW::CreateD3D	()
 #else
 	LPCSTR		_name			= "xrd3d9-null.dll";
 #endif
+	ZeroMemory(&g_dm, sizeof(g_dm));
+	g_dm.sys_mode.dmSize			= sizeof(g_dm.sys_mode);
+	g_dm.sys_mode.dmDriverExtra		= sizeof (g_dm.sm_buffer);
+	EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &g_dm.sys_mode);
 
 	hD3D9            			= LoadLibrary(_name);
 	R_ASSERT2	           	 	(hD3D9,"Can't find 'd3d9.dll'\nPlease install latest version of DirectX before running this program");
@@ -101,7 +201,7 @@ D3DFORMAT CHW::selectDepthStencil	(D3DFORMAT fTarget)
 
 	// R1 usual
 	static	D3DFORMAT	fDS_Try1[6] =
-	{D3DFMT_D24S8,D3DFMT_D24X4S4,D3DFMT_D32,D3DFMT_D24X8,D3DFMT_D16,D3DFMT_D15S1};
+	{ D3DFMT_D24S8, D3DFMT_D24X4S4, D3DFMT_D32, D3DFMT_D24X8, D3DFMT_D16, D3DFMT_D15S1 };
 
 	D3DFORMAT*	fDS_Try			= fDS_Try1;
 	int			fDS_Cnt			= 6;
@@ -188,7 +288,7 @@ void		CHW::CreateDevice		(HWND m_hWnd)
 #endif
 
 	DevAdapter				= D3DADAPTER_DEFAULT;
-	DevT					= Caps.bForceGPU_REF?D3DDEVTYPE_REF:D3DDEVTYPE_HAL;
+	DevT					= Caps.bForceGPU_REF ? D3DDEVTYPE_REF : D3DDEVTYPE_HAL;
 
 //. #ifdef DEBUG
 	// Look for 'NVIDIA NVPerfHUD' adapter
@@ -283,13 +383,21 @@ void		CHW::CreateDevice		(HWND m_hWnd)
 //. P.BackBufferHeight		= dwHeight;
 	P.BackBufferFormat		= fTarget;
 	P.BackBufferCount		= 1;
-
-	// Multisample
-    P.MultiSampleType		= D3DMULTISAMPLE_NONE;
 	P.MultiSampleQuality	= 0;
+	// Multisample allowed only for R1 
+	if (!bWindowed && !psDeviceFlags.test(rsR2) &&  SUCCEEDED(pD3D->CheckDeviceMultiSampleType(D3DADAPTER_DEFAULT,
+		DevT, fTarget, FALSE,
+		(D3DMULTISAMPLE_TYPE)ps_r_msaa_level, NULL))) // &P.MultiSampleQuality
+		P.MultiSampleType = (D3DMULTISAMPLE_TYPE)ps_r_msaa_level;
+	else
+		P.MultiSampleType		= D3DMULTISAMPLE_NONE;
+	
+	if (P.MultiSampleType)
+		Msg("# Using MSAA type = %d ", (int)P.MultiSampleType);
+
 
 	// Windoze
-    P.SwapEffect			= bWindowed?D3DSWAPEFFECT_COPY:D3DSWAPEFFECT_DISCARD;
+    P.SwapEffect			= bWindowed ? D3DSWAPEFFECT_COPY : D3DSWAPEFFECT_DISCARD;
 	P.hDeviceWindow			= m_hWnd;
     P.Windowed				= bWindowed;
 
@@ -333,7 +441,7 @@ void		CHW::CreateDevice		(HWND m_hWnd)
 	};
 	R_CHK		(R);
 
-	_SHOW_REF	("* CREATE: DeviceREF:",HW.pDevice);
+	_SHOW_REF	("* CREATE: DeviceREF:", HW.pDevice);
 	switch (GPU)
 	{
 	case D3DCREATE_SOFTWARE_VERTEXPROCESSING:
@@ -362,6 +470,7 @@ void		CHW::CreateDevice		(HWND m_hWnd)
 #ifndef _EDITOR
 	updateWindowProps							(m_hWnd);
 	fill_vid_mode_list							(this);
+	SetActiveDevice								(pDevice);
 #endif
 }
 
@@ -400,7 +509,8 @@ u32 CHW::selectGPU ()
 
 u32 CHW::selectRefresh(u32 dwWidth, u32 dwHeight, D3DFORMAT fmt)
 {
-	if (psDeviceFlags.is(rsRefresh60hz))	return D3DPRESENT_RATE_DEFAULT;
+	if (psDeviceFlags.is(rsRefresh60hz))	
+		return D3DPRESENT_RATE_DEFAULT;
 	else
 	{
 		u32 selected	= D3DPRESENT_RATE_DEFAULT;
@@ -411,7 +521,15 @@ u32 CHW::selectRefresh(u32 dwWidth, u32 dwHeight, D3DFORMAT fmt)
 			pD3D->EnumAdapterModes(DevAdapter,fmt,I,&Mode);
 			if (Mode.Width==dwWidth && Mode.Height==dwHeight)
 			{
-				if (Mode.RefreshRate <= maxRefreshRate && Mode.RefreshRate>selected) selected = Mode.RefreshRate;
+				if (Mode.RefreshRate <= (UINT)maxRefreshRate && (UINT)Mode.RefreshRate > selected) 
+					selected = Mode.RefreshRate;
+
+				if (Mode.RefreshRate == g_dm.sys_mode.dmDisplayFrequency)  // выбрать по умолчанию частоту десктопа.
+				{
+					selected = Mode.RefreshRate;
+					break;
+				}
+
 			}
 		}
 		return selected;

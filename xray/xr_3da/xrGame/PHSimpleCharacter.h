@@ -28,7 +28,7 @@ protected:
 	struct SCollisionDamageInfo
 	{
 										SCollisionDamageInfo		()										;
-				void					Construct					()										;
+				void					Construct					()										;				
 				float					ContactVelocity				()				const					;
 				void					HitDir						(Fvector &dir)	const					;
 			IC	const Fvector&			HitPos						()				const					{return cast_fv(m_damege_contact.geom.pos);}
@@ -36,6 +36,7 @@ protected:
 				dContact				m_damege_contact;
 				SCollisionHitCallback	*m_hit_callback;
 				u16						m_obj_id;
+				u16						m_material;			// alpet: с чем столкновение
 				float					m_dmc_signum;
 				enum{ctStatic,ctObject}	m_dmc_type;
 		mutable	float					m_contact_velocity;
@@ -138,9 +139,11 @@ public:
 	virtual		bool			 		ContactWas						()					{if(b_meet_control) {b_meet_control=false;return true;} else return false;}
 	virtual		EEnvironment	 		CheckInvironment				()					;
 	virtual		void			 		GroundNormal					(Fvector &norm)		;
-	virtual		const ICollisionDamageInfo	*CollisionDamageInfo ()const {return this;}
+	virtual		const ICollisionDamageInfo	*CollisionDamageInfo ()  const {return this;}
 private:
-	virtual		float			 	ContactVelocity				()const				{return m_collision_damage_info.ContactVelocity();}
+	virtual		u16					ContactMaterial				() const 			    {return m_collision_damage_info.m_material;}
+	virtual		u16					ContactObject				() const 			    {return m_collision_damage_info.m_obj_id;}
+	virtual		float			 	ContactVelocity				() const				{return m_collision_damage_info.ContactVelocity();}	
 	virtual		void			 	HitDir							(Fvector& dir)const	{return m_collision_damage_info.HitDir(dir);}
 	virtual		const Fvector&	 	HitPos							()const				{return m_collision_damage_info.HitPos();}
 	virtual		u16				 	DamageInitiatorID				()const				;

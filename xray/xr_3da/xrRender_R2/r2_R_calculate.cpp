@@ -49,8 +49,9 @@ void CRender::Calculate		()
 	}
 
 	//
+	busy_warn(DEBUG_INFO, 3);
 	Lights.Update();
-
+	busy_warn(DEBUG_INFO, 3);
 	// Check if we touch some light even trough portal
 	lstRenderables.clear();
 	g_SpatialSpace->q_sphere(lstRenderables,0,STYPE_LIGHTSOURCE,Device.vCameraPosition,EPS_L);

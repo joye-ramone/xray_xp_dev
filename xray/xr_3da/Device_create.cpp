@@ -16,13 +16,17 @@ void CRenderDevice::_SetupStates	()
 	vCameraRight.set		(1,0,0);
 
 	HW.Caps.Update			();
+
+#define FILTER_SAMP D3DTEXF_ANISOTROPIC
+
 	for (u32 i=0; i<HW.Caps.raster.dwStages; i++)				{
 		float fBias = -.5f	;
 		CHK_DX(HW.pDevice->SetSamplerState	( i, D3DSAMP_MAXANISOTROPY, 4				));
 		CHK_DX(HW.pDevice->SetSamplerState	( i, D3DSAMP_MIPMAPLODBIAS, *((LPDWORD) (&fBias))));
-		CHK_DX(HW.pDevice->SetSamplerState	( i, D3DSAMP_MINFILTER,	D3DTEXF_LINEAR 		));
-		CHK_DX(HW.pDevice->SetSamplerState	( i, D3DSAMP_MAGFILTER,	D3DTEXF_LINEAR 		));
-		CHK_DX(HW.pDevice->SetSamplerState	( i, D3DSAMP_MIPFILTER,	D3DTEXF_LINEAR		));
+		
+		CHK_DX(HW.pDevice->SetSamplerState	( i, D3DSAMP_MINFILTER,	FILTER_SAMP 		));
+		CHK_DX(HW.pDevice->SetSamplerState	( i, D3DSAMP_MAGFILTER,	FILTER_SAMP 		));
+		CHK_DX(HW.pDevice->SetSamplerState	( i, D3DSAMP_MIPFILTER,	FILTER_SAMP		));
 	}
 	CHK_DX(HW.pDevice->SetRenderState( D3DRS_DITHERENABLE,		TRUE				));
 	CHK_DX(HW.pDevice->SetRenderState( D3DRS_COLORVERTEX,		TRUE				));
@@ -36,7 +40,8 @@ void CRenderDevice::_SetupStates	()
 	CHK_DX(HW.pDevice->SetRenderState( D3DRS_SPECULARMATERIALSOURCE,D3DMCS_MATERIAL	));
 	CHK_DX(HW.pDevice->SetRenderState( D3DRS_AMBIENTMATERIALSOURCE, D3DMCS_MATERIAL	));
 	CHK_DX(HW.pDevice->SetRenderState( D3DRS_EMISSIVEMATERIALSOURCE,D3DMCS_COLOR1	));
-	CHK_DX(HW.pDevice->SetRenderState( D3DRS_MULTISAMPLEANTIALIAS,	FALSE			));
+	CHK_DX(HW.pDevice->SetRenderState( D3DRS_MULTISAMPLEANTIALIAS,	 HW.DevPP.MultiSampleType > 0));
+	CHK_DX(HW.pDevice->SetRenderState( D3DRS_ANTIALIASEDLINEENABLE,  HW.DevPP.MultiSampleType > 0));
 	CHK_DX(HW.pDevice->SetRenderState( D3DRS_NORMALIZENORMALS,		TRUE			));
 
 	if (psDeviceFlags.test(rsWireframe))	{ CHK_DX(HW.pDevice->SetRenderState( D3DRS_FILLMODE,			D3DFILL_WIREFRAME	)); }

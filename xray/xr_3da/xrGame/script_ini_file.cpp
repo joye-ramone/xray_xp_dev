@@ -12,19 +12,24 @@
 #include "ai_space.h"
 #include "object_factory.h"
 
+#pragma optimize("gyts", off)
+
 CScriptIniFile::CScriptIniFile		(IReader *F, LPCSTR path) :
 	inherited	(F,path)
 {
+	ref_count = 0;
 }
 
 CScriptIniFile::CScriptIniFile		(LPCSTR szFileName, BOOL ReadOnly, BOOL bLoadAtStart, BOOL SaveAtEnd) :
 	inherited	(update(szFileName), ReadOnly, bLoadAtStart, SaveAtEnd)
 {
+	ref_count = 0;
 }
 
 CScriptIniFile::~CScriptIniFile		()
 {
 }
+
 
 LPCSTR	CScriptIniFile::update		(LPCSTR file_name)
 {
@@ -38,9 +43,37 @@ bool CScriptIniFile::line_exist		(LPCSTR S, LPCSTR L)
 	return		(!!inherited::line_exist(S,L));
 }
 
+bool CScriptIniFile::load			(LPCSTR file_name)
+{	
+	if (NULL == file_name || xr_strlen(file_name) == 0)
+		file_name = fName;
+
+	if (!FS.exist(file_name)) return false;	
+	Load(file_name);
+	return true;		
+}
+
+int  CScriptIniFile::section_count ()
+{
+	return inherited::sections().size();
+}
+
 bool CScriptIniFile::section_exist	(LPCSTR S)
 {
 	return		(!!inherited::section_exist(S));
+}
+
+LPCSTR CScriptIniFile::section_name(int index)
+{	
+	if (index > section_count())
+		return "#ERROR: index outbound";
+	auto &map = inherited::sections();
+	int i = 0;
+	for (auto it = map.begin(); it != map.end(); it++, i++)
+		if (i == index)
+			return *it->first;
+			
+	return "NULL";
 }
 
 int	 CScriptIniFile::r_clsid		(LPCSTR S, LPCSTR L)

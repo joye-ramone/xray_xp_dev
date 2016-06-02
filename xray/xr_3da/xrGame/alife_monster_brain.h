@@ -32,7 +32,9 @@ public:
 	CSE_ALifeSmartZone					*m_smart_terrain;
 	ALife::_TIME_ID						m_last_search_time;
 	ALife::_TIME_ID						m_time_interval;
-
+	bool								m_debug;
+	bool								m_default_behavior;
+	xr_string							m_last_task;
 // sad, but true
 public:
 			void						select_task				();

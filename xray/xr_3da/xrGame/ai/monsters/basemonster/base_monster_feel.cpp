@@ -99,7 +99,11 @@ void CBaseMonster::HitEntity(const CEntity *pEntity, float fDamage, float impuls
 		HS.weaponID			= (ID());															//		l_P.w_u16	(ID());
 		HS.dir				= (hit_dir);														//		l_P.w_dir	(hit_dir);
 		HS.power			= (fDamage);														//		l_P.w_float	(fDamage);
+#ifdef  NLC_EXTENSIONS
+		HS.boneID			= -1;																//	    используется схема случайного хита
+#else
 		HS.boneID			= (smart_cast<CKinematics*>(pEntityNC->Visual())->LL_GetBoneRoot());//		l_P.w_s16	(smart_cast<CKinematics*>(pEntityNC->Visual())->LL_GetBoneRoot());
+#endif
 		HS.p_in_bone_space	= (position_in_bone_space);											//		l_P.w_vec3	(position_in_bone_space);
 		HS.impulse			= (impulse);														//		l_P.w_float	(impulse);
 		HS.hit_type			= (ALife::eHitTypeWound);											//		l_P.w_u16	( u16(ALife::eHitTypeWound) );

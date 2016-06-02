@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: script_vars_storage.cpp
 //	Created 	: 19.10.2014
-//  Modified 	: 22.10.2014
+//  Modified    : 10.12.2014
 //	Author		: Alexander Petrov
 //	Description : global script vars class, with saving content to savegame
 ////////////////////////////////////////////////////////////////////////////
@@ -14,10 +14,10 @@
 #include "../lua_tools.h"
 #include "../../xrNetServer/NET_utils.h"
 
-#pragma todo("alpet: после отладки включить оптимизацию")
-#pragma optimize("gyts", off)  
+// #pragma todo("alpet: после отладки включить оптимизацию")
+// #pragma optimize("gyts", off)  
  
-CScriptVarsStorage g_ScriptVars;
+DLL_API CScriptVarsStorage g_ScriptVars;
 
 #define  SMALL_VAR_SIZE	  sizeof(SCRIPT_VAR::s_value)
 
@@ -191,6 +191,8 @@ int CScriptVarsTable::save(IWriter  &memory_stream)
 		if (LUA_TTABLE == sv.eff_type())
 		{
 			sv.type = LUA_TTABLE;
+			R_ASSERT3(sv.T, "SCRIPT_VAR.T unassigned for ", *it->first);
+
 			if (sv.T->is_array)	sv.type |= SVT_ARRAY_TABLE;
 			if (sv.T->zero_key)	sv.type |= SVT_ARRAY_ZEROK;			
 
@@ -230,7 +232,14 @@ void CScriptVarsTable::release()
 int CScriptVarsStorage::load(IReader  &memory_stream)
 {
 	if (!memory_stream.find_chunk(SCRIPT_VARS_CHUNK_DATA))
-		 return 0; 
+#ifdef NLC_EXTENSIONS
+	{
+		Debug.fatal(DEBUG_INFO, "cannot find SCRIPT_VARS_CHUNK_DATA in memory_stream");
+		return 0;
+	}
+#else
+	   return 0; 
+#endif
 	int loaded = inherited::load(memory_stream);
 	Msg	("* %d script vars are successfully loaded", loaded);
 	return loaded;
@@ -261,13 +270,32 @@ void register_method(lua_State *L, char *key, int mt_index, lua_CFunction f)
 	lua_setfield(L, mt_index, key);
 }
 
-CScriptVarsTable *lua_tosvt(lua_State *L, int index)
+CScriptVarsTable *lua_tosvt(lua_State *L, int index, bool print_errors = true)
 {
 	if (!lua_isuserdata(L, index))
 		return NULL;
 
-	SCRIPT_VAR *sv = (SCRIPT_VAR*)lua_touserdata(L, index);
-	return sv->T;
+	if (lua_objlen(L, index) != sizeof(SCRIPT_VAR))
+	{
+		if (print_errors)
+		{
+			Msg("# %s", GetLuaTraceback(L, 2));
+			log_script_error("argument is not SCRIPT_VAR");
+		}
+		return NULL;
+	}
+
+	SCRIPT_VAR *sv = (SCRIPT_VAR*)lua_touserdata(L, index);	
+
+	if (sv->type == LUA_TTABLE && sv->size >= 4)
+		return sv->T;
+	else
+		if (print_errors)
+		{
+			Msg("# %s",  GetLuaTraceback(L, 2));
+			log_script_error("Possible SCRIPT_VAR contents damaged");		
+		}
+	return NULL;
 }
 
 
@@ -283,22 +311,72 @@ int script_vars_dump (lua_State *L, CScriptVarsTable *svt, bool unpack) // дамп 
 			return 1;
 		}
 
-		auto it = svt->map().begin();
-		int i = 1;
-		for (; it != svt->map().end(); it++)
+		// if (unpack && svt->is_array)	Msg("##DBG: unpacking array %s ", svt->name());
+
+		int ignore_min =  MAXINT;
+		int ignore_max = -MAXINT;
+
+		CScriptVarsTable::SCRIPT_VARS_MAP &map = svt->map();
+		auto end = map.end();
+		if (svt->is_array)
+		{
+			int hashed = 0;
+			string32 tmp;			
+			for (int i = 1; i <= svt->size(); i++)  // serialized traverse
+			{
+				 LPCSTR key = itoa(i, tmp, 10);
+				 auto it = map.find( key ); 
+				 if (it == map.end())
+				 {
+					hashed++;
+					continue;
+				 }
+				 ignore_min = min(ignore_min, i);
+				 ignore_max = max(ignore_max, i);
+				 SCRIPT_VAR &sv = it->second;
+				 sv.type |= SVT_KEY_NUMERIC;
+				 lua_pushinteger (L, i);
+				 svt->get(L, key, unpack);
+				 lua_settable(L, tidx);			
+			}
+
+			if (!hashed)
+				return 1;
+		}
+
+
+		auto it = svt->map().begin();		
+		int i = 0;
+		for (; it != end; it++)
 		{			
+			i++;
 			LPCSTR key = *it->first;			
 			SCRIPT_VAR &sv = it->second;
+			if (!key)
+			{
+				log_script_error("script_vars_dump: key unassigned in table 0x%p at [%d] ", (void*)svt, i);
+				key = "0000";
+			}
+
+			if (strstr(key, "__") == key) continue;
+
+			int i_key = atoi(key);
+
+			if (sv.is_key_numeric() && ignore_min <= i_key && i_key <= ignore_max)			
+				continue; // пропуск ключей заданных в массиве
+
 			if ( sv.is_key_boolean() )
 				lua_pushboolean(L, 0 == strcmp(key, "true"));
 			else
 				if ( sv.is_key_numeric() )
-					lua_pushinteger(L, atoi(key));
+					lua_pushinteger(L, i_key);
 				else
 					lua_pushstring(L, key);
 				
 			svt->get(L, key, unpack);
-			lua_settable(L, tidx);
+			lua_settable(L, tidx);			
+
+			// if (0 == _stricmp(key, "1"))Msg("!#WARN: found key == '1' in non-array table %s ", svt->name());
 		}
 	}
 	else
@@ -361,30 +439,38 @@ int CScriptVarsTable::assign(lua_State *L,  int index)
 	return size();
 }
 
+PSCRIPT_VAR CScriptVarsTable::find_var(const shared_str &k)
+{
+	SCRIPT_VARS_MAP::iterator it = map().find(k);
+	if (it != map().end())
+		return &it->second;
+
+	return NULL;
+}
+
 
 void CScriptVarsTable::get(lua_State *L, LPCSTR k, bool unpack)
 {
-	shared_str key;
+	// shared_str key (k);
 	shared_str from;
-	SCRIPT_VARS_MAP::iterator it;
+
+	PSCRIPT_VAR pv = NULL; 
 	try
 	{
 		R_ASSERT2(this,		"CScriptVarsTable::get this unassigned!");
 		R_ASSERT2(k,		"CScriptVarsTable::get key unassigned!");
-		
-
-		if (IsDebuggerPresent())
+		if (IsDebuggerPresent() && 0)
 		{			
 			LPCSTR name = this->name();			
-			from = get_lua_traceback(L, 2);
+			from = GetLuaTraceback(L, 2);
 			string4096 msg;
 			sprintf_s (msg, 4096, "$#CONTEXT: CScriptVarsTable::get this = 0x%p   name = %s (ref_count=%d), key = %s, from\n %s ",				    
 					 				(void*)this, name ? name : "NULL", this->ref_count, k ? k : "NULL", *from);
 			MsgCB(msg); // WARN: имплементация этой функции должна быть из последней ревизии с 4-кебибайтными буферами
 			
 		}
-		key = k;
-	 	it = map().find(key);
+
+		pv = find_var(k);	 	
 	}
 	catch (...)
 	{
@@ -394,9 +480,11 @@ void CScriptVarsTable::get(lua_State *L, LPCSTR k, bool unpack)
 		log_script_error("Exception catched in CScriptVarsTable::get ");
 	}
 
-	if (it != map().end())
+
+
+	if (pv)
 	{
-		SCRIPT_VAR &sv = it->second;
+		SCRIPT_VAR &sv = *pv;
 		void *p;
 
 		switch (sv.eff_type())
@@ -559,6 +647,20 @@ void CScriptVarsTable::set(lua_State *L, LPCSTR k, int index, int key_type)
 			sv.size = lua_tointeger(L, index + 1);
 		else
 			sv.size = lua_objlen(L, index);
+		if (sizeof(sv) == sv.size) 
+		{			
+			sv.T = lua_tosvt(L, index, false);  // простая ассигнация, без порождения независимой копии
+			if (sv.T)  
+			{
+				sv.T->add_ref();
+				sv.type = LUA_TTABLE;
+				sv.size = 4;
+				break;
+			}
+		}
+
+
+
 		void *dst = sv.smart_alloc(new_type, sv.size); // избежание утечек памяти		
 		memcpy_s(dst, sv.size, lua_touserdata(L, index), sv.size);
 		break;
@@ -692,22 +794,34 @@ int script_vars_import(lua_State *L) // загрузка таблицы переменных из нет-пакет
 	return lua_pushsvt(L, svt);	
 }
 
-
 int get_stored_vars(lua_State *L)
 {
 	return lua_pushsvt(L, &g_ScriptVars);	
 }
+
+DLL_API void* find_stored_var(void *storage, LPCSTR key) // для абстрактного использования
+{	
+	CScriptVarsTable *t = NULL;
+	PSCRIPT_VAR pv = (PSCRIPT_VAR)storage;
+	if (pv && pv->T) t = pv->T;
+	if (NULL == t)
+		t = &g_ScriptVars;
+
+	return t->find_var(key);
+}
+
 
 void CScriptVarsStorage::script_register(lua_State *L)
 {
 	g_ScriptVars.set_name("g_ScriptVars");
 	module(L)
 		[
-			def("get_stored_vars"				,			&get_stored_vars	, raw(_1)),
-			def("vars_table_assign"				,			&script_vars_assign , raw(_1)),
-			def("vars_table_create"				,			&script_vars_create	, raw(_1)),
-			def("vars_table_export"				,			&script_vars_export	, raw(_1)),
-			def("vars_table_import"				,			&script_vars_import	, raw(_1))
+			def("get_stored_vars"			,				&get_stored_vars	, raw(_1)),
+			def("vars_table_assign"			,				&script_vars_assign , raw(_1)),
+			def("vars_table_create"			,				&script_vars_create	, raw(_1)),
+			def("vars_table_dump"			,(lua_CFunction)&script_vars_dump, raw(_1)), // (void (CScriptGameObject::*)(u8,u8,u8))
+			def("vars_table_export"			,				&script_vars_export	, raw(_1)),
+			def("vars_table_import"			,				&script_vars_import	, raw(_1))
 		];		
 
 }

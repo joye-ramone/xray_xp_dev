@@ -14,6 +14,9 @@
 #include "object_broker.h"
 
 const u32 time_to_delete = 300000;
+#pragma optimize("gyts", off)
+
+
 
 struct CSpaceRestrictionManager::CClientRestriction {
 	CRestrictionPtr					m_restriction;
@@ -28,8 +31,8 @@ CSpaceRestrictionManager::CSpaceRestrictionManager			()
 
 CSpaceRestrictionManager::~CSpaceRestrictionManager			()
 {
+	clear();
 	xr_delete						(m_clients);
-	delete_data						(m_space_restrictions);
 }
 
 void show_restriction				(const shared_str &restrictions)
@@ -50,10 +53,13 @@ void show_restriction				(const CRestrictionPtr &restriction)
 
 void CSpaceRestrictionManager::clear						()
 {
-	m_clients->clear				();
+	MsgCB("# #DBG: CSpaceRestrictionManager::clear() performing ");	
+	m_finalization					= true;
+	m_clients->clear					();
 	delete_data						(m_space_restrictions);
-
 	CSpaceRestrictionHolder::clear	();
+	collect_garbage					(true);
+	CheckBridgesLeak				();
 }
 
 void CSpaceRestrictionManager::remove_border				(ALife::_OBJECT_ID id)
@@ -96,24 +102,24 @@ shared_str	CSpaceRestrictionManager::base_out_restrictions		(ALife::_OBJECT_ID i
 IC	CSpaceRestrictionManager::CRestrictionPtr CSpaceRestrictionManager::restriction	(ALife::_OBJECT_ID id)
 {
 	CLIENT_RESTRICTIONS::iterator	I = m_clients->find(id);
-	VERIFY							(m_clients->end() != I);
+	FORCE_VERIFY					(m_clients->end() != I);
 	return							((*I).second.m_restriction);
 }
 
-IC	void CSpaceRestrictionManager::collect_garbage				()
+IC	void CSpaceRestrictionManager::collect_garbage				(bool bForce)
 {
 	SPACE_RESTRICTIONS::iterator	I = m_space_restrictions.begin(), J;
 	SPACE_RESTRICTIONS::iterator	E = m_space_restrictions.end();
 	for ( ; I != E; ) {
-		if (!(*I).second->m_ref_count && (Device.dwTimeGlobal >= (*I).second->m_last_time_dec + time_to_delete)) {
-			J						= I;
-			++I;
-			xr_delete				((*J).second);
+		J = I++; 
+		auto *restr = J->second;
+		if (!restr->m_ref_count && (Device.dwTimeGlobal >= restr->m_last_time_dec + time_to_delete) || bForce) {			
+			xr_delete				(restr);
 			m_space_restrictions.erase	(J);
 		}
-		else
-			++I;
+		
 	}
+	CSpaceRestrictionHolder::collect_garbage();
 }
 
 void CSpaceRestrictionManager::restrict							(ALife::_OBJECT_ID id, shared_str out_restrictors, shared_str in_restrictors)
@@ -135,7 +141,7 @@ void CSpaceRestrictionManager::restrict							(ALife::_OBJECT_ID id, shared_str 
 	(*m_clients)[id].m_base_out_restrictions	= out_restrictors;
 	(*m_clients)[id].m_base_in_restrictions		= in_restrictors;
 	
-	collect_garbage								();
+	collect_garbage								(false);
 }
 
 void CSpaceRestrictionManager::unrestrict						(ALife::_OBJECT_ID id)
@@ -143,7 +149,7 @@ void CSpaceRestrictionManager::unrestrict						(ALife::_OBJECT_ID id)
 	CLIENT_RESTRICTIONS::iterator				I = m_clients->find(id);
 	VERIFY										(I != m_clients->end());
 	m_clients->erase							(I);
-	collect_garbage								();
+	collect_garbage								(false);
 }
 
 bool CSpaceRestrictionManager::accessible						(ALife::_OBJECT_ID id, const Fsphere &sphere)
@@ -156,10 +162,48 @@ bool CSpaceRestrictionManager::accessible						(ALife::_OBJECT_ID id, const Fsph
 
 bool CSpaceRestrictionManager::accessible					(ALife::_OBJECT_ID id, u32 level_vertex_id, float radius)
 {
+	CTimer perf;
+	perf.Start();
+	static float check_time = 0.f;
+	static float prev_check = 0.f;
+
+	CLIENT_RESTRICTIONS::iterator				I = m_clients->find(id);
+	if (I == m_clients->end())
+	{
+		MsgCB("! #WARN: CSpaceRestrictionManager::accessible not found client with id = %d ", id);
+		return (true);
+	}
+
+	bool result = true;
+
 	CRestrictionPtr				client_restriction = restriction(id);
 	if (client_restriction)
-		return					(client_restriction->accessible(level_vertex_id,radius));
-	return						(true);
+	{
+		R_ASSERT2 ((u32)client_restriction.get() > 0x10000, make_string("client_restriction.m_object is bad pointer! id = %d ", id));
+		//if (0 == client_restriction->border().size())
+		//{
+		//	MsgCB("!#WARN_BAD_RESTRICTOR: client_restriction %s (%d) have no border, treated as accessible ",
+		//		    *client_restriction->name(), id);
+		//	// unrestrict(id);
+		//	return (true);
+		//}
+		result = client_restriction->accessible(level_vertex_id, radius);
+		LPCSTR name = *client_restriction->name();
+
+		if (client_restriction->is_failed() && xr_strlen(name))
+		{			
+			MsgCB("! #WARN: client_restriction '%s' is not valid, trying remove for object %d", name, id);
+			remove_restrictions(id, NULL, name);
+		}				
+	}
+	check_time += perf.GetElapsed_sec();
+	if (check_time - prev_check > 1.f)
+	{
+		MsgCB("##PERF: restrictors accessible total elapsed = %.3f s", check_time);
+		prev_check = check_time;
+	}
+
+	return						result;
 }
 
 CSpaceRestrictionManager::CRestrictionPtr	CSpaceRestrictionManager::restriction	(shared_str out_restrictors, shared_str in_restrictors)
@@ -178,8 +222,9 @@ CSpaceRestrictionManager::CRestrictionPtr	CSpaceRestrictionManager::restriction	
 	if (I != m_space_restrictions.end())
 		return					((*I).second);
 
-	CSpaceRestriction			*client_restriction = xr_new<CSpaceRestriction>(this,out_restrictors,in_restrictors);
+	CSpaceRestriction			*client_restriction = xr_new<CSpaceRestriction> (this, out_restrictors, in_restrictors);	
 	m_space_restrictions.insert	(std::make_pair(space_restrictions,client_restriction));
+	// client_restriction->initialize();
 	return						(client_restriction);
 }
 
@@ -193,7 +238,7 @@ u32	CSpaceRestrictionManager::accessible_nearest			(ALife::_OBJECT_ID id, const 
 IC	bool CSpaceRestrictionManager::restriction_presented	(shared_str restrictions, shared_str restriction) const
 {
 	string4096					m_temp;
-	for (u32 i=0, n=_GetItemCount(*restrictions); i<n; ++i)
+	for (u32 i=0, n=_GetItemCount(*restrictions); i<n; ++i)	
 		if (!xr_strcmp(restriction,_GetItem(*restrictions,i,m_temp)))
 			return				(true);
 	return						(false);
@@ -203,12 +248,13 @@ IC	void CSpaceRestrictionManager::join_restrictions		(shared_str &restrictions, 
 {
 	string4096					m_temp1;
 	string4096					m_temp2;
-	strcpy						(m_temp2,*restrictions);
+	strcpy_s					(m_temp2, sizeof(m_temp1), *restrictions);
 	for (u32 i=0, n=_GetItemCount(*update), count = xr_strlen(m_temp2); i<n; ++i)
 		if (!restriction_presented(m_temp2,_GetItem(*update,i,m_temp1))) {
 			if (count)
-				strcat			(m_temp2,",");
-			strcat				(m_temp2,m_temp1);
+				strcat_s			(m_temp2, sizeof(m_temp2), ",");
+			R_ASSERT2(xr_strlen(m_temp1) + xr_strlen(m_temp2) < sizeof(m_temp2), "join_restrictions: string buffer overflow detected");
+			strcat_s				(m_temp2, sizeof(m_temp2), m_temp1);
 			++count;
 		}
 	restrictions				= shared_str(m_temp2);
@@ -218,12 +264,12 @@ IC	void CSpaceRestrictionManager::difference_restrictions	(shared_str &restricti
 {
 	string4096					m_temp1;
 	string4096					m_temp2;
-	strcpy						(m_temp2,"");
+	strcpy_s					(m_temp2, sizeof(m_temp2), "");
 	for (u32 i=0, n=_GetItemCount(*restrictions), count = 0; i<n; ++i)
 		if (!restriction_presented(update,_GetItem(*restrictions,i,m_temp1))) {
 			if (count)
-				strcat			(m_temp2,",");
-			strcat				(m_temp2,m_temp1);
+				strcat_s		(m_temp2, sizeof(m_temp2), ",");
+			strcat_s			(m_temp2, sizeof(m_temp2), m_temp1);
 			++count;
 		}
 	restrictions				= shared_str(m_temp2);

@@ -119,8 +119,8 @@ void	IGame_Level::OnRender		( )
 
 	// Level render, only when no client output required
 	if (!g_dedicated_server)	{
-		Render->Calculate			();
-		Render->Render				();
+		Render->Calculate			();   busy_warn(DEBUG_INFO, 3);
+		Render->Render				();   busy_warn(DEBUG_INFO, 4);
 	} else {
 		Sleep						(psNET_DedicatedSleep);
 	}

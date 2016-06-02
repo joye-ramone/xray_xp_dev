@@ -4,6 +4,11 @@
 #include "gameobject.h"
 #include "ai_debug.h"
 
+extern bool g_debug_dialogs;
+
+
+CPhrase g_dialog_cap;
+
 SPhraseDialogData::SPhraseDialogData ()
 {
 	m_PhraseGraph.clear	();
@@ -20,7 +25,11 @@ CPhraseDialog::CPhraseDialog()
 	m_bFinished			= false;
 	m_pSpeakerFirst		= NULL;
 	m_pSpeakerSecond	= NULL;
-	m_DialogId			= NULL;
+	m_DialogId			= NULL;	
+
+	CPhrase *cap = &g_dialog_cap;
+	cap->SetText("#ERROR: Sorry, I don't know what say here. Please inform about this problem to programmer");
+	cap->SetID("dialog_cap");	
 }
 
 CPhraseDialog::~CPhraseDialog()
@@ -42,6 +51,10 @@ void CPhraseDialog::Init(CPhraseDialogManager* speaker_first,
 	CPhraseGraph::CVertex* phrase_vertex = data()->m_PhraseGraph.vertex("0");
 	THROW(phrase_vertex);
 	m_PhraseVector.push_back(phrase_vertex->data());
+
+	phrase_vertex = data()->m_PhraseGraph.vertex("error_phrase");
+	if (phrase_vertex)
+		data()->m_PhraseGraph.remove_vertex("error_phrase");
 
 	m_bFinished			= false;
 	m_bFirstIsSpeaking	= true;
@@ -91,7 +104,7 @@ bool CPhraseDialog::SayPhrase (DIALOG_SHARED_PTR& phrase_dialog, const shared_st
 	if(!first_is_speaking) std::swap(pSpeakerGO1, pSpeakerGO2);
 
 	CPhraseGraph::CVertex* phrase_vertex = phrase_dialog->data()->m_PhraseGraph.vertex(phrase_dialog->m_SaidPhraseID);
-	THROW(phrase_vertex);
+	R_ASSERT3(phrase_vertex, "cannot get vertex for: ", *phrase_id);
 
 	CPhrase* last_phrase = phrase_vertex->data();
 
@@ -119,6 +132,12 @@ bool CPhraseDialog::SayPhrase (DIALOG_SHARED_PTR& phrase_dialog, const shared_st
 			shared_str next_phrase_id	= next_phrase_vertex->vertex_id();
 			if(next_phrase_vertex->data()->m_PhraseScript.Precondition(pSpeakerGO2, pSpeakerGO1, *phrase_dialog->m_DialogId, phrase_id.c_str(), next_phrase_id.c_str()))
 			{
+				if (g_debug_dialogs)
+				{
+					Msg("* #DEBUG_DIALOGS: dialog '%s', accepted phrase_id '%s':", *phrase_dialog->m_DialogId, next_phrase_id.c_str());
+					Msg("$   %s", DialogDebugContext());
+				}
+
 				phrase_dialog->m_PhraseVector.push_back(next_phrase_vertex->data());
 #ifdef DEBUG
 				if(psAI_Flags.test(aiDialogs)){
@@ -128,9 +147,25 @@ bool CPhraseDialog::SayPhrase (DIALOG_SHARED_PTR& phrase_dialog, const shared_st
 				}
 #endif
 			}
+			else
+				if (g_debug_dialogs)
+				{			
+					Msg("& #DEBUG_DIALOGS: dialog '%s', rejected phrase_id '%s':", *phrase_dialog->m_DialogId, next_phrase_id.c_str());
+					Msg("$   %s", DialogDebugContext());
+				}
 
 		}
+				
+		if (phrase_dialog->m_PhraseVector.empty())
+		{
+			LPCSTR text = xrx_sprintf("#ERROR(CPhraseDialog::SayPhrase): No available phrase to say in '%s', after '%s', context:\n %s ",
+							*phrase_dialog->m_DialogId, *phrase_id, DialogDebugContext());
+			Msg("! %s", text);
+			CPhrase  *cap = phrase_dialog->AddPhrase_script (text, "error_phrase", *phrase_id, 0);
+			phrase_dialog->m_PhraseVector.push_back(cap);			
+		}
 
+		/*
 		R_ASSERT2	(
 			!phrase_dialog->m_PhraseVector.empty(),
 			make_string(
@@ -138,6 +173,7 @@ bool CPhraseDialog::SayPhrase (DIALOG_SHARED_PTR& phrase_dialog, const shared_st
 				*phrase_dialog->m_DialogId
 			)
 		);
+		*/
 
 		//упорядочить списко по убыванию благосклонности
 		std::sort(phrase_dialog->m_PhraseVector.begin(),
@@ -154,14 +190,15 @@ bool CPhraseDialog::SayPhrase (DIALOG_SHARED_PTR& phrase_dialog, const shared_st
 		phrase_dialog->FirstSpeaker()->ReceivePhrase(phrase_dialog);
 
 
-	return phrase_dialog?!phrase_dialog->m_bFinished:true;
+	return phrase_dialog? !phrase_dialog->m_bFinished:true;
 }
 
 LPCSTR CPhraseDialog::GetPhraseText	(const shared_str& phrase_id, bool current_speaking)
 {
-	
 	CPhraseGraph::CVertex* phrase_vertex = data()->m_PhraseGraph.vertex(phrase_id);
 	THROW(phrase_vertex);
+	if (!phrase_vertex)
+		return xrx_sprintf("OOOPS!!! cannot get phrase text for id '%s' ", *phrase_id);
 
 	return phrase_vertex->data()->GetText();
 }

@@ -127,13 +127,31 @@ void CInventoryOwner::TransferInfo(shared_str info_id, bool add_info) const
 	VERIFY( info_id.size() );
 	const CObject* pThisObject = smart_cast<const CObject*>(this); VERIFY(pThisObject);
 
-	//отправляем от нашему PDA пакет информации с номером
+	//отправляем нашему ? пакет информации с номером	
+
+	bool has_info = this->HasInfo(info_id);
+	if (has_info == add_info) return;
+
 	NET_Packet		P;
 	CGameObject::u_EventGen(P, GE_INFO_TRANSFER, pThisObject->ID());
 	P.w_u16			(pThisObject->ID());					//отправитель
 	P.w_stringZ		(info_id);							//сообщение
 	P.w_u8			(add_info?1:0);							//добавить/удалить информацию
 	CGameObject::u_EventSend(P);
+
+	string_path fname;
+	LPCSTR info = *info_id;
+	if (FS.update_path(fname, "$logs$", "info_portion.log") && info)
+	{
+		FILE *fh = fopen(fname, "a");
+		LPCSTR status = add_info ? "enabled" : "disabled";
+		u32 yy, mm, dd, h, m, s, ms;
+		Level().GetGameDateTime(yy, mm, dd, h, m, s, ms);
+		
+		fprintf_s(fh, "[%02d.%02d.%d %02d:%02d:%02d]. for '%s' %s { %s }\n", dd, mm, yy, h, m, s, pThisObject->Name_script(), status, info);
+		fclose(fh);
+	}
+
 
 	CInfoPortion info_portion;
 	info_portion.Load(info_id);

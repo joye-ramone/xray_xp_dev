@@ -2,7 +2,7 @@
 #include "UIDragDropListEx.h"
 #include "UIScrollBar.h"
 #include "../object_broker.h"
-#include "UICellItem.h"
+#include "UICellCustomItems.h"
 #include "../GameObject.h"
 
 CUIDragItem* CUIDragDropListEx::m_drag_item = NULL;
@@ -22,7 +22,7 @@ CUIDragDropListEx::CUIDragDropListEx()
 	m_vScrollBar				= xr_new<CUIScrollBar>();
 	m_vScrollBar->SetAutoDelete	(true);
 	m_selected_item				= NULL;
-	
+	m_bConditionProgBarVisible  = false;
 
 	SetCellSize					(Ivector2().set(50,50));
 	SetCellsCapacity			(Ivector2().set(0,0));
@@ -32,12 +32,16 @@ CUIDragDropListEx::CUIDragDropListEx()
 
 	m_vScrollBar->SetWindowName	("scroll_v");
 	Register					(m_vScrollBar);
-	AddCallback					("scroll_v",	SCROLLBAR_VSCROLL,				CUIWndCallback::void_function				(this, &CUIDragDropListEx::OnScrollV)		);
-	AddCallback					("cell_item",	DRAG_DROP_ITEM_DRAG,			CUIWndCallback::void_function			(this, &CUIDragDropListEx::OnItemStartDragging)	);
-	AddCallback					("cell_item",	DRAG_DROP_ITEM_DROP,			CUIWndCallback::void_function			(this, &CUIDragDropListEx::OnItemDrop)			);
-	AddCallback					("cell_item",	DRAG_DROP_ITEM_SELECTED,		CUIWndCallback::void_function		(this, &CUIDragDropListEx::OnItemSelected)			);
+	AddCallback					("scroll_v",	SCROLLBAR_VSCROLL,				CUIWndCallback::void_function	(this, &CUIDragDropListEx::OnScrollV)		);
+	AddCallback					("cell_item",	DRAG_DROP_ITEM_DRAG,			CUIWndCallback::void_function	(this, &CUIDragDropListEx::OnItemStartDragging)	);
+	AddCallback					("cell_item",	DRAG_DROP_ITEM_DROP,			CUIWndCallback::void_function	(this, &CUIDragDropListEx::OnItemDrop)			);
+	AddCallback					("cell_item",	DRAG_DROP_ITEM_SELECTED,		CUIWndCallback::void_function	(this, &CUIDragDropListEx::OnItemSelected)			);
 	AddCallback					("cell_item",	DRAG_DROP_ITEM_RBUTTON_CLICK,	CUIWndCallback::void_function	(this, &CUIDragDropListEx::OnItemRButtonClick)			);
-	AddCallback					("cell_item",	DRAG_DROP_ITEM_DB_CLICK,		CUIWndCallback::void_function		(this, &CUIDragDropListEx::OnItemDBClick)			);
+	AddCallback					("cell_item",	DRAG_DROP_ITEM_DB_CLICK,		CUIWndCallback::void_function	(this, &CUIDragDropListEx::OnItemDBClick)			);
+	AddCallback					("cell_item",	DRAG_DROP_ITEM_FOCUSED_UPDATE,	CUIWndCallback::void_function	(this, &CUIDragDropListEx::OnItemFocusedUpdate)			);
+	AddCallback					("cell_item",	WINDOW_FOCUS_RECEIVED,			CUIWndCallback::void_function	(this, &CUIDragDropListEx::OnItemFocusReceived)			);
+	AddCallback					("cell_item",	WINDOW_FOCUS_LOST,				CUIWndCallback::void_function	(this, &CUIDragDropListEx::OnItemFocusLost)			);
+
 	SetDrawGrid					(true);
 }
 
@@ -101,8 +105,13 @@ void CUIDragDropListEx::OnScrollV(CUIWindow* w, void* pData)
 void CUIDragDropListEx::CreateDragItem(CUICellItem* itm)
 {
 	R_ASSERT							(!m_drag_item);
+
 	m_drag_item							= itm->CreateDragItem();
 	GetParent()->SetCapture				(m_drag_item, true);
+
+	Fvector2 p;
+	itm->GetAbsolutePos(p);
+	itm->OnMouse(p.x, p.y, EUIMessages::DRAG_DROP_ITEM_DRAG);
 }
 
 void CUIDragDropListEx::DestroyDragItem()
@@ -112,7 +121,7 @@ void CUIDragDropListEx::DestroyDragItem()
 		VERIFY(GetParent()->GetMouseCapturer()==m_drag_item);
 		GetParent()->SetCapture				(NULL, false);
 
-		delete_data							(m_drag_item);		
+		delete_data							(m_drag_item);
 	}
 }
 
@@ -123,14 +132,20 @@ Fvector2 CUIDragDropListEx::GetDragItemPosition()
 
 void CUIDragDropListEx::OnItemStartDragging(CUIWindow* w, void* pData)
 {
-	OnItemSelected						(w, pData);
-	CUICellItem* itm		= smart_cast<CUICellItem*>(w);
+	// Избегаем случая двойного драга. Real Wolf. 12.11.14.
+	if (m_drag_item)
+		return;
 
-	if(itm!=m_selected_item)	return;
-	
-	if(m_f_item_start_drag && m_f_item_start_drag(itm) ) return;
+	OnItemSelected(w, pData);
 
-	CreateDragItem						(itm);
+	auto itm = smart_cast<CUICellItem*>(w);
+	if(itm != m_selected_item)	
+		return;
+
+	if(m_f_item_start_drag && m_f_item_start_drag(itm) ) 
+		return;
+
+	CreateDragItem(itm);
 #ifdef DEBUG_SLOTS
 	Msg("# item drag starting ");
 #endif
@@ -141,6 +156,13 @@ void CUIDragDropListEx::OnItemDrop(CUIWindow* w, void* pData)
 	OnItemSelected						(w, pData);
 	CUICellItem*		itm				= smart_cast<CUICellItem*>(w);
 	VERIFY								(itm->OwnerList() == itm->OwnerList());
+
+	if (itm)
+	{
+		Fvector2 p;
+		itm->GetAbsolutePos(p);
+		itm->OnMouse(p.x, p.y, EUIMessages::DRAG_DROP_ITEM_DROP);
+	}
 
 	if(m_f_item_drop && m_f_item_drop(itm) ){
 		DestroyDragItem						();
@@ -209,6 +231,37 @@ void CUIDragDropListEx::OnItemRButtonClick(CUIWindow* w, void* pData)
 	CUICellItem*		itm				= smart_cast<CUICellItem*>(w);
 	if(m_f_item_rbutton_click) 
 		m_f_item_rbutton_click(itm);
+}
+
+void  CUIDragDropListEx::OnItemFocusedUpdate(CUIWindow* w, void* pData)
+{
+	OnItemSelected						(w, pData);
+	CUICellItem*		itm				= smart_cast<CUICellItem*>(w);
+	if(m_f_item_focused_update)
+	{
+		m_f_item_focused_update			(itm);
+	}
+}
+
+
+void  CUIDragDropListEx::OnItemFocusReceived(CUIWindow* w, void* pData)
+{	
+	OnItemSelected						(w, pData);
+	if(m_f_item_focus_received)
+	{
+		CUICellItem* itm				= smart_cast<CUICellItem*>(w);
+		m_f_item_focus_received			(itm);
+	}
+}
+
+void  CUIDragDropListEx::OnItemFocusLost(CUIWindow* w, void* pData)
+{	
+	OnItemSelected						(w, pData);
+	if(m_f_item_focus_lost)
+	{
+		CUICellItem* itm				= smart_cast<CUICellItem*>(w);
+		m_f_item_focus_lost				(itm);
+	}
 }
 
 void CUIDragDropListEx::GetClientArea(Frect& r)
@@ -358,7 +411,7 @@ void CUIDragDropListEx::SetItem(CUICellItem* itm) //auto
 		return;
 	}
 
-	Ivector2 dest_cell_pos =	m_container->FindFreeCell(itm->GetGridSize());
+	Ivector2 dest_cell_pos =	m_container->FindFreeCell(itm->GetGridSize(true));
 
 	SetItem						(itm,dest_cell_pos);
 }
@@ -369,7 +422,7 @@ void CUIDragDropListEx::SetItem(CUICellItem* itm, Fvector2 abs_pos) // start at 
 	
 	const Ivector2 dest_cell_pos =	m_container->PickCell		(abs_pos);
 
-	if(m_container->ValidCell(dest_cell_pos) && m_container->IsRoomFree(dest_cell_pos,itm->GetGridSize()))
+	if(m_container->ValidCell(dest_cell_pos) && m_container->IsRoomFree(dest_cell_pos,itm->GetGridSize(true)))
 		SetItem						(itm, dest_cell_pos);
 	else
 		SetItem						(itm);
@@ -378,7 +431,7 @@ void CUIDragDropListEx::SetItem(CUICellItem* itm, Fvector2 abs_pos) // start at 
 void CUIDragDropListEx::SetItem(CUICellItem* itm, Ivector2 cell_pos) // start at cell
 {
 	if(m_container->AddSimilar(itm))	return;
-	R_ASSERT						(m_container->IsRoomFree(cell_pos, itm->GetGridSize()));
+	R_ASSERT						(m_container->IsRoomFree(cell_pos, itm->GetGridSize(true)));
 #ifdef DEBUG_SLOTS
 	Msg("# drag-drop list SetItem (0x%p) ", itm);
 #endif
@@ -391,11 +444,11 @@ void CUIDragDropListEx::SetItem(CUICellItem* itm, Ivector2 cell_pos) // start at
 }
 
 bool CUIDragDropListEx::CanSetItem(CUICellItem* itm){
-	if (m_container->HasFreeSpace(itm->GetGridSize()))
+	if (m_container->HasFreeSpace(itm->GetGridSize(true)))
 		return true;
 	Compact();
 
-	return m_container->HasFreeSpace(itm->GetGridSize());
+	return m_container->HasFreeSpace(itm->GetGridSize(true));
 }
 
 CUICellItem* CUIDragDropListEx::RemoveItem(CUICellItem* itm, bool force_root)
@@ -476,15 +529,21 @@ CUICellItem* CUICellContainer::FindSimilar(CUICellItem* itm)
 
 void CUICellContainer::PlaceItemAtPos(CUICellItem* itm, Ivector2& cell_pos)
 {
-	Ivector2 cs				=	itm->GetGridSize();
+	auto cs	= itm->GetGridSize(true);
+
 	if(m_pParentDragDropList->GetVerticalPlacement())
 		std::swap(cs.x,cs.y); 
 
-	for(int x=0; x<cs.x; ++x)
-		for(int y=0; y<cs.y; ++y){
-			CUICell& C		= GetCellAt(Ivector2().set(x,y).add(cell_pos));
-			C.SetItem		(itm,(x==0&&y==0));
+	for (int x = 0; x < cs.x; ++x)
+	{
+		for (int y = 0; y < cs.y; ++y)
+		{
+			CUICell& C = GetCellAt(Ivector2().set(x, y).add(cell_pos));
+			C.SetItem(itm, (x == 0 && y == 0));
 		}
+	}
+
+	cs		= itm->GetGridSize(false);
 
 	itm->SetWndPos			( Fvector2().set( (m_cellSize.x*cell_pos.x), (m_cellSize.y*cell_pos.y))	);
 	itm->SetWndSize			( Fvector2().set( (m_cellSize.x*cs.x),		(m_cellSize.y*cs.y)		 )	);
@@ -521,7 +580,7 @@ CUICellItem* CUICellContainer::RemoveItem(CUICellItem* itm, bool force_root)
 #endif
 
 	Ivector2 pos			= GetItemPos(itm);
-	Ivector2 cs				= itm->GetGridSize();
+	Ivector2 cs				= itm->GetGridSize(true);
 
 	if(m_pParentDragDropList->GetVerticalPlacement())
 		std::swap(cs.x,cs.y); 

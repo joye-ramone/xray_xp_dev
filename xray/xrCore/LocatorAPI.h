@@ -13,6 +13,17 @@
 
 #include "LocatorAPI_defs.h"
 
+typedef struct _FILE_ACCESS_STAT
+{
+	__time64_t			first_open;
+	__time64_t			first_read;
+	__time64_t			full_read;
+	u64					total_read;
+	u32					open_count;
+	u32					extra[5];
+} FILE_ACCESS_STAT, *PFILE_ACCESS_STAT;
+
+
 class XRCORE_API CStreamReader;
 
 class XRCORE_API CLocatorAPI  
@@ -23,11 +34,13 @@ public:
 	{
 		LPCSTR					name;			// low-case name
 		u32						vfs;			// 0xffffffff - standart file
-		u32						crc;			// contents CRC
-		u32						ptr;			// pointer inside vfs
-		u32						size_real;		// 
+		file_ptr				ptr;			// pointer inside vfs
+		u32						crc;			// contents CRC		
+		file_size				size_real;		// 64-bit size only for big archives
 		u32						size_compressed;// if (size_real==size_compressed) - uncompressed
-        u32						modif;			// for editor
+		u32						flags;			// file flags and position desc 
+		u32						chunk;			// chunk in archive for new format
+        __time64_t 				modif;			// for editor
 	};
 private:
 	struct	file_pred: public 	std::binary_function<file&, file&, bool> 
@@ -39,7 +52,7 @@ private:
 	{
 		shared_str				path;
 		void					*hSrcFile, *hSrcMap;
-		u32						size;
+		u64						src_size;
 	};
 	DEFINE_MAP_PRED				(LPCSTR,FS_Path*,PathMap,PathPairIt,pred_str);
 	PathMap						pathes;
@@ -61,13 +74,21 @@ private:
 	xrCriticalSection			m_auth_lock		;
 	u64							m_auth_code		;
 
-	void						Register		(LPCSTR name, u32 vfs, u32 crc, u32 ptr, u32 size_real, u32 size_compressed, u32 modif);
+	void						Register		(LPCSTR name, u32 vfs, u32 crc, file_ptr ptr, file_size size_real, u32 size_compressed, __time64_t modif);
+	void						Register		(file  &desc);  // alpet: для прямой инициализации  
 	void						ProcessArchive	(LPCSTR path, LPCSTR base_path=NULL);
 	void						ProcessOne		(LPCSTR path, void* F);
 	bool						Recurse			(LPCSTR path);	
 //	bool						CheckExistance	(LPCSTR path);
 
 	files_it					file_find_it	(LPCSTR n);
+
+	typedef		xr_map<shared_str, FILE_ACCESS_STAT> FILE_STATS_MAP;
+	FILE_STATS_MAP				m_access_stat;
+	typedef		xr_vector<IReader*> FILE_CHUNK_LIST;  // for super-cached files
+	typedef		xr_map<shared_str,  FILE_CHUNK_LIST> FILE_CHUNK_MAP;
+	FILE_CHUNK_MAP				m_chunk_map;
+	
 public:
 	enum{
 		flNeedRescan			= (1<<0),
@@ -85,6 +106,10 @@ public:
 	u32							dwAllocGranularity;
 	u32							dwOpenCounter;
 
+	FILE_ACCESS_STAT*			gather_file_stat	(LPCSTR name, char op, file_ptr ptr, u32 cb); // alpet: для сбора статистики доступа к файлам
+	void						gather_file_stat	(FILE_ACCESS_STAT *s, const file *desc, char op, file_ptr ptr, u32 cb);
+	void						gather_file_stat	(IReader	   *R, char op, file_ptr ptr, u32 cb);
+	void						gather_file_stat	(CStreamReader *R, char op, file_ptr ptr, u32 cb);
 private:
 			void				check_cached_files	(LPSTR fname, const file &desc, LPCSTR &source_name);
 
@@ -95,6 +120,7 @@ private:
 			
 			void				file_from_archive	(IReader *&R, LPCSTR fname, const file &desc);
 			void				file_from_archive	(CStreamReader *&R, LPCSTR fname, const file &desc);
+			IReader*			get_file_chunk		(LPCSTR fname, const file &desc);
 
 			void				copy_file_to_build	(IWriter *W, IReader *r);
 			void				copy_file_to_build	(IWriter *W, CStreamReader *r);
@@ -105,7 +131,7 @@ private:
 	
 	template <typename T>
 	IC		T					*r_open_impl		(LPCSTR path, LPCSTR _fname);
-			void				ProcessExternalArch	();
+			void				ProcessExternalArch	();			
 public:
 								CLocatorAPI		();
 								~CLocatorAPI	();
@@ -140,10 +166,10 @@ public:
     void 						file_delete			(LPCSTR full_path){file_delete(0,full_path);}
 	void 						file_copy			(LPCSTR src, LPCSTR dest);
 	void 						file_rename			(LPCSTR src, LPCSTR dest,bool bOwerwrite=true);
-    int							file_length			(LPCSTR src);
+    file_size					file_length			(LPCSTR src);
 
-    u32  						get_file_age		(LPCSTR nm);
-    void 						set_file_age		(LPCSTR nm, u32 age);
+    __time64_t   				get_file_age		(LPCSTR nm);
+    void 						set_file_age		(LPCSTR nm, __time64_t age);
 
 	xr_vector<LPSTR>*			file_list_open		(LPCSTR initial, LPCSTR folder,	u32 flags=FS_ListFiles);
 	xr_vector<LPSTR>*			file_list_open		(LPCSTR path,					u32 flags=FS_ListFiles);
@@ -171,6 +197,29 @@ public:
 
 extern XRCORE_API	CLocatorAPI*					xr_FS;
 #define FS (*xr_FS)
+
+class CArchiveChunkDesc:
+	public CResourceDesc
+{
+public:
+	CArchiveChunkDesc			(const void *owner);
+	int				vfs;            // archive ref
+	file_ptr		pos;
+};
+
+
+class CFileResourceDesc:
+	public CResourceDesc
+{
+public:
+	CFileResourceDesc			(const void *owner);
+	virtual				~CFileResourceDesc();
+	CLocatorAPI::file*   f_desc;
+	FILE_ACCESS_STAT*	 f_stat;
+	u32					 self_desc; // флажки приведения типов 
+};
+
+
 
 #endif // LocatorAPIH
 

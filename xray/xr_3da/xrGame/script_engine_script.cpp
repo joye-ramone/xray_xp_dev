@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: script_engine_script.cpp
 //	Created 	: 25.12.2002
-//  Modified 	: 13.05.2004
+//  Modified 	: 17.02.2016
 //	Author		: Dmitriy Iassenev
 //	Description : ALife Simulator script engine export
 ////////////////////////////////////////////////////////////////////////////
@@ -14,6 +14,10 @@
 #include "script_additional_libs.h"
 #include "xr_level_controller.h"
 #include "../x_ray.h"
+#include "../lua_tools.h"
+
+
+ENGINE_API float g_fTimeInteractive;
 
 using namespace luabind;
 
@@ -91,9 +95,15 @@ LPCSTR user_name()
 	return			(Core.UserName);
 }
 
-void prefetch_module(LPCSTR file_name)
+void prefetch_module(lua_State *L,  LPCSTR file_name)
 {
-	ai().script_engine().process_file(file_name);
+	if (!strstr(file_name, "\\"))
+		ai().script_engine().process_file(L, file_name);
+	else
+	{
+		LPCSTR traceback = GetLuaTraceback(L, 0);
+		Msg("!#ERROR: invalid module name %s, called from:\n %s", file_name, (traceback ? traceback : "(null)"));		
+	}
 }
 
 struct profile_timer_script {
@@ -171,11 +181,25 @@ IC	profile_timer_script	operator+	(const profile_timer_script &portion0, const p
 	return					(result);
 }
 
+void reset_interacive(float t)
+{
+	g_fTimeInteractive = t;
+}
+
+
 //IC	std::ostream& operator<<(std::ostream &stream, profile_timer_script &timer)
 //{
 //	stream					<< timer.time();
 //	return					(stream);
 //}
+
+void FatalError(LPCSTR msg) 
+{
+	Device.Pause(TRUE, FALSE, FALSE, "FatalError");
+	Device.Destroy();
+	Debug.fatal(DEBUG_INFO, "SCRIPT ERROR: %s", msg);		
+	TerminateProcess (GetCurrentProcess(), UINT(-5));
+}
 
 #ifdef XRGAME_EXPORTS
 ICF	u32	script_time_global	()	{ return Device.dwTimeGlobal; }
@@ -209,9 +233,10 @@ void CScriptEngine::script_register(lua_State *L)
 	];
 
 	function	(L,	"log",							LuaLog);
+	function	(L,	"fatal_error",					FatalError);
 	function	(L,	"error_log",					ErrorLog);
 	function	(L,	"flush",						FlushLogs);
-	function	(L,	"prefetch",						prefetch_module);
+	function	(L,	"prefetch",						prefetch_module, raw(_1));
 	function	(L,	"verify_if_thread_is_running",	verify_if_thread_is_running);
 	function	(L,	"editor",						editor);
 	function	(L,	"bit_and",						bit_and);
@@ -223,5 +248,6 @@ void CScriptEngine::script_register(lua_State *L)
 	function	(L, "bind_to_dik",					get_action_dik);
 #ifdef XRGAME_EXPORTS
 	function	(L,	"device",						get_device);
+	function	(L, "reset_interactive",			reset_interacive);
 #endif
 }

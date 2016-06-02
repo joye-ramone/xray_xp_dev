@@ -65,6 +65,7 @@ CArtefact::CArtefact(void)
 	m_sParticlesName			= NULL;
 	m_pTrailLight				= NULL;
 	m_activationObj				= NULL;
+	m_props_enabled				= true;
 	m_class_name				= get_class_name<CArtefact>(this);
 	SetSlot (ARTEFACT_SLOT);
 }
@@ -90,13 +91,17 @@ void CArtefact::Load(LPCSTR section)
 
 
 	{
-		m_fHealthRestoreSpeed = pSettings->r_float		(section,"health_restore_speed"		);
-		m_fRadiationRestoreSpeed = pSettings->r_float	(section,"radiation_restore_speed"	);
-		m_fSatietyRestoreSpeed = pSettings->r_float		(section,"satiety_restore_speed"	);
-		m_fPowerRestoreSpeed = pSettings->r_float		(section,"power_restore_speed"		);
-		m_fBleedingRestoreSpeed = pSettings->r_float	(section,"bleeding_restore_speed"	);
-		if(pSettings->section_exist(/**cNameSect(), */pSettings->r_string(section,"hit_absorbation_sect")))
-			m_ArtefactHitImmunities.LoadImmunities(pSettings->r_string(section,"hit_absorbation_sect"),pSettings);
+		m_additional_weight		   = READ_IF_EXISTS(pSettings, r_float, section, "additional_inventory_weight",  0);
+		m_additional_weight2	   = READ_IF_EXISTS(pSettings, r_float, section, "additional_inventory_weight2", 0);
+		m_fPsyHealthRestoreSpeed   = READ_IF_EXISTS(pSettings, r_float, section, "psy_health_restore_speed", 0);
+		m_fHealthRestoreSpeed	   =				pSettings->r_float (section, "health_restore_speed");		
+		m_fRadiationRestoreSpeed   =				pSettings->r_float (section, "radiation_restore_speed"	);
+		m_fSatietyRestoreSpeed     =				pSettings->r_float (section, "satiety_restore_speed"	);
+		m_fPowerRestoreSpeed       =				pSettings->r_float (section, "power_restore_speed"		);
+		m_fBleedingRestoreSpeed    =				pSettings->r_float (section, "bleeding_restore_speed"	);
+		shared_str abs_section	   =				pSettings->r_string(section, "hit_absorbation_sect");
+		if(pSettings->section_exist(	abs_section))
+			m_ArtefactHitImmunities.LoadImmunities(*abs_section,pSettings);
 	}
 	m_bCanSpawnZone = !!pSettings->line_exist("artefact_spawn_zones", section);
 
@@ -596,7 +601,7 @@ void SArtefactActivation::SpawnAnomaly()
 		AlifeZone->assign_shapes	(&_shape,1);
 		AlifeZone->m_maxPower		= zone_power;
 		AlifeZone->m_owner_id		= m_owner_id;
-		AlifeZone->m_space_restrictor_type	= RestrictionSpace::eRestrictorTypeNone;
+		AlifeZone->m_space_restrictor_type	= RestrictionSpace::eDefaultRestrictorTypeNone;
 
 		NET_Packet					P;
 		object->Spawn_Write			(P,TRUE);

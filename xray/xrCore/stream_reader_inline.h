@@ -1,6 +1,8 @@
 #ifndef STREAM_READER_INLINE_H
 #define STREAM_READER_INLINE_H
 
+extern size_t mapping_mem_usage;
+
 IC	CStreamReader::CStreamReader						()
 {
 }
@@ -28,32 +30,33 @@ IC	const HANDLE &CStreamReader::file_mapping_handle	() const
 IC	void CStreamReader::unmap							()
 {
 	UnmapViewOfFile	(m_current_map_view_of_file);
+	mapping_mem_usage -= m_current_window_size;
 }
 
-IC	void CStreamReader::remap							(const u32 &new_offset)
+IC	void CStreamReader::remap							(const u64 &new_offset)
 {
 	unmap			();
 	map				(new_offset);
 }
 
-IC	u32 CStreamReader::elapsed							()	const
+IC	u64 CStreamReader::elapsed64						()	const
 {
-	u32				offset_from_file_start = tell();
+	u64				offset_from_file_start = tell();
 	VERIFY			(m_file_size >= offset_from_file_start);
 	return			(m_file_size - offset_from_file_start);
 }
 
-IC	const u32 &CStreamReader::length					() const
+IC	const u64 &CStreamReader::length64					() const
 {
 	return			(m_file_size);
 }
 
-IC	void CStreamReader::seek							(const int &offset)
+IC	void CStreamReader::seek64							(const s64 &offset)
 {
-	advance			(offset - tell());
+	advance64		(offset - tell());
 }
 
-IC	u32 CStreamReader::tell								() const
+IC	u64 CStreamReader::tell64								() const
 {
 	VERIFY			(m_current_pointer >= m_start_pointer);
 	VERIFY			(u32(m_current_pointer - m_start_pointer) <= m_current_window_size);

@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: ai_stalker_impl.h
 //	Created 	: 25.02.2003
-//  Modified 	: 25.02.2003
+//  Modified 	: 07.12.2014
 //	Author		: Dmitriy Iassenev
 //	Description : AI Behaviour for monster "Stalker" (inline functions implementation)
 ////////////////////////////////////////////////////////////////////////////
@@ -16,8 +16,23 @@
 #include "../../effectorshot.h"
 
 IC	CAgentManager &CAI_Stalker::agent_manager	() const
-{
-	return			(Level().seniority_holder().team(g_Team()).squad(g_Squad()).group(g_Group()).agent_manager());
+{	
+	__try
+	{
+		auto &holder = Level().seniority_holder();
+		auto *team = &holder.team(g_Team());
+		R_ASSERT2(team, make_string("retuned NULL team for %d", g_Team()));
+		auto *squad = &team->squad(g_Squad());
+		R_ASSERT2(squad, make_string("retuned NULL squad for %d", g_Squad()));
+		auto *group = &squad->group(g_Group());
+		R_ASSERT2(group, make_string("retuned NULL group for %d", g_Group()));
+		return	group->agent_manager();
+	}
+	__except (SIMPLE_FILTER)
+	{
+		Msg("#EXCEPTION in CAI_Stalker::agent_manager	()");
+	}
+	NODEFAULT;
 }
 
 IC	Fvector CAI_Stalker::weapon_shot_effector_direction	(const Fvector &current) const

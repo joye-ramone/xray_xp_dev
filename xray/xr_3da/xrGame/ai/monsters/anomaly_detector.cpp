@@ -44,7 +44,8 @@ void CAnomalyDetector::update_schedule()
 	// add new restrictions
 	for (ANOMALY_INFO_VEC_IT it = m_storage.begin(); it != m_storage.end(); it++) {
 		if (it->time_registered == 0) {
-			temp_in_restrictors.push_back(it->object->ID());
+			u16 id = it->object->ID();
+			temp_in_restrictors.push_back(id);
 			it->time_registered = time();
 		}
 	}
@@ -55,7 +56,8 @@ void CAnomalyDetector::update_schedule()
 	temp_in_restrictors.clear();
 	for (ANOMALY_INFO_VEC_IT it = m_storage.begin(); it != m_storage.end(); it++) {
 		if (it->time_registered + m_time_to_rememeber < time()) {
-			temp_in_restrictors.push_back(it->object->ID());
+			u16 id = it->object->ID();
+			temp_in_restrictors.push_back(id);
 		}
 	}
 

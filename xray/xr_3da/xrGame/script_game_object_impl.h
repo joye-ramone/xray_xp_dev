@@ -14,6 +14,8 @@
 
 IC	CGameObject &CScriptGameObject::object	() const
 {
+	R_ASSERT(!IsBadReadPtr(m_game_object, 40));
+
 	if (m_game_object && m_game_object->lua_game_object() == this)
 		return	(*m_game_object);
 

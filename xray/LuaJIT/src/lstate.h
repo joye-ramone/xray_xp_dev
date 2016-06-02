@@ -133,7 +133,7 @@ struct lua_State {
   GCObject *openupval;  /* list of open upvalues in this stack */
   GCObject *gclist;
   struct lua_longjmp *errorJmp;  /* current error recover point */
-  ptrdiff_t errfunc;  /* current error handling function (stack index) */
+  ptrdiff_t errfunc;  /* current error handling function (stack index) */  
 };
 
 

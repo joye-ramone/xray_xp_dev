@@ -15,7 +15,9 @@
 #include "entity_alive.h"
 #include "EntityCondition.h"
 #include "InventoryOwner.h"
-
+#include "pch_script.h"
+#include "script_engine.h"
+#include "../lua_tools.h"
 #include "xrServer_Objects_ALife_Items.h"
 
 CEatableItem::CEatableItem()
@@ -53,6 +55,7 @@ void CEatableItem::Load(LPCSTR section)
 	
 	m_iStartPortionsNum			= pSettings->r_s32	(section, "eat_portions_num");
 	m_fMaxPowerUpInfluence		= READ_IF_EXISTS	(pSettings,r_float,section,"eat_max_power",0.0f);
+
 	VERIFY						(m_iPortionsNum<10000);
 }
 
@@ -109,11 +112,11 @@ void CEatableItem::UseBy (CEntityAlive* entity_alive)
 	R_ASSERT		(IO);
 	R_ASSERT		(m_pCurrentInventory==IO->m_inventory);
 	R_ASSERT		(object().H_Parent()->ID()==entity_alive->ID());
-	entity_alive->conditions().ChangeHealth		(m_fHealthInfluence);
-	entity_alive->conditions().ChangePower		(m_fPowerInfluence);
-	entity_alive->conditions().ChangeSatiety	(m_fSatietyInfluence);
-	entity_alive->conditions().ChangeRadiation	(m_fRadiationInfluence);
-	entity_alive->conditions().ChangeBleeding	(m_fWoundsHealPerc);
+	entity_alive->conditions().ChangeHealth		(m_fHealthInfluence		* GetCondition());
+	entity_alive->conditions().ChangePower		(m_fPowerInfluence		* GetCondition());
+	entity_alive->conditions().ChangeSatiety		(m_fSatietyInfluence    * GetCondition());
+	entity_alive->conditions().ChangeRadiation	(m_fRadiationInfluence  * GetCondition());
+	entity_alive->conditions().ChangeBleeding	(m_fWoundsHealPerc		* GetCondition());
 	
 	entity_alive->conditions().SetMaxPower( entity_alive->conditions().GetMaxPower()+m_fMaxPowerUpInfluence );
 	
@@ -155,6 +158,37 @@ void CEatableItem::UseBy (CEntityAlive* entity_alive)
 		//}
 		//std::sort(place.begin(),place.end(),InventoryUtilities::GreaterRoomInRuck);
 	}
+
+	/*
+	if (m_ScriptCallback.size() > 0)
+	{
+		lua_State *L = AuxLua();
+		int top = lua_gettop(L);
+
+		R_ASSERT2(L, "AuxLua returned NULL");
+		int err_idx = 0;
+		lua_getglobal(L, "AtPanicHandler");
+		if (lua_iscfunction(L, -1))
+			err_idx = lua_gettop(L);
+		else
+			lua_pop(L, 1);
+		string512 code;
+		sprintf_s(code, 512, "return %s(%d, %d) or 0", *m_ScriptCallback, object().ID(), entity_alive->ID());
+		int err = luaL_loadstring(L, code);
+		if (0 == err)
+		{
+			err = lua_pcall(L, 0, 1, err_idx);
+			if (0 == err && lua_isnumber(L, -1))
+				m_iPortionsNum = lua_tointeger(L, -1);
+			else
+				Msg("!#ERROR: lua_pcall for code '%s' returned error = %d for %s eat_callback ", code, err, object().Name_script());
+		}
+		else
+			Msg("!#ERROR: lua_loadstring('%s') returned error = %d for %s eat_callback ", code, err, object().Name_script());
+
+		lua_settop(L, top);
+	}
+	*/
 }
 
 void CEatableItem::net_Export(NET_Packet& P)

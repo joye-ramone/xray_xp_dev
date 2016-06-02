@@ -57,10 +57,17 @@ void CStateManagerBoar::execute()
 		}
 	} else state_id = eStateControlled;
 	
-	select_state(state_id); 
+	__try {
 
-	// выполнить текущее состояние
-	get_state_current()->execute();
+		select_state(state_id);
 
-	prev_substate = current_substate;
+		// выполнить текущее состояние
+		get_state_current()->execute();
+
+		prev_substate = current_substate;
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER) {
+		Msg("! #EXCEPTION: in CStateManagerBoar::execute(), name = %s ", object->Name_script());
+		object->SetfHealth(-1.f);
+	}
 }

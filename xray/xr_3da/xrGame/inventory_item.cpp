@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: inventory_item.cpp
 //	Created 	: 24.03.2003
-//  Modified 	: 29.01.2004
+//  Modified 	: 17.02.2016
 //	Author		: Victor Reutsky, Yuri Dobronravin
 //	Description : Inventory item
 ////////////////////////////////////////////////////////////////////////////
@@ -18,6 +18,7 @@
 #include "game_cl_base.h"
 #include "Actor.h"
 #include "string_table.h"
+#include "script_engine.h"
 #include "../skeletoncustom.h"
 #include "ai_object_location.h"
 #include "object_broker.h"
@@ -95,6 +96,8 @@ CInventoryItem::CInventoryItem()
 	m_Description		= "";
 	m_cell_item			= NULL;
 	need_slot			= false;
+	m_dropTarget.set	(0, 0, 0);
+	Memory.mem_fill		(&m_slots_visibility, 1, sizeof(m_slots_visibility));
 }
 
 CInventoryItem::~CInventoryItem() 
@@ -130,10 +133,18 @@ CInventoryItem::~CInventoryItem()
 	}
 }
 
+IC u16 CInventoryItem::object_id() const
+{
+	return object().ID();
+}
+
+
 #include "inventory_space.h"
 void CInventoryItem::Load(LPCSTR section) 
 {
 	CHitImmunity::LoadImmunities	(pSettings->r_string(section,"immunities_sect"),pSettings);
+	m_icon_params.Load(section);
+
 
 	ISpatial*			self				=	smart_cast<ISpatial*> (this);
 	if (self)			self->spatial.type	|=	STYPE_VISIBLEFORAI;	
@@ -163,6 +174,8 @@ void CInventoryItem::Load(LPCSTR section)
 			if (slot < SLOTS_TOTAL && !IsPlaceable(slot, slot))
 				m_slots.push_back(slot);			
 		}
+		if (m_slots.size() && NO_ACTIVE_SLOT == selected_slot)
+			selected_slot = 0;			
 	}	
 	
 	// alpet: разрешение некоторым объектам попадать в слоты быстрого доступа независимо от настроек
@@ -197,7 +210,6 @@ void CInventoryItem::Load(LPCSTR section)
 
 	m_flags.set					(FAllowSprint,READ_IF_EXISTS	(pSettings, r_bool, section,"sprint_allowed",			TRUE));
 	m_fControlInertionFactor	= READ_IF_EXISTS(pSettings, r_float,section,"control_inertion_factor",	1.0f);
-	m_icon_name					= READ_IF_EXISTS(pSettings, r_string,section,"icon_name",				NULL);
 
 }
 
@@ -206,6 +218,13 @@ void  CInventoryItem::ChangeCondition(float fDeltaCondition)
 {
 	m_fCondition += fDeltaCondition;
 	clamp(m_fCondition, 0.f, 1.f);
+	auto se_obj = object().alife_object();
+	if (se_obj)
+	{
+		CSE_ALifeInventoryItem *itm = smart_cast<CSE_ALifeInventoryItem*>(se_obj);
+		if (itm)
+			itm->m_fCondition = m_fCondition;
+	}
 }
 
 #ifdef INV_NEW_SLOTS_SYSTEM
@@ -246,7 +265,7 @@ u32		CInventoryItem::GetSlot() const
 		{
 			Msg("!#WARN: no active slot for object %s  class %s",
 				object().Name_script(), typeid((*this)).name());
-			R_ASSERT(0, "slot not configured for inventory item");
+			R_ASSERT2(0, "slot not configured for inventory item");
 		}
 		return NO_ACTIVE_SLOT;
 	}
@@ -264,6 +283,16 @@ bool	CInventoryItem::IsPlaceable(SLOT_ID min_slot, SLOT_ID max_slot)
 	}
 	return false;
 }
+
+void    CInventoryItem::SetVisibleInSlot(SLOT_ID slot, bool vis )
+{ 
+	char v = vis ? 1 : 0;
+	if (slot > SLOTS_TOTAL) 
+		Memory.mem_fill(m_slots_visibility, v, sizeof(m_slots_visibility));
+	else
+		m_slots_visibility[slot] = v; 
+}
+
 #endif
 
 
@@ -288,6 +317,34 @@ const char* CInventoryItem::NameShort()
 	return *m_nameShort;
 }
 
+void str_replace(std::string &s, LPCSTR what, LPCSTR alt)
+{
+	int it = 0;
+	while ( (it = s.find(what)) != std::string::npos )	
+		s.replace(it, xr_strlen(what), alt);	
+}
+
+shared_str CInventoryItem::ItemDescription() const
+{
+	std::string result = *m_Description;
+	int it = result.find("%script_desc%");
+	if (it != std::string::npos)
+	{
+		string16 tmp;
+		LPCSTR rep = ai().script_engine().try_call("get_item_desc", itoa(object().ID(), tmp, 10));
+		str_replace(result, "%script_desc%", rep);		
+	}
+
+	str_replace(result, "$cl_aqua",  "%c[255,1,255,255]");
+	str_replace(result, "$cl_green", "%c[255,1,255,1]");
+	str_replace(result, "$cl_red",	 "%c[255,255,1,1]");
+	str_replace(result, "$cl_blue",	 "%c[255,1,1,255]");
+
+	return shared_str(result.c_str());
+}
+
+
+
 bool CInventoryItem::Useful() const
 {
 	return CanTake();
@@ -304,12 +361,18 @@ void CInventoryItem::Deactivate()
 
 void CInventoryItem::OnH_B_Independent(bool just_before_destroy)
 {
+	if (m_dropTarget.x && m_dropTarget.z)
+		object().ChangePosition (m_dropTarget);
+	m_dropTarget.set(0, 0, 0);
 	UpdateXForm();
-	m_eItemPlace = eItemPlaceUndefined ;
+	m_eItemPlace = eItemPlaceUndefined ;		
 }
 
 void CInventoryItem::OnH_A_Independent()
 {
+	if (m_dropTarget.x && m_dropTarget.z)
+		object().ChangePosition (m_dropTarget);
+	m_dropTarget.set(0, 0, 0);
 	m_dwItemIndependencyTime	= Level().timeServer();
 	m_eItemPlace				= eItemPlaceUndefined;	
 	inherited::OnH_A_Independent();
@@ -410,11 +473,11 @@ bool CInventoryItem::Detach(const char* item_section_name, bool b_spawn_item)
 		l_tpALifeDynamicObject->m_tNodeID = (g_dedicated_server)?u32(-1):object().ai_location().level_vertex_id();
 			
 		// Fill
-		D->s_name			=	item_section_name;
-		D->set_name_replace	("");
+		D->s_name			=	item_section_name;		
 		D->s_gameid			=	u8(GameID());
 		D->s_RP				=	0xff;
 		D->ID				=	0xffff;
+		D->set_name_replace	("#temp");
 		if (GameID() == GAME_SINGLE)
 		{
 			D->ID_Parent		=	u16(object().H_Parent()->ID());
@@ -1212,20 +1275,26 @@ float CInventoryItem::GetKillMsgHeight	() const
 
 int  CInventoryItem::GetGridWidth			() const 
 {
-	return pSettings->r_u32(m_object->cNameSect(), "inv_grid_width");
+	return (int)m_icon_params.grid_width;
 }
 
 int  CInventoryItem::GetGridHeight			() const 
 {
-	return pSettings->r_u32(m_object->cNameSect(), "inv_grid_height");
+	return (int)m_icon_params.grid_height;
 }
+
+int	 CInventoryItem::GetIconIndex() const
+{
+	return m_icon_params.icon_group;
+}
+
 int  CInventoryItem::GetXPos				() const 
 {
-	return pSettings->r_u32(m_object->cNameSect(), "inv_grid_x");
+	return (int)m_icon_params.grid_x;
 }
 int  CInventoryItem::GetYPos				() const 
 {
-	return pSettings->r_u32(m_object->cNameSect(), "inv_grid_y");
+	return (int)m_icon_params.grid_y;
 }
 
 bool CInventoryItem::IsNecessaryItem(CInventoryItem* item)		

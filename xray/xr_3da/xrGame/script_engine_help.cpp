@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: script_engine_help.cpp
 //	Created 	: 01.04.2004
-//  Modified 	: 23.10.2014
+//  Modified 	: 15.11.2014
 //	Author		: Dmitriy Iassenev
 //	Description : Script Engine help
 ////////////////////////////////////////////////////////////////////////////
@@ -11,6 +11,7 @@
 
 
 static IWriter *dumper = NULL;
+bool target_file = true;
 string1024 line_buf;
 
 // дефайн LUABIND_NO_ERROR_CHECKING3 надо включать в config.hpp рядом с LUABIND_NO_ERROR_CHECKING2 
@@ -26,6 +27,7 @@ string1024 line_buf;
 // redefinition for fast save
 void OpenDumper()
 {
+	target_file = true;
 	string_path  dump_name;
 	strcpy_s(dump_name, 260, "lua_help.script");
 
@@ -35,11 +37,20 @@ void OpenDumper()
 	dumper = FS.w_open(dump_name);
 }
 
-void CloseDumper()
+IWriter *OpenMemoryDumper()
+{
+	target_file = false;
+	dumper = xr_new<CMemoryWriter>();
+	return dumper;
+}
+
+
+void CloseDumper(IWriter* &dumper)
 {
 	if (dumper)
 	{
-		FS.w_close(dumper);
+		if (target_file)
+			FS.w_close(dumper);
 		xr_delete(dumper);
 		dumper = NULL;
 	}
@@ -47,6 +58,9 @@ void CloseDumper()
 
 void FastMsg (LPCSTR format, ...)
 {	
+	if (!dumper)
+		Debug.fatal(DEBUG_INFO, "gloval variable 'dumper' == NULL, while calling FastMsg function");
+
 	static u32 saldo = 0;
 	va_list mark;	
 	va_start(mark, format);
@@ -359,7 +373,7 @@ void print_free_functions				(lua_State *L, const luabind::object &object, LPCST
 			if (lua_type(L, -1) == LUA_TTABLE && key_type == LUA_TSTRING && lua_objlen(L, -2) > 0) {				
 				last_key = lua_tostring(L, -2);
 				LPCSTR	S = last_key.c_str();
-				MsgCB("~#CONTEXT: last_key = %s", S);
+				MsgCB("$#CONTEXT: last_key = %s", S);
 				string_path script_name;
 				sprintf_s(script_name, sizeof(script_name) - 1, "%s.script", S);
 				if (nesting_path.size() == 0 && // скан глобального пространства имен
@@ -431,7 +445,6 @@ void print_help							(lua_State *L)
 	OpenDumper();
 	BOOL paused = Device.Paused();
 	Device.Pause(TRUE, TRUE, FALSE, "lua_help");
-	// L = lua_newthread (L);
 	int top = lua_gettop(L);
 	SleepEx(10, FALSE);
 
@@ -465,7 +478,7 @@ void print_help							(lua_State *L)
 	{
 #endif
 		dumper->flush();		
-		CloseDumper();
+		CloseDumper(dumper);
 		Device.Pause(paused, TRUE, FALSE, "lua_help");
 		lua_settop(L, top);
 	}	

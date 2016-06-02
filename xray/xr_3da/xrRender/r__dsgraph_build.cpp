@@ -11,6 +11,7 @@
 
 using	namespace R_dsgraph;
 
+// #pragma optimize("gyts", off)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Scene graph actual insertion and sorting ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -51,7 +52,7 @@ void R_dsgraph_structure::r_dsgraph_insert_dynamic	(IRender_Visual *pVisual, Fve
 	// Distortive geometry should be marked and R2 special-cases it
 	// a) Allow to optimize RT order
 	// b) Should be rendered to special distort buffer in another pass
-	VERIFY						(pVisual->shader._get());
+	VERIFY						(pVisual->shader_ref._get());
 	ShaderElement*		sh_d	= &*pVisual->shader_ref->E[4];
 	if (RImplementation.o.distortion && sh_d && sh_d->flags.bDistort && pmask[sh_d->flags.iPriority/2]) {
 		mapSorted_Node* N		= mapDistort.insertInAnyWay	(distSQ);
@@ -74,29 +75,12 @@ void R_dsgraph_structure::r_dsgraph_insert_dynamic	(IRender_Visual *pVisual, Fve
 	// HUD rendering
 	if (RI.val_bHUD)			{
 		if (sh->flags.bStrictB2F)	{
-#if RENDER==R_R1
 			mapSorted_Node* N		= mapSorted.insertInAnyWay	(distSQ);
 			N->val.ssa				= SSA;
 			N->val.pObject			= RI.val_pObject;
 			N->val.pVisual			= pVisual;
 			N->val.Matrix			= *RI.val_pTransform;
 			N->val.se				= sh;
-#else
-			if (sh->flags.bEmissive) {
-				mapSorted_Node* N		= mapHUDEmissive.insertInAnyWay	(distSQ);
-				N->val.ssa				= SSA;
-				N->val.pObject			= RI.val_pObject;
-				N->val.pVisual			= pVisual;
-				N->val.Matrix			= *RI.val_pTransform;
-				N->val.se				= &*pVisual->shader_ref->E[4];		// 4=L_special
-			}
-			mapSorted_Node* N		= mapHUDSorted.insertInAnyWay	(distSQ);
-			N->val.ssa				= SSA;
-			N->val.pObject			= RI.val_pObject;
-			N->val.pVisual			= pVisual;
-			N->val.Matrix			= *RI.val_pTransform;
-			N->val.se				= sh;
-#endif
 			return;
 		} else {
 			mapHUD_Node* N			= mapHUD.insertInAnyWay		(distSQ);
@@ -105,16 +89,6 @@ void R_dsgraph_structure::r_dsgraph_insert_dynamic	(IRender_Visual *pVisual, Fve
 			N->val.pVisual			= pVisual;
 			N->val.Matrix			= *RI.val_pTransform;
 			N->val.se				= sh;
-#if RENDER==R_R2
-			if (sh->flags.bEmissive) {
-				mapSorted_Node* N		= mapHUDEmissive.insertInAnyWay	(distSQ);
-				N->val.ssa				= SSA;
-				N->val.pObject			= RI.val_pObject;
-				N->val.pVisual			= pVisual;
-				N->val.Matrix			= *RI.val_pTransform;
-				N->val.se				= &*pVisual->shader_ref->E[4];		// 4=L_special
-			}
-#endif
 			return;
 		}
 	}
@@ -306,6 +280,8 @@ void CRender::add_leafs_Dynamic	(IRender_Visual *pVisual)
 {
 	if (0==pVisual)				return;
 
+	R_ASSERT2( (u32)pVisual > 0x10000, "Not assigned visual object");
+
 	// Visual is 100% visible - simply add it
 	xr_vector<IRender_Visual*>::iterator I,E;	// it may be useful for 'hierrarhy' visual
 
@@ -335,7 +311,7 @@ void CRender::add_leafs_Dynamic	(IRender_Visual *pVisual)
 	case MT_SKELETON_RIGID:
 		{
 			// Add all children, doesn't perform any tests
-			CKinematics * pV			= (CKinematics*)pVisual;
+			CKinematics * pV			= (CKinematics*)pVisual;			
 			BOOL	_use_lod			= FALSE	;
 			if (pV->m_lod)				
 			{
@@ -350,9 +326,13 @@ void CRender::add_leafs_Dynamic	(IRender_Visual *pVisual)
 			} else {
 				pV->CalculateBones			(TRUE);
 				pV->CalculateWallmarks		();		//. bug?
+
 				I = pV->children.begin		();
 				E = pV->children.end		();
-				for (; I!=E; I++)	add_leafs_Dynamic	(*I);
+
+
+				for (; I!=E; I++)	
+					add_leafs_Dynamic	(*I);
 			}
 		}
 		return;

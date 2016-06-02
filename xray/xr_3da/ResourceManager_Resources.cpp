@@ -309,27 +309,31 @@ SPS*	CResourceManager::_CreatePS			(LPCSTR name)
 					{
 						pConstants				= LPD3DXSHADER_CONSTANTTABLE(data);
 						_ps->constants.parse	(pConstants,0x1);
-					} else	_hr = E_FAIL;
+					} 
+					else	
+						_hr = E_FAIL;
 				}
 			}
-			else	_hr = E_FAIL;
+			else	
+				_hr = E_FAIL;
 		}else
 		{
-			last_error = (LPCSTR)pErrorBuf->GetBufferPointer();
-			Msg("error is %s", last_error);
+			if (pErrorBuf)
+				last_error = (LPCSTR)pErrorBuf->GetBufferPointer();
 		}
 
-
-		if (FAILED(_hr))
-			Msg			("Can't compile shader %s",name);
-		
+		// Real Wolf.10.12.2014
 		string1024 buff;
+		if (FAILED(_hr))
+		{
+			if (xr_strlen(last_error))
+				sprintf_s(buff, 1023, "ќшибка компил€ции шейдера %s: %s ", name, last_error);
+			else
+				sprintf_s(buff, 1023, "ќшибка компил€ции шейдера %s. ¬озможна ошибка в скрипте, или\n видеокарта не поддерживает пиксельные шейдеры 1.1", name);
 
-		if (xr_strlen(last_error))
-			sprintf_s(buff, 1023, "ќшибка компил€ции шейдера %s:\n %s ", name, last_error);
-		else
-			sprintf_s(buff, 1023, "ќшибка компил€ции шейдера %s. ¬озможна ошибка в скрипте, или\n видеокарта не поддерживает пиксельные шейдеры 1.1", name);
-		
+			Msg(buff);
+		}
+
 		pConstants = NULL;
 		_RELEASE(pShaderBuf);
 		_RELEASE(pErrorBuf);

@@ -24,12 +24,15 @@
 #include "trade_parameters.h"
 #include "purchase_list.h"
 #include "clsid_game.h"
+#include "Artifact.h"
 
 #include "alife_object_registry.h"
 
 #include "CustomOutfit.h"
 
-CInventoryOwner::CInventoryOwner			()
+#pragma optimize("gyts", off)
+
+CInventoryOwner::CInventoryOwner			():  m_shadow_money()
 {
 	m_pTrade					= NULL;
 	m_trade_parameters			= 0;
@@ -39,10 +42,15 @@ CInventoryOwner::CInventoryOwner			()
 	
 	EnableTalk();
 	EnableTrade();
-	
+	m_shadow_money				= 0;
+	m_money						= 0;
+
 	m_known_info_registry		= xr_new<CInfoPortionWrapper>();
 	m_tmp_active_slot_num		= NO_ACTIVE_SLOT;
 	m_need_osoznanie_mode		= FALSE;
+	m_silent_take				= (u16)-1;
+	m_silent_reject				= (u16)-1;
+	m_transfer_flag				= false;
 }
 
 DLL_Pure *CInventoryOwner::_construct		()
@@ -85,6 +93,7 @@ void CInventoryOwner::reload				(LPCSTR section)
 	inventory().SetSlotsUseful (true);
 
 	m_money						= 0;
+	m_shadow_money				= m_money;
 	m_bTalking					= false;
 	m_pTalkPartner				= NULL;
 
@@ -96,6 +105,8 @@ void CInventoryOwner::reinit				()
 	CAttachmentOwner::reinit	();
 	m_item_to_spawn				= shared_str();
 	m_ammo_in_box_to_spawn		= 0;
+	m_silent_take				= (u16)-1;
+	m_silent_reject				= (u16)-1;
 }
 
 //call this after CGameObject::net_Spawn
@@ -143,8 +154,8 @@ BOOL CInventoryOwner::net_Spawn		(CSE_Abstract* DC)
 	{
 		CharacterInfo().m_SpecificCharacter.Load					("mp_actor");
 		CharacterInfo().InitSpecificCharacter						("mp_actor");
-		CharacterInfo().m_SpecificCharacter.data()->m_sGameName = (E->name_replace()[0]) ? E->name_replace() : *pThis->cName();
-		m_game_name												= (E->name_replace()[0]) ? E->name_replace() : *pThis->cName();
+		m_game_name												= xr_strlen(E->name_replace()) ? E->name_replace() : *pThis->cName();
+		CharacterInfo().m_SpecificCharacter.data()->m_sGameName = m_game_name;		
 	}
 	
 
@@ -171,6 +182,9 @@ void	CInventoryOwner::save	(NET_Packet &output_packet)
 		output_packet.w_u8((u8)inventory().GetActiveSlot());
 
 	CharacterInfo().save(output_packet);
+#ifdef HARDCORE
+	clamp<u32>(m_money, 0, 1000000);
+#endif
 	save_data	(m_game_name, output_packet);
 	save_data	(m_money,	output_packet);
 }
@@ -187,6 +201,10 @@ void	CInventoryOwner::load	(IReader &input_packet)
 	CharacterInfo().load(input_packet);
 	load_data		(m_game_name, input_packet);
 	load_data		(m_money,	input_packet);
+#ifdef HARDCORE
+	clamp<u32>(m_money, 0, 1000000);
+#endif
+	m_shadow_money	 = m_money;
 }
 
 
@@ -290,11 +308,25 @@ void CInventoryOwner::renderable_Render		()
 	CAttachmentOwner::renderable_Render();
 }
 
+void CInventoryOwner::BeginTransfer()
+{
+	m_transfer_flag		= true;
+}
+
+void CInventoryOwner::EndTransfer()
+{
+	m_silent_take		= (u16)-1;
+	m_silent_reject		= (u16)-1;
+	m_transfer_flag		= false;
+}
+
+
 void CInventoryOwner::OnItemTake			(CInventoryItem *inventory_item)
 {
 	CGameObject	*object = smart_cast<CGameObject*>(this);
 	VERIFY		(object);
-	object->callback(GameObject::eOnItemTake)(inventory_item->object().lua_game_object());
+	if (m_silent_take != inventory_item->object().ID() || m_transfer_flag)
+		object->callback(GameObject::eOnItemTake)(inventory_item->object().lua_game_object());
 
 	attach		(inventory_item);
 
@@ -311,15 +343,53 @@ float CInventoryOwner::GetWeaponAccuracy	() const
 	return 0.f;
 }
 
+float CInventoryOwner::ArtefactsAddWeight(bool first) const
+{
+	float add_weight = 0.f;
+	if (ArtefactsHaveEffect())
+	for (auto it = inventory().m_belt.begin(); inventory().m_belt.end() != it; ++it)
+	{
+		CArtefact*	artefact = smart_cast<CArtefact*>(*it);
+		if (artefact && artefact->m_props_enabled)
+		{
+			float add = first ? artefact->m_additional_weight : artefact->m_additional_weight2;
+			add_weight += add;
+		}
+	}
+	return add_weight;
+}
+
+bool CInventoryOwner::ArtefactsHaveEffect() const
+{
+#ifdef NLC_EXTENSIONS		
+	PIItem _of	= inventory().m_slots[HELMET_SLOT].m_pIItem;
+	CArtefact *akkum = _of ? smart_cast<CArtefact*>(_of) : NULL;
+	if (akkum && akkum->GetCondition() >= 0.07)
+		return true;
+	return false;
+#else
+	return true;
+#endif
+
+}
+
+float CInventoryOwner::GetCarryWeight() const
+{
+	return inventory().TotalWeight();
+}
+
 //максимальный переносимы вес
 float  CInventoryOwner::MaxCarryWeight () const
 {
 	float ret =  inventory().GetMaxWeight();
-
 	const CCustomOutfit* outfit	= GetOutfit();
-	if(outfit)
-		ret += outfit->m_additional_weight2;
-
+	if (outfit)
+#ifdef LUAICP_COMPAT
+		ret += outfit->GetAdditionalWeight(2) * floorf(outfit->GetCondition() * 10 + 0.5f) / 10;
+#else
+		ret += outfit->GetAdditionalWeight(2);
+#endif
+	ret += ArtefactsAddWeight(false);
 	return ret;
 }
 
@@ -365,7 +435,13 @@ void CInventoryOwner::LostPdaContact	(CInventoryOwner* pInvOwner)
 //для работы с relation system
 u16 CInventoryOwner::object_id	()  const
 {
-	return smart_cast<const CGameObject*>(this)->ID();
+	if (!this)
+	{
+		Log("! #ERROR: CInventoryOwner::object_id	() this == NULL ");
+		return 0xffff;
+	}
+	else
+		return smart_cast<const CGameObject*>(this)->ID();
 }
 
 
@@ -423,13 +499,12 @@ void CInventoryOwner::ChangeReputation	(CHARACTER_REPUTATION_VALUE delta)
 	SetReputation(Reputation() + delta);
 }
 
-
 void CInventoryOwner::OnItemDrop			(CInventoryItem *inventory_item)
 {
 	CGameObject	*object = smart_cast<CGameObject*>(this);
 	VERIFY		(object);
-	object->callback(GameObject::eOnItemDrop)(inventory_item->object().lua_game_object());
-
+	if (m_silent_reject != inventory_item->object().ID() || m_transfer_flag)
+		object->callback(GameObject::eOnItemDrop)(inventory_item->object().lua_game_object());
 	detach		(inventory_item);
 }
 
@@ -542,16 +617,39 @@ bool CInventoryOwner::AllowItemToTrade 			(CInventoryItem const * item, EItemPla
 	);
 }
 
-void CInventoryOwner::set_money		(u32 amount, bool bSendEvent)
+bool CInventoryOwner::InfinitiveMoney()
 {
+	return CharacterInfo().m_SpecificCharacter.MoneyDef().inf_money; 
+}
 
-	if(InfinitiveMoney())
+int CInventoryOwner::get_money() const
+{
+	int result = m_money;
+	if (result != m_shadow_money)
+	{
+		*((u32*)this) += 1;
+		// Debug.fatal(DEBUG_INFO, "value control fault");
+	}
+#ifdef HARDCORE
+	clamp<int>(result, 0, 1000000);
+#endif
+	return result;
+}
+
+void CInventoryOwner::set_money		(int amount, bool bSendEvent)
+{	
+#ifdef HARDCORE
+	clamp<int>(amount, 0, 1000000);
+#endif
+	// MsgCB("$#CONTEXT: set_money (%d), upd = %d, character = %p, object %s", m_money, upd, (void*)m_pCharacterInfo, object->Name());
+
+	if(InfinitiveMoney() && this != Actor())
 		m_money					= _max(m_money, amount);
 	else
-		m_money					= amount;
-
+		m_money					= amount;	
+	m_shadow_money				= m_money;
 	if(bSendEvent)
-	{
+	{		
 		CGameObject				*object = smart_cast<CGameObject*>(this);
 		NET_Packet				packet;
 		object->u_EventGen		(packet,GE_MONEY,object->ID());

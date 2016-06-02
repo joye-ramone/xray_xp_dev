@@ -14,6 +14,8 @@
 #include "level_graph.h"
 #include "clsid_game.h"
 
+#pragma optimize("gyts", off)
+
 void CLevel::ClientReceive()
 {
 

@@ -8,10 +8,13 @@
 
 #pragma once
 
+#include "../../build_config_defines.h"
+
 IC	CSpaceRestrictionAbstract::CSpaceRestrictionAbstract						()
 {
 	m_initialized									= false;
 	m_accessible_neighbour_border_actual			= false;
+	m_failed										= false;
 }
 
 IC	const xr_vector<u32> &CSpaceRestrictionAbstract::border						()
@@ -21,17 +24,27 @@ IC	const xr_vector<u32> &CSpaceRestrictionAbstract::border						()
 
 	THROW											(initialized());
 #ifdef LUAICP_COMPAT
-	if (m_border.empty())
-		Msg("!#ERROR: Space restrictor %s has no border. ", *name());
+	m_failed = !is_valid();		
 #else
 	THROW3											(!m_border.empty(),"Space restrictor has no border!",*name());
 #endif
 	return											(m_border);
 }
+IC	bool CSpaceRestrictionAbstract::is_failed									() const
+{
+	return  (m_failed);
+}
+
+
+IC	bool CSpaceRestrictionAbstract::is_valid									() const
+{
+	return  (!m_border.empty());
+}
+
 
 IC	bool CSpaceRestrictionAbstract::initialized									() const
 {
-	return											(m_initialized);
+	return											(this ? m_initialized : false);
 }
 
 template <typename T>

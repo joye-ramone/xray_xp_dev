@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: script_thread.cpp
 //	Created 	: 19.09.2003
-//  Modified 	: 29.06.2004
+//  Modified 	: 17.02.2016
 //	Author		: Dmitriy Iassenev
 //	Description : Script thread class
 ////////////////////////////////////////////////////////////////////////////
@@ -33,45 +33,48 @@ CScriptThread::CScriptThread(LPCSTR caNamespaceName, bool do_string, bool reload
 {
 	m_virtual_machine		= 0;
 	m_active				= false;
+	lua_State *L = ai().script_engine().lua();
 
 	try {
 		string256			S;
 		if (!do_string) {
 			m_script_name	= caNamespaceName;
-			ai().script_engine().process_file(caNamespaceName,reload);
+			ai().script_engine().process_file(L, caNamespaceName,reload);
 		}
 		else {
 			m_script_name	= "console command";
 			sprintf_s			(S,"function %s()\n%s\nend\n",main_function,caNamespaceName);
-			int				l_iErrorCode = luaL_loadbuffer(ai().script_engine().lua(),S,xr_strlen(S),"@console_command");
+			int				l_iErrorCode = luaL_loadbuffer(L, S,xr_strlen(S),"@console_command");
 			if (!l_iErrorCode) {
-				l_iErrorCode = lua_pcall(ai().script_engine().lua(),0,0,0);
+				l_iErrorCode = lua_pcall(L,0,0,0);
 				if (l_iErrorCode) {
-					ai().script_engine().print_output(ai().script_engine().lua(),*m_script_name,l_iErrorCode);
+					ai().script_engine().print_output(L,*m_script_name,l_iErrorCode);
 					return;
 				}
 			}
 			else {
-				ai().script_engine().print_output(ai().script_engine().lua(),*m_script_name,l_iErrorCode);
+				ai().script_engine().print_output(L,*m_script_name,l_iErrorCode);
 				return;
 			}
 		}
 
-//		print_stack_		(ai().script_engine().lua());
-//		m_virtual_machine	= lua_newthread(ai().script_engine().lua());
-		m_virtual_machine	= lua_newcthread(ai().script_engine().lua(),0);
+//		print_stack_		(L);
+//		m_virtual_machine	= lua_newthread(L);
+		static int g_thread_counter = 0;
+		m_virtual_machine	= lua_newthread(L);
+		lua_setglobal(L, make_string("CScriptThread_%d", g_thread_counter++).c_str());
 		VERIFY2				(lua(),"Cannot create new Lua thread");
-//		print_stack_		(ai().script_engine().lua());
-//		m_thread_reference	= luaL_ref(ai().script_engine().lua(),LUA_REGISTRYINDEX);
-//		print_stack_		(ai().script_engine().lua());
+//		print_stack_		(L);
+//		m_thread_reference	= luaL_ref(L,LUA_REGISTRYINDEX);
+//		print_stack_		(L);
 		
 //		if (g_ca_stdout[0]) {
 //			fputc							(0,stderr);
 //			ai().script_engine().script_log	(ScriptStorage::eLuaMessageTypeInfo,"%s",g_ca_stdout);
 //			fflush							(stderr);
 //		}
-//		Msg					("lua get top %d",lua_gettop(ai().script_engine().lua()));
-//		print_stack_		(ai().script_engine().lua());
+//		Msg					("lua get top %d",lua_gettop(L));
+//		print_stack_		(L);
 		
 #ifdef DEBUG
 #	ifdef USE_DEBUGGER
@@ -104,7 +107,7 @@ CScriptThread::~CScriptThread()
 #endif
 	try {
 #ifndef LUABIND_HAS_BUGS_WITH_LUA_THREADS
-		luaL_unref			(ai().script_engine().lua(),LUA_REGISTRYINDEX,m_thread_reference);
+		luaL_unref			(L,LUA_REGISTRYINDEX,m_thread_reference);
 #endif
 	}
 	catch(...) {

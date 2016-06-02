@@ -19,6 +19,7 @@
 #include "ispatial.h"
 #include "CopyProtection.h"
 #include "Text_Console.h"
+#include "ResourceManager.h"
 #include "../../build_config_defines.h"
 #include <process.h>
 
@@ -29,6 +30,23 @@ extern	void	Intro				( void* fn );
 extern	void	Intro_DSHOW			( void* fn );
 extern	int PASCAL IntroDSHOW_wnd	(HINSTANCE hInstC, HINSTANCE hInstP, LPSTR lpCmdLine, int nCmdShow);
 int		max_load_stage = 0;
+
+float	   g_fLastSwitchEvent = 0.f;
+ENGINE_API CTimer_paused g_GameLoaded;
+ENGINE_API bool    g_bGameInteractive = true;
+extern     float   g_fTimeInteractive;
+
+ENGINE_API void switch_game_interactive(bool flag, LPCSTR context)
+{
+	if (!flag) g_fTimeInteractive = 0.f;
+	if (flag == g_bGameInteractive) return;
+	g_bGameInteractive = flag;
+	g_fLastSwitchEvent = Device.fTimeGlobal;
+
+	Msg("* game render status switched to '%s' from '%s'", (flag ? "interactive" : "loading"), context);	
+	Device.bWarnFreeze = flag;
+}
+
 
 // computing build id
 XRCORE_API	LPCSTR	build_date;
@@ -71,7 +89,6 @@ void compute_build_id	()
 	string256			buffer;
 	strcpy_s				(buffer,__DATE__);
 	sscanf				(buffer,"%s %d %d",month,&days,&years);
-
 	for (int i=0; i<12; i++) {
 		if (_stricmp(month_id[i],month))
 			continue;
@@ -88,6 +105,9 @@ void compute_build_id	()
 	for (int i=0; i<start_month-1; ++i)
 		build_id		-= days_in_month[i];
 }
+
+XRCORE_API BOOL GetThreadTimesEx(HANDLE hThread, float &kernel, float &user);
+
 //---------------------------------------------------------------------
 // 2446363
 // umbt@ukr.net
@@ -119,50 +139,58 @@ ENGINE_API	string512		g_sLaunchOnExit_app;
 XRCORE_API  void		    LogStackTraceEx(struct _EXCEPTION_POINTERS*);
 
 
+bool XRCORE_API force_flush_log;
 
 // -------------------------------------------
 // startup point
-void InitEngine		()
-{
-
-#define LUACAP_ALWAYS_LOAD
-#if defined(LUAICP_COMPAT) && defined (LUACAP_ALWAYS_LOAD)
+void LoadInterceptor()
+{	
 	CHAR dllName[MAX_PATH];
-	GetModuleFileName (0, dllName, MAX_PATH);
-	if (NULL == GetModuleHandle("luaicp.dll"))
-		for (int i = xr_strlen(dllName) - 1; i > 0; i --) 
-			if (dllName[i] == 0x5C)  {
-				dllName[i + 1] = 0;
-				strcat_s(dllName, "luaicp.dll");
-				HMODULE hDLL = LoadLibrary(dllName);
-				if (!hDLL) break;
-				typedef void(WINAPI *LUAICP_INITPROC) (LPVOID param);
-				LUAICP_INITPROC init = (LUAICP_INITPROC) GetProcAddress(hDLL, "Init");
-				if (init)
-					init(NULL);
-			}
-	//if (IsDebuggerPresent()) // для проверки адекватности трассировки стека вызовов
-	//__try
-	//{
-	//	Msg((LPCSTR)0x100);
-	//}
-	//__except ( SIMPLE_FILTER )
-	//{		 
-	//	Msg("in __except");		
-	//}
-#endif
-	Engine.Initialize			( );
-	while (!g_bIntroFinished)	Sleep	(100);
-	Device.Initialize			( );
-	CheckCopyProtection			( );
+	GetModuleFileName(0, dllName, MAX_PATH);
+	HMODULE hDLL = GetModuleHandle("luaicp.dll");
+	if (!hDLL)	
+		for (int i = xr_strlen(dllName) - 1; i > 0; i--)
+		if (dllName[i] == 0x5C)
+		{
+			dllName[i + 1] = 0;
+			strcat_s(dllName, "luaicp.dll");
+			hDLL = LoadLibrary(dllName);
+			if (!hDLL) break;
+		}	
+	if (!hDLL) return;
+	typedef void(WINAPI *LUAICP_INITPROC) (LPVOID param);
+	LUAICP_INITPROC init = (LUAICP_INITPROC)GetProcAddress(hDLL, "Init");
+	if (init)
+		init(NULL);
+}
+
+
+void InitEngine()
+{
+	__try
+	{	
+		Engine.Initialize();
+		while (!g_bIntroFinished)	Sleep(100);
+		Device.Initialize();
+		CheckCopyProtection();		
+		force_flush_log = false;
+	}
+	__except (SIMPLE_FILTER)
+	{
+		Msg("!#EXCEPTION: catched in InitEngine");
+		MsgCB("$#DUMP_CONTEXT");
+	}
 }
 
 void InitSettings	()
 {
 	string_path					fname; 
 	FS.update_path				(fname,"$game_config$","system.ltx");
-	pSettings					= xr_new<CInifile>	(fname,TRUE);
-	CHECK_OR_EXIT				(!pSettings->sections().empty(),make_string("Cannot find file %s.\nReinstalling application may fix this problem.",fname));
+	pSettings					= xr_new<CInifile>	(fname,TRUE, FALSE);	
+	pSettings->SetIncludeMacro ("$game_balance$", "default");
+	pSettings->reload();	
+
+	CHECK_OR_EXIT				(!pSettings->sections().empty(), make_string("Cannot find file %s.\nReinstalling application may fix this problem.",fname));
 
 	FS.update_path				(fname,"$game_config$","game.ltx");
 	pGameIni					= xr_new<CInifile>	(fname,TRUE);
@@ -180,13 +208,15 @@ void InitConsole	()
 		Console						= xr_new<CConsole>	();
 	}
 #endif
+	R_ASSERT(pSettings);
+
 	Console->Initialize			( );
 
-	strcpy_s						(Console->ConfigFile,"user.ltx");
+	strcpy_s						(Console->ConfigFile, sizeof(Console->ConfigFile), "user.ltx");
 	if (strstr(Core.Params,"-ltx ")) {
 		string64				c_name;
 		sscanf					(strstr(Core.Params,"-ltx ")+5,"%[^ ] ",c_name);
-		strcpy_s					(Console->ConfigFile,c_name);
+		strcpy_s					(Console->ConfigFile, sizeof(Console->ConfigFile), c_name);
 	}
 }
 
@@ -239,7 +269,7 @@ void slowdownthread	( void* )
 {
 //	Sleep		(30*1000);
 	for (;;)	{
-		if (Device.Statistic->fFPS<30) Sleep(1);
+		if (Device.Statistic->fFPS < 30) Sleep(1);
 		if (Device.mt_bMustExit)	return;
 		if (0==pSettings)			return;
 		if (0==Console)				return;
@@ -262,39 +292,60 @@ void CheckPrivilegySlowdown		( )
 
 void Startup					( )
 {
-	execUserScript	();
-//.	InitInput		();
-	InitSound		();
 
-	// ...command line for auto start
+	__try
 	{
-		LPCSTR	pStartup			= strstr				(Core.Params,"-start ");
-		if (pStartup)				Console->Execute		(pStartup+1);
+		Console->Execute("g_game_balance default"); // defaults 
+		execUserScript();
+		//.	InitInput		();
+		InitSound();
+
+		// ...command line for auto start
+		{
+			LPCSTR	pStartup = strstr(Core.Params, "-start ");
+			if (pStartup)				Console->Execute(pStartup + 1);
+		}
+		{
+			LPCSTR	pStartup = strstr(Core.Params, "-load ");
+			if (pStartup)				Console->Execute(pStartup + 1);
+		}
+
+		// Initialize APP
+		//#ifndef DEDICATED_SERVER
+		ShowWindow(Device.m_hWnd, SW_SHOWNORMAL);
+		Device.Create();
+		//#endif
+		LALib.OnCreate();
+		pApp = xr_new<CApplication>();		
+		g_pGamePersistent = (IGame_Persistent*)NEW_INSTANCE(CLSID_GAME_PERSISTANT);
+		g_SpatialSpace = xr_new<ISpatial_DB>();
+		g_SpatialSpacePhysic = xr_new<ISpatial_DB>();
+
+		// Destroy LOGO
+		DestroyWindow(logoWindow);
+		logoWindow = NULL;
+
+		// Main cycle
+		CheckCopyProtection();
 	}
+	__except (SIMPLE_FILTER)
 	{
-		LPCSTR	pStartup			= strstr				(Core.Params,"-load ");
-		if (pStartup)				Console->Execute		(pStartup+1);
+		MsgCB("!#EXCEPTION: was Startup()");
+		MsgCB("$#DUMP_CONTEXT");
 	}
 
-	// Initialize APP
-//#ifndef DEDICATED_SERVER
-	ShowWindow( Device.m_hWnd , SW_SHOWNORMAL );
-	Device.Create				( );
-//#endif
-	LALib.OnCreate				( );
-	pApp						= xr_new<CApplication>	();
-	g_pGamePersistent			= (IGame_Persistent*)	NEW_INSTANCE (CLSID_GAME_PERSISTANT);
-	g_SpatialSpace				= xr_new<ISpatial_DB>	();
-	g_SpatialSpacePhysic		= xr_new<ISpatial_DB>	();
-	
-	// Destroy LOGO
-	DestroyWindow				(logoWindow);
-	logoWindow					= NULL;
-
-	// Main cycle
-	CheckCopyProtection			( );
 	Memory.mem_usage();
-	Device.Run					( );
+	
+
+	__try
+	{
+		Device.Run();
+	}
+	__except (SIMPLE_FILTER)
+	{
+		MsgCB("!#EXCEPTION: was catched in Device.Run");
+		MsgCB("$#DUMP_CONTEXT");
+	}
 
 	// Destroy APP
 	xr_delete					( g_SpatialSpacePhysic	);
@@ -516,12 +567,14 @@ BOOL IsOutOfVirtualMemory()
 
 	SECUROM_MARKER_HIGH_SECURITY_ON(1)
 
+	// IMAGE_DIRECTORY_ENTRY_BASERELOC
+
 	MEMORYSTATUSEX statex;
 	DWORD dwPageFileInMB = 0;
 	DWORD dwPhysMemInMB = 0;
 	HINSTANCE hApp = 0;
 	char	pszError[ VIRT_ERROR_SIZE ];
-	char	pszMessage[ VIRT_MESSAGE_SIZE ];
+	string256	szMessage;
 
 	ZeroMemory( &statex , sizeof( MEMORYSTATUSEX ) );
 	statex.dwLength = sizeof( MEMORYSTATUSEX );
@@ -533,18 +586,19 @@ BOOL IsOutOfVirtualMemory()
 	dwPhysMemInMB = ( DWORD ) ( statex.ullTotalPhys / ( 1024 * 1024 ) ) ;
 
 	// Довольно отфонарное условие
-	if ( ( dwPhysMemInMB > 500 ) && ( ( dwPageFileInMB + dwPhysMemInMB ) > 2500  ) )
+	if ( ( dwPhysMemInMB >= 2000 ) && ( ( dwPageFileInMB + dwPhysMemInMB ) > 3500  ) )
 		return 0;
 
 	hApp = GetModuleHandle( NULL );
 
 	if ( ! LoadString( hApp , RC_VIRT_MEM_ERROR , pszError , VIRT_ERROR_SIZE ) )
 		return 0;
- 
-	if ( ! LoadString( hApp , RC_VIRT_MEM_TEXT , pszMessage , VIRT_MESSAGE_SIZE ) )
-		return 0;
-
-	MessageBox( NULL , pszMessage , pszError , MB_OK | MB_ICONHAND );
+#ifdef NLC7  
+	strcpy_s(szMessage, 255, "Для работы модификации NLC7 требуется не менее 2Гб физической и 3.5Гб виртуальной памяти");
+#else
+	if ( ! LoadString( hApp , RC_VIRT_MEM_TEXT , szMessage , VIRT_MESSAGE_SIZE ) ) return 0;
+#endif
+	MessageBox( NULL , szMessage , pszError , MB_OK | MB_ICONHAND );
 
 	SECUROM_MARKER_HIGH_SECURITY_OFF(1)
 
@@ -599,6 +653,23 @@ ENGINE_API	bool g_dedicated_server	= false;
 
 #pragma optimize("gyt", off)  // for watches in debugger
 
+void stat_memory_short ()
+{
+
+	// size_t  w_free, w_reserved, w_committed;
+	// vminfo	(&w_free, &w_reserved, &w_committed);
+	log_vminfo	();
+	HANDLE _crt_h		= (HANDLE)_get_heap_handle();
+	u32		_crt_heap		= mem_usage_impl(_crt_h, 0,0);
+	u32		_process_heap	= mem_usage_impl(0, 0, 0);
+	u32     _lib_heap		= mem_usage_impl( (HANDLE)1, 0, 0);
+	u32		_fs_heap		= mem_usage_impl( (HANDLE)2, 0, 0);	 
+	MsgCB("*#MEM_USAGE: crt heap[%7d K], process heap[%7d K], lib heap [%7d K] fs heap [%d K] ",
+		_crt_heap / 1024, _process_heap / 1024, _lib_heap / 1024, _fs_heap / 1024);
+}
+
+
+
 int APIENTRY WinMain_impl(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
                      char *    lpCmdLine,
@@ -611,6 +682,17 @@ int APIENTRY WinMain_impl(HINSTANCE hInstance,
 
 	if ( ( strstr( lpCmdLine , "--skipmemcheck" ) == NULL ) && IsOutOfVirtualMemory() )
 		return 0;
+
+	force_flush_log = true;	
+	#if defined(LUAICP_COMPAT) && defined (LUACAP_ALWAYS_LOAD)
+	LoadInterceptor();
+#endif
+
+	{
+		wchar_t langs[32] = { L"ru-RU\0\0" };
+		ULONG num;
+		SetProcessPreferredUILanguages(MUI_LANGUAGE_NAME, langs, &num);
+	}
 
 	// Check for another instance
 #ifdef NO_MULTI_INSTANCES
@@ -636,10 +718,10 @@ int APIENTRY WinMain_impl(HINSTANCE hInstance,
 
 #ifdef LUAICP_COMPAT
 	// alpet: на первом ядре процессора любят сидеть фоновые процессы винды, так что лучше выбрать эксклюзив попытаться 
-	SetThreadAffinityMask		(GetCurrentThread(), 2 + 4 + 8);	
-	SetThreadPriority			(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);  // чтобы вытеснить остальных из планировщика винды на занятом ядре
+	SetThreadAffinityMask		(GetCurrentThread(), 0xFFE);	
+	// SetThreadPriority			(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);  // чтобы вытеснить остальных из планировщика винды на занятом ядре
 	SetProcessPriorityBoost		(GetCurrentProcess(), FALSE);
-	SetPriorityClass			(GetCurrentProcess(), HIGH_PRIORITY_CLASS);          // при подвисании это конечно накажет, но есть быстрые клавиши суицида процесса игры. 
+	// SetPriorityClass			(GetCurrentProcess(), HIGH_PRIORITY_CLASS);          // при подвисании это конечно накажет, но есть быстрые клавиши суицида процесса игры. 
 #else
 	SetThreadAffinityMask		(GetCurrentThread(),1);
 #endif
@@ -690,11 +772,25 @@ int APIENTRY WinMain_impl(HINSTANCE hInstance,
 	}
 
 
-	g_temporary_stuff			= &trivial_encryptor::decode;
-	
-	compute_build_id			();
-	Core._initialize			("xray",NULL, TRUE, fsgame[0] ? fsgame : NULL);
-	InitSettings				();
+#ifdef LUAICP_COMPAT
+#pragma todo("alpet: добавить распаковщик с нормальным декриптором")
+	g_temporary_stuff = &trivial_encryptor::decode; 
+#else
+	g_temporary_stuff = &trivial_encryptor::decode;
+#endif 
+		
+	try
+	{
+		stat_memory_short();	
+		compute_build_id();
+		Core._initialize("xray", NULL, TRUE, fsgame[0] ? fsgame : NULL);
+		InitSettings();
+		stat_memory_short();
+	}
+	catch (...)
+	{
+		Log("!#EXCEPTION: catched while core initialization ");
+	}
 
 #ifndef DEDICATED_SERVER
 	{
@@ -702,10 +798,10 @@ int APIENTRY WinMain_impl(HINSTANCE hInstance,
 		(void)filter;
 #endif // DEDICATED_SERVER
 
-		FPU::m24r				();
+		FPU::m24r				();		
+		// stat_memory_impl();		
 		InitEngine				();
 		InitConsole				();
-
 		LPCSTR benchName = "-batch_benchmark ";
 		if(strstr(lpCmdLine, benchName))
 		{
@@ -737,12 +833,19 @@ int APIENTRY WinMain_impl(HINSTANCE hInstance,
 			xr_delete					(pTmp);
 		}	
 
+		try
+		{
+			InitInput();
+			Engine.External.Initialize();
+			// Console->Execute("stat_memory");
+			Startup();	
+		}
+		catch (...)
+		{
+			MsgCB("!EXCEPTION: catched in xr_3da.Startup()");
+		}
 
-		InitInput					( );
-		Engine.External.Initialize	( );
-		Console->Execute			("stat_memory");
-		Startup	 					( );
-		Core._destroy				( );
+		Core._destroy();
 
 		char* _args[3];
 		// check for need to execute something external
@@ -803,10 +906,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 		WinMain_impl		(hInstance,hPrevInstance,lpCmdLine,nCmdShow);
 	}
-	__except(stack_overflow_exception_filter(GetExceptionCode()))
+	__except(SIMPLE_FILTER)
 	{
-		_resetstkoflw		();
-		FATAL				("stack overflow");
+		Log("#EXCEPTION: catched in WinMain_impl");
 	}
 
 	return					(0);
@@ -863,8 +965,9 @@ void _InitializeFont(CGameFont*& F, LPCSTR section, u32 flags)
 }
 
 CApplication::CApplication()
-{
+{	
 	ll_dwReference	= 0;
+	load_stage		= 0;
 	load_texture = "ui\\ui_load";
 
 	// events
@@ -887,6 +990,12 @@ CApplication::CApplication()
 	else								Device.seqFrame.Add			(&SoundProcessor);
 
 	Console->Show				( );
+	Console->Execute		("stat_memory");
+
+	GetThreadTimesEx(0, load_times[0], load_times[1]);
+	load_times[2] = load_times[3] = 1;
+	g_GameLoaded.Start();
+	g_GameLoaded.Pause(TRUE);
 
 	// App Title
 	app_title[ 0 ] = '\0';
@@ -944,11 +1053,18 @@ void CApplication::OnEvent(EVENT E, u64 P1, u64 P2)
 		{		
 			Console->Execute("main_menu off");
 			Console->Hide();
-			Device.Reset					(false);
+			HRESULT cl = HW.pDevice->TestCooperativeLevel();
+			if (cl != D3D_OK)
+			{
+				Msg("! #WARN: Device cooperative level = %s", Debug.error2string(cl));
+				Device.Reset(false);
+			}
 			//-----------------------------------------------------------
 			g_pGamePersistent->PreStart		(op_server);
 			//-----------------------------------------------------------
-			g_pGameLevel					= (IGame_Level*)NEW_INSTANCE(CLSID_GAME_LEVEL);
+			g_pGameLevel					= (IGame_Level*)NEW_INSTANCE(CLSID_GAME_LEVEL);			
+			pApp->LoadPrepare				();
+			// pApp->LoadTitleInt("st_app_start");		
 			pApp->LoadBegin					(); 
 			g_pGamePersistent->Start		(op_server);
 			g_pGameLevel->net_Start			(op_server,op_client);
@@ -991,6 +1107,14 @@ void CApplication::LoadBegin	()
 	ll_dwReference++;
 	if (1==ll_dwReference)	{
 
+
+
+		if (0 == load_stage)
+		{
+			load_timer.Start();
+			switch_game_interactive (false, "::LoadBegin");
+		}
+
 		g_appLoaded			= FALSE;
 		g_bootComplete		= FALSE;
 
@@ -1003,19 +1127,43 @@ void CApplication::LoadBegin	()
 		ll_hGeom2.create		(FVF::F_TL, RCache.Vertex.Buffer(),NULL);
 #endif
 		phase_timer.Start	();
-		load_stage			= 0;
+		
 
 		CheckCopyProtection	();
 	}
+}
+
+void CApplication::LoadPrepare()
+{
+	if (load_stage > 10)
+	{
+		phase_timer.Start	();
+		ll_dwReference = 0;
+		load_stage = 0;
+		GetThreadTimesEx(0, load_times[0], load_times[1]);
+		load_times[2] = load_times[3] = 1;	
+	}
+	// игра ещё не загружена
+	g_GameLoaded.Start();
+	g_GameLoaded.Pause(TRUE);
+
 }
 
 void CApplication::LoadEnd		()
 {
 	ll_dwReference--;
 	if (0==ll_dwReference)		{		
+		Log("@---------- CApplication::LoadEnd -------------- ");
 		Msg						("* phase time: %d ms",phase_timer.GetElapsed_ms());
-		Msg						("* phase cmem: %d K", Memory.mem_usage()/1024);
-		Console->Execute		("stat_memory");
+		size_t  w_free, w_reserved, w_committed;
+		vminfo	(&w_free, &w_reserved, &w_committed);
+		float mem_usage = ((float) w_committed) / 1048576.f;
+
+		Msg						("* phase cmem: %.3f M", mem_usage);
+		if (IsDebuggerPresent())
+			Console->Execute			("stat_memory");
+
+
 		g_appLoaded				= TRUE;
 //		DUMP_PHASE;
 	}
@@ -1034,9 +1182,9 @@ u32 calc_progress_color(u32, u32, int, int);
 
 void CApplication::LoadDraw		()
 {
-	if(g_appLoaded)				return;
+	// switch_game_interactive (false, "::LoadDraw");
+	if(g_bGameInteractive)		return;
 	Device.dwFrame				+= 1;
-
 
 	if(!Device.Begin () )		return;
 
@@ -1049,22 +1197,89 @@ void CApplication::LoadDraw		()
 	CheckCopyProtection			();
 }
 
-void CApplication::LoadTitleInt(LPCSTR str)
+int CApplication::LoadStage()
 {
-	load_stage++;
+	return load_stage;
+}
 
+void CApplication::LoadTitleInt(LPCSTR str)
+{	
+	
+	size_t  w_free, w_reserved, w_committed;
+	vminfo	(&w_free, &w_reserved, &w_committed);
+	Device.Resources->DeferredLoad(load_stage < 25);
+	if (load_stage < 20)
+		switch_game_interactive (false, "::LoadTitleInt");
+
+	// в миллисекунды
+	float kernel = 0.f, user = 0.f;
+	GetThreadTimesEx(0, kernel, user);
+
+	float delta_k = kernel - load_times[0];
+	float delta_u = user   - load_times[1];
+	if (0 == load_stage)
+	{
+		delta_k = delta_u = 0.f;
+		load_times[2] = load_times[3] = 0.f; // clear current
+		load_timer.Start();
+	}
+
+	load_times[0] = kernel;
+	load_times[1] = user;	
+	load_times[2] += delta_k;
+	load_times[3] += delta_u;
+
+	float mem_usage = ((float) w_committed) / 1048576.f;
+	u32 ph_time = phase_timer.GetElapsed_ms();
+	// logging
+	string_path fname;
+	FS.update_path(fname, "$logs$", "loadlevel_perf.csv");
+	FILE *fh = fopen(fname, "a");
+	if (fh)
+	{
+		LPCSTR title = app_title;
+		if (0 == load_stage)
+		{
+			fputs ("stage_title; time_ms; user_ms; kernel_ms; mem_usage \n", fh);
+			title = "inititalize";
+		}
+
+		fprintf(fh, "%d. %s;%d;%.1f;%.1f;%.1f\n", load_stage, title, ph_time, delta_u, delta_k, mem_usage); // информация о предыдущей фазе загрузки
+		
+		if (strstr(str, "st_load_end"))
+		{
+			ph_time = load_timer.GetElapsed_ms();
+			fprintf(fh, "total_load;%d;%.0f;%.0f\r\n\r\n", ph_time, load_times[3], load_times[2]);			
+			Device.Resources->DeferredLoad(FALSE);
+			Device.Resources->DeferredUpload	();
+			switch_game_interactive (true, "::LoadTitelInt - on st_load_end");
+			Console->Execute("stat_memory");
+			g_GameLoaded.Start();
+			g_GameLoaded.Pause(FALSE);
+		}
+
+
+		fclose(fh);
+	}
+
+	load_stage++;
 	VERIFY						(ll_dwReference);
 	VERIFY						(str && xr_strlen(str)<256);
 	strcpy_s						(app_title, str);
-	Msg							("* phase time: %d ms",phase_timer.GetElapsed_ms());	phase_timer.Start();
-	Msg							("* phase cmem: %d K", Memory.mem_usage()/1024);
-//.	Console->Execute			("stat_memory");
-	Log							(app_title);
+
+	Msg							("* phase time: %d ms, user time: %.1f ms, kernel time: %.1f ms", ph_time, delta_u, delta_k);	
+	phase_timer.Start();
+
+	Msg							("* phase cmem: %.3f M", mem_usage);
+	
+	if (IsDebuggerPresent())
+		Console->Execute				("stat_memory");
+	Msg							("Next phase begins: %s", app_title);
 	
 	if (g_pGamePersistent->GameType()==1 && strstr(Core.Params,"alife"))
-		max_load_stage			= 17;
+		max_load_stage			= 27;
 	else
-		max_load_stage			= 14;
+		max_load_stage			= 27;
 #ifndef DEDICATED_SERVER
 	UpdateTexture				(TRUE);
 #endif
@@ -1089,6 +1304,27 @@ void CApplication::OnFrame	( )
 	g_SpatialSpace->update			();
 	g_SpatialSpacePhysic->update	();
 	if (g_pGameLevel)				g_pGameLevel->SoundEvent_Dispatch	( );
+
+	static float f_free = 1000.0;
+	u32 i_frame = Device.dwFrame % 1000;
+
+	if (0 == i_frame)
+	{
+		size_t  w_free, w_committed;
+		vminfo	(&w_free, NULL, &w_committed);
+		f_free = (float)w_free / 1000000.f;			
+	}
+
+	if (f_free < 250.0 && (i_frame > 500))
+	{			
+		pFontSystem->SetColor	(color_rgba(255,0,0,255));
+		pFontSystem->SetAligment(CGameFont::alCenter);
+		pFontSystem->OutSetI	(0,-.05f);
+		pFontSystem->OutNext("Заканчивается память, доступно: %.1f МБ", f_free);
+	}
+
+
+
 }
 
 void CApplication::Level_Append		(LPCSTR folder)
@@ -1259,11 +1495,11 @@ void doBenchmark(LPCSTR name)
 
 		Engine.External.Initialize	( );
 
-		strcpy_s						(Console->ConfigFile,"user.ltx");
+		strcpy_s						(Console->ConfigFile,  sizeof(Console->ConfigFile), "user.ltx");
 		if (strstr(Core.Params,"-ltx ")) {
 			string64				c_name;
 			sscanf					(strstr(Core.Params,"-ltx ")+5,"%[^ ] ",c_name);
-			strcpy_s				(Console->ConfigFile,c_name);
+			strcpy_s				(Console->ConfigFile,  sizeof(Console->ConfigFile), c_name);
 		}
 
 		Startup	 				();
@@ -1334,7 +1570,11 @@ void CApplication::load_draw_internal()
 		float tc_delta				= back_text_coords.width()/v_cnt;
 		u32 clr = C;
 
+		if (load_stage > max_load_stage)
+			Msg("!#WARN: load_stage = %d / %d", load_stage, max_load_stage);
+
 		for(u32 idx=0; idx<v_cnt+1; ++idx){
+
 			clr =					calc_progress_color(idx,v_cnt,load_stage,max_load_stage);
 			pv->set					(back_coords.lt.x+pos_delta*idx+offs,	back_coords.rb.y+offs,	0+EPS_S, 1, clr, back_text_coords.lt.x+tc_delta*idx,	back_text_coords.rb.y);	pv++;
 			pv->set					(back_coords.lt.x+pos_delta*idx+offs,	back_coords.lt.y+offs,	0+EPS_S, 1, clr, back_text_coords.lt.x+tc_delta*idx,	back_text_coords.lt.y);	pv++;
@@ -1351,7 +1591,11 @@ void CApplication::load_draw_internal()
 		pFontSystem->Clear			();
 		pFontSystem->SetColor		(color_rgba(157,140,120,255));
 		pFontSystem->SetAligment	(CGameFont::alCenter);
-		pFontSystem->OutI			(0.f,0.815f,app_title);
+		static string256 real_title = { 0 };
+		if (NULL == strstr(app_title, "#"))
+			strcpy_s(real_title, 256, app_title);
+
+		pFontSystem->OutI			(0.f,0.815f, real_title);
 		pFontSystem->OnRender		();
 
 

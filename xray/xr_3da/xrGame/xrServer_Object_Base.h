@@ -99,6 +99,7 @@ public:
 
 	//client object custom data serialization
 	xr_vector<u8>					client_data;
+
 	virtual void					load			(NET_Packet	&tNetPacket);
 
 	//////////////////////////////////////////////////////////////////////////
@@ -118,7 +119,7 @@ public:
 	{
 		s_name		= s;
 	};
-	virtual void		__stdcall	set_name_replace(LPCSTR s) {xr_free(s_name_replace); s_name_replace = xr_strdup(s);};
+	virtual void		__stdcall	set_name_replace(LPCSTR s);
 	virtual Fvector&	__stdcall	position		();
 	virtual Fvector&	__stdcall	angle			();
 	virtual Flags16&	__stdcall	flags			();

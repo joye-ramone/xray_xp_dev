@@ -127,3 +127,8 @@ add_to_type_list(CCameraBaseScript)
 #undef script_type_list
 #define script_type_list save_type_list(CCameraBaseScript)
 
+typedef class_exporter<CRandom>	CRandomScript;
+add_to_type_list(CRandomScript)
+#undef script_type_list
+#define script_type_list save_type_list(CRandomScript)
+

@@ -13,6 +13,7 @@
 #include "script_value_container_impl.h"
 #include "clsid_game.h"
 #include "../../build_config_defines.h"
+#include "../luaicp_events.h"
 
 #pragma warning(push)
 #pragma warning(disable:4995)
@@ -108,7 +109,7 @@ CSE_Abstract::CSE_Abstract					(LPCSTR caSection)
 //	m_next_spawn_time			= 0;
 //	m_min_spawn_interval		= 0;
 //	m_max_spawn_interval		= 0;
-	m_ini_file					= 0;
+	m_ini_file					= 0;	
 #ifdef LUAICP_COMPAT
 	static bool _saved = false;
 	if (!_saved)
@@ -122,6 +123,7 @@ CSE_Abstract::CSE_Abstract					(LPCSTR caSection)
 		LogXrayOffset("CSE_ALifeObject.position",	this, &this->o_Position);
 		LogXrayOffset("CSE_ALifeObject.direction",	this, &this->o_Angle);
 		LogXrayOffset("CSE_ALifeObject.clsid",		this, &this->m_script_clsid);		
+		
 	}
 #endif
 	if (pSettings->line_exist(caSection,"custom_data")) {
@@ -151,6 +153,10 @@ CSE_Abstract::CSE_Abstract					(LPCSTR caSection)
 
 CSE_Abstract::~CSE_Abstract					()
 {
+#ifdef LUAICP_COMPAT
+	if (ID < 0xffff)
+		process_object_event(EVT_OBJECT_DESTROY | EVT_OBJECT_SERVER, ID, NULL, this, 1);
+#endif
 	xr_free						(s_name_replace);
 	xr_delete					(m_ini_file);
 }
@@ -243,6 +249,8 @@ void CSE_Abstract::Spawn_Write				(NET_Packet	&tNetPacket, BOOL bLocal)
 	tNetPacket.w_seek			(position,&size,sizeof(u16));
 }
 
+ENGINE_API bool Name_validate(shared_str &N, const shared_str &NameSection, u32 ID);
+
 BOOL CSE_Abstract::Spawn_Read				(NET_Packet	&tNetPacket)
 {
 	u16							dummy16;
@@ -252,8 +260,9 @@ BOOL CSE_Abstract::Spawn_Read				(NET_Packet	&tNetPacket)
 	tNetPacket.r_stringZ		(s_name			);
 	
 	string256					temp;
+	Memory.mem_fill	(temp, 0, sizeof(temp));
+
 	tNetPacket.r_stringZ		(temp);
-	set_name_replace			(temp);
 	tNetPacket.r_u8				(s_gameid		);
 	tNetPacket.r_u8				(s_RP			);
 	tNetPacket.r_vec3			(o_Position		);
@@ -264,7 +273,16 @@ BOOL CSE_Abstract::Spawn_Read				(NET_Packet	&tNetPacket)
 	tNetPacket.r_u16			(ID_Phantom		);
 
 	tNetPacket.r_u16			(s_flags.flags	); 
-	
+
+	if (xr_strlen(temp))
+	{
+		shared_str N(temp);
+		Name_validate(N, s_name, ID);
+		set_name_replace(N.c_str());
+	}
+	else
+		set_name_replace(name_replace());
+
 	// dangerous!!!!!!!!!
 	if (s_flags.is(M_SPAWN_VERSION))
 		tNetPacket.r_u16		(m_wVersion);
@@ -364,9 +382,26 @@ LPCSTR		CSE_Abstract::name			() const
 	return	(*s_name);
 }
 
+void CSE_Abstract::set_name_replace(LPCSTR s)
+{ 
+  xr_free(s_name_replace); 
+  s_name_replace = NULL;
+  if (s && 
+	  ( NULL == *s_name || xr_strcmp(*s_name, s) ) )
+	  s_name_replace = xr_strdup(s);
+  else
+	  s_name_replace = xr_strdup(name_replace());
+}
+
 LPCSTR		CSE_Abstract::name_replace	() const
 {
-	return	(s_name_replace);
+	if (s_name_replace && *s_name && xr_strcmp(*s_name, s_name_replace)) // alpet: если уже разные, значит все ок
+		return	(s_name_replace);
+	if (NULL == *s_name) return NULL;
+
+	static string256 temp;
+	sprintf_s(temp, 256, "%s%04d", *s_name, ID);	
+	return (temp);
 }
 
 Fvector&	CSE_Abstract::position		()

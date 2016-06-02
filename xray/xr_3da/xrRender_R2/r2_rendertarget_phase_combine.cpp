@@ -15,8 +15,8 @@ void	CRenderTarget::phase_combine	()
 	//*** exposure-pipeline
 	u32			gpu_id	= Device.dwFrame%2;
 	{
-		t_LUM_src->surface_set		(rt_LUM_pool[gpu_id*2+0]->pSurface);
-		t_LUM_dest->surface_set		(rt_LUM_pool[gpu_id*2+1]->pSurface);
+		t_LUM_src->surface_upd	(rt_LUM_pool[gpu_id*2+0]->pSurface);
+		t_LUM_dest->surface_upd	(rt_LUM_pool[gpu_id*2+1]->pSurface);
 	}
 
 	// low/hi RTs
@@ -106,8 +106,8 @@ void	CRenderTarget::phase_combine	()
 		// Setup textures
 		IDirect3DBaseTexture9*	e0	= _menu_pp?0:envdesc.sky_r_textures_env[0].second->surface_get();
 		IDirect3DBaseTexture9*	e1	= _menu_pp?0:envdesc.sky_r_textures_env[1].second->surface_get();
-		t_envmap_0->surface_set		(e0);	_RELEASE(e0);
-		t_envmap_1->surface_set		(e1);	_RELEASE(e1);
+		t_envmap_0->surface_upd		(e0);	_RELEASE(e0);
+		t_envmap_1->surface_upd		(e1);	_RELEASE(e1);
 	
 		// Draw
 		RCache.set_Element			(s_combine->E[0]	);

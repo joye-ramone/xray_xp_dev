@@ -15,6 +15,8 @@ class CScriptGameObject;
 class NET_Packet;
 
 class CScriptBinderObject {
+protected:
+    CTimer			    m_timer; // для замера времени выполнения скриптов
 public:
 	typedef CSE_ALifeObject*	SpawnType;
 	CScriptGameObject			*m_object;

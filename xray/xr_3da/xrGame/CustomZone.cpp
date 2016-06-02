@@ -56,7 +56,7 @@ CCustomZone::CCustomZone(void)
 
 	m_effector					= NULL;
 	m_bIdleObjectParticlesDontStop = FALSE;
-	m_b_always_fastmode			= FALSE;
+	m_b_always_fastmode			= FALSE;		
 }
 
 CCustomZone::~CCustomZone(void) 
@@ -372,6 +372,14 @@ BOOL CCustomZone::net_Spawn(CSE_Abstract* DC)
 	m_bBlowoutWindActive		= false;
 
 	o_fastmode					= TRUE;		// start initially with fast-mode enabled
+	if (RestrictionSpace::eRestrictorTypeNone == m_space_restrictor_type)
+	{
+		m_space_restrictor_type = (GetMaxPower() > 1.f) ? (u8)RestrictionSpace::eDefaultRestrictorTypeIn : (u8)RestrictionSpace::eDefaultRestrictorTypeNone;
+
+		MsgCB("# #DBG: updated space restrictor type for %s to %d ", Name_script(), (u32)m_space_restrictor_type);		
+	}
+
+
 	if(spawn_ini() && spawn_ini()->line_exist("fast_mode","always_fast"))
 	{
 		m_b_always_fastmode		= spawn_ini()->r_bool("fast_mode","always_fast");

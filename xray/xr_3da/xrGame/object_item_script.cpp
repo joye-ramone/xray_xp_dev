@@ -37,6 +37,7 @@ ObjectFactory::SERVER_BASE_CLASS *CObjectItemScript::server_object	(LPCSTR secti
 	try {
 		luabind::object	*instance = 0;
 		try {
+			MsgCB("$#CONTEXT: server_object('%s') ", section);
 			instance	= xr_new<luabind::object>((luabind::object)(m_server_creator(section)));
 		}
 		catch(std::exception& e) {

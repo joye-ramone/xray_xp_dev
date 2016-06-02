@@ -103,7 +103,7 @@ protected:
 
 	//изменение силы хита в зависимости от надетого костюма
 	//(только для InventoryOwner)
-	float					HitOutfitEffect			(float hit_power, ALife::EHitType hit_type, s16 element, float AP);
+	float					HitOutfitEffect			(SHit *pHDS);
 	//изменение потери сил в зависимости от надетого костюма
 	float					HitPowerEffect			(float power_loss);
 	
@@ -190,6 +190,7 @@ public:
 	virtual void					reinit				();
 	
 	IC const	float				fdelta_time			() const 	{return		(m_fDeltaTime);			}
+	IC const    float				fdelta_health		() const	{return     (m_fDeltaHealth);       }
 	IC const	WOUND_VECTOR&		wounds				() const	{return		(m_WoundVector);		}
 	IC float&						radiation			()			{return		(m_fRadiation);			}
 	IC float&						hit_bone_scale		()			{return		(m_fHitBoneScale);		}

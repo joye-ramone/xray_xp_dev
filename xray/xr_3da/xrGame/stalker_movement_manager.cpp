@@ -442,7 +442,7 @@ void CStalkerMovementManager::parse_velocity_mask	()
 			if (m_object->brain().current_action_id() == StalkerDecisionSpace::eWorldOperatorCombatPlanner) {
 				CStalkerCombatPlanner	&planner = smart_cast<CStalkerCombatPlanner&>(m_object->brain().current_action());
 				if (planner.current_action_id() != StalkerDecisionSpace::eWorldOperatorKillWoundedEnemy)
-					Msg					("~ stalker %s is doing bad thing (action %s)",*m_object->cName(),planner.current_action().m_action_name);
+					Msg					("# stalker %s is doing bad thing (action %s)",*m_object->cName(),planner.current_action().m_action_name);
 			}
 #endif // DEBUG
 			m_current.m_mental_state	= eMentalStateFree;
@@ -494,23 +494,23 @@ void CStalkerMovementManager::set_nearest_accessible_position(Fvector desired_po
 
 	if (!restrictions().accessible(desired_position)) {
 		level_vertex_id			= restrictions().accessible_nearest(Fvector().set(desired_position),desired_position);
-		VERIFY					(restrictions().accessible(level_vertex_id));
-		VERIFY					(restrictions().accessible(desired_position));
+		FORCE_VERIFY					(restrictions().accessible(level_vertex_id));
+		FORCE_VERIFY					(restrictions().accessible(desired_position));
 	}
 	else {
 		if (!restrictions().accessible(level_vertex_id)) {
 			level_vertex_id		= restrictions().accessible_nearest(ai().level_graph().vertex_position(level_vertex_id),desired_position);
-			VERIFY				(restrictions().accessible(level_vertex_id));
-			VERIFY				(restrictions().accessible(desired_position));
+			FORCE_VERIFY				(restrictions().accessible(level_vertex_id));
+			FORCE_VERIFY				(restrictions().accessible(desired_position));
 		}
 	}
 
-	VERIFY						(ai().level_graph().inside(level_vertex_id,desired_position));
+	FORCE_VERIFY						(ai().level_graph().inside(level_vertex_id,desired_position));
 
-	VERIFY2						(restrictions().accessible(level_vertex_id) || show_restrictions(&restrictions()),*object().cName());
+	FORCE_VERIFY2						(restrictions().accessible(level_vertex_id) || show_restrictions(&restrictions()),*object().cName());
 	set_level_dest_vertex		(level_vertex_id);
 	
-	VERIFY2						(restrictions().accessible(desired_position) || show_restrictions(&restrictions()),*object().cName());
+	FORCE_VERIFY2						(restrictions().accessible(desired_position) || show_restrictions(&restrictions()),*object().cName());
 	set_desired_position		(&desired_position);
 }
 

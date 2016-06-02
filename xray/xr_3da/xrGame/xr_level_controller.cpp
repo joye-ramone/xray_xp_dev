@@ -98,10 +98,10 @@ _action  actions[]		= {
 	{ "quick_save",			kQUICK_SAVE				,_sp},		
 	{ "quick_load",			kQUICK_LOAD				,_sp},		
 #ifdef INV_NEW_SLOTS_SYSTEM
-	{ "use_slot_quick_access_0",			kUSE_SLOT_QUICK_ACCESS_0				,_sp},
-	{ "use_slot_quick_access_1",			kUSE_SLOT_QUICK_ACCESS_1				,_sp},
-	{ "use_slot_quick_access_2",			kUSE_SLOT_QUICK_ACCESS_2				,_sp},
-	{ "use_slot_quick_access_3",			kUSE_SLOT_QUICK_ACCESS_3				,_sp},
+	{ "use_slot_quick_access_0",			kUSE_SLOT_QUICK_ACCESS_0				,_both},
+	{ "use_slot_quick_access_1",			kUSE_SLOT_QUICK_ACCESS_1				,_both},
+	{ "use_slot_quick_access_2",			kUSE_SLOT_QUICK_ACCESS_2				,_both},
+	{ "use_slot_quick_access_3",			kUSE_SLOT_QUICK_ACCESS_3				,_both},
 #endif																	
 	{ NULL, 				kLASTACTION				,_both}		
 };															

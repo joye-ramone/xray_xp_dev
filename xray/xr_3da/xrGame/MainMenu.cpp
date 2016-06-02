@@ -54,7 +54,7 @@ CMainMenu::CMainMenu	()
 	m_startDialog					= NULL;
 	m_screenshotFrame				= u32(-1);
 	g_pGamePersistent->m_pMainMenu	= this;
-	if (Device.b_is_Ready)			OnDeviceCreate();  	
+	if (Device.b_is_Ready)			OnDeviceCreate();  
 	ReadTextureInfo					();
 	CUIXmlInit::InitColorDefs		();
 	g_btnHint						= NULL;
@@ -68,20 +68,25 @@ CMainMenu::CMainMenu	()
 	//---------------------------------------------------------------
 	m_NeedErrDialog					= ErrNoError;
 	m_start_time					= 0;
+	
 
 	if(!g_dedicated_server)
 	{
 		g_btnHint						= xr_new<CUIButtonHint>();
-		m_pGameSpyFull					= xr_new<CGameSpy_Full>();
-		
+		// m_pGameSpyFull				= xr_new<CGameSpy_Full>();
+		Log("##PERF: after CUIButtonHint()  ");
+
+
 		for (u32 i=0; i<u32(ErrMax); i++)
 		{
 			CUIMessageBoxEx*			pNewErrDlg;
 			INIT_MSGBOX					(pNewErrDlg, ErrMsgBoxTemplate[i]);
 			m_pMB_ErrDlgs.push_back		(pNewErrDlg);
+			// Msg("##PERF: after creating #%d dialog  %s", i, ErrMsgBoxTemplate[i]);
 		}
 
 		Register						(m_pMB_ErrDlgs[PatchDownloadSuccess]);
+
 		m_pMB_ErrDlgs[PatchDownloadSuccess]->SetWindowName	("msg_box");
 		m_pMB_ErrDlgs[PatchDownloadSuccess]->AddCallback	("msg_box", MESSAGE_BOX_YES_CLICKED, CUIWndCallback::void_function(this, &CMainMenu::OnRunDownloadedPatch));
 
@@ -134,6 +139,11 @@ void CMainMenu::Activate	(bool bActivate)
 	bool b_is_single		= IsGameTypeSingle();
 
 	if(g_dedicated_server && bActivate) return;
+
+
+#ifdef LUAICP_COMPAT
+	SetPriorityClass(GetCurrentProcess(), bActivate ? NORMAL_PRIORITY_CLASS : HIGH_PRIORITY_CLASS);          // при подвисании это конечно накажет, но есть быстрые клавиши суицида процесса игры.
+#endif
 
 	if(bActivate)
 	{
@@ -330,20 +340,29 @@ bool CMainMenu::OnRenderPPUI_query()
 extern void draw_wnds_rects();
 void CMainMenu::OnRender	()
 {
-	if(m_Flags.test(flGameSaveScreenshot))
-		return;
 
-	if(g_pGameLevel)
-		Render->Calculate			();
-
-	Render->Render				();
-	if(!OnRenderPPUI_query())
+	__try
 	{
-		DoRenderDialogs();
-		UI()->RenderFont();
-		draw_wnds_rects();
+		if (m_Flags.test(flGameSaveScreenshot))
+			return;
+
+		if (g_pGameLevel)
+			Render->Calculate();
+
+		Render->Render();
+		if (!OnRenderPPUI_query())
+		{
+			DoRenderDialogs();
+			UI()->RenderFont();
+			draw_wnds_rects();
+		}
+	}
+	__except (SIMPLE_FILTER)
+	{
+		Msg("!EXCEPTION: in CMainMenu:: OnRender");
 	}
 }
+
 
 void CMainMenu::OnRenderPPUI_main	()
 {
@@ -413,7 +432,7 @@ void CMainMenu::OnFrame()
 			Console->Show			();
 	}
 
-	if(IsActive() || m_sPDProgress.IsInProgress)
+	if(m_pGameSpyFull && ( IsActive() || m_sPDProgress.IsInProgress ))
 		m_pGameSpyFull->Update();
 
 	if(IsActive())
@@ -625,7 +644,7 @@ extern	void	GetCDKey(char* CDKeyStr);
 
 bool CMainMenu::IsCDKeyIsValid()
 {
-	if (!m_pGameSpyFull || !m_pGameSpyFull->m_pGS_HTTP) return false;
+	if (!m_pGameSpyFull || !m_pGameSpyFull->m_pGS_HTTP) return true;
 	string64 CDKey = "";
 	GetCDKey(CDKey);
 

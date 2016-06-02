@@ -21,6 +21,8 @@
 
 #include "../../build_config_defines.h"
 
+#pragma optimize("gyts", off)
+
 CUIGameSP::CUIGameSP()
 {
 	m_game			= NULL;
@@ -73,6 +75,22 @@ void CUIGameSP::SetClGame (game_cl_GameState* g)
 }
 
 #include "Inventory.h"
+bool ActorHavePDA()
+{
+#if defined(UI_LOCK_PDA_WITHOUT_PDA_IN_SLOT)
+	auto *itm = Actor()->inventory().m_slots[PDA_SLOT].m_pIItem;
+ #ifdef NLC_EXTENSIONS
+	return (itm && itm->object().cNameSect() == "device_pda");
+ #else
+	return itm;
+ #endif
+#else
+	return true;
+#endif
+
+}
+
+
 bool CUIGameSP::IR_OnKeyboardPress(int dik) 
 {
 	if(inherited::IR_OnKeyboardPress(dik)) return true;
@@ -92,9 +110,7 @@ bool CUIGameSP::IR_OnKeyboardPress(int dik)
 		}break;
 
 	case kACTIVE_JOBS:
-#if defined(UI_LOCK_PDA_WITHOUT_PDA_IN_SLOT)
-		if (pActor->inventory().m_slots[PDA_SLOT].m_pIItem)
-#endif
+		if( ActorHavePDA() )
 		if( !MainInputReceiver() || MainInputReceiver()==PdaMenu){
 			PdaMenu->SetActiveSubdialog(eptQuests);
 			m_game->StartStopMenu(PdaMenu,true);
@@ -102,9 +118,7 @@ bool CUIGameSP::IR_OnKeyboardPress(int dik)
 		}break;
 
 	case kMAP:
-#if defined(UI_LOCK_PDA_WITHOUT_PDA_IN_SLOT)
-		if (pActor->inventory().m_slots[PDA_SLOT].m_pIItem)
-#endif
+		if( ActorHavePDA() )
 		if( !MainInputReceiver() || MainInputReceiver()==PdaMenu){
 			PdaMenu->SetActiveSubdialog(eptMap);
 			m_game->StartStopMenu(PdaMenu,true);
@@ -112,9 +126,7 @@ bool CUIGameSP::IR_OnKeyboardPress(int dik)
 		}break;
 
 	case kCONTACTS:
-#if defined(UI_LOCK_PDA_WITHOUT_PDA_IN_SLOT)
-		if (pActor->inventory().m_slots[PDA_SLOT].m_pIItem)
-#endif
+		if( ActorHavePDA() )
 		if( !MainInputReceiver() || MainInputReceiver()==PdaMenu){
 			PdaMenu->SetActiveSubdialog(eptContacts);
 			m_game->StartStopMenu(PdaMenu,true);
@@ -157,7 +169,7 @@ void CUIGameSP::StartCarBody(CInventoryOwner* pOurInv, CInventoryOwner* pOthers)
 	UICarBodyMenu->InitCarBody		(pOurInv,  pOthers);
 	m_game->StartStopMenu			(UICarBodyMenu,true);
 }
-void CUIGameSP::StartCarBody(CInventoryOwner* pOurInv, CInventoryBox* pBox)
+void CUIGameSP::StartCarBody(CInventoryOwner* pOurInv, IInventoryBox* pBox)
 {
 	if( MainInputReceiver() )		return;
 	UICarBodyMenu->InitCarBody		(pOurInv,  pBox);
@@ -179,7 +191,7 @@ void CUIGameSP::ReInitShownUI()
 extern ENGINE_API BOOL bShowPauseString;
 void CUIGameSP::ChangeLevel				(GameGraph::_GRAPH_ID game_vert_id, u32 level_vert_id, Fvector pos, Fvector ang, Fvector pos2, Fvector ang2, bool b)
 {
-	if( !MainInputReceiver() || MainInputReceiver()!=UIChangeLevelWnd)
+	if( !MainInputReceiver() || MainInputReceiver() != UIChangeLevelWnd)
 	{
 		UIChangeLevelWnd->m_game_vertex_id		= game_vert_id;
 		UIChangeLevelWnd->m_level_vertex_id		= level_vert_id;

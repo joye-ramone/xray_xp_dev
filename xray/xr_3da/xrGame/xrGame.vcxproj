@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug_Priquel|Win32">
       <Configuration>Debug_Priquel</Configuration>
@@ -76,76 +76,96 @@
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v120_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v120_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v120_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v120_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v120_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v120_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Mixed|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120_xp</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">
+    <PlatformToolset>v120_xp</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Template|x64'">
+    <PlatformToolset>v120_xp</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -209,72 +229,93 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">x:\binaries\Debug\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">x:\binaries\x64\Debug\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">x:\intermediate\$(Configuration)\$(ProjectName)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">x:\intermediate\$(Configuration)\$(ProjectName)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(XrayOutput)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(XrayOutput)\x64\Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(XrayIntermediate)\\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(XrayIntermediate)\\$(Configuration)\$(ProjectName)\</IntDir>
     <ExtensionsToDeleteOnClean Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">*.idb%3b*.obj%3b*.ilk%3b*.pdb%3b*.tlb%3b*.tli%3b*.tlh%3b*.tmp%3b*.rsp%3b*.bat%3b$(TargetPath)</ExtensionsToDeleteOnClean>
     <ExtensionsToDeleteOnClean Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">*.idb%3b*.obj%3b*.ilk%3b*.pdb%3b*.tlb%3b*.tli%3b*.tlh%3b*.tmp%3b*.rsp%3b*.bat%3b$(TargetPath)</ExtensionsToDeleteOnClean>
     <IgnoreImportLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</IgnoreImportLibrary>
     <IgnoreImportLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</IgnoreImportLibrary>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">x:\binaries\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Mixed|x64'">x:\binaries\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">x:\intermediate\$(Configuration)\$(ProjectName)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Mixed|x64'">x:\intermediate\$(Configuration)\$(ProjectName)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">$(XrayOutput)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Mixed|x64'">$(XrayOutput)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">$(XrayIntermediate)\\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Mixed|x64'">$(XrayIntermediate)\\$(Configuration)\$(ProjectName)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Mixed|x64'">true</LinkIncremental>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">x:\binaries\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|Win32'">x:\binaries\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">x:\binaries\x64\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|x64'">x:\binaries\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">x:\intermediate\$(Configuration)\$(ProjectName)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|Win32'">x:\intermediate\$(Configuration)\$(ProjectName)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">x:\intermediate\$(Configuration)\$(ProjectName)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|x64'">x:\intermediate\$(Configuration)\$(ProjectName)\</IntDir>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(XrayOutput)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|Win32'">$(XrayOutput)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(XrayOutput)\x64\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|x64'">$(XrayOutput)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(XrayIntermediate)\\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|Win32'">$(XrayIntermediate)\\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(XrayIntermediate)\\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|x64'">$(XrayIntermediate)\\$(Configuration)\$(ProjectName)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|Win32'">false</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|x64'">false</LinkIncremental>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">x:\binaries\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|x64'">x:\binaries\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">x:\intermediate\$(Configuration)\$(ProjectName)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|x64'">x:\intermediate\$(Configuration)\$(ProjectName)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">$(XrayOutput)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|x64'">$(XrayOutput)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">$(XrayIntermediate)\\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|x64'">$(XrayIntermediate)\\$(Configuration)\$(ProjectName)\</IntDir>
     <ExtensionsToDeleteOnClean Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">*.idb%3b*.obj%3b*.ilk%3b*.pdb%3b*.tlb%3b*.tli%3b*.tlh%3b*.tmp%3b*.rsp%3b*.bat%3b$(TargetPath)</ExtensionsToDeleteOnClean>
     <ExtensionsToDeleteOnClean Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|x64'">*.idb%3b*.obj%3b*.ilk%3b*.pdb%3b*.tlb%3b*.tli%3b*.tlh%3b*.tmp%3b*.rsp%3b*.bat%3b$(TargetPath)</ExtensionsToDeleteOnClean>
     <IgnoreImportLibrary Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">true</IgnoreImportLibrary>
     <IgnoreImportLibrary Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|x64'">true</IgnoreImportLibrary>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|x64'">true</LinkIncremental>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|Win32'">x:\binaries\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|x64'">x:\binaries\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|Win32'">x:\intermediate\$(Configuration)\$(ProjectName)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|x64'">x:\intermediate\$(Configuration)\$(ProjectName)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|Win32'">$(XrayOutput)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|x64'">$(XrayOutput)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|Win32'">$(XrayIntermediate)\\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|x64'">$(XrayIntermediate)\\$(Configuration)\$(ProjectName)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|Win32'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|x64'">true</LinkIncremental>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">x:\binaries\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|x64'">x:\binaries\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">x:\intermediate\$(Configuration)\$(ProjectName)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|x64'">x:\intermediate\$(Configuration)\$(ProjectName)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">$(XrayOutput)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|x64'">$(XrayOutput)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">$(XrayIntermediate)\\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|x64'">$(XrayIntermediate)\\$(Configuration)\$(ProjectName)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">false</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|x64'">false</LinkIncremental>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">X:\trunk\xray\xrLua\src;X:\trunk\3rd party\FreeImage\FreeImage\Source;X:\trunk\xray\xrCore;X:\trunk\3rd party\MagicSoftware\FreeMagic\Include;X:\trunk\3rd party\OpenAL\Include;X:\trunk\3rd party\luabind_old\luabind;X:\trunk\3rd party\loki;X:\trunk\3rd party\eax\Include;X:\trunk\3rd party\boost;$(WindowsSdkDir)include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include;$(IncludePath)</IncludePath>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|Win32'">X:\3rd party\stlport\stlport;X:\xray\xrLua\src;X:\3rd party\FreeImage\FreeImage\Source;X:\xray\xrCore;X:\3rd party\MagicSoftware\FreeMagic\Include;X:\3rd party\OpenAL\Include;X:\3rd party\luabind_old\luabind;X:\3rd party\loki;X:\3rd party\eax\Include;X:\3rd party\boost;$(WindowsSdkDir)include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include;$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IncludePath);$(DX9IncludePath);$(DX8IncludePath);$(XrayIncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|Win32'">$(IncludePath);$(DX9IncludePath);$(DX8IncludePath);$(XrayIncludePathSP)</IncludePath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">X:\trunk\xray\xrLua\src;X:\trunk\3rd party\FreeImage\FreeImage\Source;X:\trunk\xray\xrCore;X:\trunk\3rd party\MagicSoftware\FreeMagic\Include;X:\trunk\3rd party\OpenAL\Include;X:\trunk\3rd party\luabind_old\luabind;X:\trunk\3rd party\loki;X:\trunk\3rd party\eax\Include;X:\trunk\3rd party\boost;$(WindowsSdkDir)include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include;$(IncludePath)</IncludePath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|x64'">X:\xray\xrLua\src;X:\3rd party\FreeImage;X:\xray\xrCore;X:\3rd party\MagicSoftware\FreeMagic\Include;C:\Program Files %28x86%29\OpenAL 1.1 SDK\include;X:\3rd party\luabind_old\luabind;X:\3rd party\loki;X:\3rd party\eax\Include;X:\3rd party\Xiph\Include;X:\3rd party\boost;$(WindowsSdkDir)include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include;$(IncludePath)</IncludePath>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Lib\x86;X:\trunk\3rd party\OpenAL\libs\Win32;X:\trunk\3rd party\eax;X:\libraries;$(LibraryPath)</LibraryPath>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|Win32'">X:\3rd party\stlport\lib;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Lib\x86;X:\3rd party\OpenAL\libs\Win32;X:\3rd party\eax;X:\libraries;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(LibraryPath);$(DX9LibPath);$(DX8LibPath);$(XrayLibPath)$(Configuration);</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|Win32'">$(LibraryPath);$(DX9LibPath);$(DX8LibPath);$(XrayLibPathSP);</LibraryPath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Lib\x64;X:\3rd party\OpenAL\libs\Win64;X:\3rd party\eax;X:\libraries\x64\;$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSdkDir)lib\x64</LibraryPath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|x64'">X:\3rd party\MagicSoftware\FreeMagic\Library\ReleaseDLL;X:\3rd party\FreeImage;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Lib\x86;X:\3rd party\Xiph\Libs;C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32;X:\3rd party\eax;X:\libraries;$(LibraryPath)</LibraryPath>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">X:\trunk\xray\xrLua\src;X:\trunk\3rd party\FreeImage\FreeImage\Source;X:\trunk\xray\xrCore;X:\trunk\3rd party\MagicSoftware\FreeMagic\Include;X:\trunk\3rd party\OpenAL\Include;X:\trunk\3rd party\luabind_old\luabind;X:\trunk\3rd party\loki;X:\trunk\3rd party\eax\Include;X:\trunk\3rd party\boost;$(WindowsSdkDir)include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include;$(IncludePath)</IncludePath>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Lib\x86;X:\trunk\3rd party\OpenAL\libs\Win32;X:\trunk\3rd party\eax;X:\libraries\Debug;$(LibraryPath);$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IncludePath);$(DX9IncludePath);$(DX8IncludePath);$(XrayIncludePath)</IncludePath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(LibraryPath);$(DX9LibPath);$(DX8LibPath);$(XrayLibPath)$(Configuration)</LibraryPath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">X:\trunk\xray\xrLua\src;X:\trunk\3rd party\FreeImage\FreeImage\Source;X:\trunk\xray\xrCore;X:\trunk\3rd party\MagicSoftware\FreeMagic\Include;X:\trunk\3rd party\OpenAL\Include;X:\trunk\3rd party\luabind_old\luabind;X:\trunk\3rd party\loki;X:\trunk\3rd party\eax\Include;X:\trunk\3rd party\boost;$(WindowsSdkDir)include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include;$(IncludePath)</IncludePath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Lib\x64;X:\3rd party\OpenAL\libs\Win64;X:\3rd party\eax;X:\libraries\x64\Debug\;$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSdkDir)lib\x64</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">
+    <IncludePath>$(IncludePath);$(DX9IncludePath);$(DX8IncludePath);$(XrayIncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DX9LibPath);$(DX8LibPath);$(XrayLibPath)$(Configuration);</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">
+    <IncludePath>$(IncludePath);$(DX9IncludePath);$(DX8IncludePath);$(XrayIncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DX9LibPath);$(DX8LibPath);$(XrayLibPath)$(Configuration);</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">
+    <IncludePath>$(IncludePath);$(DX9IncludePath);$(DX8IncludePath);$(XrayIncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DX9LibPath);$(DX8LibPath);$(XrayLibPath)$(Configuration);</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|Win32'">
+    <IncludePath>$(IncludePath);$(DX9IncludePath);$(DX8IncludePath);$(XrayIncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DX9LibPath);$(DX8LibPath);$(XrayLibPath)$(Configuration);</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">
+    <IncludePath>$(IncludePath);$(DX9IncludePath);$(DX8IncludePath);$(XrayIncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DX9LibPath);$(DX8LibPath);$(XrayLibPath)$(Configuration);</LibraryPath>
+    <OutDir>$(XrayOutput)\</OutDir>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TargetEnvironment>Win32</TargetEnvironment>
@@ -285,12 +326,11 @@
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <PreprocessorDefinitions>WIN32;DEBUG;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;DEBUG;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <StringPooling>false</StringPooling>
-      <MinimalRebuild>true</MinimalRebuild>
+      <MinimalRebuild>false</MinimalRebuild>
       <ExceptionHandling>Sync</ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <SmallerTypeCheck>true</SmallerTypeCheck>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <FunctionLevelLinking>false</FunctionLevelLinking>
@@ -309,10 +349,12 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4237;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>X:\trunk\xray\Luabind;X:\trunk\xray\LuaJIT\src;$(WindowsSdkDir)include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2007%29\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <Culture>0x0419</Culture>
     </ResourceCompile>
     <Link>
@@ -320,19 +362,23 @@
  %(AdditionalOptions)</AdditionalOptions>
       <ShowProgress>NotSet</ShowProgress>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\Microsoft DirectX SDK %28November 2007%29\Lib\x86;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2007%29\Lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateMapFile>false</GenerateMapFile>
       <MapFileName>
       </MapFileName>
       <MapExports>false</MapExports>
       <LargeAddressAware>true</LargeAddressAware>
-      <ImportLibrary>x:\libraries\Debug\$(ProjectName).lib</ImportLibrary>
+      <ImportLibrary>x:\libraries\$(Configuration)\$(ProjectName).lib</ImportLibrary>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <AdditionalDependencies>lua5.1.lib;luabind.lib;cryptopp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Midl>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TypeLibraryName>x:\xrGame.tlb</TypeLibraryName>
@@ -342,11 +388,10 @@
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <PreprocessorDefinitions>_AMD64_;_WIN64;DEBUG;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_AMD64_;_WIN64;DEBUG;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <StringPooling>false</StringPooling>
       <ExceptionHandling>Sync</ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <SmallerTypeCheck>true</SmallerTypeCheck>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <FunctionLevelLinking>false</FunctionLevelLinking>
@@ -368,7 +413,7 @@
       <AdditionalIncludeDirectories>X:\trunk\xray\Luabind;X:\trunk\xray\LuaJIT\src;$(WindowsSdkDir)include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2007%29\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <Culture>0x0419</Culture>
     </ResourceCompile>
     <Link>
@@ -386,7 +431,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">
     <Midl>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TargetEnvironment>Win32</TargetEnvironment>
@@ -399,7 +444,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <PreprocessorDefinitions>DEBUG;MIXED;WIN32;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DEBUG;MIXED;WIN32;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>true</BufferSecurityCheck>
@@ -423,7 +468,7 @@
       <DisableSpecificWarnings>4237;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <Culture>0x0419</Culture>
     </ResourceCompile>
     <Link>
@@ -433,13 +478,16 @@
       <GenerateMapFile>false</GenerateMapFile>
       <MapFileName>$(OutDir)$(ProjectName).map</MapFileName>
       <LargeAddressAware>true</LargeAddressAware>
-      <ImportLibrary>x:\libraries\$(ProjectName).lib</ImportLibrary>
+      <ImportLibrary>x:\libraries\$(Configuration)\$(ProjectName).lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <AdditionalDependencies>lua5.1.lib;luabind.lib;cryptopp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Mixed|x64'">
     <Midl>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TypeLibraryName>x:\xrGame.tlb</TypeLibraryName>
@@ -451,7 +499,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <PreprocessorDefinitions>DEBUG;MIXED;WIN32;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DEBUG;MIXED;WIN32;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>true</BufferSecurityCheck>
@@ -475,7 +523,7 @@
       <DisableSpecificWarnings>4237;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <Culture>0x0419</Culture>
     </ResourceCompile>
     <Link>
@@ -490,7 +538,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Midl>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TargetEnvironment>Win32</TargetEnvironment>
@@ -503,16 +551,15 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <WholeProgramOptimization>true</WholeProgramOptimization>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <PreprocessorDefinitions>HARDCORE;WIN32;NDEBUG;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;RUCK_FLAG_PREFERRED;OBJECTS_RADIOACTIVE;SHOW_LIMITED_TIME_TASKS;SHORT_LIVED_ANOMS;LIGHT_DEBUG;NLC_EXTENSIONS;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
-      <ExceptionHandling>
-      </ExceptionHandling>
+      <ExceptionHandling>false</ExceptionHandling>
       <SmallerTypeCheck>false</SmallerTypeCheck>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <ForceConformanceInForLoopScope>false</ForceConformanceInForLoopScope>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -530,33 +577,54 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4995;4237;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>X:\trunk\xray\Luabind;X:\trunk\xray\LuaJIT\src;$(WindowsSdkDir)include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2007%29\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>X:\trunk\xray\Luabind;X:\trunk\xray\LuaJIT\src;$(WindowsSdkDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <AdditionalOptions>/d2Zi+ %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <Culture>0x0419</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalOptions>/MACHINE:I386  %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/MACHINE:I386  /PDBCompress %(AdditionalOptions)</AdditionalOptions>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\Microsoft DirectX SDK %28November 2007%29\Lib\x86;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2007%29\Lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)$(ProjectName).pdb</ProgramDatabaseFile>
-      <GenerateMapFile>false</GenerateMapFile>
+      <GenerateMapFile>true</GenerateMapFile>
       <MapFileName>
       </MapFileName>
-      <SubSystem>NotSet</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <LargeAddressAware>true</LargeAddressAware>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
-      <ImportLibrary>x:\libraries\$(ProjectName).lib</ImportLibrary>
-      <AdditionalDependencies>lua5.1.lib;luabind.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <LinkTimeCodeGeneration>
+      </LinkTimeCodeGeneration>
+      <ImportLibrary>x:\libraries\$(Configuration)\$(ProjectName).lib</ImportLibrary>
+      <AdditionalDependencies>dbghelp.lib;luaicp.lib;lua5.1.lib;luabind.lib;cryptopp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <MapExports>true</MapExports>
+      <StackReserveSize>
+      </StackReserveSize>
+      <StackCommitSize>
+      </StackCommitSize>
+      <HeapReserveSize>
+      </HeapReserveSize>
+      <BaseAddress>0x8000000</BaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <FixedBaseAddress>false</FixedBaseAddress>
+      <ShowProgress>LinkVerboseSAFESEH</ShowProgress>
+      <Version>7100</Version>
+      <StripPrivateSymbols>$(OutDir)$(ProjectName)_small.pdb</StripPrivateSymbols>
+      <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
+      <Profile>false</Profile>
+      <SectionAlignment>
+      </SectionAlignment>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|Win32'">
     <Midl>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TargetEnvironment>Win32</TargetEnvironment>
@@ -570,7 +638,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>
       </ExceptionHandling>
@@ -599,7 +667,7 @@
       <AdditionalIncludeDirectories>X:\trunk\xray\Luabind;X:\trunk\xray\LuaJIT\src;$(WindowsSdkDir)include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2007%29\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <Culture>0x0419</Culture>
     </ResourceCompile>
     <Link>
@@ -611,17 +679,18 @@
       <GenerateMapFile>false</GenerateMapFile>
       <MapFileName>
       </MapFileName>
-      <SubSystem>NotSet</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <LargeAddressAware>true</LargeAddressAware>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <ImportLibrary>x:\libraries\$(ProjectName).lib</ImportLibrary>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <ImportLibrary>x:\libraries\$(Configuration)\$(ProjectName).lib</ImportLibrary>
+      <AdditionalDependencies>lua5.1.lib;luabind.lib;cryptopp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Midl>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TypeLibraryName>x:\xrGame.tlb</TypeLibraryName>
@@ -634,7 +703,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <PreprocessorDefinitions>_AMD64_;_WIN64;NDEBUG;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_AMD64_;_WIN64;NDEBUG;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>
       </ExceptionHandling>
@@ -663,7 +732,7 @@
       <AdditionalIncludeDirectories>X:\trunk\xray\Luabind;X:\trunk\xray\LuaJIT\src;$(WindowsSdkDir)include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2007%29\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <Culture>0x0419</Culture>
     </ResourceCompile>
     <Link>
@@ -674,17 +743,18 @@
       <GenerateMapFile>false</GenerateMapFile>
       <MapFileName>
       </MapFileName>
-      <SubSystem>NotSet</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <LargeAddressAware>true</LargeAddressAware>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <ImportLibrary>x:\libraries\x64\$(ProjectName).lib</ImportLibrary>
+      <AdditionalDependencies>Shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|x64'">
     <Midl>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TypeLibraryName>x:\xrGame.tlb</TypeLibraryName>
@@ -697,7 +767,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>
       </ExceptionHandling>
@@ -725,7 +795,7 @@
       <DisableSpecificWarnings>4237;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <Culture>0x0419</Culture>
     </ResourceCompile>
     <Link>
@@ -737,7 +807,7 @@
       <GenerateMapFile>false</GenerateMapFile>
       <MapFileName>
       </MapFileName>
-      <SubSystem>NotSet</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <LargeAddressAware>true</LargeAddressAware>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -747,7 +817,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">
     <Midl>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TargetEnvironment>Win32</TargetEnvironment>
@@ -758,12 +828,11 @@
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <PreprocessorDefinitions>WIN32;DEBUG;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;_SECURE_SCL=0;PRIQUEL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;DEBUG;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;PRIQUEL;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <StringPooling>false</StringPooling>
       <MinimalRebuild>true</MinimalRebuild>
       <ExceptionHandling>Sync</ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <SmallerTypeCheck>true</SmallerTypeCheck>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <FunctionLevelLinking>false</FunctionLevelLinking>
@@ -784,7 +853,7 @@
       <DisableSpecificWarnings>4237;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <Culture>0x0419</Culture>
     </ResourceCompile>
     <Link>
@@ -799,12 +868,15 @@
       </MapFileName>
       <MapExports>false</MapExports>
       <LargeAddressAware>true</LargeAddressAware>
-      <ImportLibrary>x:\libraries\$(ProjectName).lib</ImportLibrary>
+      <ImportLibrary>x:\libraries\$(Configuration)\$(ProjectName).lib</ImportLibrary>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <AdditionalDependencies>lua5.1.lib;luabind.lib;cryptopp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|x64'">
     <Midl>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TypeLibraryName>x:\xrGame.tlb</TypeLibraryName>
@@ -814,11 +886,10 @@
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <PreprocessorDefinitions>WIN32;DEBUG;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;_SECURE_SCL=0;PRIQUEL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;DEBUG;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;PRIQUEL;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <StringPooling>false</StringPooling>
       <ExceptionHandling>Sync</ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <SmallerTypeCheck>true</SmallerTypeCheck>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <FunctionLevelLinking>false</FunctionLevelLinking>
@@ -839,7 +910,7 @@
       <DisableSpecificWarnings>4237;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <Culture>0x0419</Culture>
     </ResourceCompile>
     <Link>
@@ -859,7 +930,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|Win32'">
     <Midl>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TargetEnvironment>Win32</TargetEnvironment>
@@ -872,7 +943,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <PreprocessorDefinitions>DEBUG;MIXED;WIN32;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;_SECURE_SCL=0;PRIQUEL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DEBUG;MIXED;WIN32;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;PRIQUEL;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>true</BufferSecurityCheck>
@@ -896,7 +967,7 @@
       <DisableSpecificWarnings>4237;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <Culture>0x0419</Culture>
     </ResourceCompile>
     <Link>
@@ -906,13 +977,16 @@
       <GenerateMapFile>false</GenerateMapFile>
       <MapFileName>$(OutDir)$(ProjectName).map</MapFileName>
       <LargeAddressAware>true</LargeAddressAware>
-      <ImportLibrary>x:\libraries\$(ProjectName).lib</ImportLibrary>
+      <ImportLibrary>x:\libraries\$(Configuration)\$(ProjectName).lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <AdditionalDependencies>lua5.1.lib;luabind.lib;cryptopp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|x64'">
     <Midl>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TypeLibraryName>x:\xrGame.tlb</TypeLibraryName>
@@ -924,7 +998,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <PreprocessorDefinitions>DEBUG;MIXED;WIN32;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;_SECURE_SCL=0;PRIQUEL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DEBUG;MIXED;WIN32;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;PRIQUEL;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>true</BufferSecurityCheck>
@@ -948,7 +1022,7 @@
       <DisableSpecificWarnings>4237;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <Culture>0x0419</Culture>
     </ResourceCompile>
     <Link>
@@ -963,7 +1037,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">
     <Midl>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TargetEnvironment>Win32</TargetEnvironment>
@@ -977,7 +1051,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;_SECURE_SCL=0;PRIQUEL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;PRIQUEL;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>
       </ExceptionHandling>
@@ -1005,7 +1079,7 @@
       <DisableSpecificWarnings>4237;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <Culture>0x0419</Culture>
     </ResourceCompile>
     <Link>
@@ -1017,17 +1091,18 @@
       <GenerateMapFile>false</GenerateMapFile>
       <MapFileName>
       </MapFileName>
-      <SubSystem>NotSet</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <LargeAddressAware>true</LargeAddressAware>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <ImportLibrary>x:\libraries\$(ProjectName).lib</ImportLibrary>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <ImportLibrary>x:\libraries\$(Configuration)\$(ProjectName).lib</ImportLibrary>
+      <AdditionalDependencies>lua5.1.lib;luabind.lib;cryptopp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|x64'">
     <Midl>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TypeLibraryName>x:\xrGame.tlb</TypeLibraryName>
@@ -1040,7 +1115,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;_SECURE_SCL=0;PRIQUEL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;PRIQUEL;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>
       </ExceptionHandling>
@@ -1068,7 +1143,7 @@
       <DisableSpecificWarnings>4237;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
       <Culture>0x0419</Culture>
     </ResourceCompile>
     <Link>
@@ -1080,7 +1155,7 @@
       <GenerateMapFile>false</GenerateMapFile>
       <MapFileName>
       </MapFileName>
-      <SubSystem>NotSet</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <LargeAddressAware>true</LargeAddressAware>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -1088,8 +1163,19 @@
       <ImportLibrary>x:\libraries\$(ProjectName).lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">
+    <Link>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <AdditionalDependencies>lua5.1.lib;luabind.lib;cryptopp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ImportLibrary>x:\libraries\$(Configuration)\$(ProjectName).lib</ImportLibrary>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="derived_client_classes.h" />
+    <ClInclude Include="ActorStats.h" />
+    <ClInclude Include="InventoryContainer.h" />
+    <ClInclude Include="nvd.h" />
     <ClInclude Include="script_vars_storage.h" />
     <ClInclude Include="script_actor.h" />
     <ClInclude Include="mt_config.h" />
@@ -1098,6 +1184,7 @@
     <ClInclude Include="DamageSource.h" />
     <ClInclude Include="raypick.h" />
     <ClInclude Include="script_additional_libs.h" />
+    <ClInclude Include="ui\UIIconParams.h" />
     <ClInclude Include="wrapper_abstract.h" />
     <ClInclude Include="wrapper_abstract_inline.h" />
     <ClInclude Include="action_management_config.h" />
@@ -1831,7 +1918,7 @@
     <ClInclude Include="script_effector_wrapper_inline.h" />
     <ClInclude Include="script_flags.h" />
     <ClInclude Include="script_fmatrix.h" />
-    <ClInclude Include="script_fvector.h" />
+    <ClInclude Include="script_coords.h" />
     <ClInclude Include="script_game_object.h" />
     <ClInclude Include="script_game_object_impl.h" />
     <ClInclude Include="script_hit.h" />
@@ -1885,7 +1972,7 @@
     <ClInclude Include="script_thread_inline.h" />
     <ClInclude Include="script_stack_tracker.h" />
     <ClInclude Include="script_stack_tracker_inline.h" />
-    <ClInclude Include="doug_lea_memory_allocator.h" />
+    <ClInclude Include="../common/doug_lea_memory_allocator.h" />
     <ClInclude Include="ai_sounds.h" />
     <ClInclude Include="ai_space.h" />
     <ClInclude Include="ai_space_inline.h" />
@@ -2528,7 +2615,11 @@
     <ClInclude Include="ui\UIGameTutorial.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="damage_manager.cpp" />
+    <ClCompile Include="damage_manager.cpp">
+      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">Full</Optimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">false</WholeProgramOptimization>
+    </ClCompile>
     <ClCompile Include="action_base_script.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|x64'">pch_script.h</PrecompiledHeaderFile>
@@ -2559,6 +2650,7 @@
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|x64'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
+    <ClCompile Include="nvd_script.cpp" />
     <ClCompile Include="raypick.cpp" />
     <ClCompile Include="script_action_wrapper.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">pch_script.h</PrecompiledHeaderFile>
@@ -3038,6 +3130,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
+    <ClCompile Include="scripts_upgrade.cpp" />
     <ClCompile Include="script_vars_storage.cpp">
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">pch_script.h</PrecompiledHeaderFile>
@@ -3052,6 +3145,10 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
+    <ClCompile Include="InventoryContainer.cpp" />
+    <ClCompile Include="ActorStats.cpp" />
+    <ClCompile Include="nvd.cpp" />
+    <ClCompile Include="ui\UIIconParams.cpp" />
     <ClCompile Include="visual_memory_manager.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|x64'">pch_script.h</PrecompiledHeaderFile>
@@ -5441,6 +5538,8 @@
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|x64'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </AdditionalIncludeDirectories>
     </ClCompile>
     <ClCompile Include="script_particle_action.cpp" />
     <ClCompile Include="script_particle_action_script.cpp">
@@ -5810,7 +5909,7 @@
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|x64'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="script_fvector_script.cpp">
+    <ClCompile Include="script_coords_script.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|x64'">pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
@@ -7092,7 +7191,7 @@
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|x64'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="doug_lea_memory_allocator.c">
+    <ClCompile Include="../common/doug_lea_memory_allocator.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">
       </PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|x64'">
@@ -7460,6 +7559,8 @@
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|Win32'">4511;4512;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4511;4512;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|x64'">4511;4512;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">Disabled</Optimization>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">Disabled</InlineFunctionExpansion>
     </ClCompile>
     <ClCompile Include="Level_SLS_Default.cpp" />
     <ClCompile Include="Level_SLS_Load.cpp" />
@@ -9680,6 +9781,7 @@
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|x64'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">Disabled</Optimization>
     </ClCompile>
     <ClCompile Include="helicopter_script.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">pch_script.h</PrecompiledHeaderFile>
@@ -9806,6 +9908,7 @@
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|x64'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">HARDCORE;WIN32;NDEBUG;_WINDOWS;_USRDLL;XRGAME_EXPORTS;dSINGLE;MSVC;PRIQUEL;%(PreprocessorDefinitions);$(XrayDefines)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="console_commands_mp.cpp" />
     <ClCompile Include="date_time.cpp" />
@@ -9900,6 +10003,7 @@
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|Win32'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|x64'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">Disabled</InlineFunctionExpansion>
     </ClCompile>
     <ClCompile Include="profiler.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">true</ExcludedFromBuild>
@@ -10711,7 +10815,21 @@
     <ClCompile Include="xrGameSpyServer.cpp" />
     <ClCompile Include="xrGameSpyServer_callbacks.cpp" />
     <ClCompile Include="PHDebug.cpp" />
-    <ClCompile Include="PHWorld.cpp" />
+    <ClCompile Include="PHWorld.cpp">
+      <EnableParallelCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">true</EnableParallelCodeGeneration>
+      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <EnableParallelCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|Win32'">true</EnableParallelCodeGeneration>
+      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|Win32'">StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <EnableParallelCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|Win32'">true</EnableParallelCodeGeneration>
+      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|Win32'">StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <EnableParallelCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">true</EnableParallelCodeGeneration>
+      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <EnableParallelCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">true</EnableParallelCodeGeneration>
+      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <EnableParallelCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">true</EnableParallelCodeGeneration>
+      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <FloatingPointModel Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">Fast</FloatingPointModel>
+    </ClCompile>
     <ClCompile Include="PHWorldScript.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|x64'">pch_script.h</PrecompiledHeaderFile>
@@ -11266,19 +11384,20 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="ui\UISleepWnd.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Mixed|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Mixed|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="ui\UIInventoryUtilities.cpp" />
     <ClCompile Include="ui\UIBtnHint.cpp" />
@@ -11746,10 +11865,40 @@
     <ClCompile Include="ui\UILines.cpp" />
     <ClCompile Include="ui\UISubLine.cpp" />
     <ClCompile Include="ui\UIVideoPlayerWnd.cpp" />
-    <ClCompile Include="ui\UICellCustomItems.cpp" />
+    <ClCompile Include="ui\UICellCustomItems.cpp">
+      <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">Speed</FavorSizeOrSpeed>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">true</WholeProgramOptimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|Win32'">Disabled</Optimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|Win32'">true</WholeProgramOptimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|Win32'">Disabled</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">Disabled</Optimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">true</WholeProgramOptimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">Disabled</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">Disabled</Optimization>
+      <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">Speed</FavorSizeOrSpeed>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">true</WholeProgramOptimization>
+    </ClCompile>
     <ClCompile Include="ui\UICellItem.cpp" />
     <ClCompile Include="ui\UICellItemFactory.cpp" />
-    <ClCompile Include="ui\UIDragDropListEx.cpp" />
+    <ClCompile Include="ui\UIDragDropListEx.cpp">
+      <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">Speed</FavorSizeOrSpeed>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">true</WholeProgramOptimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|Win32'">Disabled</Optimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|Win32'">true</WholeProgramOptimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|Win32'">Disabled</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">Disabled</Optimization>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">true</WholeProgramOptimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">Disabled</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">Disabled</Optimization>
+      <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">Speed</FavorSizeOrSpeed>
+      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">true</WholeProgramOptimization>
+      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug_Priquel|Win32'">StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Mixed_Priquel|Win32'">StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release_w_STLPORT|Win32'">StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release_Priquel|Win32'">StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
     <ClCompile Include="ui\UILabel.cpp" />
     <ClCompile Include="ui\UIScrollBar.cpp" />
     <ClCompile Include="ui\UIScrollBox.cpp" />
@@ -12123,6 +12272,7 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="..\..\..\CommonSettings.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <ProjectExtensions>

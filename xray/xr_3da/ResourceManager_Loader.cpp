@@ -94,13 +94,13 @@ void	CResourceManager::OnDeviceCreate	(IReader* F)
 			IBlender*		B = IBlender::Create(desc.CLS);
 			if	(0==B)
 			{
-				Msg				("! Renderer doesn't support blender '%s'",desc.cName);
+				MsgV				("5SHADER", "! Renderer doesn't support blender '%s'",desc.cName);
 			}
 			else
 			{
 				if	(B->getDescription().version != desc.version)
 				{
-					Msg			("! Version conflict in shader '%s'",desc.cName);
+					MsgV			("5SHADER", "! Version conflict in shader '%s'",desc.cName);
 				}
 
 				chunk->seek		(0);

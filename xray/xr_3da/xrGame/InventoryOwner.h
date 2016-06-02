@@ -10,6 +10,7 @@
 #include "script_space_forward.h"
 #include "character_info.h"
 #include "inventory_space.h"
+#include <ComplexVar.h>
 
 class CSE_Abstract;
 class CInventory;
@@ -62,7 +63,12 @@ public:
 
 	// инвентарь
 	CInventory	*m_inventory;			
+	CWeapon		*m_ActiveWeapon;
+	u32			m_dwWeaponUpdated;
 	
+	void			UpdateActiveWeapon(CWeapon *wpn)    { m_ActiveWeapon = wpn; m_dwWeaponUpdated = Device.dwFrame; }
+
+
 	////////////////////////////////////
 	//торговля и общение с персонажем
 
@@ -91,8 +97,8 @@ public:
 
 	//игровое имя 
 	virtual LPCSTR	Name        () const;
-	u32					get_money		() const				{return m_money;}
-	void				set_money		(u32 amount, bool bSendEvent);
+	int					get_money		() const;
+	void				set_money		(int amount, bool bSendEvent);
 protected:
 	u32					m_money;
 	// торговля
@@ -104,6 +110,8 @@ protected:
 	bool				m_bAllowTrade;
 
 	u32					m_tmp_active_slot_num;
+
+	CComplexVarInt		m_shadow_money;
 	//////////////////////////////////////////////////////////////////////////
 	// сюжетная информация
 public:
@@ -116,6 +124,7 @@ public:
 	//есть ли информация у персонажа
 	virtual bool				HasInfo		(shared_str info_id) const;
 	virtual bool				GetInfo		(shared_str info_id, INFO_DATA&) const;
+
 
 	#ifdef DEBUG
 	void CInventoryOwner::DumpInfo() const;
@@ -131,7 +140,11 @@ public:
 
 	//возвращает текуший разброс стрельбы (в радианах) с учетом движения
 	virtual float GetWeaponAccuracy			() const;
+
+	virtual float ArtefactsAddWeight		(bool first = true) const;
+	virtual bool  ArtefactsHaveEffect		()	const;
 	//максимальный переносимы вес
+	virtual float GetCarryWeight			() const;
 	virtual float MaxCarryWeight			() const;
 
 	virtual CCustomOutfit*			GetOutfit()	const {return NULL;};
@@ -141,7 +154,7 @@ public:
 public:
 	CCharacterInfo&						CharacterInfo		() const {VERIFY(m_pCharacterInfo); return *m_pCharacterInfo;}
 	IC const CSpecificCharacter&		SpecificCharacter	() const {return CharacterInfo().m_SpecificCharacter;};
-	bool								InfinitiveMoney		()	{return CharacterInfo().m_SpecificCharacter.MoneyDef().inf_money;}
+	bool								InfinitiveMoney();	
 
 	//установка группировки на клиентском и серверном объкте
 	virtual void			SetCommunity	(CHARACTER_COMMUNITY_INDEX);
@@ -159,8 +172,14 @@ public:
 protected:
 	CCharacterInfo*			m_pCharacterInfo;
 	xr_string				m_game_name;
-
+	// alpet: по предметам с такими id не будет вызываться скриптовой колбек 
+	u16						m_silent_take;	  		
+	u16						m_silent_reject;
+	bool					m_transfer_flag;
 public:
+	virtual void			BeginTransfer			();
+	virtual void			EndTransfer				();
+
 	virtual void			renderable_Render		();
 	virtual void			OnItemTake				(CInventoryItem *inventory_item);
 	

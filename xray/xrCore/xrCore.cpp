@@ -28,6 +28,32 @@ static u32	init_counter	= 0;
 
 extern char g_application_path[256];
 
+
+XRCORE_API  void SetUserName(LPCSTR user_name)
+{
+	strcpy_s(Core.UserName, 63, user_name);
+}
+
+
+XRCORE_API float FileTimeToMsec(const FILETIME t)
+{
+	u64 v = 0;
+	memcpy(&v, &t, sizeof(t));	
+	return (float)(v) / 1e4f;  // в миллисекунды
+}
+
+XRCORE_API BOOL GetThreadTimesEx(HANDLE hThread, float &kernel, float &user)
+{
+	if (!hThread) hThread = GetCurrentThread();
+
+	FILETIME c_time, e_time, krn_time, usr_time;
+	if (!GetThreadTimes(hThread, &c_time, &e_time, &krn_time, &usr_time)) return FALSE;
+	kernel = FileTimeToMsec(krn_time);
+	user   = FileTimeToMsec(usr_time);
+	return TRUE;
+}
+
+
 //. extern xr_vector<shared_str>*	LogFile;
 
 void xrCore::_initialize	(LPCSTR _ApplicationName, LogCallback cb, BOOL init_fs, LPCSTR fs_fname)
@@ -122,8 +148,6 @@ void xrCore::_initialize	(LPCSTR _ApplicationName, LogCallback cb, BOOL init_fs,
     #endif
 #endif // DEBUG
 	}
-	
-	SetLogCB				(cb);
 
 	LPAPI_VERSION ver = ImagehlpApiVersion();
 	if ( NULL == GetProcAddress ( GetModuleHandle("dbghelp.dll"), "EnumerateLoadedModulesEx") )
@@ -187,10 +211,14 @@ void xrCore::_destroy		()
 			_control87		( _MCW_EM,  MCW_EM );
 		}
 //.		LogFile.reserve		(256);
+		MsgCB("##DBG: xrCore.dll on DLL_PROCESS_ATTACH in thread ~I");
+		log_vminfo();
 		break;
 	case DLL_THREAD_ATTACH:
 		CoInitializeEx	(NULL, COINIT_MULTITHREADED);
 		timeBeginPeriod	(1);
+		// MsgCB("##DBG: thread attached %d/~I ", GetCurrentThreadId());
+		
 		break;
 	case DLL_THREAD_DETACH:
 		break;

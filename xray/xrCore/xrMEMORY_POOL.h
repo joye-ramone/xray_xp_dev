@@ -16,11 +16,16 @@ private:
 	u32					s_count;		// element count = [s_sector/s_element]
 	u32					s_offset;		// header size
 	u32					block_count;	// block count
-	u8*					list;
+	u8*					list;	
+	u8*					list_end;			
 private:
 	ICF void**			access			(void* P)	{ return (void**) ((void*)(P));	}
 	void				block_create	();
+	void				release			(void* P);
 public:
+	virtual				~MEMPOOL();
+
+
 	void				_initialize		(u32 _element, u32 _sector, u32 _header);
 
 #ifdef PROFILE_CRITICAL_SECTIONS
@@ -43,8 +48,7 @@ public:
 	ICF void			destroy			(void* &P)
 	{
 		cs.Enter		();
-		*access(P)		= list;
-		list			= (u8*)P;
+		release(P);
 		cs.Leave		();
 	}
 };

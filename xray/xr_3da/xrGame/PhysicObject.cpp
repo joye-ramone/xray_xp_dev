@@ -161,10 +161,12 @@ void CPhysicObject::PHObjectPositionUpdate	()
 		if(m_type==epotBox) 
 		{
 			m_pPhysicsShell->Update();
-			XFORM().set			(m_pPhysicsShell->mXFORM);
+			XFORM().set			(m_pPhysicsShell->mXFORM);			
 		}
 		else
 			m_pPhysicsShell->InterpolateGlobalTransform(&XFORM());
+
+		CheckPosition				();
 	}
 
 

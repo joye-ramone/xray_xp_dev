@@ -22,6 +22,9 @@
 #include <typelist.h>
 #include <hierarchygenerators.h>
 #include "xrServer_Object_Base.h"
+#include "GamePersistent.h"
+
+extern int g_spawn_calls;
 
 template <typename _1, typename _2>
 struct heritage {
@@ -292,7 +295,7 @@ public:
 		Device.Statistic->ScriptBinder_netSpawn.Begin();
 		BOOL result = (luabind::call_member<bool>(this,"net_Spawn",data));
 		Device.Statistic->ScriptBinder_netSpawn.End();
-		Device.Statistic->ScriptBinder.End();
+		Device.Statistic->ScriptBinder.End();	
 		return	result;
 	}
 

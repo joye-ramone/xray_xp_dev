@@ -15,15 +15,24 @@
 #include "ui\UIVideoPlayerWnd.h"
 #include "script_callback_ex.h"
 #include "object_broker.h"
+#include "CharacterPhysicsSupport.h"
+#include "PHSimpleCharacter.h"
+#include "Artifact.h"
 #include "weapon.h"
+#include "../lua_tools.h"
 
 #define MAX_SATIETY					1.0f
 #define START_SATIETY				0.5f
 
+#pragma optimize("gyts", off)
+
+ENGINE_API float g_up_speed_k;
+
 BOOL	GodMode	()	
 { 
-	if (GameID() == GAME_SINGLE) 
-		return psActorFlags.test(AF_GODMODE); 
+#ifndef HARDCORE
+	if (GameID() == GAME_SINGLE) return psActorFlags.test(AF_GODMODE); 
+#endif
 	return FALSE;	
 }
 
@@ -41,6 +50,7 @@ CActorCondition::CActorCondition(CActor *object) :
 	m_fSprintK					= 0.f;
 	m_fAlcohol					= 0.f;
 	m_fSatiety					= 1.0f;
+	m_fTirednessSatietyCoef		= 0.5f;
 
 	VERIFY						(object);
 	m_object					= object;
@@ -67,6 +77,8 @@ void CActorCondition::LoadCondition(LPCSTR entity_section)
 	m_fOverweightJumpK			= pSettings->r_float(section,"overweight_jump_k");
 	m_fAccelK					= pSettings->r_float(section,"accel_k");
 	m_fSprintK					= pSettings->r_float(section,"sprint_k");
+	if (pSettings->line_exist(section, "up_speed_k"))
+		g_up_speed_k				= pSettings->r_float(section, "up_speed_k");
 
 	//порог силы и здоровья меньше которого актер начинает хромать
 	m_fLimpingHealthBegin		= pSettings->r_float(section,	"limping_health_begin");
@@ -95,6 +107,8 @@ void CActorCondition::LoadCondition(LPCSTR entity_section)
 	m_fV_SatietyHealth			= pSettings->r_float(section,"satiety_health_v");
 	
 	m_MaxWalkWeight					= pSettings->r_float(section,"max_walk_weight");
+
+	m_fTirednessSatietyCoef		= READ_IF_EXISTS(pSettings, r_float, section, "tirendess_satiety_coef", 0.279f);
 }
 
 
@@ -104,34 +118,39 @@ void CActorCondition::LoadCondition(LPCSTR entity_section)
 
 void CActorCondition::UpdateCondition()
 {
+#ifndef HARDCORE
 	if (GodMode())				return;
+#endif
 	if (!object().g_Alive())	return;
 	if (!object().Local() && m_object != Level().CurrentViewEntity())		return;	
-	
+	CInventory &inventory = object().inventory();	
+#ifdef LUAICP_COMPAT		
+	float max_weight = object().MaxCarryWeight();	
+#else
+	float max_weight = inventory.GetMaxWeight();
+
+#endif
+	m_fCurrentMaxWalkWeight = max_weight;
+	float weight = object().GetCarryWeight();
+	float weight_coef = weight / max_weight;
+	m_fWeightCoef = weight_coef;
 
 	if ((object().mstate_real&mcAnyMove)) {
-		ConditionWalk(object().inventory().TotalWeight()/object().inventory().GetMaxWeight(), isActorAccelerated(object().mstate_real,object().IsZoomAimingMode()), (object().mstate_real&mcSprint) != 0);
+		ConditionWalk(weight_coef, isActorAccelerated(object().mstate_real,object().IsZoomAimingMode()), (object().mstate_real&mcSprint) != 0);
 	}
 	else {
-		ConditionStand(object().inventory().TotalWeight()/object().inventory().GetMaxWeight());
+		ConditionStand(weight_coef);
 	};
 	
 	if( IsGameTypeSingle() ){
 
 		float k_max_power = 1.0f;
 
-		if( true )
-		{
-			float weight = object().inventory().TotalWeight();
-
+		if (true)
+		{			
 			float base_w = object().MaxCarryWeight();
-/*
-			CCustomOutfit* outfit	= m_object->GetOutfit();
-			if(outfit)
-				base_w += outfit->m_additional_weight2;
-*/
 
-			k_max_power = 1.0f + _min(weight,base_w)/base_w + _max(0.0f, (weight-base_w)/10.0f);
+			k_max_power = 1.0f + _min(weight, base_w)/base_w + _max(0.0f, (weight-base_w)/10.0f);
 		}else
 			k_max_power = 1.0f;
 		
@@ -177,8 +196,8 @@ void CActorCondition::UpdateCondition()
 		if(fis_zero(GetPsyHealth()))
 			health() =0.0f;
 	};
-
-	UpdateSatiety				();
+	
+	UpdateSatiety	(GetMaxPower() - GetPower(), 10);
 
 	inherited::UpdateCondition	();
 
@@ -187,26 +206,30 @@ void CActorCondition::UpdateCondition()
 }
 
 
-void CActorCondition::UpdateSatiety()
+void CActorCondition::UpdateSatiety(float weight, float velocity)
 {
 	if (!IsGameTypeSingle()) return;
 
 	float k = 1.0f;
-	if(m_fSatiety>0)
-	{
-		m_fSatiety -=	m_fV_Satiety*
-						k*
-						m_fDeltaTime;
-	
-		clamp			(m_fSatiety,		0.0f,		1.0f);
+	if (weight < 0.f)
+		weight = 0.f;
 
+#ifdef HARDCORE
+	k = ( m_fTirednessSatietyCoef + weight * velocity );
+	if (GetMaxPower() < 1.f)
+		k += 1.f - GetMaxPower(); // учитывается влияние долговременной усталости NLC
+#endif
+	if(m_fSatiety > 0)
+	{
+		m_fSatiety -=	m_fV_Satiety * k * m_fDeltaTime;	
+		clamp			(m_fSatiety,		0.0f,		1.0f);
 	}
 		
 	//сытость увеличивает здоровье только если нет открытых ран
 	if(!m_bIsBleeding)
 	{
 		m_fDeltaHealth += CanBeHarmed() ? 
-					(m_fV_SatietyHealth*(m_fSatiety>0.0f?1.f:-1.f)*m_fDeltaTime)
+					(m_fV_SatietyHealth * (m_fSatiety > 0.0f ? 1.f : -1.f)*m_fDeltaTime)
 					: 0;
 	}
 
@@ -214,18 +237,22 @@ void CActorCondition::UpdateSatiety()
 	float radiation_power_k		= 1.f;
 	float satiety_power_k		= 1.f;
 			
-	m_fDeltaPower += m_fV_SatietyPower*
-				radiation_power_k*
-				satiety_power_k*
-				m_fDeltaTime;
+	m_fDeltaPower += m_fV_SatietyPower *
+					 radiation_power_k * 
+					 satiety_power_k *
+					 m_fDeltaTime;
 }
 
 
 CWound* CActorCondition::ConditionHit(SHit* pHDS)
 {
+#ifndef HARDCORE
 	if (GodMode()) return NULL;
+#endif
 	return inherited::ConditionHit(pHDS);
 }
+
+
 
 //weight - "удельный" вес от 0..1
 void CActorCondition::ConditionJump(float weight)
@@ -236,9 +263,39 @@ void CActorCondition::ConditionJump(float weight)
 }
 void CActorCondition::ConditionWalk(float weight, bool accel, bool sprint)
 {	
+	
+#ifdef HARDCORE
+	float norm_weight   = object().MaxCarryWeight();
+	float total_weight = norm_weight * weight;	
+	float w_power		= m_fWalkWeightPower  * weight;
+	float diff			= total_weight - norm_weight;	
+	if (diff > 0)
+		w_power			+= m_fOverweightWalkK * 0.0000001f * (diff * diff); // прибавить квадрат разницы масс		
+	float power			= m_fWalkPower + w_power; 
+	
+	power				*=	m_fDeltaTime * (accel?(sprint?m_fSprintK:m_fAccelK):1.f);
+	
+	const Fvector &p = Actor()->Position();
+	static float last_y = 0;
+	float	     up_vel = 0;
+	if (0 != last_y && p.y != last_y)
+	{   		
+		float f_vel = (p.y - last_y); // скорость зависит от времени затраченного на изменение координат
+		up_vel = up_vel * 0.7f + f_vel * 0.3f;
+	}
+	last_y = p.y;		
+	power *= 0.5f; // вычет горизонтальных расходов		
+	if (up_vel > 0)
+	{	
+		float cost = g_up_speed_k * up_vel * m_fJumpWeightPower * weight * (weight>1.f ? m_fOverweightJumpK : 1.f);
+		MsgV("5UPVEL", "up_velocity = %.5f, power_cost = %.5f ", up_vel, cost);
+		power += cost;
+	}
+#else
 	float power			=	m_fWalkPower;
-	power				+=	m_fWalkWeightPower*weight*(weight>1.f?m_fOverweightWalkK:1.f);
-	power				*=	m_fDeltaTime*(accel?(sprint?m_fSprintK:m_fAccelK):1.f);
+	power				+=	m_fWalkWeightPower * weight * (weight > 1.f ? m_fOverweightWalkK: 1.f);	
+	power				*=	m_fDeltaTime * (accel?(sprint?m_fSprintK:m_fAccelK):1.f);
+#endif	
 	m_fPower			-=	HitPowerEffect(power);
 }
 
@@ -269,9 +326,9 @@ bool CActorCondition::IsCantWalkWeight()
 
 		CCustomOutfit* outfit	= m_object->GetOutfit();
 		if(outfit)
-			max_w += outfit->m_additional_weight;
+			max_w += outfit->GetAdditionalWeight();
 
-		if( object().inventory().TotalWeight() > max_w )
+		if( object().GetCarryWeight() > max_w )
 		{
 			m_condition_flags.set			(eCantWalkWeight, TRUE);
 			return true;
@@ -400,8 +457,9 @@ void CActorCondition::UpdateTutorialThresholds()
 	}
 	
 	if(!b){
-		luabind::functor<LPCSTR>			fl;
-		R_ASSERT							(ai().script_engine().functor<LPCSTR>(cb_name,fl));
-		fl									();
+		// luabind::functor<LPCSTR>			fl;
+		// R_ASSERT							(ai().script_engine().functor<LPCSTR>(cb_name,fl));
+		// fl									();
+		LuaExecute (GameLua(), cb_name, "");
 	}
 }

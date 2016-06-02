@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: script_game_object_script3.cpp
 //	Created 	: 17.11.2004
-//  Modified 	: 17.11.2004
+//  Modified 	: 12.11.2014
 //	Author		: Dmitriy Iassenev
 //	Description : Script game object class script export
 ////////////////////////////////////////////////////////////////////////////
@@ -570,7 +570,7 @@ u32	CScriptGameObject::GetInventoryObjectCount() const
 	else 
 	{
 		// Real Wolf. 03.08.2014.
-		if (auto box = smart_cast<CInventoryBox*>(&object() ) )
+		if (auto box = smart_cast<IInventoryBox*>(&object() ) )
 			return box->GetSize();
 
 		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CScriptGameObject : cannot access class member obj_count!");
@@ -606,7 +606,7 @@ CScriptGameObject	*CScriptGameObject::GetObjectByName	(LPCSTR caObjectName) cons
 	else 
 	{
 		// Real Wolf. 03.08.2014.
-		if (auto box = smart_cast<CInventoryBox*>(&object() ) )
+		if (auto box = smart_cast<IInventoryBox*>(&object() ) )
 			return box->GetObjectByName(caObjectName);
 
 		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CScriptGameObject : cannot access class member object!");
@@ -628,7 +628,7 @@ CScriptGameObject	*CScriptGameObject::GetObjectByIndex	(int iIndex) const
 	else 
 	{
 		// Real Wolf. 03.08.2014.
-		if (auto box = smart_cast<CInventoryBox*>(&object() ) )
+		if (auto box = smart_cast<IInventoryBox*>(&object() ) )
 			return box->GetObjectByIndex(iIndex);
 
 		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CScriptGameObject : cannot access class member object!");

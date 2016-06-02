@@ -13,6 +13,8 @@
 #include "uiabstract.h"
 #include "xrUIXmlParser.h"
 
+#pragma optimize("gyts", off)
+
 xr_map<shared_str, TEX_INFO>	CUITextureMaster::m_textures;
 #ifdef DEBUG
 u32									CUITextureMaster::m_time = 0;

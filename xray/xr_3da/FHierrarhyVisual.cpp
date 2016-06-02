@@ -39,6 +39,12 @@ void FHierrarhyVisual::Release()
 
 void FHierrarhyVisual::Load(const char* N, IReader *data, u32 dwFlags)
 {
+	CTimer perf;
+	perf.Start();
+
+	static u64 total_loaded;
+	size_t chsz = data->length();
+
 	IRender_Visual::Load(N,data,dwFlags);
 	if (data->find_chunk(OGF_CHILDREN_L)) 
 	{
@@ -80,6 +86,18 @@ void FHierrarhyVisual::Load(const char* N, IReader *data, u32 dwFlags)
 		{
 			FATAL		("Invalid visual");
     	}
+	}
+	float elps = perf.GetElapsed_sec() * 1000.f;
+	if (elps > 15.f)
+		MsgCB("##PERF_WARN: FHierrarhyVisual load from %s elapsed time = %.1f ms", N, elps);
+
+	
+	static u64 last_loaded = 0;
+	total_loaded += (u64)chsz;
+	if (total_loaded - last_loaded > 8 * 1048576)
+	{
+		MsgCB("##PERF_MEM: total loaded in FHierrarhyVisual::Load = %.1f MiB", size_in_mib(total_loaded));
+		last_loaded = total_loaded;
 	}
 }
 

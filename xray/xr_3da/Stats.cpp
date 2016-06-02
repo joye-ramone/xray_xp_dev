@@ -6,9 +6,11 @@
 #include "IGame_Persistent.h"
 #include "render.h"
 #include "xr_object.h"
+#include "../../build_config_defines.h"
 
 int		g_ErrorLineCount	= 15;
 Flags32 g_stats_flags		= {0};
+#pragma optimize("gyts", off)
 
 // stats
 DECLARE_RP(Stats);
@@ -200,6 +202,10 @@ void CStats::Show()
 		F.OutSet	(0,0);
 		F.OutNext	("FPS/RFPS:    %3.0f/%3.0f AVG: %4.1f/%4.1f, MFT: %4.1fms", fFPS, fRFPS, fAvgFPS, fAvgRFPS, fMaxFrameTime * 1000);
 		F.OutNext	("TPS:         %2.2f M",	fTPS);
+#ifdef ECO_RENDER
+		F.OutNext	("TGT MEDIAN:  %4.1f ms",	fTargetMedian * 1000.f);
+#endif
+
 		// такие величины отражать лучше в миллионах штук
 		F.OutNext	("VERT:        %.3fM/%d",	(float)RCache.stat.verts / 1e6,	RCache.stat.calls?RCache.stat.verts/RCache.stat.calls:0);
 		F.OutNext	("POLY:        %.3fM/%d",	(float)RCache.stat.polys / 1e6,	RCache.stat.calls?RCache.stat.polys/RCache.stat.calls:0);
@@ -212,7 +218,7 @@ void CStats::Show()
 		F.OutNext	("RT/PS/VS:    %d/%d/%d",	RCache.stat.target_rt,RCache.stat.ps,RCache.stat.vs);
 		F.OutNext	("DCL/VB/IB:   %d/%d/%d",   RCache.stat.decl,RCache.stat.vb,RCache.stat.ib);
 #endif
-		F.OutNext	("xforms:      %5d",			RCache.stat.xforms);
+		F.OutNext	("xforms:    %5d",			RCache.stat.xforms);
 		F.OutSkip	();
 
 #define PPP(a) (100.f*float(a)/float(EngineTOTAL.result))
@@ -243,7 +249,7 @@ void CStats::Show()
 		F.OutNext	("  HOM:       %5.1fms, %d",RenderCALC_HOM.result,	RenderCALC_HOM.count);
 		F.OutNext	("  Skeletons: %5.1fms, %d",Animation.result,		Animation.count);
 		F.OutNext	("R_DUMP:      %5.1fms, %2.1f%%",RenderDUMP.result,	PPP(RenderDUMP.result));	
-		F.OutNext	("  Wait-L:    %5.1fms, IDLE CYCLES: %3d", RenderDUMP_Wait.result, RenderDUMP_Wait.cycles);	
+		F.OutNext	("  Wait-L:    %5.1fms x %d, IDLE CYCLES: %3d", RenderDUMP_Wait.result  / (float)RenderDUMP_Wait.count, RenderDUMP_Wait.count, RenderDUMP_Wait.cycles);	
 		F.OutNext	("  Wait-S:    %5.1fms",RenderDUMP_Wait_S.result);	
 		F.OutNext	("  Skinning:  %5.1fms",RenderDUMP_SKIN.result);	
 		F.OutNext	("  DT_Vis/Cnt:%5.1fms",RenderDUMP_DT_VIS.result,RenderDUMP_DT_Count);	

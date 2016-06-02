@@ -19,7 +19,7 @@ public:
 public:
     int 				tag;
     LPVOID				m_Object;
-    int					icon_index;
+    int					icon_group;
     u32					prop_color;
 public:
     enum{
@@ -32,7 +32,7 @@ public:
     };
     Flags32				m_Flags;
 public:
-						ListItem		(int _type):type(_type),prop_color(0),item(0),key(0),tag(0),icon_index(-1),OnDrawThumbnail(0),OnItemFocused(0),m_Object(0){m_Flags.zero();}
+						ListItem		(int _type):type(_type),prop_color(0),item(0),key(0),tag(0),icon_group(-1),OnDrawThumbnail(0),OnItemFocused(0),m_Object(0){m_Flags.zero();}
 	virtual 			~ListItem		(){};
     void				SetName			(LPCSTR _key){key=_key;}
 
@@ -40,7 +40,7 @@ public:
     IC int				Type			(){return type;}
 	IC void*			Item			(){return item;}
 	IC LPCSTR			Key				(){return *key;}
-    IC void				SetIcon			(int index){icon_index=index;}
+    IC void				SetIcon			(int index){icon_group = index;}
 };
 
 DEFINE_VECTOR			(ListItem*,ListItemsVec,ListItemsIt);

@@ -29,6 +29,7 @@ public:
 			void					init					(LPCSTR		section);
 	IC		void					set_time_factor			(float		time_factor);
 	IC		ALife::_TIME_ID			game_time				() const;
+	IC		void					set_game_time			(ALife::_TIME_ID new_time);
 	IC		float					time_factor				() const;
 	IC		float					normal_time_factor		() const;
 };

@@ -14,6 +14,8 @@
 #include "space_restriction_base.h"
 #include "profiler.h"
 
+#pragma optimize("gyts", off)
+
 const float dependent_distance = 100.f;
 
 template <bool a>
@@ -83,6 +85,8 @@ bool CSpaceRestriction::accessible				(const Fsphere &sphere)
 
 bool CSpaceRestriction::accessible				(u32 level_vertex_id, float radius)
 {
+	R_ASSERT2 ((u32)this > 0x10000, "this is bad pointer!");
+
 	if (!initialized()) {
 		initialize					();
 		if (!initialized())
@@ -244,27 +248,32 @@ void CSpaceRestriction::initialize					()
 	m_in_space_restriction			= m_space_restriction_manager->restriction(m_in_restrictions);
 	
 	if (!m_out_space_restriction && !m_in_space_restriction) {
-		m_initialized				= true;
+		m_initialized				=  !m_out_restrictions.size() && !m_in_restrictions.size(); // случай пустого ограничения?
 		return;
 	}
 
 	if (m_out_space_restriction && !m_out_space_restriction->initialized())
+	{
 		m_out_space_restriction->initialize();
+		m_initialized |= m_out_space_restriction->initialized();
+	}
 
 #ifdef DEBUG
 	if (m_out_space_restriction) {
 		if (!m_out_space_restriction->object().correct()) {
-			Msg						("~ BAD out restrictions combination :");
-			Msg						("~ %s",*m_out_space_restriction->name());
+			Msg						("# BAD out restrictions combination :");
+			Msg						("# %s",*m_out_space_restriction->name());
 		}
 	}
 #endif
-
-
+	
 	if (m_in_space_restriction && !m_in_space_restriction->initialized())
-		m_in_space_restriction->initialize();
+	{
+		m_in_space_restriction->initialize();  // problem here?
+		m_initialized |= m_in_space_restriction->initialized();
+	}
 
-	if ((m_out_space_restriction && !m_out_space_restriction->initialized()) || (m_in_space_restriction && !m_in_space_restriction->initialized()))
+	if (!m_initialized)
 		return;
 
 	if (m_out_space_restriction)

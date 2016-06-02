@@ -31,8 +31,13 @@ void	XRCORE_API		LogXrayOffset(LPCSTR key, LPVOID base, LPVOID pval);
 
 
 typedef void	( * LogCallback)	(LPCSTR string);
+void	XRCORE_API				SetCrashCB	(LogCallback cb);
 void	XRCORE_API				SetLogCB	(LogCallback cb);
+
+LogCallback XRCORE_API			GetCrashCB	();
 LogCallback XRCORE_API			GetLogCB	();
+void    XRCORE_API				HandleCrash (LPCSTR format, ...);
+
 void 							CreateLog	(BOOL no_log=FALSE);
 void 							InitLog		();
 void 							CloseLog	();
@@ -42,9 +47,22 @@ extern 	XRCORE_API	xr_vector<shared_str>*		LogFile;
 extern 	XRCORE_API	BOOL						LogExecCB;
 
 
-u32   XRCORE_API		SimpleExceptionFilter(PEXCEPTION_POINTERS pExPtrs);
+XRCORE_API	u32   		SimpleExceptionFilter(PEXCEPTION_POINTERS pExPtrs);
 #define SIMPLE_FILTER	SimpleExceptionFilter(GetExceptionInformation())
 
+XRCORE_API BOOL GetFunctionInfo(PVOID pAddr, LPSTR name, LPDWORD pDisp);
+XRCORE_API BOOL GetObjectInfo(PVOID pAddr, LPSTR name, LPDWORD pDisp);
+
+// alpet: универсальный sprintf, возвращает ссылку на один из 16 глобальных буферов	
+XRCORE_API const xr_string& __cdecl xr_sprintf (LPCSTR format, ...); 
+extern "C"
+{
+	// alpet: использует те-же глобальные буферы, что и xr_sprintf, но удобна для экспорта в "чужие" DLL/EXE
+	XRCORE_API LPCSTR	    __stdcall  xrx_sprintf (LPCSTR format, ...); 	
+	
+	// alpet: вариант MsgCB с экспортом в "Си"
+	void 	XRCORE_API		__stdcall  xr_MsgCB      (LPCSTR format, ...); 
+}
 
 
 #endif

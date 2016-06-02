@@ -41,6 +41,9 @@ bool CUIListBox::OnMouse(float x, float y, EUIMessages mouse_action)
 }
 
 #include "../string_table.h"
+extern shared_str script_translate(const shared_str& text, const shared_str &value);
+
+
 CUIListBoxItem* CUIListBox::AddItem(LPCSTR text)
 {
 	if (!text)			
@@ -54,7 +57,7 @@ CUIListBoxItem* CUIListBox::AddItem(LPCSTR text)
 		pItem->InitTexture		(*m_selection_texture);
 
 	pItem->SetSelected			(false);
-	pItem->SetText				(*CStringTable().translate(text));
+	pItem->SetText				(*script_translate(text, "CUIList::AddItem"));
 	pItem->SetTextColor			(m_text_color, m_text_color_s);
 	pItem->SetMessageTarget		(this);
 	AddWindow					(pItem, true);

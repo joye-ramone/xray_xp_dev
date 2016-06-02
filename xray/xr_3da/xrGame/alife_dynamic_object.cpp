@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: alife_dynamic_object.cpp
 //	Created 	: 27.10.2005
-//  Modified 	: 27.10.2005
+//  Modified 	: 12.11.2014
 //	Author		: Dmitriy Iassenev
 //	Description : ALife dynamic object class
 ////////////////////////////////////////////////////////////////////////////
@@ -16,6 +16,8 @@
 #include "game_level_cross_table.h"
 #include "game_graph.h"
 #include "xrServer.h"
+
+// #pragma optimize("gyts", off)
 
 void CSE_ALifeDynamicObject::on_spawn				()
 {
@@ -88,10 +90,11 @@ void CSE_ALifeDynamicObject::add_offline			(const xr_vector<ALife::_OBJECT_ID> &
 
 bool CSE_ALifeDynamicObject::synchronize_location	()
 {
-	if (!ai().level_graph().valid_vertex_position(o_Position) || ai().level_graph().inside(ai().level_graph().vertex(m_tNodeID),o_Position))
+	const auto &lvl_graph = ai().level_graph();
+	if (!lvl_graph.valid_vertex_position(o_Position) || lvl_graph.inside(lvl_graph.vertex(m_tNodeID),o_Position))
 		return					(true);
 
-	m_tNodeID					= ai().level_graph().vertex(m_tNodeID,o_Position);
+	m_tNodeID					= lvl_graph.vertex(m_tNodeID,o_Position);
 
 	GameGraph::_GRAPH_ID		tGraphID = ai().cross_table().vertex(m_tNodeID).game_vertex_id();
 	if (tGraphID != m_tGraphID) {
@@ -99,8 +102,10 @@ bool CSE_ALifeDynamicObject::synchronize_location	()
 			Fvector					position = o_Position;
 			u32						level_vertex_id = m_tNodeID;
 			alife().graph().change	(this,m_tGraphID,tGraphID);
-			if (ai().level_graph().inside(ai().level_graph().vertex(level_vertex_id),position)) {
+			if (lvl_graph.inside(lvl_graph.vertex(level_vertex_id),position)) {
 				level_vertex_id		= m_tNodeID;
+				if (abs(position.x) > 5000.f)
+					Msg("!#ERROR: abnormal x position = %f for object %s #%d", position.x, this->name(), this->ID);
 				o_Position			= position;
 			}
 		}
@@ -178,10 +183,9 @@ bool CSE_ALifeDynamicObject::redundant				() const
 	return						(false);
 }
 
-void CSE_InventoryBox::add_online	(const bool &update_registries)
+/*
+void add_online_objects	(CSE_ALifeDynamicObjectVisual *object, const bool &update_registries)
 {
-	CSE_ALifeDynamicObjectVisual		*object = (this);
-
 	NET_Packet					tNetPacket;
 	ClientID					clientID;
 	clientID.set				(object->alife().server().GetServerClient() ? object->alife().server().GetServerClient()->ID.value() : 0);
@@ -216,17 +220,16 @@ void CSE_InventoryBox::add_online	(const bool &update_registries)
 		object->alife().server().Process_spawn	(tNetPacket,clientID,FALSE,l_tpALifeInventoryItem->base());
 		l_tpALifeDynamicObject->s_flags.and		(u16(-1) ^ M_SPAWN_UPDATE);
 		l_tpALifeDynamicObject->m_bOnline		= true;
-	}
-
-	CSE_ALifeDynamicObjectVisual::add_online(update_registries);
+	}		
 }
 
-void CSE_InventoryBox::add_offline	(const xr_vector<ALife::_OBJECT_ID> &saved_children, const bool &update_registries)
+
+void CSE_InventoryBoxAbstract::add_offline_objects	(CSE_ALifeDynamicObjectVisual	*object, const xr_vector<ALife::_OBJECT_ID> &saved_children, const bool &update_registries)
 {
-	CSE_ALifeDynamicObjectVisual		*object = (this);
+	const CALifeObjectRegistry &objs = ai().alife().objects();
 
 	for (u32 i=0, n=saved_children.size(); i<n; ++i) {
-		CSE_ALifeDynamicObject	*child = smart_cast<CSE_ALifeDynamicObject*>(ai().alife().objects().object(saved_children[i],true));
+		CSE_ALifeDynamicObject	*child = smart_cast<CSE_ALifeDynamicObject*>(objs.object(saved_children[i],true));
 		R_ASSERT				(child);
 		child->m_bOnline		= false;
 
@@ -265,11 +268,10 @@ void CSE_InventoryBox::add_offline	(const xr_vector<ALife::_OBJECT_ID> &saved_ch
 			child->client_data.clear		();
 		object->alife().graph().add		(child,child->m_tGraphID,false);
 //		object->alife().graph().attach	(*object,inventory_item,child->m_tGraphID,true);
-		alife().graph().remove			(child,child->m_tGraphID);
-		children.push_back				(child->ID);
-		child->ID_Parent				= ID;
-	}
-
-
-	CSE_ALifeDynamicObjectVisual::add_offline(saved_children, update_registries);
+		object->alife().graph().remove			(child,child->m_tGraphID);
+		object->children.push_back				(child->ID);
+		child->ID_Parent				= object->ID;
+		
+	}	
 }
+*/

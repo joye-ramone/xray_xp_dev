@@ -22,7 +22,7 @@
 #define				ACTOR_STATISTIC_XML		"actor_statistic.xml"
 #define				ACTOR_CHARACTER_XML		"pda_dialog_character.xml"
 
-
+#pragma optimize("gyts", off)
 CUIActorInfoWnd::CUIActorInfoWnd()
 {}
 
@@ -115,14 +115,14 @@ void CUIActorInfoWnd::FillPointsInfo			()
 				itm->m_text2->SetTextColor			(InventoryUtilities::GetReputationColor(Actor()->Reputation()));
 			}else
 			{
-				s32 _totl = Actor()->StatisticMgr().GetSectionPoints(itm->m_id);
+				float _totl = Actor()->StatisticMgr().GetSectionPoints(itm->m_id);
 				
 				if(_totl==-1)
 				{
 					itm->m_text2->SetTextST				("");
 				}else
 				{
-					sprintf_s							(buff,"%d", _totl);
+					sprintf_s							(buff,"%.1f", _totl);
 					itm->m_text2->SetTextST				(buff);
 				}
 			}
@@ -161,14 +161,14 @@ void CUIActorInfoWnd::FillMasterPart(CUIXml* xml, const shared_str& key_name)
 			itm->m_text2->SetTextColor			(InventoryUtilities::GetReputationColor(Actor()->Reputation()));
 		}else
 		{
-			s32 _totl = Actor()->StatisticMgr().GetSectionPoints(key_name);
+			float _totl = Actor()->StatisticMgr().GetSectionPoints(key_name);
 			
 			if(_totl==-1)
 			{
 				itm->m_text2->SetTextST				("");
 			}else
 			{
-				sprintf_s							(buff,"%d", _totl);
+				sprintf_s							(buff,"%.1f", _totl);
 				itm->m_text2->SetTextST				(buff);
 			}
 		}
@@ -214,8 +214,8 @@ void CUIActorInfoWnd::FillPointsDetail(const shared_str& id)
 
 		sprintf_s							(buff,"%d.",_cntr);
 		itm->m_text0->SetText				(buff);
-
-		itm->m_text1->SetTextST				(*CStringTable().translate((*it).key));
+		const shared_str &key = (*it).key;
+		itm->m_text1->SetTextST				(*CStringTable().translate(key));
 		itm->m_text1->AdjustHeightToText	();
 
 		if( 0==(*it).str_value.size() )
@@ -223,7 +223,7 @@ void CUIActorInfoWnd::FillPointsDetail(const shared_str& id)
 			sprintf_s							(buff,"x%d", (*it).int_count);
 			itm->m_text2->SetTextST				(buff);
 
-			sprintf_s							(buff,"%d", (*it).int_points);
+			sprintf_s							(buff,"%.1f", (*it).f_points);
 			itm->m_text3->SetTextST				(buff);
 		}else
 		{

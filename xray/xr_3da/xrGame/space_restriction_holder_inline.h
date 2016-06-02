@@ -12,6 +12,9 @@ IC	CSpaceRestrictionHolder::CSpaceRestrictionHolder		()
 {
 	m_default_out_restrictions	= "";
 	m_default_in_restrictions	= "";
+	extern int i_holder_count;
+	i_holder_count++;
+	m_finalization				= false;
 }
 
 IC	shared_str	CSpaceRestrictionHolder::default_out_restrictions	() const

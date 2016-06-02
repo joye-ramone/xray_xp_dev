@@ -877,6 +877,7 @@ TiXmlDocument::TiXmlDocument() : TiXmlNode( TiXmlNode::DOCUMENT )
 	tabsize = 4;
 	useMicrosoftBOM = false;
 	ClearError();
+	fileLength = 0;
 }
 
 TiXmlDocument::TiXmlDocument( const char * documentName ) : TiXmlNode( TiXmlNode::DOCUMENT )
@@ -895,6 +896,7 @@ TiXmlDocument::TiXmlDocument( const xr_string& documentName ) : TiXmlNode( TiXml
 	useMicrosoftBOM = false;
     value = documentName;
 	ClearError();
+	fileLength = 0;
 }
 #endif
 
@@ -902,6 +904,7 @@ TiXmlDocument::TiXmlDocument( const xr_string& documentName ) : TiXmlNode( TiXml
 TiXmlDocument::TiXmlDocument( const TiXmlDocument& copy ) : TiXmlNode( TiXmlNode::DOCUMENT )
 {
 	copy.CopyTo( this );
+	fileLength = copy.DocumentLength();
 }
 
 
@@ -979,6 +982,7 @@ bool TiXmlDocument::LoadFile( FILE* file, TiXmlEncoding encoding )
 	length = ftell( file );
 	fseek( file, 0, SEEK_SET );
 
+	fileLength = (size_t)length;
 	// Strange case, but good to handle up front.
 	if ( length == 0 )
 	{

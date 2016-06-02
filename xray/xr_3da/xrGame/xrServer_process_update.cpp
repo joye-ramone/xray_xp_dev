@@ -4,6 +4,8 @@
 
 int	g_Dump_Update_Read = 0;
 
+#pragma optimize("gyts", off)
+
 void xrServer::Process_update(NET_Packet& P, ClientID sender)
 {
 	xrClientData* CL		= ID_to_client(sender);
@@ -35,7 +37,13 @@ void xrServer::Process_update(NET_Packet& P, ClientID sender)
 			if ((cp - _pos) != size)	{
 				string16	tmp;
 				CLSID2TEXT	(E->m_tClassID,tmp);
-				Msg("* size = %d, start read = %d, end read = %d", size, _pos, cp);
+				LPCSTR class_name = typeid((*E)).name();
+				if (!class_name) class_name = "***Unknown***";
+				Msg("* object = %s, size = %d, start read = %d, end read = %d", class_name, size, _pos, cp);
+
+				P.r_seek(_pos);
+				E->UPDATE_Read(P); // debug re-test
+
 				Debug.fatal	(DEBUG_INFO,"Beer from the creator of '%s', version of object = %d", tmp, E->m_wVersion);				
 			}
 		}
@@ -74,7 +82,7 @@ void xrServer::Process_save(NET_Packet& P, ClientID sender)
 		s32				_pos_end	= P.r_tell	();
 		s32				_size		= size;
 		if				(_size != (_pos_end-_pos_start))	{
-			Msg			("! load/save mismatch, object: '%s'",E?E->name_replace():"unknown");
+			Msg			("!#ERROR: load/save mismatch, object: '%s'",E?E->name_replace():"unknown");
 			s32			_rollback	= _pos_start+_size;
 			P.r_seek	(_rollback);
 		}

@@ -5,7 +5,7 @@
 #include "blenders\Blender_Recorder.h"
 #include "blenders\Blender.h"
 
-void fix_texture_name(LPSTR fn);
+XRTEXTURES_API void fix_texture_name(LPSTR fn);
 
 void	CBlender_Compile::r_Pass		(LPCSTR _vs, LPCSTR _ps, bool bFog, BOOL bZtest, BOOL bZwrite,	BOOL bABlend, D3DBLEND abSRC, D3DBLEND abDST, BOOL aTest, u32 aRef)
 {
@@ -121,11 +121,11 @@ void	CBlender_Compile::r_Sampler_rtf	(LPCSTR name, LPCSTR texture, bool b_ps1x_P
 }
 void	CBlender_Compile::r_Sampler_clf	(LPCSTR name, LPCSTR texture, bool b_ps1x_ProjectiveDivide)
 {
-	r_Sampler	(name,texture,b_ps1x_ProjectiveDivide,D3DTADDRESS_CLAMP,D3DTEXF_LINEAR,D3DTEXF_NONE,D3DTEXF_LINEAR);
+	r_Sampler	(name,texture,b_ps1x_ProjectiveDivide,D3DTADDRESS_CLAMP,D3DTEXF_ANISOTROPIC,D3DTEXF_NONE,D3DTEXF_ANISOTROPIC);
 }
 void	CBlender_Compile::r_Sampler_clw	(LPCSTR name, LPCSTR texture, bool b_ps1x_ProjectiveDivide)
 {
-	u32 s			= r_Sampler	(name,texture,b_ps1x_ProjectiveDivide,D3DTADDRESS_CLAMP,D3DTEXF_LINEAR,D3DTEXF_NONE,D3DTEXF_LINEAR);
+	u32 s			= r_Sampler	(name,texture,b_ps1x_ProjectiveDivide,D3DTADDRESS_CLAMP,D3DTEXF_ANISOTROPIC,D3DTEXF_NONE,D3DTEXF_ANISOTROPIC);
 	if (u32(-1)!=s)	RS.SetSAMP	(s,D3DSAMP_ADDRESSW, D3DTADDRESS_WRAP);
 }
 void	CBlender_Compile::r_End			()

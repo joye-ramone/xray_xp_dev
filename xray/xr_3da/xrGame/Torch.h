@@ -53,25 +53,7 @@ public:
 
 	virtual bool	can_be_attached		() const;
  
-public:
-			void	SwitchNightVision		  ();
-			void	SwitchNightVision		  (bool light_on);
-			void	UpdateSwitchNightVision   ();
-			float	NightVisionBattery		  ();
 protected:
-	bool					m_bNightVisionEnabled;
-public:
-	bool					m_bNightVisionOn;
-protected:
-	HUD_SOUND				m_NightVisionOnSnd;
-	HUD_SOUND				m_NightVisionOffSnd;
-	HUD_SOUND				m_NightVisionIdleSnd;
-	HUD_SOUND				m_NightVisionBrokenSnd;
-
-	/*float					m_NightVisionRechargeTime;
-	float					m_NightVisionRechargeTimeMin;
-	float					m_NightVisionDischargeTime;
-	float					m_NightVisionChargeTime;*/
 
 	enum EStats{
 		eTorchActive				= (1<<0),

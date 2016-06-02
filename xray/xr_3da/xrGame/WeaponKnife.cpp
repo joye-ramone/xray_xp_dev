@@ -326,7 +326,9 @@ void CWeaponKnife::GetBriefInfo(xr_string& str_name, xr_string& icon_sect_name, 
 #if defined(KNIFE_SPRINT_MOTION)
 void CWeaponKnife::onMovementChanged(ACTOR_DEFS::EMoveCommand cmd)
 {
-	if (g_actor->get_state() & mcSprint)
+	CEntity::SEntityState st;
+	g_actor->g_State(st);
+	if (st.bSprint && st.fVelocity > 1) 
 	{
 		SetState(eIdle);
 		m_pHUD->animPlay(random_anim(mhud_idle_sprint), TRUE, this,  eIdle);

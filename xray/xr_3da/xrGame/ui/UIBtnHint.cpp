@@ -5,7 +5,7 @@
 
 CUIButtonHint*		g_btnHint = NULL; 
 
-
+#pragma optimize("gyts", off)
 
 CUIButtonHint::CUIButtonHint	()
 :m_ownerWnd(NULL),m_enabledOnFrame(false)
@@ -25,8 +25,8 @@ CUIButtonHint::CUIButtonHint	()
 
 	m_text						= xr_new<CUIStatic>();m_text->SetAutoDelete(true);
 	AttachChild					(m_text);
+	
 	xml_init.InitStatic			(uiXml,"button_hint:description",0,m_text);
-
 
 }
 

@@ -35,8 +35,8 @@ public		:
 	LPCSTR			Name()			{ return cName;	}
 	void			InvalidSyntax() {
 		TInfo I; Info(I);
-		Msg("~ Invalid syntax in call to '%s'",cName);
-		Msg("~ Valid arguments: %s", I);
+		Msg("! Invalid syntax in call to '%s'",cName);
+		Msg("! Valid arguments: %s", I);
 	}	
 	virtual void	Execute	(LPCSTR args)	= 0;
 	void		    SetEnabled(bool v) { bEnabled = v; }

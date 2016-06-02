@@ -8,7 +8,7 @@
 #include <sys\stat.h>
 #include <share.h>
 
-void*			FileDownload	(LPCSTR fn, u32* pdwSize=NULL);
+void*			FileDownload	(LPCSTR fn, file_size* pddSize=NULL);
 void			FileCompress	(const char *fn, const char* sign, void* data, u32 size);
 void * 			FileDecompress	(const char *fn, const char* sign, u32* size=NULL);
 
@@ -74,7 +74,7 @@ public:
 class CTempReader : public IReader
 {
 public:
-				CTempReader(void *_data, int _size, int _iterpos) : IReader(_data,_size,_iterpos)	{}
+				CTempReader(void *_data, int _size, s64 _iterpos) : IReader(_data,_size,_iterpos)	{}
 	virtual		~CTempReader();
 };
 class CPackReader : public IReader

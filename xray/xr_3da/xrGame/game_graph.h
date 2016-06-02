@@ -34,7 +34,7 @@ public:
 	typedef const CEdge				*const_iterator;
 	typedef const CLevelPoint		*const_spawn_iterator;
 	typedef xr_vector<CLevelPoint>	LEVEL_POINT_VECTOR;
-	typedef xr_vector<bool>			ENABLED;
+	typedef xr_vector<bool>			ENABLED;	
 
 private:
 	CHeader							m_header;
@@ -44,6 +44,7 @@ private:
 	CVertex							*m_nodes;
 	mutable ENABLED					m_enabled;
 	_GRAPH_ID						m_current_level_some_vertex_id;
+	
 
 #ifdef PRIQUEL
 private:
@@ -84,7 +85,7 @@ public:
 	IC		void					set_invalid_vertex		(_GRAPH_ID &vertex_id) const;
 	IC		_GRAPH_ID				vertex_id				(const CVertex *vertex) const;
 	IC		void					set_current_level		(const u32 &level_id);
-	IC		const _GRAPH_ID			&current_level_vertex	() const;
+	IC		const _GRAPH_ID			&current_level_vertex	() const;	
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };
 add_to_type_list(CGameGraph)

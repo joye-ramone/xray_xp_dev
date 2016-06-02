@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: stalker_animation_global.cpp
 //	Created 	: 25.02.2003
-//  Modified 	: 19.11.2004
+//  Modified 	: 27.11.2014
 //	Author		: Dmitriy Iassenev
 //	Description : Stalker animation manager : global animations
 ////////////////////////////////////////////////////////////////////////////
@@ -32,6 +32,8 @@ void CStalkerAnimationManager::global_play_callback			(CBlend *blend)
 
 MotionID CStalkerAnimationManager::global_critical_hit		()
 {
+	R_ASSERT2(m_object, "m_object == NULL");
+
 	if (!object().critically_wounded())
 		return				(MotionID());
 
@@ -50,19 +52,15 @@ MotionID CStalkerAnimationManager::global_critical_hit		()
 	);
 
 	u32						animation_slot = weapon->animation_slot();
-	VERIFY					(animation_slot >= 1);
-	VERIFY					(animation_slot <= 3);
+	FORCE_VERIFY			(animation_slot >= 1);
+	FORCE_VERIFY			(animation_slot <= 3);
+	
 
-	return					(
-		global().select(
-			m_data_storage->m_part_animations.A[
-				eBodyStateStand
-			].m_global.A[
-				object().critical_wound_type() + 6*(animation_slot - 1)
-			].A,
-			&object().critical_wound_weights()
-		)
-	);
+	u32 index    = object().critical_wound_type() + 6 * (animation_slot - 1);
+	MsgCB("$#CONTEXT: global_critical_hit index = %d, object = %p ", index, &object());
+	auto arr	 = m_data_storage->m_part_animations.A[eBodyStateStand].m_global.A[index].A;
+	auto weights = &object().critical_wound_weights();
+	return	global().select(arr, weights);
 }
 
 MotionID CStalkerAnimationManager::assign_global_animation	()

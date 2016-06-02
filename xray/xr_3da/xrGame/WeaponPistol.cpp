@@ -181,7 +181,8 @@ void CWeaponPistol::OnAnimationEnd(u32 state)
 void CWeaponPistol::OnShot		()
 {
 	// Sound
-	PlaySound		(*m_pSndShotCurrent,get_LastFP());
+	// PlaySound		(*m_pSndShotCurrent,get_LastFP());
+	HUD_SOUND::PlaySound	(*m_pSndShotCurrent, get_LastFP(), H_Root(), !!GetHUDmode(), false, &m_iLastSndShot);
 
 	AddShotEffector	();
 	

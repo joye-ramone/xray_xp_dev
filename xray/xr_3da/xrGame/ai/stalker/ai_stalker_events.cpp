@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: ai_stalker_events.cpp
 //	Created 	: 26.02.2003
-//  Modified 	: 26.02.2003
+//  Modified 	: 06.12.2014
 //	Author		: Dmitriy Iassenev
 //	Description : Events handling for monster "Stalker"
 ////////////////////////////////////////////////////////////////////////////
@@ -20,6 +20,8 @@ using namespace StalkerSpace;
 using namespace MonsterSpace;
 
 #define SILENCE
+
+#pragma optimize("gyts", off)
 
 void CAI_Stalker::OnEvent		(NET_Packet& P, u16 type)
 {
@@ -47,7 +49,7 @@ void CAI_Stalker::OnEvent		(NET_Packet& P, u16 type)
 				if (!inventory().ActiveItem() && GetScriptControl() && smart_cast<CShootingObject*>(O))
 					CObjectHandler::set_goal	(eObjectActionIdle,_O);
 
-				on_after_take			(_O);
+				on_after_take			(_O);				
 #ifndef SILENCE
 				Msg("TAKE - %s (%d)", *O->cName(),O->ID());
 #endif

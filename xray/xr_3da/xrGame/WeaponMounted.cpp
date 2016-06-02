@@ -31,7 +31,8 @@ void CWeaponMounted::BoneCallbackX(CBoneInstance *B)
 		Fvector pos = m.c;
 		float h, p, b;
 		m.getHPB (h, p, b);	// желательно не затереть горизонтальный угол 	
-		m.setHPB (h, -P->camera->pitch, b).c = pos;
+		m.setHPB (h, -P->camera->pitch, b);
+		m.translate_over(pos);
 	}
 }
 

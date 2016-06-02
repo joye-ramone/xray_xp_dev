@@ -8,7 +8,7 @@
 
 #include	"shader.h"
 #include	"tss_def.h"
-#include	"TextureDescrManager.h"
+#include	"xrTextures/TextureDescrManager.h"
 // refs
 struct		lua_State;
 
@@ -168,7 +168,7 @@ public:
 	SGeometry*		CreateGeom				(u32 FVF				, IDirect3DVertexBuffer9* vb, IDirect3DIndexBuffer9* ib);
 	void			DeleteGeom				(const SGeometry* VS		);
 	void			DeferredLoad			(BOOL E)					{ bDeferredLoad=E;	}
-	void			DeferredUpload			();
+	void			DeferredUpload			(BOOL bForce = FALSE);
 //.	void			DeferredUnload			();
 	void			Evict					();
 	void			StoreNecessaryTextures	();

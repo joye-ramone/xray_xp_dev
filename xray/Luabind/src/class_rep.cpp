@@ -31,6 +31,8 @@ using namespace luabind::detail;
 #define LUABIND_NO_ERROR_CHECKING2
 #pragma optimize("t",on)
 
+xr_string last_destroyed;
+
 namespace luabind { namespace detail
 {
 	struct method_name
@@ -160,6 +162,9 @@ luabind::detail::class_rep::class_rep(lua_State* L, const char* name)
 
 luabind::detail::class_rep::~class_rep()
 {
+	last_destroyed = m_name;
+
+	// MsgCB("$#CONTEXT: class_rep() destructor for %s ", m_name);
 }
 
 // leaves object on lua stack
@@ -1243,7 +1248,7 @@ int luabind::detail::class_rep::construct_lua_class_callback(lua_State* L)
 	// we don't have any stack objects here
 	lua_call(L, args, 0);
 
-#ifndef LUABIND_NO_ERROR_CHECKING
+#ifndef LUABIND_NO_ERROR_CHECKING2
 
 	object_rep* obj = static_cast<object_rep*>(obj_ptr);
 	if (obj->flags() & object_rep::call_super)
@@ -1264,7 +1269,7 @@ int luabind::detail::class_rep::lua_class_gettable(lua_State* L)
 	object_rep* obj = static_cast<object_rep*>(lua_touserdata(L, 1));
 	class_rep* crep = obj->crep();
 
-#ifndef LUABIND_NO_ERROR_CHECKING
+#ifndef LUABIND_NO_ERROR_CHECKING2
 
 	if (obj->flags() & object_rep::call_super)
 	{
@@ -1341,7 +1346,7 @@ int luabind::detail::class_rep::lua_class_settable(lua_State* L)
 	object_rep* obj = static_cast<object_rep*>(lua_touserdata(L, 1));
 	class_rep* crep = obj->crep();
 
-#ifndef LUABIND_NO_ERROR_CHECKING
+#ifndef LUABIND_NO_ERROR_CHECKING2
 
 	if (obj->flags() & object_rep::call_super)
 	{

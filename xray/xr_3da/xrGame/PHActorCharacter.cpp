@@ -6,10 +6,12 @@
 #include "PhysicsShellHolder.h"
 #include "ai/stalker/ai_stalker.h"
 #include "Actor.h"
+#include "ActorCondition.h"
 #include "GameMtlLib.h"
 #include "level.h"
 
 //const float JUMP_HIGHT=0.5;
+#pragma optimize("gyts", off)
 const float JUMP_UP_VELOCITY=6.0f;//5.6f;
 const float JUMP_INCREASE_VELOCITY_RATE=1.2f;
 
@@ -177,7 +179,11 @@ void CPHActorCharacter::SetAcceleration(Fvector accel)
 
 void CPHActorCharacter::Jump(const Fvector& accel)
 {
-	if(!b_exist) return;
+	if (!b_exist) return;
+	float jump_vel = accel.y;
+	if (0 == jump_vel)
+		jump_vel = jump_up_velocity;
+
 	if(!b_lose_control && (m_ground_contact_normal[1]>0.5f||m_elevator_state.ClimbingState()))
 	{
 		b_jump=true;
@@ -187,11 +193,11 @@ void CPHActorCharacter::Jump(const Fvector& accel)
 		if(m_elevator_state.ClimbingState())
 		{
 			m_elevator_state.GetJumpDir(m_acceleration,m_jump_accel);
-			m_jump_accel.mul(JUMP_UP_VELOCITY/2.f);
+			m_jump_accel.mul(jump_vel /2.f); // JUMP_UP_VELOCITY
  			//if(accel.square_magnitude()>EPS_L)m_jump_accel.mul(4.f);
 		}
 		else{
-			m_jump_accel.set(vel[0]*JUMP_INCREASE_VELOCITY_RATE+m_acceleration.x/amag*0.2f,jump_up_velocity,vel[2]*JUMP_INCREASE_VELOCITY_RATE +m_acceleration.z/amag*0.2f);
+			m_jump_accel.set(vel[0]*JUMP_INCREASE_VELOCITY_RATE+m_acceleration.x/amag*0.2f, jump_vel, vel[2]*JUMP_INCREASE_VELOCITY_RATE +m_acceleration.z/amag*0.2f);
 		}
 		Enable();
 	}

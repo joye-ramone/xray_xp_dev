@@ -10,7 +10,7 @@
 #include "../xrCore/xr_resource.h"
 
 #include "sh_atomic.h"
-#include "sh_texture.h"
+#include "xrTextures/sh_texture.h"
 #include "sh_matrix.h"
 #include "sh_constant.h"
 #include "sh_rt.h"

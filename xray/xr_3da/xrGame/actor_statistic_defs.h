@@ -8,7 +8,7 @@ struct SStatDetailBData: public IPureSerializeObject<IReader,IWriter>
 {
 	shared_str				key;
 	s32						int_count;
-	s32						int_points;
+	float					f_points;
 	shared_str				str_value;
 
 	virtual void save								(IWriter &stream);
@@ -24,7 +24,7 @@ struct SStatSectionData: public IPureSerializeObject<IReader,IWriter>
 	vStatDetailData			data;
 
 	SStatDetailBData&		GetData			(const shared_str&);
-	s32						GetTotalPoints	() const;
+	float					GetTotalPoints	() const;
 	virtual void			save			(IWriter &stream);
 	virtual void			load			(IReader &stream);
 };

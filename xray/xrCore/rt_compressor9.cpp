@@ -6,6 +6,11 @@
 
 //==============================================================================
 
+extern PVOID fs_alloc(size_t cb);
+extern PVOID fs_realloc(PVOID data, size_t cb);
+extern void  fs_free(PVOID data);
+
+
 #define HEAP_ALLOC(var,size) \
 	lzo_align_t __LZO_MMODEL var [ ((size) + (sizeof(lzo_align_t) - 1)) / sizeof(lzo_align_t) ]
 
@@ -39,7 +44,7 @@ rtc9_initialize()
 		R_ASSERT(reader);
 		
 		_LZO_DictionarySize = reader->length();
-		_LZO_Dictionary     = (u8*)xr_malloc(_LZO_DictionarySize);
+		_LZO_Dictionary     = (u8*)fs_alloc(_LZO_DictionarySize);
 		
 		reader->r( _LZO_Dictionary, _LZO_DictionarySize );
 		FS.r_close( reader );
@@ -62,7 +67,7 @@ rtc9_uninitialize()
 {
     if( _LZO_Dictionary )
     {
-        xr_free( _LZO_Dictionary );
+        fs_free( _LZO_Dictionary );
         
         _LZO_Dictionary     = NULL;
         _LZO_DictionarySize = 0;

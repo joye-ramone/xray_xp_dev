@@ -17,31 +17,31 @@ public:
 virtual				~CPHCapture							();
 
 
-bool				Failed								(){return b_failed;};
-void				Release								();
-void				net_Relcase							(CObject* O);
+	bool				Failed								(){return b_failed;};
+	void				Release								();
+	void				net_Relcase							(CObject* O);
 protected:
-CPHCharacter		*m_character;
-CPhysicsElement*	m_taget_element;
-CPhysicsShellHolder*	m_taget_object;
-dJointID			m_joint;
-dJointID			m_ajoint;
-dJointFeedback		m_joint_feedback;
-Fvector				m_capture_pos;
-float				m_back_force;
-float				m_pull_force;
-float				m_capture_force;
-float				m_capture_distance;
-float				m_pull_distance;
-u32					m_capture_time;
-u32					m_time_start;
-CBoneInstance		*m_capture_bone;
-dBodyID				m_body;
-CPHIsland			m_island;
-bool				b_failed;
-bool				b_collide;
-bool				b_disabled;
-bool				b_character_feedback;
+	CPHCharacter		*m_character;
+	CPhysicsElement*	m_taget_element;
+	CPhysicsShellHolder*	m_taget_object;
+	dJointID			m_joint;
+	dJointID			m_ajoint;
+	dJointFeedback		m_joint_feedback;
+	Fvector				m_capture_pos;
+	float				m_back_force;
+	float				m_pull_force;
+	float				m_capture_force;
+	float				m_capture_distance;
+	float				m_pull_distance;
+	u32					m_capture_time;
+	u32					m_time_start;
+	CBoneInstance		*m_capture_bone;
+	dBodyID				m_body;
+	CPHIsland			m_island;
+	bool				b_failed;
+	bool				b_collide;
+	bool				b_disabled;
+	bool				b_character_feedback;
 
 private:
 	enum 
@@ -70,6 +70,7 @@ static void object_contactCallbackFun(bool& do_colide,bool bo1,dContact& c,SGame
 ///////////CPHObject/////////////////////////////
 	virtual void PhDataUpdate(dReal step);
 	virtual void PhTune(dReal step);
-
+public:
+	CPhysicsShellHolder*  taget_object() const { return m_taget_object; };
 };
 #endif

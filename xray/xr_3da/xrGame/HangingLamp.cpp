@@ -85,7 +85,7 @@ BOOL CHangingLamp::net_Spawn(CSE_Abstract* DC)
 	CSE_Abstract			*e		= (CSE_Abstract*)(DC);
 	CSE_ALifeObjectHangingLamp	*lamp	= smart_cast<CSE_ALifeObjectHangingLamp*>(e);
 	R_ASSERT				(lamp);
-	inherited::net_Spawn	(DC);
+	inherited::net_Spawn	(DC); // здесь вызывается скриптовый биндер
 	Fcolor					clr;
 
 	// set bone id

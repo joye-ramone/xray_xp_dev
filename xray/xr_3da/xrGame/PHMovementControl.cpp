@@ -25,6 +25,7 @@
 #define def_Z_SIZE_2	0.35f
 
 const u64 after_creation_collision_hit_block_steps_number=100;
+#pragma optimize("gyts", off)
 
 CPHMovementControl::CPHMovementControl(CObject* parent)
 {
@@ -116,17 +117,24 @@ void CPHMovementControl::in_shedule_Update(u32 DT)
 	}
 }
 
-void CPHMovementControl::Calculate(Fvector& vAccel,const Fvector& camDir,float /**ang_speed/**/,float jump,float /**dt/**/,bool /**bLight/**/)
+
+void CPHMovementControl::Calculate(Fvector& vAccel,const Fvector& camDir,float /**ang_speed/**/,float jump,float  dt, bool /**bLight/**/)
 {
 	Fvector previous_position;previous_position.set(vPosition);
 	m_character->IPosition(vPosition);
+	float dist = vPosition.distance_to_xz(previous_position);
+	if (dist > 3.f) {
+		Msg("##DBG: interpolation attempt change position with distance %.3f, blocked. DeltaTime = %.3f ", dist, dt);
+		vPosition = previous_position;
+		m_character->SetPosition(vPosition);		
+	}
+	
+
 	if(bExernalImpulse)
-	{
-		
+	{		
 		vAccel.add(vExternalImpulse);
 		m_character->ApplyForce(vExternalImpulse);
-		vExternalImpulse.set(0.f,0.f,0.f);
-		
+		vExternalImpulse.set(0.f,0.f,0.f);		
 		bExernalImpulse=false;
 	}
 	//vAccel.y=jump;
@@ -135,7 +143,15 @@ void CPHMovementControl::Calculate(Fvector& vAccel,const Fvector& camDir,float /
 	m_character->SetMaximumVelocity(mAccel/10.f);
 	//if(!fis_zero(mAccel))vAccel.mul(1.f/mAccel);
 	m_character->SetAcceleration(vAccel);
-	if(!fis_zero(jump)) m_character->Jump(vAccel);
+	if (!fis_zero(jump))
+	{
+		// if (0 == vAccel.y)
+		if (vAccel.y >= 0)
+			vAccel.y = jump;
+		else
+			vAccel.y += jump;
+		m_character->Jump(vAccel);
+	}
 	
 	m_character->GetSavedVelocity(vVelocity); 
 	fActualVelocity=vVelocity.magnitude();
@@ -147,12 +163,55 @@ void CPHMovementControl::Calculate(Fvector& vAccel,const Fvector& camDir,float /
 		fContactSpeed=di->ContactVelocity();
 
 		gcontact_Power				= fContactSpeed/fMaxCrashSpeed;
-
 		gcontact_HealthLost			= 0;
-		if (fContactSpeed>fMinCrashSpeed) 
+		dVector3  &lvel = m_character->get_body()->lvel;		
+
+		if (fContactSpeed > fMinCrashSpeed) 
 		{
-				gcontact_HealthLost = 
-				((fContactSpeed-fMinCrashSpeed))/(fMaxCrashSpeed-fMinCrashSpeed);
+			float eff_speed = _max(fActualVelocity, dDOT ( lvel, lvel ));			
+			CEntity::SEntityState state;
+			ZeroMemory(&state, sizeof(state));
+			bool actor_bypass = true;
+
+			// блокировка ударов от ряда материалов
+			u16 m = di->ContactMaterial();
+			LPCSTR who_name = "?";
+			if (0 == pObject->ID()) // is actor
+			{
+				const SGameMtl *md = GMLib.GetMaterialByIdx(m);
+				who_name = md->m_Name.c_str();
+			}
+
+
+			CEntity* pEntity = smart_cast<CEntity*> (pObject);
+			if (pEntity)
+				pEntity->g_State(state);
+
+			CObject* who = NULL;
+			if (di->ContactObject() < 0xffff)
+			    who = Level().Objects.net_Find(di->ContactObject());
+
+			float mass = 0;
+			if (who)
+			{
+				who_name = who->Name_script();
+				CPhysicsShellHolder* sh = static_cast<CPhysicsShellHolder*>(who);
+				if (sh)
+					mass = sh->GetMass();
+			}
+
+			if (0 == pObject->ID()) // is actor
+			{
+				//string16 buff;
+				Msg("##DBG: actor collision with '%s' detected, contact speed = %.3f, mass = %.1f ", who_name, fContactSpeed, mass);
+				if (strstr(who_name, "beton"))
+					actor_bypass = false;
+			}
+
+			if ( state.bFall || ( actor_bypass  && mass < 100.f ) )   // нечто прилетело, возможно от полтера - не тяжелое по определению 
+				gcontact_HealthLost = ((fContactSpeed - fMinCrashSpeed)) / (fMaxCrashSpeed - fMinCrashSpeed);
+			else
+				gcontact_HealthLost = 0.1f * eff_speed / fMinCrashSpeed; 
 		}
 
 	}
@@ -161,7 +220,7 @@ void CPHMovementControl::Calculate(Fvector& vAccel,const Fvector& camDir,float /
 		const SGameMtl *last_material=GMLib.GetMaterialByIdx(m_character->LastMaterialIDX());
 		if(last_material->Flags.test(SGameMtl::flInjurious))
 		{
-			gcontact_HealthLost+=Device.fTimeDelta*last_material->fInjuriousSpeed;
+			gcontact_HealthLost += (Device.fTimeDelta ) * last_material->fInjuriousSpeed;
 		}
 	}
 
@@ -860,12 +919,10 @@ void	CPHMovementControl::AllocateCharacterObject(CharacterType type)
 
 void	CPHMovementControl::PHCaptureObject(CPhysicsShellHolder* object)
 {
-if(m_capture) return;
+	if(m_capture) return;
 
-if(!object||!object->PPhysicsShell()||!object->m_pPhysicsShell->isActive()) return;
-m_capture=xr_new<CPHCapture>(m_character,
-							 object
-							 );
+	if(!object||!object->PPhysicsShell()||!object->m_pPhysicsShell->isActive()) return;
+	m_capture = xr_new<CPHCapture> (m_character,	object);
 }
 
 void	CPHMovementControl::PHCaptureObject(CPhysicsShellHolder* object,u16 element)
@@ -873,10 +930,7 @@ void	CPHMovementControl::PHCaptureObject(CPhysicsShellHolder* object,u16 element
 	if(m_capture) return;
 
 	if(!object||!object->PPhysicsShell()||!object->PPhysicsShell()->isActive()) return;
-	m_capture=xr_new<CPHCapture>(m_character,
-		object,
-		element
-		);
+	m_capture = xr_new<CPHCapture> (m_character,	object,	element);
 }
 
 Fvector CPHMovementControl::PHCaptureGetNearestElemPos(const CPhysicsShellHolder* object)

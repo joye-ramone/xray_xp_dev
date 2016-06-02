@@ -1133,7 +1133,7 @@ namespace luabind { namespace detail
 		// we don't have any stack objects here
 		lua_call(L, args, 0);
 
-#ifndef LUABIND_NO_ERROR_CHECKING
+#ifndef LUABIND_NO_ERROR_CHECKING2
 
 		object_rep* obj = static_cast<object_rep*>(obj_ptr);
 		if (obj->flags() & object_rep::call_super)
@@ -1154,7 +1154,7 @@ namespace luabind { namespace detail
 		object_rep* obj = static_cast<object_rep*>(lua_touserdata(L, 1));
 		class_rep* crep = obj->crep();
 
-#ifndef LUABIND_NO_ERROR_CHECKING
+#ifndef LUABIND_NO_ERROR_CHECKING2
 
 		if (obj->flags() & object_rep::call_super)
 		{
@@ -1218,7 +1218,7 @@ namespace luabind { namespace detail
 		object_rep* obj = static_cast<object_rep*>(lua_touserdata(L, 1));
 		class_rep* crep = obj->crep();
 
-#ifndef LUABIND_NO_ERROR_CHECKING
+#ifndef LUABIND_NO_ERROR_CHECKING2
 
 		if (obj->flags() & object_rep::call_super)
 		{

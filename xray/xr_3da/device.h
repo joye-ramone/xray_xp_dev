@@ -15,6 +15,7 @@ class	ENGINE_API	CGammaControl;
 #include "stats.h"
 #include "xr_effgamma.h"
 #include "shader.h"
+#include "render_headers.h"
 #include "R_Backend.h"
 
 #define VIEWPORT_NEAR  0.2f
@@ -103,7 +104,9 @@ public:
 	Fmatrix									mInvFullTransform;
 	float									fFOV;
 	float									fASPECT;
+	bool									bWarnFreeze;	
 	
+
 	CRenderDevice			()
 		#ifdef PROFILE_CRITICAL_SECTIONS
 			: mt_csEnter(MUTEX_PROFILE_ID(CRenderDevice::mt_csEnter))
@@ -115,6 +118,7 @@ public:
 		b_is_Ready			= FALSE;
 		Timer.Start			();
 		m_bNearer			= FALSE;
+		bWarnFreeze			= false;
 	};
 
 	void	Pause							(BOOL bOn, BOOL bTimer, BOOL bSound, LPCSTR reason);
@@ -175,6 +179,7 @@ public:
 	}
 
 	IC		u32				frame_elapsed		()			{ return frame_timer.GetElapsed_ms(); }
+	IC		float			frame_elapsed_sec	()			{ return frame_timer.GetElapsed_sec(); }
 };
 
 extern		ENGINE_API		CRenderDevice		Device;
@@ -182,6 +187,8 @@ extern		ENGINE_API		bool				g_bBenchmark;
 
 typedef fastdelegate::FastDelegate0<bool>		LOADING_EVENT;
 extern	ENGINE_API xr_list<LOADING_EVENT>		g_loading_events;
+
+extern ENGINE_API bool busy_warn(LPCSTR file, u32 line, LPCSTR func, u32 timeout = 40);
 
 #include	"R_Backend_Runtime.h"
 

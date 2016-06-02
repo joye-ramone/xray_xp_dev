@@ -40,7 +40,7 @@ void CPhysicsShell::script_register(lua_State *L)
 			.def("freeze",						&CPhysicsShell::Freeze)
 			.def("unfreeze",					&CPhysicsShell::UnFreeze)
 			.def("disable_collision",			&CPhysicsShell::DisableCollision)
-			.def("enalbe_collision",			&CPhysicsShell::EnableCollision)
+			.def("enable_collision",			&CPhysicsShell::EnableCollision)
 		];
 }
 

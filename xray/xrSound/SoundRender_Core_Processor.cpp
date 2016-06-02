@@ -7,6 +7,17 @@
 #include "SoundRender_Target.h"
 #include "SoundRender_Source.h"
 
+// #define REBUILD
+#ifdef REBUILD
+bool busy_warn(LPCSTR file, u32 line, LPCSTR func, u32 timeout)
+{
+	return false;
+}
+#else
+#pragma comment(lib, "xr_3da")
+ENGINE_API bool busy_warn(LPCSTR file, u32 line, LPCSTR func, u32 timeout);
+#endif
+
 CSoundRender_Emitter*	CSoundRender_Core::i_play(ref_sound* S, BOOL _loop, float delay)
 {
 	VERIFY					(S->_p->feedback==0);
@@ -29,7 +40,7 @@ void CSoundRender_Core::update	( const Fvector& P, const Fvector& D, const Fvect
 	Timer_Value					= new_tm;
 
 	s_emitters_u	++	;
-
+	busy_warn(DEBUG_INFO, 3);
 	// Firstly update emitters, which are now being rendered
 	//Msg	("! update: r-emitters");
 	for (it=0; it<s_targets.size(); it++)
@@ -46,32 +57,34 @@ void CSoundRender_Core::update	( const Fvector& P, const Fvector& D, const Fvect
 			T->priority	= -1;
 		}
 	}
-
+	busy_warn(DEBUG_INFO, 3);
 	// Update emmitters
 	//Msg	("! update: emitters");
-	for (it=0; it<s_emitters.size(); it++)
+	for (it=0; it < s_emitters.size();)
 	{
 		CSoundRender_Emitter*	pEmitter = s_emitters[it];
+		if (NULL == pEmitter || !pEmitter->isPlaying())		
+		{
+			// Stopped
+		 	if (pEmitter) xr_delete		(pEmitter);
+			s_emitters.erase(s_emitters.begin() + it);			
+			continue;
+		}
+
 		if (pEmitter->marker!=s_emitters_u)
 		{
 			pEmitter->update		(dt);
 			pEmitter->marker		= s_emitters_u;
 		}
-		if (!pEmitter->isPlaying())		
-		{
-			// Stopped
-			xr_delete		(pEmitter);
-			s_emitters.erase(s_emitters.begin()+it);
-			it--;
-		}
+		it++;
 	}
-
+	busy_warn(DEBUG_INFO, 3);
 	// Get currently rendering emitters
 	//Msg	("! update: targets");
 	s_targets_defer.clear	();
 	s_targets_pu			++;
 	// u32 PU				= s_targets_pu%s_targets.size();
-	for (it=0; it<s_targets.size(); it++)
+	for (it=0; it < s_targets.size(); it++)
 	{
 		CSoundRender_Target*	T	= s_targets	[it];
 		if (T->get_emitter())
@@ -86,7 +99,7 @@ void CSoundRender_Core::update	( const Fvector& P, const Fvector& D, const Fvect
 				s_targets_defer.push_back		(T);
 		}
 	}
-
+	busy_warn(DEBUG_INFO, 3);
 	// Commit parameters from pending targets
 	if (!s_targets_defer.empty())
 	{
@@ -95,7 +108,7 @@ void CSoundRender_Core::update	( const Fvector& P, const Fvector& D, const Fvect
 		for (it=0; it<s_targets_defer.size(); it++)
 			s_targets_defer[it]->fill_parameters();
 	}
-
+	busy_warn(DEBUG_INFO, 3);
 	// update EAX
     if (psSoundFlags.test(ss_EAX) && bEAX){
         if (bListenerMoved){
@@ -107,7 +120,7 @@ void CSoundRender_Core::update	( const Fvector& P, const Fvector& D, const Fvect
         i_eax_listener_set			(&e_current);
 		i_eax_commit_setting		();
 	}
-
+	busy_warn(DEBUG_INFO, 3);
     // update listener
     update_listener					(P,D,N,dt);
     
@@ -118,7 +131,7 @@ void CSoundRender_Core::update	( const Fvector& P, const Fvector& D, const Fvect
 		for (it=0; it<s_targets_defer.size(); it++)
 			s_targets_defer[it]->render	();
 	}
-
+	busy_warn(DEBUG_INFO, 3);
 	// Events
 	update_events					();
 

@@ -14,6 +14,9 @@
 #include "ai_space.h"
 #include "game_graph.h"
 #include "alife_simulator_header.h"
+#ifndef  RTC_COMPRESSION
+#include "LZ4/lz4lib.h"
+#endif
 
 extern LPCSTR alife_section;
 

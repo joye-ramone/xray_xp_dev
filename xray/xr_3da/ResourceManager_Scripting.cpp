@@ -137,7 +137,7 @@ void	CResourceManager::LS_Load			()
 		return;
 	}
 
-	#pragma message ("_ITERATOR_DEBUG_LEVEL = " _STRINGIZE(_ITERATOR_DEBUG_LEVEL))
+	//#pragma message ("_ITERATOR_DEBUG_LEVEL = " _STRINGIZE(_ITERATOR_DEBUG_LEVEL))
 	
 	// initialize lua standard library functions 
 	luaL_openlibs(LSVM);	//RvP

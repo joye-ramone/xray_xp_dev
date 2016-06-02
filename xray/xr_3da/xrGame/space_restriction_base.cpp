@@ -13,6 +13,11 @@
 
 #define DEFAULT_RADIUS EPS_L
 
+bool CSpaceRestrictionBase::effective() const
+{
+	return							true;
+}
+
 bool CSpaceRestrictionBase::inside	(u32 level_vertex_id, bool partially_inside)
 {
 	return							(inside(level_vertex_id,partially_inside,DEFAULT_RADIUS));
@@ -25,7 +30,8 @@ IC	Fvector construct_position		(u32 level_vertex_id, float x, float z)
 
 IC	bool CSpaceRestrictionBase_inside	(CSpaceRestrictionBase *self, const Fvector &position, const float &radius)
 {
-	Fsphere							sphere;
+	R_ASSERT2 (!IsBadReadPtr(self, sizeof(CSpaceRestrictionBase)), "this is bad pointer!");
+	Fsphere							sphere;	
 	sphere.P						= position;
 	sphere.R						= radius;
 	return							(self->inside(sphere));
@@ -35,22 +41,37 @@ bool CSpaceRestrictionBase::inside	(u32 level_vertex_id, bool partially_inside, 
 {
 	const Fvector					&position = ai().level_graph().vertex_position(level_vertex_id);
 	float							offset = ai().level_graph().header().cell_size()*.5f - EPS_L;
-	if (partially_inside)
-		return						(
-			CSpaceRestrictionBase_inside(this,construct_position(level_vertex_id,position.x + offset,position.z + offset),radius) || 
-			CSpaceRestrictionBase_inside(this,construct_position(level_vertex_id,position.x + offset,position.z - offset),radius) ||
-			CSpaceRestrictionBase_inside(this,construct_position(level_vertex_id,position.x - offset,position.z + offset),radius) || 
-			CSpaceRestrictionBase_inside(this,construct_position(level_vertex_id,position.x - offset,position.z - offset),radius) ||
-			CSpaceRestrictionBase_inside(this,Fvector().set(position.x,position.y,position.z),radius)
-		);
-	else
-		return						(
-			CSpaceRestrictionBase_inside(this,construct_position(level_vertex_id,position.x + offset,position.z + offset),radius) && 
-			CSpaceRestrictionBase_inside(this,construct_position(level_vertex_id,position.x + offset,position.z - offset),radius) && 
-			CSpaceRestrictionBase_inside(this,construct_position(level_vertex_id,position.x - offset,position.z + offset),radius) && 
-			CSpaceRestrictionBase_inside(this,construct_position(level_vertex_id,position.x - offset,position.z - offset),radius) &&
-			CSpaceRestrictionBase_inside(this,Fvector().set(position.x,position.y,position.z),radius)
-		);
+	R_ASSERT2 (!IsBadReadPtr(this, sizeof(CSpaceRestrictionBase)), "this is bad pointer!");
+	m_last_inside = false;
+
+	__try
+	{
+		if (partially_inside)
+			m_last_inside = (
+			CSpaceRestrictionBase_inside(this, construct_position(level_vertex_id, position.x + offset, position.z + offset), radius) ||
+			CSpaceRestrictionBase_inside(this, construct_position(level_vertex_id, position.x + offset, position.z - offset), radius) ||
+			CSpaceRestrictionBase_inside(this, construct_position(level_vertex_id, position.x - offset, position.z + offset), radius) ||
+			CSpaceRestrictionBase_inside(this, construct_position(level_vertex_id, position.x - offset, position.z - offset), radius) ||
+			CSpaceRestrictionBase_inside(this, Fvector().set(position.x, position.y, position.z), radius)
+			);
+		else
+			m_last_inside = (
+			CSpaceRestrictionBase_inside(this, construct_position(level_vertex_id, position.x + offset, position.z + offset), radius) &&
+			CSpaceRestrictionBase_inside(this, construct_position(level_vertex_id, position.x + offset, position.z - offset), radius) &&
+			CSpaceRestrictionBase_inside(this, construct_position(level_vertex_id, position.x - offset, position.z + offset), radius) &&
+			CSpaceRestrictionBase_inside(this, construct_position(level_vertex_id, position.x - offset, position.z - offset), radius) &&
+			CSpaceRestrictionBase_inside(this, Fvector().set(position.x, position.y, position.z), radius)
+			);
+	}
+	__except (SIMPLE_FILTER)
+	{
+		MsgCB("! #EXCEPTION: catched in CSpaceRestrictionBase(0x%p)::inside, position = { %.1f, %.1f, %.1f }, lvid = %d ", 
+					this, position.x, position.y, position.z, level_vertex_id );
+	}
+	if (m_last_inside)
+		__asm nop;
+	 
+	return m_last_inside;
 }
 
 struct SortByXZ_predicate {

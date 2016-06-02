@@ -24,6 +24,9 @@
 #include <luabind/error.hpp>
 #include <luabind/lua_include.hpp>
 
+xr_map <lua_State*, xrCriticalSection*> g_mutex_map;
+
+
 namespace luabind { namespace detail
 {
 	int pcall(lua_State *L, int nargs, int nresults)
@@ -37,9 +40,32 @@ namespace luabind { namespace detail
 			lua_insert(L, base);  // push pcall_callback under chunk and args
 			en = base;
   		}
-		int result = lua_pcall(L, nargs, nresults, en);
-		if ( en )
-			lua_remove(L, en);  // remove pcall_callback
+		xrCriticalSection *cs = g_mutex_map[L];
+		if (!cs)
+		{
+			cs = xr_new<xrCriticalSection>();
+			g_mutex_map[L] = cs;
+		}				
+		
+		BOOL sync = FALSE;
+		for (int i = 0; i < 1000; i++)
+		{
+			sync = cs->TryEnter();
+			if (sync) break;
+			Sleep(1);
+		}
+		R_ASSERT3(sync, "cannot lock MT-access lua_State", cs->Dump());	
+		int result = -1;
+		__try
+		{
+			result = lua_pcall(L, nargs, nresults, en);			
+		}
+		__finally
+		{
+			if (en) lua_remove(L, en);  // remove pcall_callback
+			cs->Leave();		
+		}
+
 		return result;
 	}
 

@@ -7,6 +7,7 @@
 using namespace luabind;
 
 ESingleGameDifficulty g_SingleGameDifficulty = egdMaster;
+shared_str			 g_game_balance;
 
 xr_token	difficulty_type_token						[ ]={
 	{ "gd_novice",						egdNovice									},
@@ -17,7 +18,7 @@ xr_token	difficulty_type_token						[ ]={
 };
 
 game_cl_Single::game_cl_Single()
-{
+{	
 }
 
 CUIGameCustom* game_cl_Single::createGameUI()

@@ -13,8 +13,12 @@
 #include "gameobject.h"
 #include "script_game_object.h"
 
+bool g_debug_dialogs = false;
+
 CPhraseDialogManager::CPhraseDialogManager	(void)
 {
+	if (strstr(Core.Params, "-debug_dialogs"))
+		g_debug_dialogs = true;
 }
 CPhraseDialogManager::~CPhraseDialogManager	(void)
 {
@@ -111,6 +115,12 @@ bool CPhraseDialogManager::AddAvailableDialog(shared_str dialog_id, CPhraseDialo
 	const CGameObject*	pSpeakerGO2 = smart_cast<const CGameObject*>(partner);	VERIFY(pSpeakerGO2);
 
 	bool predicate_result = phrase_dialog->Precondition(pSpeakerGO1, pSpeakerGO2);
+	if (g_debug_dialogs)
+	{
+		Msg("* #DEBUG_DIALOGS: dialog '%s':", dialog_id.c_str());
+		Msg("$   %s", DialogDebugContext());
+	}
+
 	if(predicate_result) m_AvailableDialogs.push_back(phrase_dialog);
 	return predicate_result;
 }

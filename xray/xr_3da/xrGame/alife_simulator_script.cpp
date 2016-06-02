@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: alife_simulator_script.cpp
 //	Created 	: 25.12.2002
-//  Modified 	: 21.10.2014
+//  Modified 	: 23.10.2014
 //	Author		: Dmitriy Iassenev
 //	Description : ALife Simulator script export
 ////////////////////////////////////////////////////////////////////////////
@@ -19,8 +19,10 @@
 #include "alife_registry_container.h"
 #include "xrServer.h"
 #include "level.h"
+#include "../luaicp_events.h"
 
 using namespace luabind;
+#pragma optimize("gyts", off)
 
 typedef xr_vector<std::pair<shared_str,int> >	STORY_PAIRS;
 typedef STORY_PAIRS								SPAWN_STORY_PAIRS;
@@ -29,7 +31,15 @@ LPCSTR											_INVALID_SPAWN_STORY_ID	= "INVALID_SPAWN_STORY_ID";
 STORY_PAIRS										story_ids;
 SPAWN_STORY_PAIRS								spawn_story_ids;
 
-CALifeSimulator *alife				()
+void F_abstract_Destroy(CSE_Abstract* &obj)
+{
+	process_object_event(EVT_OBJECT_DESTROY | EVT_OBJECT_SERVER, obj->ID, NULL, obj, 1);
+	F_entity_Destroy(obj);
+}
+
+
+
+ICF CALifeSimulator *alife				()
 {
 	return			(const_cast<CALifeSimulator*>(ai().get_alife()));
 }
@@ -40,6 +50,7 @@ CSE_ALifeDynamicObject *alife_object		(const CALifeSimulator *self, ALife::_OBJE
 	return			(self->objects().object(object_id,true));
 }
 
+
 bool valid_object_id						(const CALifeSimulator *self, ALife::_OBJECT_ID object_id)
 {
 	VERIFY			(self);
@@ -49,14 +60,58 @@ bool valid_object_id						(const CALifeSimulator *self, ALife::_OBJECT_ID object
 CSE_ALifeDynamicObject *alife_object		(const CALifeSimulator *self, LPCSTR name)
 {
 	VERIFY			(self);
+	CSE_ALifeDynamicObject *result = NULL;
+	CTimer perf;
+	perf.Start();
+	static float elps_1 = 0;
+	static float elps_2 = 0;
+	static float elps_d = 0;
+
+
+	result = self->objects().object(name);
+
+	if (!IsDebuggerPresent())
+		return result;
+
+	elps_1 += perf.GetElapsed_sec();
+	perf.Start();
+
+	CSE_ALifeDynamicObject *ref = NULL;
 	
 	for (CALifeObjectRegistry::OBJECT_REGISTRY::const_iterator it = self->objects().objects().begin(); it != self->objects().objects().end(); it++) {
 		CSE_ALifeDynamicObject	*obj = it->second;
-		if (xr_strcmp(obj->name_replace(),name) == 0)
-			return	(it->second);
+		if (xr_strcmp(obj->name_replace(), name) == 0)
+		{
+			ref = (it->second);
+			break;
+		}
+	}
+
+	elps_2 += perf.GetElapsed_sec();
+	if (result != ref)
+	{
+		LPCSTR fast = result ? result->name_replace() : "(null)";
+		LPCSTR slow = ref	 ? ref->name_replace()	  : "(null)";
+		if (xr_strcmp(fast, slow))
+			Msg("!#ERROR: alife_object find by name different results '%s' != '%s' ", fast, slow);
+	}
+
+	if (elps_2 > elps_d + 0.1f)
+	{
+		elps_d = elps_2;
+		MsgCB("##PERF: alife_object find by name, fast total = %.3f sec, slow total = %.3f sec", elps_1, elps_2);
 	}
 	
-	return			(0);
+	return			(result);
+}
+
+DLL_API CSE_ALifeDynamicObject *alife_object_by_id(u16 id)
+{
+	return alife_object(alife(), id);
+}
+DLL_API CSE_ALifeDynamicObject *alife_object_by_name(LPCSTR name)
+{
+	return alife_object(alife(), name);
 }
 
 
@@ -186,7 +241,7 @@ CSE_Abstract *CALifeSimulator__spawn_item2		(CALifeSimulator *self, LPCSTR secti
 	CSE_Abstract						*item = self->spawn_item(section,position,level_vertex_id,game_vertex_id,id_parent,false);
 	item->Spawn_Write					(packet,FALSE);
 	self->server().FreeID				(item->ID,0);
-	F_entity_Destroy					(item);
+	F_abstract_Destroy					(item);
 
 	ClientID							clientID;
 	clientID.set						(0xffff);
@@ -234,7 +289,7 @@ CSE_Abstract *CALifeSimulator__spawn_ammo		(CALifeSimulator *self, LPCSTR sectio
 
 	item->Spawn_Write					(packet,FALSE);
 	self->server().FreeID				(item->ID,0);
-	F_entity_Destroy					(item);
+	F_abstract_Destroy					(item);
 
 	ClientID							clientID;
 	clientID.set						(0xffff);
@@ -249,6 +304,12 @@ ALife::_SPAWN_ID CALifeSimulator__spawn_id		(CALifeSimulator *self, ALife::_SPAW
 {
 	FORCE_VERIFY(self);
 	return								(((const CALifeSimulator *)self)->spawns().spawn_id(spawn_story_id));
+}
+
+void  CALifeSimulator__update					(CALifeSimulator *self)
+{
+	R_ASSERT2(self, "self not assigned, probably use alife().update() vs alife():update()");
+	self->update();
 }
 
 void CALifeSimulator__release					(CALifeSimulator *self, CSE_Abstract *object, bool)
@@ -273,14 +334,23 @@ void CALifeSimulator__release					(CALifeSimulator *self, CSE_Abstract *object, 
 	Level().Send						(packet,net_flags(TRUE,TRUE));
 }
 
-LPCSTR get_level_name							(const CALifeSimulator *self, int level_id)
+bool  get_level_exists(const CALifeSimulator *self, int level_id)
 {
 	if (level_id <= 0)
+		return false;	
+
+	auto levels = ai().game_graph().header().levels();
+	auto it = levels.find( (u8) level_id);
+	return it != levels.end();
+}
+
+LPCSTR get_level_name							(const CALifeSimulator *self, int level_id)
+{
+	if ( !get_level_exists(self, level_id) )
 	{
 		log_script_error("level_name(%d) == invalid level id", level_id);
 		return "invalid_level_index";
 	}
-
 	LPCSTR								result = *ai().game_graph().header().level((GameGraph::_LEVEL_ID)level_id).name();
 	return								(result);
 }
@@ -368,7 +438,8 @@ void CALifeSimulator::script_register			(lua_State *L)
 		class_<CALifeSimulator>("alife_simulator")
 			.def("valid_object_id",			&valid_object_id)
 			.def("level_id",				&get_level_id)
-			.def("level_name",				&get_level_name)
+			.def("level_exists",			&get_level_exists)			
+			.def("level_name",				&get_level_name)			
 			.def("object",					(CSE_ALifeDynamicObject *(*) (const CALifeSimulator *,ALife::_OBJECT_ID))(alife_object))
 			.def("object",					(CSE_ALifeDynamicObject *(*) (const CALifeSimulator *,LPCSTR))(alife_object))
 			.def("object",					(CSE_ALifeDynamicObject *(*) (const CALifeSimulator *,ALife::_OBJECT_ID, bool))(alife_object))
@@ -397,6 +468,9 @@ void CALifeSimulator::script_register			(lua_State *L)
 			.def("switch_distance",			&CALifeSimulator::set_switch_distance)
 			.def("teleport_object",			&teleport_object)
 			.def("assign_story_id",			&assign_story_id)
+			// alpet: экспериментальное, для ускорения спавна
+			.def("update",				    &CALifeSimulator__update)		
+
 			// .def_readonly("save_name",		&CALifeSimulator::m_save_name)
 			.property("save_name",			&get_save_name)
 			.property("loaded_save_name",	&get_loaded_save)
@@ -423,6 +497,16 @@ void CALifeSimulator::script_register			(lua_State *L)
 			instance.enum_		("_story_ids")[luabind::value(*(*I).first,(*I).second)];
 
 		luabind::module			(L)[instance];
+
+		lua_newtable(L);
+		I = story_ids.begin();
+		for (; I != E; ++I)
+		{
+			LPCSTR key = *I->first;
+			lua_pushinteger (L, I->second);
+			lua_setfield	(L, -2, key);
+		}
+		lua_setglobal(L, "story_ids_table");   // это представление можно обработать как таблицу :)	
 	}
 
 	{

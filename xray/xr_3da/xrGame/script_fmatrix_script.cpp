@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: script_fmatrix_script.cpp
 //	Created 	: 28.06.2004
-//  Modified 	: 28.06.2004
+//  Modified 	: 29.11.2014
 //	Author		: Dmitriy Iassenev
 //	Description : Script float matrix script export
 ////////////////////////////////////////////////////////////////////////////
@@ -11,10 +11,18 @@
 #include "xrServer_Space.h"
 
 using namespace luabind;
-void get_matrix_hpb(Fmatrix* self, float* h, float* p, float* b)
+void get_matrix_hpb(Fmatrix* self, float &h, float &p, float &b)
 {
-	self->getHPB	(*h, *p, *b);
+	self->getHPB	(h, p, b);
 }
+
+const Fvector get_matrix_xyz(Fmatrix *self)
+{
+	Fvector result;
+	self->getXYZ(result);
+	return result;
+}
+
 void matrix_transform (Fmatrix* self, Fvector* v)
 {
 	self->transform (*v);
@@ -109,8 +117,9 @@ void CScriptFmatrix::script_register(lua_State *L)
 			.def("setXYZ",						(Fmatrix & (Fmatrix::*)(float, float, float))(&Fmatrix::setXYZ),															return_reference_to(_1))	 
 //			.def("setXYZi",						(Fmatrix & (Fmatrix::*)(Fvector &))(&Fmatrix::setXYZi),																	return_reference_to(_1) +	out_value(_2))
 			.def("setXYZi",						(Fmatrix & (Fmatrix::*)(float, float, float))(&Fmatrix::setXYZi),														return_reference_to(_1))
-//			.def("getHPB",						(void	   (Fmatrix::*)(Fvector &) const)(&Fmatrix::getHPB),																							out_value(_2))
-			.def("getHPB",						&get_matrix_hpb)
+//			.def("getHPB",						(void	   (Fmatrix::*)(Fvector &) const)(&Fmatrix::getHPB),																							out_value(_2))			
+			.def("getHPB",						&get_matrix_hpb, out_value(_2) + out_value(_3) + out_value(_4))
+			.def("getXYZ",						&get_matrix_xyz)
 			.def("getRotation",					&get_matrix_rotation)
 			.def("setRotation",					&set_matrix_rotation)
 //			.def("getXYZ",						(void	   (Fmatrix::*)(Fvector &) const)(&Fmatrix::getXYZ),																							out_value(_2))

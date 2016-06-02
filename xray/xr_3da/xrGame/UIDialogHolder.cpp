@@ -94,9 +94,10 @@ void CDialogHolder::StopMenu (CUIDialogWnd* pDialog)
 {
 	R_ASSERT( pDialog->IsShown() );
 
-	if( MainInputReceiver()==pDialog )
+	RemoveDialogToRender	(pDialog);
+	if( MainInputReceiver() == pDialog )
 	{
-		if(UseIndicators())
+		if(UseIndicators()) // после удаление главного приемника, восстановить элементы худа
 		{
 			bool b					= !!m_input_receivers.back().m_flags.test(recvItem::eCrosshair);
 			psHUD_Flags.set			(HUD_CROSSHAIR_RT, b);
@@ -104,16 +105,15 @@ void CDialogHolder::StopMenu (CUIDialogWnd* pDialog)
 			if(b)					HUD().GetUI()->ShowGameIndicators();
 			else					HUD().GetUI()->HideGameIndicators();
 		}
-		RemoveDialogToRender	(pDialog);
-		SetMainInputReceiver	(NULL,false);
-		pDialog->SetHolder		(NULL);
-		pDialog->Hide			();
-	}else{
-		RemoveDialogToRender	(pDialog);
-		SetMainInputReceiver	(pDialog, true);
-		pDialog->SetHolder		(NULL);
-		pDialog->Hide			();
+		
+		SetMainInputReceiver	(NULL,false);		
+	}	
+	else {				
+		SetMainInputReceiver	(pDialog, true); // не установка, а поиск-удаление из рессиверов		
 	}
+
+	pDialog->SetHolder		(NULL);
+	pDialog->Hide			();
 
 	if(!MainInputReceiver() || !MainInputReceiver()->NeedCursor() )
 		GetUICursor()->Hide();
@@ -209,10 +209,20 @@ void CDialogHolder::StartStopMenu(CUIDialogWnd* pDialog, bool bDoHideIndicators)
 
 void CDialogHolder::OnFrame	()
 {
-	xr_vector<dlgItem>::iterator it = m_dialogsToRender.begin();
-	for(; it!=m_dialogsToRender.end();++it)
-		if((*it).enabled && (*it).wnd->IsEnabled())
-			(*it).wnd->Update();
+	// xr_vector<dlgItem>::iterator it = m_dialogsToRender.begin();
+	CUIWindow *wnd = NULL;
+	for (size_t it = 0; it < m_dialogsToRender.size(); ++it)
+	__try
+	{		
+		auto &item = m_dialogsToRender[it];
+		wnd = item.wnd;
+		if (item.enabled && wnd && wnd->IsEnabled())	
+			wnd->Update();
+	}
+	__except (SIMPLE_FILTER)
+	{
+		Msg("! #EXCEPTION: CDialogHolder::OnFrame() for item %d, wnd = 0x%p ", it, wnd);
+	}
 
 }
 
@@ -225,8 +235,11 @@ void CDialogHolder::shedule_Update(u32 dt)
 
 	std::sort			(m_dialogsToRender.begin(), m_dialogsToRender.end());
 
-	while ((m_dialogsToRender.size()) && (!m_dialogsToRender[m_dialogsToRender.size()-1].enabled)) 
+	while ((m_dialogsToRender.size()) && (!m_dialogsToRender[m_dialogsToRender.size() - 1].enabled))
+	{
+		MsgCB("# #DBG: m_dialogsToRender[%d] releasing.", m_dialogsToRender.size() - 1);
 		m_dialogsToRender.pop_back();
+	}
 }
 
 float CDialogHolder::shedule_Scale()

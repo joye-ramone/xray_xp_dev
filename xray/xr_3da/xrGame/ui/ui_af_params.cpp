@@ -7,6 +7,8 @@
 #include "../ActorCondition.h"
 #include "UIXmlInit.h"
 
+#pragma optimize("gyts", off)
+
 CUIArtefactParams::CUIArtefactParams()
 {
 	Memory.mem_fill			(m_info_items, 0, sizeof(m_info_items));
@@ -23,6 +25,7 @@ CUIArtefactParams::~CUIArtefactParams()
 
 LPCSTR af_item_sect_names[] = {
 	"health_restore_speed",
+	"psy_health_restore_speed",
 	"radiation_restore_speed",
 	"satiety_restore_speed",
 	"power_restore_speed",
@@ -41,6 +44,7 @@ LPCSTR af_item_sect_names[] = {
 
 LPCSTR af_item_param_names[] = {
 	"ui_inv_health",
+	"ui_inv_psy_health",
 	"ui_inv_radiation",
 	"ui_inv_satiety",
 	"ui_inv_power",
@@ -59,6 +63,7 @@ LPCSTR af_item_param_names[] = {
 
 LPCSTR af_actor_param_names[]={
 	"satiety_health_v",
+	"psy_health_v",
 	"radiation_v",
 	"satiety_v",
 	"satiety_power_v",
@@ -105,7 +110,7 @@ void CUIArtefactParams::SetInfo(CGameObject *obj)
 	R_ASSERT2(art, "object is not CArtefact");
 	const shared_str& af_section = art->cNameSect();
 	CActor *pActor = Actor();
-	if (!pActor) return;
+	if (!pActor) return; // || !pActor->ArtefactsHaveEffect()
 
 	string128					_buff;
 	float						_h = 0.0f;

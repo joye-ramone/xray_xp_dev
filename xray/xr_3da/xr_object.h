@@ -102,13 +102,14 @@ public:
 
 	// Geometry xform
 	virtual void						Center				(Fvector& C) const;
-	IC const Fmatrix&					XFORM				()			 const	{ VERIFY(_valid(renderable.xform));	return renderable.xform;	}
-	ICF Fmatrix&						XFORM				()					{ return renderable.xform;			}
+	IC const Fmatrix&					XFORM				()			 const	{ VERIFY(_valid(renderable.xform)); CheckPosition(); return renderable.xform; }
+	ICF Fmatrix&						XFORM				()					{ CheckPosition(); return renderable.xform;			}
 	virtual void						spatial_register	();
 	virtual void						spatial_unregister	();
 	virtual void						spatial_move		();
 	void								spatial_update		(float eps_P, float eps_R);
 
+	virtual bool						CheckPosition		()			const;
 	ICF Fvector&						Direction			() 					{ return renderable.xform.k;		}
 	ICF const Fvector&					Direction			() 			const	{ return renderable.xform.k;		}
 	ICF Fvector&						Position			() 					{ return renderable.xform.c;		}
@@ -136,7 +137,7 @@ public:
 	ICF shared_str						cNameVisual			()			const	{ return NameVisual;				}
 	void								cNameVisual_set		(shared_str N);
 	virtual	shared_str					shedule_Name		() const			{ return cName(); };
-	ICF LPCSTR							Name_script         () const			{ return NameObject.c_str(); }
+	ICF LPCSTR							Name_script         () const			{ return this ? NameObject.c_str() : "NULL"; }
 
 	
 	// Properties

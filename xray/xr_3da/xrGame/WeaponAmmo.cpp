@@ -13,6 +13,11 @@
 
 #define BULLET_MANAGER_SECTION "bullet_manager"
 
+IC void verify_ptr(const void *ptr)
+{
+	R_ASSERT((UINT_PTR) ptr > 0x10000);
+}
+
 CCartridge::CCartridge() 
 {
 	m_flags.assign			(cfTracer | cfRicochet);
@@ -62,14 +67,18 @@ void CCartridge::Load(LPCSTR section, u8 LocalAmmoType)
 	m_InvShortName			= CStringTable().translate( pSettings->r_string(section, "inv_name_short"));
 }
 
-CWeaponAmmo::CWeaponAmmo(void) 
+CWeaponAmmo::CWeaponAmmo(void)
 {
+	m_boxSize				= 0;
+	m_pBoxCurr				= xr_new<CComplexVarInt>();
+	set_box_curr			(0);
 	m_weight				= .2f;
 	m_flags.set				(Fbelt, TRUE);	
 }
 
 CWeaponAmmo::~CWeaponAmmo(void)
 {
+	xr_delete(m_pBoxCurr);
 }
 
 void CWeaponAmmo::Load(LPCSTR section) 
@@ -95,7 +104,7 @@ void CWeaponAmmo::Load(LPCSTR section)
 	R_ASSERT				(fWallmarkSize>0);
 
 	m_boxSize				= (u16)pSettings->r_s32(section, "box_size");
-	m_boxCurr				= m_boxSize;	
+	set_box_curr			(m_boxSize);	
 }
 
 BOOL CWeaponAmmo::net_Spawn(CSE_Abstract* DC) 
@@ -103,11 +112,10 @@ BOOL CWeaponAmmo::net_Spawn(CSE_Abstract* DC)
 	BOOL bResult			= inherited::net_Spawn	(DC);
 	CSE_Abstract	*e		= (CSE_Abstract*)(DC);
 	CSE_ALifeItemAmmo* l_pW	= smart_cast<CSE_ALifeItemAmmo*>(e);
-	m_boxCurr				= l_pW->a_elapsed;
-	
-	if(m_boxCurr > m_boxSize)
-		l_pW->a_elapsed		= m_boxCurr = m_boxSize;
-	
+	u16  curr				= l_pW->a_elapsed;	
+	if(curr > m_boxSize)
+		l_pW->a_elapsed		= curr = m_boxSize;
+	set_box_curr			(curr);	
 	return					bResult;
 }
 
@@ -137,7 +145,7 @@ void CWeaponAmmo::OnH_B_Independent(bool just_before_destroy)
 bool CWeaponAmmo::Useful() const
 {
 	// ≈сли IItem еще не полностью использованый, вернуть true
-	return !!m_boxCurr;
+	return !!get_box_curr();
 }
 /*
 s32 CWeaponAmmo::Sort(PIItem pIItem) 
@@ -153,7 +161,7 @@ s32 CWeaponAmmo::Sort(PIItem pIItem)
 */
 bool CWeaponAmmo::Get(CCartridge &cartridge) 
 {
-	if(!m_boxCurr) return false;
+	if(!get_box_curr()) return false;
 	cartridge.m_ammoSect = cNameSect();
 	cartridge.m_kDist = m_kDist;
 	cartridge.m_kDisp = m_kDisp;
@@ -169,7 +177,7 @@ bool CWeaponAmmo::Get(CCartridge &cartridge)
 	cartridge.fWallmarkSize = fWallmarkSize;
 	cartridge.bullet_material_idx = GMLib.GetMaterialIdx(WEAPON_MATERIAL_NAME);
 	cartridge.m_InvShortName = NameShort();
-	--m_boxCurr;
+	set_box_curr (get_box_curr() - 1);
 	if(m_pCurrentInventory)
 		m_pCurrentInventory->InvalidateState();
 	return true;
@@ -196,16 +204,16 @@ void CWeaponAmmo::UpdateCL()
 
 void CWeaponAmmo::net_Export(NET_Packet& P) 
 {
-	inherited::net_Export	(P);
-	
-	P.w_u16					(m_boxCurr);
+	inherited::net_Export	(P);	
+	P.w_u16					(get_box_curr());
 }
 
 void CWeaponAmmo::net_Import(NET_Packet& P) 
 {
 	inherited::net_Import	(P);
-
-	P.r_u16					(m_boxCurr);
+	u16  v;
+	P.r_u16					(v);
+	set_box_curr			(v);
 }
 
 CInventoryItem *CWeaponAmmo::can_make_killing	(const CInventory *inventory) const
@@ -226,11 +234,11 @@ CInventoryItem *CWeaponAmmo::can_make_killing	(const CInventory *inventory) cons
 	return					(0);
 }
 
-float CWeaponAmmo::Weight()
+float CWeaponAmmo::Weight() const
 {
 	float res = inherited::Weight();
 
-	res *= (float)m_boxCurr/(float)m_boxSize;
+	res *= (float)get_box_curr()/(float)m_boxSize;
 
 	return res;
 }
@@ -238,9 +246,38 @@ float CWeaponAmmo::Weight()
 u32 CWeaponAmmo::Cost() const
 {
 	float res = (float) m_cost;		
-	res *= (float)m_boxCurr/(float)m_boxSize;
+	res *= (float)get_box_curr()/(float)m_boxSize;
 	// return (u32)roundf(res); // VC18 only
 	return (u32)ceil(res + 0.5);
 }
 
+u16 CWeaponAmmo::get_box_curr() const
+{	
+	verify_ptr(this);
+	int curr = 0;
+	if ( (UINT_PTR)m_pBoxCurr > 0x40000 )
+		__try {
+		curr = *m_pBoxCurr;
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER)	{
+		Msg("!#EXCEPTION: in CWeaponAmmo::get_box_curr, m_pBoxCurr = 0x%p", (void*)m_pBoxCurr);
+		curr = 0;
+	}
+	else
+		__asm nop;
+	clamp<int>(curr, 0, m_boxSize);
+	return (u16)curr;
+}
 
+void CWeaponAmmo::set_box_curr(u16 value)
+{
+	verify_ptr(this);
+	clamp<u16>(value, 0, m_boxSize);
+	if (m_pBoxCurr)
+		*m_pBoxCurr = value;
+
+	CSE_ALifeDynamicObject *sobj = alife_object();
+	CSE_ALifeItemAmmo *ammo = sobj ? sobj->cast_item_ammo() : NULL;  
+	if (ammo) 
+		ammo->a_elapsed = value;
+}

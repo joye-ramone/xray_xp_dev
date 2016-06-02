@@ -6,6 +6,9 @@
 #include "../igame_level.h"
 #include "clsid_game.h"
 #include "GamePersistent.h"
+#include "ui/UIScriptWnd.h"
+
+extern xr_map<CUIWindow*, bool> g_windows;
 
 
 CFontManager::CFontManager()
@@ -132,6 +135,7 @@ CHUDManager::CHUDManager()
 //--------------------------------------------------------------------
 CHUDManager::~CHUDManager()
 {
+	ProcessDestroy		((u32)-1);
 	xr_delete			(pUI);
 	xr_delete			(m_pHUDTarget);
 	b_online			= false;
@@ -155,7 +159,39 @@ void CHUDManager::OnFrame()
 	if(!b_online)					return;
 	if (pUI) pUI->UIOnFrame();
 	m_pHUDTarget->CursorOnFrame();
+	ProcessDestroy (Device.dwTimeGlobal + Device.frame_elapsed());
 }
+
+void CHUDManager::ProcessDestroy(u32 time_now)
+{
+	auto E = m_ui_garbage.end();
+
+	for (auto it = m_ui_garbage.begin(); it != E; )
+	{
+		auto I = it++;
+		if (I->second <= time_now)
+		{
+			CUIWindow *wnd = I->first;			
+			CUIDialogWndEx *dlg = smart_cast<CUIDialogWndEx*> (wnd);
+
+			if (g_windows[wnd])
+			{				
+				if (dlg)
+					dlg->Destroy();
+				else
+					xr_delete(wnd);
+			}
+			m_ui_garbage.erase(I);
+		}
+	}
+}
+
+void CHUDManager::PostDestroy(CUIWindow *wnd, u32 after)
+{		
+	m_ui_garbage[wnd] = after;
+}
+
+
 //--------------------------------------------------------------------
 
 ENGINE_API extern float psHUD_FOV;

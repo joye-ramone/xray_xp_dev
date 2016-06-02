@@ -407,6 +407,7 @@ void game_cl_GameState::reset_ui()
 
 	if(!m_game_ui_custom)
 		m_game_ui_custom = HUD().GetUI()->UIGame();
+	HUD().ProcessDestroy((u32)-1); // уничтожение всех скриптовых диалогов "досрочно"
 
 	m_game_ui_custom->reset_ui					();
 

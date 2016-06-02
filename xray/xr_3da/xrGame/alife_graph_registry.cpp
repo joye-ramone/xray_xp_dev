@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: alife_graph_registry.cpp
 //	Created 	: 15.01.2003
-//  Modified 	: 12.05.2004
+//  Modified 	: 14.11.2014
 //	Author		: Dmitriy Iassenev
 //	Description : ALife graph registry
 ////////////////////////////////////////////////////////////////////////////
@@ -141,7 +141,7 @@ void CALifeGraphRegistry::detach	(CSE_Abstract &object, CSE_ALifeInventoryItem *
 #ifdef DEBUG
 		bool					value = std::find(object.children.begin(),object.children.end(),item->base()->ID) != object.children.end();
 		if (!value) {
-			Msg					("! ERROR: can't detach independant object. entity[%s:%d], parent[%s:%d], section[%s]",
+			Msg					("! ERROR: can't detach Bindependant object. entity[%s:%d], parent[%s:%d], section[%s]",
 				item->base()->name_replace(),item->base()->ID,object.name_replace(),object.ID, *item->base()->s_name);
 		}
 #endif // DEBUG

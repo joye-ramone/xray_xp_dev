@@ -21,6 +21,7 @@ void CUIStatic::script_register(lua_State *L)
 		.def("GetTextY",				&CUIStatic::GetTextY)
 		
 		.def("SetColor",			&CUIStatic::SetColor)
+		.def("SetColorAll",			&CUIStatic::SetColorAll)
 		.def("GetColor",			&CUIStatic::GetColor)
 		.def("SetTextColor",		&CUIStatic::SetTextColor_script)
 		.def("Init",				(void(CUIStatic::*)(float,float,float,float))&CUIStatic::Init )

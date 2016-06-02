@@ -2,6 +2,7 @@
 #include "UIStatsIcon.h"
 #include "UITextureMaster.h"
 #include "UIInventoryUtilities.h"
+#include "UIIconParams.h"
 
 CUIStatsIcon::TEX_INFO		CUIStatsIcon::m_tex_info[MAX_DEF_TEX][2];
 
@@ -31,22 +32,10 @@ void CUIStatsIcon::InitTexInfo(){
 
 	// artefact
 	LPCSTR artefact_name = pSettings->r_string("artefacthunt_gamedata", "artefact");
-	float fGridWidth	= pSettings->r_float(artefact_name, "inv_grid_width");
-	float fGridHeight	= pSettings->r_float(artefact_name, "inv_grid_height");
-	float fXPos			= pSettings->r_float(artefact_name, "inv_grid_x");
-	float fYPos			= pSettings->r_float(artefact_name, "inv_grid_y");
-
-	m_tex_info[ARTEFACT][0].sh = GetEquipmentIconsShader();
-	m_tex_info[ARTEFACT][0].rect.set(
-		fXPos * INV_GRID_WIDTH, 
-		fYPos * INV_GRID_HEIGHT, 
-		fXPos * INV_GRID_WIDTH + fGridWidth * INV_GRID_WIDTH, 
-		fYPos * INV_GRID_HEIGHT + fGridHeight * INV_GRID_HEIGHT);
-
+	CIconParams params(artefact_name);
+	m_tex_info[ARTEFACT][0].sh = params.get_shader();
+	m_tex_info[ARTEFACT][0].rect.set(params.original_rect());		
 //	m_tex_info[ARTEFACT][0].rect.set( 200, 400, 50, 50);
-
-
-
 	// death
 	m_tex_info[DEATH][0].sh.create("hud\\default",	"ui\\ui_mp_icon_kill");
 	m_tex_info[DEATH][0].rect.x1 = 32;

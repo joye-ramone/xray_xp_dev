@@ -26,6 +26,18 @@ xrTime get_time_struct()
 {
 	return xrTime(__game_time());
 }
+void set_time_struct(xrTime *t)
+{
+	ALife::_TIME_ID  rt = t->raw_get();
+	if (ai().get_alife())
+	{
+		const CALifeTimeManager *mgr = &ai().alife().time();
+		((CALifeTimeManager*)(mgr))->set_game_time(rt);		  // dirty hack
+	}
+	else
+		Level().SetGameTimeFactor(rt, Level().GetGameTimeFactor());
+}
+
 
 LPCSTR	xrTime::dateToString	(int mode)								
 { 
@@ -42,28 +54,39 @@ void	xrTime::add				(const xrTime& other)
 }
 void	xrTime::sub				(const xrTime& other)					
 {  
-	if(*this>other)
+	if(*this > other)
 		m_time -= other.m_time; 
 	else 
-		m_time=0;	
+		m_time = 0;	
 }
 
 void	xrTime::setHMS			(int h, int m, int s)					
 { 
-	m_time=0; 
-	m_time+=generate_time(1,1,1,h,m,s);
+	set(1, 1, 1, h, m, s, 0);	
 }
 
 void	xrTime::setHMSms		(int h, int m, int s, int ms)			
 { 
-	m_time=0; 
-	m_time+=generate_time(1,1,1,h,m,s,ms);
+	set(1, 1, 1, h, m, s, ms);	
+}
+
+void	xrTime::updHMSms		(int h, int m, int s, int ms)			
+{ 
+	u32 y, mo, d, hh, mm, ss, msec;
+	split_time(m_time, y, mo, d, hh, mm, ss, msec);
+	m_time = 0; 
+	m_time += generate_time (y,mo,d, h,m,s,ms);
+}
+
+void	xrTime::updHMS(int h, int m, int s)
+{
+	updHMSms(h, m, s, 0);
 }
 
 void	xrTime::set				(int y, int mo, int d, int h, int mi, int s, int ms)
 { 
-	m_time=0; 
-	m_time+=generate_time(y,mo,d,h,mi,s,ms);
+	m_time = 0;  // ?? wtf ??
+	m_time += generate_time(y,mo,d,h,mi,s,ms);
 }
 
 void	xrTime::get				(u32 &y, u32 &mo, u32 &d, u32 &h, u32 &mi, u32 &s, u32 &ms)
@@ -73,7 +96,7 @@ void	xrTime::get				(u32 &y, u32 &mo, u32 &d, u32 &h, u32 &mi, u32 &s, u32 &ms)
 
 float	xrTime::diffSec			(const xrTime& other)					
 { 
-	if(*this>other) 
-		return (m_time-other.m_time)/(float)sec2ms; 
-	return ((other.m_time-m_time)/(float)sec2ms)*(-1.0f);	
+	if(*this > other) 
+		return (m_time-other.m_time) / (float)sec2ms; 
+	return ((other.m_time - m_time) / (float)sec2ms)*(-1.0f); // а в чем смысл перестановки??	
 }

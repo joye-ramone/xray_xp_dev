@@ -15,6 +15,8 @@
 
 void CRender::level_Load(IReader* fs)
 {
+	i_swi_allocated = 0;
+
 	R_ASSERT						(0!=g_pGameLevel);
 	R_ASSERT						(!b_loaded);
 
@@ -70,9 +72,9 @@ void CRender::level_Load(IReader* fs)
 
 		// Visuals
 		g_pGamePersistent->LoadTitle("st_loading_spatial_db");
-		chunk						= fs->open_chunk(fsL_VISUALS);
-		LoadVisuals					(chunk);
-		chunk->close				();
+		// chunk						= fs->open_chunk(fsL_VISUALS);
+		LoadVisuals					(fs, false);
+		// chunk->close				();
 
 		// Details
 		g_pGamePersistent->LoadTitle("st_loading_details");
@@ -230,23 +232,193 @@ void CRender::LoadBuffers		(CStreamReader *base_fs,	BOOL _alternative)
 	}
 }
 
-void CRender::LoadVisuals(IReader *fs)
+#pragma optimize("gyts", off)
+
+typedef struct _VIS_LOAD {
+  volatile ULONG   is_busy;  
+  int				 index;  
+  int				  skip;
+  HANDLE			m_busy;  // mutex busy
+  CModelPool		 *pool;
+  IReader		       *fs;  
+  IRender_Visual **results;
+  IReader		 **chunks;
+} VIS_LOAD;
+
+
+volatile ULONG alive_childs = 0;
+volatile LONG  load_index = 0;
+
+void MtVisLoader(void *params)
 {
-	IReader*		chunk	= 0;
-	u32			index	= 0;
+	VIS_LOAD *vl = (VIS_LOAD*) params;
 	IRender_Visual*		V		= 0;
-	ogf_header		H;
+	ogf_header		H;	
+	CTimer perf;
+	// SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);
+	InterlockedExchange(&vl->is_busy, 1);
 
-	while ((chunk=fs->open_chunk(index))!=0)
-	{
-		chunk->r_chunk_safe			(OGF_HEADER,&H,sizeof(H));
-		V = Models->Instance_Create	(H.type);
-		V->Load(0,chunk,0);
-		Visuals.push_back(V);
+	R_ASSERT(vl->fs);
+	perf.Start();
 
-		chunk->close();
-		index++;
+	while (true)
+	{			
+		
+		int index = InterlockedIncrement(&load_index);
+		vl->index = index;
+		R_ASSERT(index >= 0 && index < 32768);
+
+		IReader *chunk = vl->fs->open_chunk(index); // найти чанк в потоке
+		if (!chunk) break;
+		 perf.Start();
+		__try
+		{
+			chunk->r_chunk_safe(OGF_HEADER, &H, sizeof(H));
+			V = vl->pool->Instance_Create(H.type);
+			vl->chunks[index] = chunk;
+			vl->results[index] = V;		
+			//V->Load(0, chunk, 0);			 // TODO: это надо сделать синхронно!
+		}
+		__except (SIMPLE_FILTER)
+		{
+			Msg("!EXCEPTION: catched in MtVisLoader ");
+		}
+
+		// chunk->close();
+		// vl->chunk = NULL;		
+		if (index % 500 == 0)
+				MsgCB("##PERF: load visuals in progress, index = %7d, thread = ~I ", index);
+		// ReleaseMutex(vl->m_busy);
 	}
+	InterlockedExchange(&vl->is_busy, 0);
+	ReleaseMutex(vl->m_busy);
+	float elps = perf.GetElapsed_sec() * 1000.f;
+	MsgCB("##PERF: visual loader ~I completed execution, work time = %.1f ", elps);
+	InterlockedDecrement(&alive_childs);
+}
+
+
+
+void CRender::LoadVisuals(IReader *fs, bool is_chunk)
+{
+	// IReader*		chunk	= 0;	
+
+#define MT_CHILDS 8
+#define PRE_ALLOC 32768
+
+	// HANDLE		mt_list [MT_CHILDS];
+	VIS_LOAD	params  [MT_CHILDS];
+
+	IReader*	chunks  [PRE_ALLOC];
+
+	const u32 count_childs = 0; 
+	string16 child_name;	
+
+	u32 first = Visuals.size();
+	Visuals.resize(PRE_ALLOC);
+	IRender_Visual**  results = Visuals.data(); // in-stack storage
+	ZeroMemory(results, sizeof(IRender_Visual*) * PRE_ALLOC);
+	ZeroMemory(chunks,  sizeof(IReader*) * PRE_ALLOC);
+
+	load_index = -1;
+
+	for (u32 i = 0; i < count_childs; i++)
+	{		
+		params[i].fs = fs->open_chunk(fsL_VISUALS);
+		params[i].index  = i;
+		params[i].skip   = count_childs;
+		params[i].m_busy = CreateMutex (NULL, FALSE, NULL);
+		params[i].pool	 = Models;
+		params[i].is_busy = 1;
+		params[i].results = results;
+		params[i].chunks  = chunks;
+		sprintf_s(child_name, 16, "vis_loader_%d", i);
+		InterlockedIncrement(&alive_childs);
+		thread_spawn(MtVisLoader, child_name, 0, &params[i]);
+	}
+
+	
+
+	u32 last_loaded = 0;	
+
+	__try
+	{
+		IReader *vis_fs = fs->open_chunk(fsL_VISUALS);
+		IReader *chunk  = NULL;
+		ogf_header H;
+		while (vis_fs) 
+		{			
+			chunk = vis_fs->open_chunk( InterlockedIncrement(&load_index) );
+			if (!chunk) break;
+			chunk->r_chunk_safe(OGF_HEADER, &H, sizeof(H));
+			results[load_index] = Models->Instance_Create(H.type);
+			results[load_index]->Load(0, chunk, 0);
+			chunk->close();
+		}
+
+		if (vis_fs) vis_fs->close();
+
+		// u32 busy_count;
+		/*
+
+		while (alive_childs > 0)
+		{
+			busy_count = 0;
+			for (u32 i = 0; i < count_childs; i++)
+				if (params[i].is_busy)				
+					mt_list[busy_count++] = params[i].m_busy;				
+
+			if (busy_count > 0)
+			{
+				u32 wait = WaitForMultipleObjects(busy_count, mt_list, TRUE, 1000); // ждать выхода потока
+				if (WAIT_TIMEOUT == wait && busy_count == count_childs)
+					continue;
+			}					
+			else
+				Sleep(1); // дать шанс на переключение
+
+			while (chunks[last_loaded] && results[last_loaded])
+			{
+				results[last_loaded]->Load(0, chunks[last_loaded], 0);
+				chunks[last_loaded]->close();
+				last_loaded++;
+			}
+
+		}
+		*/
+	}
+	__except (SIMPLE_FILTER)
+	{
+		Msg("!EXCEPTION: catched in CRender::LoadVisuals ");
+	}
+
+	
+	// finalization
+	for (u32 i = 0; i < count_childs; i++)
+	{
+		VIS_LOAD &p = params[i];
+		WaitForSingleObject(p.m_busy, 100000);		
+		CloseHandle (p.m_busy);
+		if (!is_chunk)
+		    p.fs->close();
+	}
+	
+	while (chunks[last_loaded] && results[last_loaded])
+	{
+		results[last_loaded]->Load(0, chunks[last_loaded], 0);
+		chunks[last_loaded]->close();
+		last_loaded++;
+	}
+
+	while (load_index > 0)
+		if (NULL == results[load_index])
+			load_index --;
+		else 
+			break;
+
+	Visuals.resize(load_index + 1);
+	
+	Msg("##PERF: loaded %d visuals, last_loaded = %d, ", Visuals.size() - first, last_loaded);
 }
 
 void CRender::LoadLights(IReader *fs)
@@ -329,8 +501,11 @@ void CRender::LoadSectors(IReader* fs)
 	pLastSector = 0;
 }
 
+
+
 void CRender::LoadSWIs(CStreamReader* base_fs)
-{
+{	
+
 	// allocate memory for portals
 	if (base_fs->find_chunk(fsL_SWIS)){
 		CStreamReader		*fs	= base_fs->open_chunk(fsL_SWIS);
@@ -339,8 +514,11 @@ void CRender::LoadSWIs(CStreamReader* base_fs)
 		xr_vector<FSlideWindowItem>::iterator it	= SWIs.begin();
 		xr_vector<FSlideWindowItem>::iterator it_e	= SWIs.end();
 
-		for(;it!=it_e;++it)
-			xr_free( (*it).sw );
+		for (; it != it_e; ++it)
+		{
+			i_swi_allocated -= it->count;
+			xr_free(it->sw);
+		}
 
 		SWIs.clear_not_free();
 
@@ -353,6 +531,7 @@ void CRender::LoadSWIs(CStreamReader* base_fs)
 			swi.reserved[3]	= fs->r_u32();	
 			swi.count		= fs->r_u32();
 			VERIFY			(NULL==swi.sw);
+			i_swi_allocated   += swi.count;
 			swi.sw			= xr_alloc<FSlideWindow> (swi.count);
 			fs->r			(swi.sw,sizeof(FSlideWindow)*swi.count);
 		}

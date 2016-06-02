@@ -184,23 +184,26 @@ void CRender::render_menu	()
 }
 
 extern u32 g_r;
+
+#pragma optimize("gyts", off)
+
 void CRender::Render		()
 {
 	g_r						= 1;
-	VERIFY					(0==mapDistort.size());
+	VERIFY					(0 == mapDistort.size());
 
-	bool	_menu_pp		= g_pGamePersistent?g_pGamePersistent->OnRenderPPUI_query():false;
+	bool	_menu_pp		= g_pGamePersistent ? g_pGamePersistent->OnRenderPPUI_query():false;
 	if (_menu_pp)			{
 		render_menu			()	;
 		return					;
 	};
 	if( !(g_pGameLevel && g_pGameLevel->pHUD) )	return;
 //.	VERIFY					(g_pGameLevel && g_pGameLevel->pHUD);
-
+	busy_warn(DEBUG_INFO, 3);
 	// Configure
 	RImplementation.o.distortion				= FALSE;		// disable distorion
 	Fcolor					sun_color			= ((light*)Lights.sun_adapted._get())->color;
-	BOOL					bSUN				= ps_r2_ls_flags.test(R2FLAG_SUN) && (u_diffuse2s(sun_color.r,sun_color.g,sun_color.b)>EPS);
+	BOOL					bSUN				= ps_r2_ls_flags.test(R2FLAG_SUN) && (u_diffuse2s(sun_color.r,sun_color.g,sun_color.b) > EPS);
 	if (o.sunstatic)		bSUN				= FALSE;
 	// Msg						("sstatic: %s, sun: %s",o.sunstatic?"true":"false", bSUN?"true":"false");
 
@@ -211,6 +214,7 @@ void CRender::Render		()
 		HOM.Enable									();
 		HOM.Render									(ViewBase);
 	}
+	busy_warn(DEBUG_INFO, 3);
 
 	//******* Z-prefill calc - DEFERRER RENDERER
 	if (ps_r2_ls_flags.test(R2FLAG_ZFILL))		{
@@ -221,7 +225,7 @@ void CRender::Render		()
 			deg2rad(Device.fFOV/* *Device.fASPECT*/), 
 			Device.fASPECT, VIEWPORT_NEAR, 
 			z_distance * g_pGamePersistent->Environment().CurrentEnv.far_plane);
-		m_zfill.mul	(m_project,Device.mView);
+		m_zfill.mul	(m_project, Device.mView);
 		r_pmask										(true,false);	// enable priority "0"
 		set_Recorder								(NULL)		;
 		phase										= PHASE_SMAP;
@@ -237,7 +241,7 @@ void CRender::Render		()
 	} else {
 		Target->phase_scene_prepare					();
 	}
-
+	busy_warn(DEBUG_INFO, 3);
 	//*******
 	// Sync point
 	Device.Statistic->RenderDUMP_Wait_S.Begin	();
@@ -246,18 +250,26 @@ void CRender::Render		()
 		CTimer	T;							T.Start	();
 		BOOL	result						= FALSE;
 		HRESULT	hr							= S_FALSE;
-		while	((hr=q_sync_point[q_sync_count]->GetData	(&result,sizeof(result),D3DGETDATA_FLUSH))==S_FALSE) {
-			if (!SwitchToThread())			Sleep(ps_r2_wait_sleep);
-			if (T.GetElapsed_ms() > 500)	{
+		u32 elps							= 0;
+		while	( (hr = q_sync_point[q_sync_count]->GetData	(&result,sizeof(result), D3DGETDATA_FLUSH)) == S_FALSE) {
+			if (!SwitchToThread())			
+				 Sleep(ps_r2_wait_sleep);
+			elps = T.GetElapsed_ms();
+			if (elps >= 500) {
+				MsgCB("!#PERF_RENDER: sync point query breaked, reached timeout %d ms, q_qync_count = %d ", elps, q_sync_count);
 				result	= FALSE;
 				break;
 			}
 		}
+
+		if (elps > 70)
+			MsgCB("!#PERF_RENDER: wait query time = %d ms, q_qync_count = %d ", elps, q_sync_count);
 	}
 	Device.Statistic->RenderDUMP_Wait_S.End		();
-	q_sync_count								= (q_sync_count+1)%2;
-	CHK_DX										(q_sync_point[q_sync_count]->Issue(D3DISSUE_END));
 
+	q_sync_count								= (q_sync_count + 1) & 1; // one from two
+	CHK_DX										(q_sync_point[q_sync_count]->Issue(D3DISSUE_END));
+	busy_warn(DEBUG_INFO, 4);
 	//******* Main calc - DEFERRER RENDERER
 	// Main calc
 	Device.Statistic->RenderCALC.Begin			();
@@ -271,7 +283,8 @@ void CRender::Render		()
 	Device.Statistic->RenderCALC.End			();
 
 	BOOL	split_the_scene_to_minimize_wait		= FALSE;
-	if (ps_r2_ls_flags.test(R2FLAG_EXP_SPLIT_SCENE))	split_the_scene_to_minimize_wait=TRUE;
+	if (ps_r2_ls_flags.test(R2FLAG_EXP_SPLIT_SCENE))	split_the_scene_to_minimize_wait = TRUE;
+	busy_warn(DEBUG_INFO, 4);
 
 	//******* Main render :: PART-0	-- first
 	if (!split_the_scene_to_minimize_wait)
@@ -289,7 +302,7 @@ void CRender::Render		()
 		r_dsgraph_render_graph					(0);
 		Target->disable_aniso					();
 	}
-
+	busy_warn(DEBUG_INFO, 4);
 	//******* Occlusion testing of volume-limited light-sources
 	Target->phase_occq							();
 	LP_normal.clear								();
@@ -331,7 +344,7 @@ void CRender::Render		()
 	}
 	LP_normal.sort							();
 	LP_pending.sort							();
-
+	busy_warn(DEBUG_INFO, 4);
 	//******* Main render :: PART-1 (second)
 	if (split_the_scene_to_minimize_wait)	{
 		// skybox can be drawn here
@@ -355,11 +368,11 @@ void CRender::Render		()
 		if(Details)	Details->Render				();
 		Target->phase_scene_end					();
 	}
-
+	busy_warn(DEBUG_INFO, 4);
 	// Wall marks
 	if(Wallmarks)	{
 		Target->phase_wallmarks					();
-		if (!ps_common_flags.test(RFLAG_BLOODMARKS)) g_r										= 0;
+		g_r										= 0;
 		Wallmarks->Render						();				// wallmarks has priority as normal geometry
 	}
 
@@ -377,7 +390,7 @@ void CRender::Render		()
 		}
 		Lights_LastFrame.clear	();
 	}
-
+	busy_warn(DEBUG_INFO, 4);
 	// Directional light - fucking sun
 	if (bSUN)	{
 		RImplementation.stats.l_visible		++;
@@ -390,13 +403,12 @@ void CRender::Render		()
 	// Lighting, non dependant on OCCQ
 	Target->phase_accumulator				();
 	HOM.Disable								();
-	render_lights							(LP_normal);
-	
+	render_lights							(LP_normal);    busy_warn(DEBUG_INFO, 4);	
 	// Lighting, dependant on OCCQ
-	render_lights							(LP_pending);
+	render_lights							(LP_pending);   busy_warn(DEBUG_INFO, 4);
 
 	// Postprocess
-	Target->phase_combine					();
+	Target->phase_combine					();				busy_warn(DEBUG_INFO, 5);
 	VERIFY	(0==mapDistort.size());
 }
 
@@ -415,7 +427,6 @@ void CRender::render_forward				()
 		r_dsgraph_render_graph					(1)	;					// normal level, secondary priority
 		PortalTraverser.fade_render				()	;					// faded-portals
 		r_dsgraph_render_sorted					()	;					// strict-sorted geoms
-		r_dsgraph_render_hud_sorted				()	;
 		g_pGamePersistent->Environment().RenderLast()	;					// rain/thunder-bolts
 	}
 

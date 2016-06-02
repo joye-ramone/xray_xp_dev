@@ -290,7 +290,7 @@ void CConsole::OnPressKey(int dik, BOOL bHold)
 				IConsole_Command &O = *(I->second);
 				strcpy_s(editor+offset, sizeof(editor)-offset, O.Name());
 				strcat(editor+offset," ");
-				n_char = strlen(editor+offset);
+				n_char = xr_strlen(editor + offset);
 			}
 		}
 		break;

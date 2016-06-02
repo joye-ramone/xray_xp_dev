@@ -13,6 +13,8 @@
 #	include "igame_level.h"
 #endif
 
+#pragma optimize("gyts", off)
+
 //////////////////////////////////////////////////////////////////////////
 // half box def
 static	Fvector3	hbox_verts[24]	=
@@ -239,8 +241,8 @@ void CEnvironment::OnDeviceCreate()
 
 void CEnvironment::OnDeviceDestroy()
 {
-	tsky0->surface_set						(NULL);
-	tsky1->surface_set						(NULL);
+	tsky0->surface_upd						(NULL);
+	tsky1->surface_upd						(NULL);
 	
 	sh_2sky.destroy							();
 	sh_2geom.destroy						();

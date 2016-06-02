@@ -14,6 +14,9 @@
 #include "space_restriction_shape.h"
 #include "space_restriction_composition.h"
 #include "restriction_space.h"
+#include "xrServer_Objects_ALife.h"
+#include "Level.h"
+
 
 #pragma warning(push)
 #pragma warning(disable:4995)
@@ -22,16 +25,42 @@
 
 const u32 time_to_delete = 300000;
 
+#pragma optimize("gyts", off)
+extern xr_map<u32, CSpaceRestrictionBridge*> g_bridges;
+extern xr_map<shared_str, CSpaceRestrictor*> g_restrictors;
+
+int i_holder_count = 0;
+
+
 CSpaceRestrictionHolder::~CSpaceRestrictionHolder			()
 {
+	i_holder_count--;
+	m_finalization				= true;
+
+	Device.dwTimeGlobal += time_to_delete;
+
+	collect_garbage();
 	clear					();
+	collect_garbage();
+	m_restrictions.clear();
+	Device.dwTimeGlobal -= time_to_delete;
 }
 
 void CSpaceRestrictionHolder::clear							()
 {
+	m_finalization				= true;
+	auto it = m_restrictions.begin(); // memory leak re-test
+	for (; it != m_restrictions.end(); it++)
+	{
+		auto *bridge = (*it).second;
+		bridge->release();			
+		bridge->m_last_time_dec = 0;  // for fast release
+		it->second = NULL;
+	}
 	delete_data					(m_restrictions);
 	m_default_out_restrictions	= "";
 	m_default_in_restrictions	= "";
+	collect_garbage ();
 }
 
 shared_str CSpaceRestrictionHolder::normalize_string		(shared_str space_restrictors)
@@ -96,23 +125,84 @@ SpaceRestrictionHolder::CBaseRestrictionPtr CSpaceRestrictionHolder::restriction
 		return				(0);
 
 	space_restrictors		= normalize_string(space_restrictors);
+	CSpaceRestrictionBridge	*bridge = NULL;
+
 	
 	RESTRICTIONS::const_iterator	I = m_restrictions.find(space_restrictors);
+
+	static int _in_register = 0;
+
 	if (I != m_restrictions.end())
-		return				((*I).second);
+	{	
+		bridge = I->second;	
+		auto *impl = bridge->get_implementation();
+		while (!impl->effective() && !_in_register)
+		{			
+			CSpaceRestrictionComposition *composition = smart_cast<CSpaceRestrictionComposition*>(impl);
+			// 
+			auto it = g_restrictors.find(space_restrictors);
+			CSpaceRestrictor *SR = NULL;
+			if (it != g_restrictors.end())
+			{
+				SR = it->second;
+				if (!SR) return (bridge);				
+				RestrictionSpace::ERestrictorTypes type = SR->restrictor_type();									
+				// рестрикторы none не требуют регистрации?
+				if (RestrictionSpace::eRestrictorTypeNone != type)
+				{
+					MsgCB("! #WARN: JIT restrictor registration, name = <%s>, type = %d ", *space_restrictors, int(type));
+					_in_register++;
+					bridge = register_restrictor(SR, type);
+					_in_register--;
+					return (bridge);
+				}
+				else
+					MsgCB("# #DBG: restrictor %s have type incompatible with registration(?) - ignoring ", SR->Name_script());
+
+			} // if (it found)
+
+			if (!SR)
+			{
+				// очень долгий поиск(!!!!)
+				CObject *R = Level().Objects.FindObjectByName(*space_restrictors);
+				if (R) SR = smart_cast<CSpaceRestrictor*>(R);
+				if (SR)
+				{
+					g_restrictors[space_restrictors] = SR;
+					auto type = SR->restrictor_type();
+					if (RestrictionSpace::eRestrictorTypeNone != type)	continue;
+				}
+			}
+
+			if (composition)
+				composition->m_type_none = true;
+			break;
+		}
+
+		return	(bridge);
+	}
 
 	collect_garbage			();
 
-	CSpaceRestrictionBase	*composition = xr_new<CSpaceRestrictionComposition>(this,space_restrictors);
-	CSpaceRestrictionBridge	*bridge = xr_new<CSpaceRestrictionBridge>(composition);
-	m_restrictions.insert	(std::make_pair(space_restrictors,bridge));
-	return					(bridge);
+	return register_fake_restrictor(space_restrictors);	
 }
 
-void CSpaceRestrictionHolder::register_restrictor				(CSpaceRestrictor *space_restrictor, const RestrictionSpace::ERestrictorTypes &restrictor_type)
+CSpaceRestrictionBridge* CSpaceRestrictionHolder::register_fake_restrictor(shared_str restrictor_id) // создание фейковой заглушки, композиции из одного элемента
+{
+	CSpaceRestrictionBase	*composition = xr_new<CSpaceRestrictionComposition>(this, restrictor_id);
+	CSpaceRestrictionBridge *bridge = xr_new<CSpaceRestrictionBridge>(this, composition);
+	m_restrictions.insert(std::make_pair(restrictor_id, bridge));
+	RegisterBridge(bridge);
+	collect_garbage();
+	return			bridge;
+}
+
+CSpaceRestrictionBridge* CSpaceRestrictionHolder::register_restrictor				(CSpaceRestrictor *space_restrictor, const RestrictionSpace::ERestrictorTypes &restrictor_type)
 {
 	string4096					m_temp_string;
-	shared_str					space_restrictors = space_restrictor->cName();
+	shared_str					space_restrictors = space_restrictor->cName();	
+	LPCSTR	name				= *space_restrictors;
+
 	if (restrictor_type != RestrictionSpace::eDefaultRestrictorTypeNone) {
 		shared_str				*temp = 0, temp1;
 		if (restrictor_type == RestrictionSpace::eDefaultRestrictorTypeOut)
@@ -124,26 +214,40 @@ void CSpaceRestrictionHolder::register_restrictor				(CSpaceRestrictor *space_re
 				NODEFAULT;
 		temp1				= *temp;
 		
-		if (xr_strlen(*temp) && xr_strlen(space_restrictors))
-			strconcat		(sizeof(m_temp_string),m_temp_string,**temp,",",*space_restrictors);
+
+		LPCSTR curr = temp->c_str();
+
+		if (xr_strlen(curr) && xr_strlen(name) && !strstr(name, curr))
+			strconcat		(sizeof(m_temp_string),  m_temp_string, curr, ",", name); // m_temp_string = curr + "," + name
 		else
-			strconcat		(sizeof(m_temp_string),m_temp_string,**temp,*space_restrictors);
+			strcpy_s		(m_temp_string, sizeof(m_temp_string), name);
 
 		*temp				= normalize_string(m_temp_string);
 		
-		if (xr_strcmp(*temp,temp1))
+		if (xr_strcmp(curr, temp1))
 			on_default_restrictions_changed	();
 	}
 	
+	
 	CSpaceRestrictionShape	*shape = xr_new<CSpaceRestrictionShape>(space_restrictor,restrictor_type != RestrictionSpace::eDefaultRestrictorTypeNone);
+
 	RESTRICTIONS::iterator	I = m_restrictions.find(space_restrictors);
 	if (I == m_restrictions.end()) {
-		CSpaceRestrictionBridge	*bridge = xr_new<CSpaceRestrictionBridge>(shape);
+		CSpaceRestrictionBridge	*bridge = xr_new<CSpaceRestrictionBridge>(this, shape);
+		shape->m_bridge			= bridge;
 		m_restrictions.insert	(std::make_pair(space_restrictors,bridge));
-		return;
+		MsgCB("# #DBG: registering restrictor object <%s>, bridge = 0x%p, m_restrictions.size = %d ", *space_restrictors, bridge, m_restrictions.size());
+		RegisterBridge			(bridge);
+		return bridge;
 	}
 
-	(*I).second->change_implementation(shape);
+	xr_delete<CSpaceRestrictionShape>(shape); // debug memory leak
+	shape = xr_new<CSpaceRestrictionShape>(space_restrictor,restrictor_type != RestrictionSpace::eDefaultRestrictorTypeNone);
+	shape->m_bridge = I->second;
+	auto *prv = I->second->get_implementation();
+	MsgCB("# #DBG: replacing restrictor object <%s>, prev = 0x%p, new @shape = 0x%p ", *space_restrictors, prv, shape);
+	(*I).second->change_implementation(shape); // замена композиции из одного элемента	
+	return I->second;
 }
 
 bool try_remove_string				(shared_str &search_string, const shared_str &string_to_search)
@@ -171,39 +275,87 @@ bool try_remove_string				(shared_str &search_string, const shared_str &string_t
 	return					(true);
 }
 
-void CSpaceRestrictionHolder::unregister_restrictor			(CSpaceRestrictor *space_restrictor)
-{
-	shared_str				restrictor_id = space_restrictor->cName();
-	RESTRICTIONS::iterator	I = m_restrictions.find(restrictor_id);
-	VERIFY					(I != m_restrictions.end());
-	m_restrictions.erase	(I);
+void CSpaceRestrictionHolder::unregister_restrictor			(CSpaceRestrictor *space_restrictor, LPCSTR szMsg)
+{	
+	RESTRICTIONS::iterator	I = m_restrictions.find(space_restrictor->cName());
+	if (I == m_restrictions.end()) return;
+	
+	CSpaceRestrictionBridge *bridge = (*I).second;
+	static shared_str restrictor_id;
 
-	if (try_remove_string(m_default_out_restrictions,restrictor_id))
-		on_default_restrictions_changed		();
-	else {
-		if (try_remove_string(m_default_in_restrictions,restrictor_id))
-			on_default_restrictions_changed	();
+	collect_garbage();
+
+	if (bridge)
+	__try
+	{	
+		restrictor_id = space_restrictor->cName();
+
+		if (!bridge->shape() && !bridge->default_restrictor()) return; // уже заглушка, зачем её заменять?
+		CSpaceRestrictionShape *shape = smart_cast<CSpaceRestrictionShape*> ( bridge->get_implementation() );
+		if (shape && shape->m_restrictor != space_restrictor) return;
+
+		if (szMsg)
+			MsgCB("# #DBG: %s ", szMsg);
+		space_restrictor->m_owner_shape = NULL; // обрубить ссылку
+
+		(*I).second = NULL;
+		m_restrictions.erase(I);
+
+		CSpaceRestrictionComposition	*composition = xr_new<CSpaceRestrictionComposition>(this, restrictor_id);
+
+		bridge->change_implementation(composition);
+		if (RestrictionSpace::eRestrictorTypeNone == space_restrictor->restrictor_type())
+			composition->m_type_none = true;
+		
+		/*
+		if (shape)
+		{
+			bridge->release();
+			bridge->_release(shape);			
+			register_fake_restrictor(restrictor_id);
+		}
+		*/
+		if (try_remove_string(m_default_out_restrictions, restrictor_id))
+				on_default_restrictions_changed();
+			else {
+				if (try_remove_string(m_default_in_restrictions, restrictor_id))
+					on_default_restrictions_changed();
+			}
+
 	}
-
-	CSpaceRestrictionBase	*composition = xr_new<CSpaceRestrictionComposition>(this,restrictor_id);
-	CSpaceRestrictionBridge	*bridge = xr_new<CSpaceRestrictionBridge>(composition);
-	m_restrictions.insert	(std::make_pair(restrictor_id,bridge));
-
-	collect_garbage			();
+	__except (SIMPLE_FILTER)
+	{
+		MsgCB("! #EXCEPTION: CSpaceRestrictionHolder::unregister_restrictor id = <%s>  ", *restrictor_id);
+	}
 }
 
 IC	void CSpaceRestrictionHolder::collect_garbage			()
-{
+{	
 	RESTRICTIONS::iterator	I = m_restrictions.begin(), J;
 	RESTRICTIONS::iterator	E = m_restrictions.end();
-	for ( ; I != E; ) {
-		if (!(*I).second->shape() && !(*I).second->m_ref_count && (Device.dwTimeGlobal >= (*I).second->m_last_time_dec + time_to_delete)) {
-			J				= I;
-			++I;
-			xr_delete		((*J).second);
+	for ( ; I != E; ) 
+	{
+		J				= I++;
+		auto *bridge	= J->second;
+		if ( 
+			 UnusedBridge (bridge) &&
+				(Device.dwTimeGlobal >= bridge->m_last_time_dec + time_to_delete  )
+ 		   ) 
+		{	
+			(*J).second = NULL;
 			m_restrictions.erase(J);
 		}
-		else
-			++I;
+		
 	}
+
+	auto it = g_bridges.begin();
+
+	while (it != g_bridges.end())
+	{
+		auto *bridge = it->second;	it++;
+		if (UnusedBridge(bridge) &&
+			 (Device.dwTimeGlobal >= bridge->m_last_time_dec + time_to_delete + 3500) )
+			  DestroyBridge(bridge); // post-delete
+	}
+
 }

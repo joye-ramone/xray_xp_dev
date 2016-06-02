@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: ai_stalker_alife.cpp
 //	Created 	: 15.10.2004
-//  Modified 	: 15.10.2004
+//  Modified 	: 07.12.2014
 //	Author		: Dmitriy Iassenev
 //	Description : Stalker ALife functions
 ////////////////////////////////////////////////////////////////////////////
@@ -22,6 +22,8 @@
 #include "ef_primary.h"
 #include "ef_pattern.h"
 #include "trade_parameters.h"
+
+// #pragma optimize("gyts", off)
 
 extern u32 get_rank								(const shared_str &section);
 
@@ -447,16 +449,18 @@ void CAI_Stalker::update_conflicted					(CInventoryItem *item, const CWeapon *ne
 	item->SetDropManual			(TRUE);
 }
 
-void CAI_Stalker::on_after_take						(const CGameObject *object)
+void CAI_Stalker::on_after_take						(CGameObject *object)
 {
 	if (!g_Alive())
 		return;
 
-	if (!READ_IF_EXISTS(pSettings,r_bool,cNameSect(),"use_single_item_rule",true))
-		return;
-
-	const CWeapon				*new_weapon = smart_cast<const CWeapon*>(object);
+	CWeapon				*new_weapon = smart_cast<CWeapon*>(object);
 	if (!new_weapon)
+		return;	
+
+	// new_weapon->CheckHaveAmmo	();
+
+	if (!READ_IF_EXISTS(pSettings,r_bool,cNameSect(),"use_single_item_rule",true))
 		return;
 
 	TIItemContainer::iterator	I = inventory().m_all.begin();

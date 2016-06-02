@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: script_engine_export.cpp
 //	Created 	: 01.04.2004
-//  Modified 	: 22.06.2004
+//  Modified 	: 17.02.2016
 //	Author		: Dmitriy Iassenev
 //	Description : XRay Script Engine export
 ////////////////////////////////////////////////////////////////////////////
@@ -97,9 +97,31 @@ template <typename TFullList> struct DynamicCast
 	}
 };
 
+extern int load_module(lua_State *L);
+
 __declspec(dllexport) void export_classes	(lua_State *L)
 {
 	Register<script_type_list>::_Register(L);
+	lua_register (L, "load_module", load_module);
+
 //	DynamicCast<script_type_list>::Register(L);
 //	Register<Loki::TL::DerivedToFrontAll<script_type_list>::Result>::_Register(L);
+}
+
+__declspec(dllexport) void export_base_classes(lua_State *L)
+{   // alpet: набор базовых классов, не позвол€ющих тем не менее залезать в высокоуровневые игровые объекты (дл€ скриптовых текстур).
+	SLargeInteger::script_register(L);
+	DLL_PureScript::script_register(L);
+	CRotationScript::script_register(L);
+	CScriptCoords::script_register(L);
+	CScriptEngine::script_register(L);
+	CScriptReader::script_register(L);
+	CScriptIniFile::script_register(L);
+	IRender_VisualScript::script_register(L);
+	CKinematicsAnimatedScript::script_register(L);
+	CTextureScript::script_register(L);
+	CResourceManagerScript::script_register(L);
+	CCameraBaseScript::script_register(L);
+	CRandomScript::script_register(L);
+	lua_register (L, "load_module", load_module);
 }

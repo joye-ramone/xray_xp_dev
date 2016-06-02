@@ -9,13 +9,82 @@
 #include "stdafx.h"
 #include "space_restriction_bridge.h"
 #include "space_restriction_base.h"
+#include "space_restriction_holder.h"
 #include "ai_space.h"
 #include "level_graph.h"
 #include "profiler.h"
 
+#pragma optimize("gyts", off)
+
+xr_map<u32, CSpaceRestrictionBridge*> g_bridges;
+
+
+void RegisterBridge (CSpaceRestrictionBridge *bridge)
+{
+	u32 _ptr = (u32)bridge;
+	auto it = g_bridges.find(_ptr);
+	if (it != g_bridges.end())
+		return;
+	g_bridges[_ptr] = bridge;
+}
+
+bool UnusedBridge(CSpaceRestrictionBridge *bridge)
+{
+	return  !bridge->in_use();
+}
+
+u32 UnregisterBridge(CSpaceRestrictionBridge *bridge)
+{
+	u32 _ptr = (u32)bridge;
+	auto it = g_bridges.find(_ptr);
+	if (it == g_bridges.end())
+		return g_bridges.size();
+	g_bridges.erase(it);
+	return g_bridges.size();
+}
+
+void DestroyBridge (CSpaceRestrictionBridge *bridge)
+{
+	__try
+	{
+		UnregisterBridge(bridge);
+		xr_delete(bridge);		
+	}
+	__except (SIMPLE_FILTER)
+	{
+		Msg("!#EXCEPTION: catched in DestroyBridge.");
+	}
+}
+
+void  CheckBridgesLeak()
+{
+	if (!g_bridges.empty())
+	{
+		Msg("!#LEAK: not destroyed space restriction bridges count = %d ", g_bridges.size());
+		auto it = g_bridges.begin();
+		while (it != g_bridges.end())
+		{
+			CSpaceRestrictionBridge *bridge = it->second;
+			it->second						= NULL;
+			it++;
+			xr_delete				(bridge);
+		}		
+	}
+
+	g_bridges.clear();
+}
+
+
+
 CSpaceRestrictionBridge::~CSpaceRestrictionBridge		()
 {
-	xr_delete			(m_object);
+	if (m_ref_count)
+		MsgCB("! #WARN: destroying CSpaceRestrictionBridge with m_ref_count = %d ", m_ref_count);
+
+	xr_delete			(m_object); // удаление шейпа или композиции (CSpaceRestrictionShape/CSpaceRestrictionComposition)
+	u32 rest = UnregisterBridge	(this); // не более чем предосторожность
+	if (m_owner && !m_owner->m_finalization)
+		MsgCB("$ #PERF: CSpaceRestrictionBridge destructor, rest = %d ", rest);
 }
 
 void CSpaceRestrictionBridge::change_implementation		(CSpaceRestrictionBase *object)
@@ -36,7 +105,8 @@ bool CSpaceRestrictionBridge::initialized				() const
 
 void CSpaceRestrictionBridge::initialize				()
 {
-	object().initialize	();
+	auto &O = object();
+	O.initialize	();
 }
 
 shared_str CSpaceRestrictionBridge::name				() const
@@ -74,6 +144,7 @@ bool CSpaceRestrictionBridge::inside					(u32 level_vertex_id, bool partially_in
 bool CSpaceRestrictionBridge::inside					(u32 level_vertex_id, bool partially_inside, float radius)
 {
 	START_PROFILE("Restricted Object/Bridge/Inside Vertex");
+	R_ASSERT2 ((u32)this > 0x10000, "this is bad pointer!");
 	return		(object().inside(level_vertex_id,partially_inside,radius));
 	STOP_PROFILE;
 }

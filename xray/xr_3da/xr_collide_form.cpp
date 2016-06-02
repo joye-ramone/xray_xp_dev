@@ -10,6 +10,8 @@
 #include "frustum.h"
 
 using namespace	collide;
+
+#pragma optimize("gyts", off)
 //----------------------------------------------------------------------
 // Class	: CXR_CFObject
 // Purpose	: stores collision form
@@ -93,7 +95,8 @@ IC bool RAYvsCYLINDER(const Fcylinder& c_cylinder, const Fvector &S, const Fvect
 
 CCF_Skeleton::CCF_Skeleton(CObject* O) : ICollisionForm(O,cftObject)
 {
-	CKinematics* K	= PKinematics(O->Visual()); VERIFY3(K,"Can't create skeleton without Kinematics.",*O->cNameVisual());
+	CKinematics* K	= PKinematics(O->Visual());
+	R_ASSERT3 (K, "Can't create skeleton without Kinematics.",*O->cNameVisual());
 	bv_box.set		(K->vis.box);
 	bv_box.getsphere(bv_sphere.P,bv_sphere.R);
 	vis_mask		= 0;

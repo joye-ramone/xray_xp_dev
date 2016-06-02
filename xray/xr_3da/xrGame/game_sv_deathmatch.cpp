@@ -795,7 +795,7 @@ void game_sv_Deathmatch::CheckItem(game_PlayerState* ps, PIItem pItem, xr_vector
 		CWeaponAmmo* pAmmo = 	smart_cast<CWeaponAmmo*>(pItem);
 		if (pAmmo)
 		{
-			if (pAmmo->m_boxCurr != pAmmo->m_boxSize) break;
+			if (pAmmo->get_box_curr() != pAmmo->m_boxSize) break;
 		};
 		//----- Check for Addon Changes ---------------------
 		CWeapon		*pWeapon	=	smart_cast<CWeapon*>(pItem);

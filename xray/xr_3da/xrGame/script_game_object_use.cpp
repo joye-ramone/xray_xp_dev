@@ -7,6 +7,7 @@
 #include "script_engine.h"
 #include "stalker_planner.h"
 #include "ai/stalker/ai_stalker.h"
+#include "../lua_tools.h"
 #include "searchlight.h"
 #include "script_callback_ex.h"
 #include "game_object_space.h"
@@ -18,6 +19,10 @@
 #include "PHScriptCall.h"
 #include "PHSimpleCalls.h"
 #include "phworld.h"
+#include "xrServer_Objects_ALife.h"
+
+#pragma optimize("gyts", off)
+
 void CScriptGameObject::SetTipText (LPCSTR tip_text)
 {
 	CUsableScriptObject	*l_tpUseableScriptObject = smart_cast<CUsableScriptObject*>(&object());
@@ -78,6 +83,22 @@ int	CScriptGameObject::clsid				() const
 	return			(object().clsid());
 }
 
+lua_State* CScriptGameObject::lua_state()
+{ 
+	static int max_top = 0;
+	if (m_lua_state)
+	{
+		int top = lua_gettop(m_lua_state);
+		if (top > max_top)
+		{
+			Msg("##LEAK: lua stack top raised to %d", top);
+			max_top = top;			
+		}
+		if (max_top - top > 200) max_top = top; // recycle
+	}
+
+	return m_lua_state;  
+}
 LPCSTR CScriptGameObject::Name				() const
 {
 	return			(*object().cName());
@@ -90,7 +111,35 @@ shared_str CScriptGameObject::cName				() const
 
 LPCSTR CScriptGameObject::Section				() const
 {
-	return			(*object().cNameSect());
+	const CScriptGameObject *self = this;
+	if (!this)
+	{
+		LPCSTR tb = GetLuaTraceback ();
+		Msg("!#FATAL: CScriptGameObject::Section this == NULL, from %s", tb);		
+		return "this == NULL";
+	}
+	LPCSTR result = "?";
+	__try
+	{
+		R_ASSERT2(!IsBadReadPtr(this, sizeof(CScriptGameObject)),	 "this is invalid ptr!");
+		R_ASSERT2(!IsBadReadPtr(m_game_object, sizeof(CGameObject)), "m_game_object invalid ptr!");
+		result =(*object().cNameSect());
+	}
+	__except (SIMPLE_FILTER)
+	{
+		result = "#EXCEPTION";
+		MsgCB("$#CONTEXT: bad_game_object 0x%p #%d", self, ID());
+		MsgCB("$#DUMP_CONTEXT");
+	}
+	return result;
+}
+
+void CScriptGameObject::SetSection(LPCSTR section) 
+{ 
+	object().ChangeSection(section); 
+	CSE_ALifeDynamicObject *se_obj = alife_object();
+	if (se_obj)
+		se_obj->set_name(section);
 }
 
 void CScriptGameObject::Kill					(CScriptGameObject* who)
@@ -178,12 +227,12 @@ void CScriptGameObject::set_enemy_callback	()
 	monster->memory().enemy().useful_callback().clear();
 }
 
-void CScriptGameObject::SetCallback(GameObject::ECallbackType type, const luabind::functor<void> &functor)
+void CScriptGameObject::SetCallback(GameObject::ECallbackType type, const luabind::functor<int> &functor)
 {
 	object().callback(type).set(functor);
 }
 
-void CScriptGameObject::SetCallback(GameObject::ECallbackType type, const luabind::functor<void> &functor, const luabind::object &object)
+void CScriptGameObject::SetCallback(GameObject::ECallbackType type, const luabind::functor<int> &functor, const luabind::object &object)
 {
 	this->object().callback(type).set(functor, object);
 }

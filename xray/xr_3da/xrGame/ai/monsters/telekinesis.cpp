@@ -5,14 +5,11 @@
 
 CTelekinesis::CTelekinesis()
 {
-	active=false;
+	active = false;
 }
 CTelekinesis::~CTelekinesis()
 {
-	for (TELE_OBJECTS_IT it = objects.begin(); it != objects.end(); ++it) {
-		(*it)->release();
-		xr_delete(*it);
-	}
+	deactivate();		
 }
 
 CTelekineticObject*	CTelekinesis::activate			(CPhysicsShellHolder *obj, float strength, float height, u32 max_time_keep, bool rot)
@@ -34,17 +31,24 @@ CTelekineticObject*	CTelekinesis::activate			(CPhysicsShellHolder *obj, float st
 
 void CTelekinesis::clear()
 {
-		objects.clear	();
+	objects.clear_not_free	();
 }
 void CTelekinesis::deactivate()
 {
 	active			= false;
-
-	// отпустить все объекты
-	// 
-	for (TELE_OBJECTS_IT it = objects.begin(); it != objects.end(); ++it) {
-		(*it)->release();
-		xr_delete(*it);
+	// отпустить все объекты	
+	__try
+	{
+		for (TELE_OBJECTS_IT it = objects.begin(); it != objects.end(); ++it) {
+			auto *obj = *it;
+			obj->release();
+			xr_delete(obj);
+			*it = NULL;
+		}
+	}
+	__except (SIMPLE_FILTER)
+	{
+		Msg("!#EXCEPTION: in CTelekinesis destructor");
 	}
 
 	clear();

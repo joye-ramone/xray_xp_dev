@@ -46,6 +46,18 @@ void CSE_ALifeItemTorch::script_register(lua_State *L)
 	];
 }
 
+void CSE_ALifeItemNVD::script_register(lua_State *L)
+{
+	module(L)[
+		luabind_class_item1(
+			CSE_ALifeItemNVD,
+			"cse_alife_item_nvd",
+			CSE_ALifeItem
+		)
+	];
+}
+
+
 void CSE_ALifeItemAmmo::script_register(lua_State *L)
 {
 	module(L)[

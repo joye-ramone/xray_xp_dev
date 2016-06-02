@@ -42,6 +42,7 @@
 #include "clsid_game.h"
 #include "MainMenu.h"
 #include "..\XR_IOConsole.h"
+#include "../lua_tools.h"
 #include <functional>  // добавлено alpet для успешной сборки в VS 2013
 
 #ifdef DEBUG
@@ -59,6 +60,8 @@ extern BOOL	g_bDebugDumpPhysicsStep;
 CPHWorld	*ph_world			= 0;
 float		g_cl_lvInterp		= 0;
 u32			lvInterpSteps		= 0;
+u32			g_last_gc			= 0;  // время последней уборки мусора Lua
+
 
 u16	GetSpawnInfo(NET_Packet &P, u16 &parent_id)
 {
@@ -86,6 +89,10 @@ CLevel::CLevel():IPureClient	(Device.GetTimerGlobal())
 	,DemoCS(MUTEX_PROFILE_ID(DemoCS))
 #endif // PROFILE_CRITICAL_SECTIONS
 {
+	extern int g_game_cycle;
+	g_game_cycle++;
+
+
 	g_bDebugEvents				= strstr(Core.Params,"-debug_ge")?TRUE:FALSE;
 
 	Server						= NULL;
@@ -114,6 +121,7 @@ CLevel::CLevel():IPureClient	(Device.GetTimerGlobal())
 
 //	m_pFogOfWarMngr				= xr_new<CFogOfWarMngr>();
 //----------------------------------------------------
+	m_bForceUpdate				= false;
 	m_bNeed_CrPr				= false;
 	m_bIn_CrPr					= false;
 	m_dwNumSteps				= 0;
@@ -215,6 +223,8 @@ extern CAI_Space *g_ai_space;
 CLevel::~CLevel()
 {
 //	g_pGameLevel		= NULL;
+	g_aux_lua = NULL;
+
 	Msg							("- Destroying level");
 
 	Engine.Event.Handler_Detach	(eEntitySpawn,	this);
@@ -374,7 +384,31 @@ void CLevel::cl_Process_Event				(u16 dest, u16 type, NET_Packet& P)
 	{
 		if (type == GE_DESTROY)
 			Game().OnDestroy(GO);
-		GO->OnEvent		(P,type);
+
+		if (GE_OWNERSHIP_TAKE == type || GE_OWNERSHIP_REJECT == type)
+		{
+			u16 id = P.r_u16();
+			P.read_start(); // rewind
+			CObject *item = Objects.net_Find(id);
+			if (!item) 
+			{
+				Msg("! #ERROR: for event type %d not found item #%d ", type, id);
+				return;
+			}
+
+			if (GE_OWNERSHIP_TAKE == type && item->H_Parent() == GO)
+			{
+				MsgV("TRANSFER7", "& #TRANSFER: %s already owned by %s, take event ignored", item->Name_script(), GO->Name_script());
+				return;  // already parent, not need
+			}
+			if (GE_OWNERSHIP_REJECT == type && item->H_Parent() != GO)
+			{
+				MsgV("TRANSFER7", "& #TRANSFER: %s not owned by %s, reject event ignored", item->Name_script(), GO->Name_script());
+				return;  // already parent, not need
+			}
+		}
+
+		GO->OnEvent		(P, type);
 	}
 	else { // handle GE_DESTROY_REJECT here
 		u32				pos = P.r_tell();
@@ -404,6 +438,8 @@ void CLevel::cl_Process_Event				(u16 dest, u16 type, NET_Packet& P)
 	}
 };
 
+#pragma optimize("gyts", off)
+
 bool CLevel::PostponedSpawn(u16 id)
 {	
 	for (auto it = spawn_events->queue.begin(); it != spawn_events->queue.end(); ++it)
@@ -425,7 +461,7 @@ void CLevel::ProcessGameEvents		()
 	// Game events
 	{
 		NET_Packet			P;
-		u32 svT				= timeServer()-NET_Latency;
+		u32 svT				= timeServer() - NET_Latency;
 
 		/*
 		if (!game_events->queue.empty())	
@@ -442,12 +478,25 @@ void CLevel::ProcessGameEvents		()
 		u32 elps = Device.frame_elapsed();
 		if (elps < 30) avail_time = 33 - elps;
 		u32 work_limit = elps + avail_time;
+		u32 size = game_events->queue.size();
+		if (size > 100)
+			MsgCB("##PERF: game_events->queue.size() returned %d", size);
 
 #endif
-		while	(game_events->available(svT)) 
+		NET_Queue_Event cached;
+		// alpet: попытка решить проблему реентрантности, рекурсивной обработки. Кэширование событий в локальной очереди, чтобы отработать их последовательно
+		while (game_events->available(svT))
+		{			
+			NET_Event E	= *game_events->queue.begin();
+			cached.queue.push_back(E);
+			game_events->queue.pop_front();			
+		};
+
+
+		while	(cached.available(svT)) 
 		{
 			u16 ID,dest,type;
-			game_events->get	(ID,dest,type,P);		
+			cached.get	(ID,dest,type,P);		
 #ifdef   SPAWN_ANTIFREEZE
 			// не отправлять события не заспавненным объектам
 			if (g_bootComplete && M_EVENT == ID && PostponedSpawn(dest))
@@ -455,7 +504,9 @@ void CLevel::ProcessGameEvents		()
 				spawn_events->insert(P);
 				continue;
 			}
-			if (g_bootComplete && M_SPAWN == ID && Device.frame_elapsed() > work_limit) // alpet: позволит плавнее выводить объекты в онлайн, без заметных фризов
+
+			// alpet: позволит плавнее выводить объекты в онлайн, без заметных фризов
+			if (!m_bForceUpdate && g_bootComplete && M_SPAWN == ID && Device.frame_elapsed() > work_limit) 
 			{
 				u16 parent_id;
 				GetSpawnInfo(P, parent_id);				
@@ -463,12 +514,12 @@ void CLevel::ProcessGameEvents		()
 				if (parent_id < 0xffff) // откладывать спавн только объектов в контейнеры
 				{
 					if (!spawn_events->available(svT))
-						Msg("* ProcessGameEvents, spawn event postponed. Events rest = %d", game_events->queue.size());					
-					
+						Msg("* ProcessGameEvents, spawn event postponed. Events rest = %d", cached.queue.size());										
 					spawn_events->insert(P);					
 					continue;
 				}				
 			}
+
 #endif
 
 			switch (ID)
@@ -482,6 +533,7 @@ void CLevel::ProcessGameEvents		()
 			case M_EVENT:
 				{					
 					cl_Process_Event(dest, type, P);
+					busy_warn(DEBUG_INFO, 3);
 				}break;
 			default:
 				{
@@ -495,6 +547,40 @@ void CLevel::ProcessGameEvents		()
 	}
 	if (OnServer() && GameID()!= GAME_SINGLE)
 		Game().m_WeaponUsageStatistic->Send_Check_Respond();
+
+#ifdef LUAICP_COMPAT
+	while (m_lastSpawn.size())
+	{
+		lua_State *L = AuxLua();
+		if (!L) break;
+		int save_top = lua_gettop(L);
+		int err_idx = 0;
+		lua_getglobal(L, "AtPanicHandler");
+		if (lua_isfunction(L, -1))
+			err_idx = lua_gettop(L);
+		else
+			lua_pop(L, 1);
+
+		lua_getglobal(L, "on_cl_spawned"); // alpet: global callback for complex script notify
+		if (!lua_isfunction(L, -1))
+		{
+			lua_pop(L, 1);
+			break;
+		}
+		
+		lua_newtable(L);
+		int tidx = lua_gettop(L);
+		for (size_t i = 0; i < m_lastSpawn.size(); i++)
+		{
+			lua_pushinteger(L, i + 1);
+			lua_pushinteger(L, m_lastSpawn[i]);
+			lua_settable(L, tidx);
+		}
+		lua_pcall(L, 1, LUA_MULTRET, err_idx);
+		lua_settop(L, save_top);
+		m_lastSpawn.clear();
+	}
+#endif
 }
 
 #ifdef DEBUG_MEMORY_MANAGER
@@ -524,6 +610,7 @@ void CLevel::OnFrame	()
 #endif // DEBUG_MEMORY_MANAGER
 
 	m_feel_deny.update					();
+	busy_warn(DEBUG_INFO, 3);
 
 	if (GameID()!=GAME_SINGLE)			psDeviceFlags.set(rsDisableObjectsAsCrows,true);
 	else								psDeviceFlags.set(rsDisableObjectsAsCrows,false);
@@ -532,6 +619,7 @@ void CLevel::OnFrame	()
 	Device.Statistic->TEST0.Begin		();
 	BulletManager().CommitEvents		();
 	Device.Statistic->TEST0.End			();
+	if (busy_warn(DEBUG_INFO, 3)) return;
 
 	// Client receive
 	if (net_isDisconnected())	
@@ -551,7 +639,7 @@ void CLevel::OnFrame	()
 	}
 
 	ProcessGameEvents	();
-
+	if (busy_warn(DEBUG_INFO, 3)) return;
 
 	if (m_bNeed_CrPr)					make_NetCorrectionPrediction();
 
@@ -559,6 +647,7 @@ void CLevel::OnFrame	()
 		MapManager().Update		();
 	// Inherited update
 	inherited::OnFrame		();
+	busy_warn(DEBUG_INFO, 3);
 
 	// Draw client/server stats
 	if ( !g_dedicated_server && psDeviceFlags.test(rsStatistic))
@@ -572,8 +661,8 @@ void CLevel::OnFrame	()
 				F->SetHeightI	(0.015f);
 				F->OutSetI	(0.0f,0.5f);
 				F->SetColor	(D3DCOLOR_XRGB(0,255,0));
-				F->OutNext	("IN:  %4d/%4d (%2.1f%%)",	S->bytes_in_real,	S->bytes_in,	100.f*float(S->bytes_in_real)/float(S->bytes_in));
-				F->OutNext	("OUT: %4d/%4d (%2.1f%%)",	S->bytes_out_real,	S->bytes_out,	100.f*float(S->bytes_out_real)/float(S->bytes_out));
+				F->OutNext	("IN:  %4d/%4d (%2.1f%%)",	S->bytes_in_real,	S->bytes_in,	  100.f * float(S->bytes_in_real)/float(S->bytes_in));
+				F->OutNext	("OUT: %4d/%4d (%2.1f%%)",	S->bytes_out_real,	S->bytes_out, 100.f * float(S->bytes_out_real)/float(S->bytes_out));
 				F->OutNext	("client_2_sever ping: %d",	net_Statistic.getPing());
 				F->OutNext	("SPS/Sended : %4d/%4d", S->dwBytesPerSec, S->dwBytesSended);
 				F->OutNext	("sv_urate/cl_urate : %4d/%4d", psNET_ServerUpdate, psNET_ClientUpdate);
@@ -637,6 +726,7 @@ void CLevel::OnFrame	()
 	Device.Statistic->TEST0.Begin		();
 	BulletManager().CommitRenderSet		();
 	Device.Statistic->TEST0.End			();
+	busy_warn(DEBUG_INFO, 3);
 
 	// update static sounds
 	if(!g_dedicated_server)
@@ -647,10 +737,12 @@ void CLevel::OnFrame	()
 			m_level_sound_manager->Update	();
 	}
 	// deffer LUA-GC-STEP
-	if (!g_dedicated_server)
+	if (!g_dedicated_server && (Device.dwFrame & 0xFF) == 0)
 	{
-		if (g_mt_config.test(mtLUA_GC))	Device.seqParallel.push_back	(fastdelegate::FastDelegate0<>(this,&CLevel::script_gc));
-		else							script_gc	()	;
+		if (g_mt_config.test(mtLUA_GC))	
+			Device.seqParallel.push_back	(fastdelegate::FastDelegate0<>(this,&CLevel::script_gc));
+		else							
+			script_gc	();
 	}
 	//-----------------------------------------------------
 	if (pStatGraphR)
@@ -661,12 +753,20 @@ void CLevel::OnFrame	()
 		pStatGraphR->AppendItem(float(m_dwRPC)*fRPC_Mult, 0xffff0000, 1);
 		pStatGraphR->AppendItem(float(m_dwRPS)*fRPS_Mult, 0xff00ff00, 0);
 	};
+	busy_warn(DEBUG_INFO, 3);
 }
 
-int		psLUA_GCSTEP					= 10			;
+int		psLUA_GCSTEP					= 10;
 void	CLevel::script_gc				()
-{
-	lua_gc	(ai().script_engine().lua(), LUA_GCSTEP, psLUA_GCSTEP);
+{	
+	// лимит частоты 20 раз в сек
+	if (Device.dwTimeGlobal - g_last_gc < 50 || Device.frame_elapsed() > 20) return;
+	g_last_gc = Device.dwTimeGlobal;
+
+	if ((Device.dwFrame & 0x100) == 0)
+		lua_gc	(GameLua(), LUA_GCSTEP, psLUA_GCSTEP);
+	else
+		lua_gc	(AuxLua(),  LUA_GCSTEP, psLUA_GCSTEP);
 }
 
 #ifdef DEBUG_PRECISE_PATH
@@ -681,18 +781,17 @@ extern void draw_wnds_rects();
 
 void CLevel::OnRender()
 {
-	inherited::OnRender	();
+	inherited::OnRender	();   busy_warn(DEBUG_INFO, 90);
 	
-	Game().OnRender();
+	Game().OnRender();   	  busy_warn(DEBUG_INFO, 95);
 	//отрисовать трассы пуль
 	//Device.Statistic->TEST1.Begin();
-	BulletManager().Render();
+	BulletManager().Render(); busy_warn(DEBUG_INFO, 95);
 	//Device.Statistic->TEST1.End();
 	//отрисовать интерфейc пользователя
-	HUD().RenderUI();
+	HUD().RenderUI();	  	  busy_warn(DEBUG_INFO, 95);
 
-	draw_wnds_rects();
-
+	draw_wnds_rects();  	  busy_warn(DEBUG_INFO, 95);
 
 #ifdef DEBUG
 	ph_world->OnRender	();

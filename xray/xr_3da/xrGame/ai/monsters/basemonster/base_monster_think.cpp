@@ -10,6 +10,8 @@
 #include "../../../level.h"
 #include "../control_animation_base.h"
 
+#pragma optimize("gyts", off)
+
 void CBaseMonster::Think()
 {
 	START_PROFILE("Base Monster/Think");
@@ -40,15 +42,26 @@ void CBaseMonster::Think()
 
 void CBaseMonster::update_fsm()
 {
-	StateMan->update				();
-	
-	// завершить обработку установленных в FSM параметров
-	post_fsm_update					();
-	
-	TranslateActionToPathParams		();
+	int stage = 0;
+	__try
+	{
+		StateMan->update(); stage++;
 
-	// информировать squad о своих целях
-	squad_notify					();
+		// завершить обработку установленных в FSM параметров
+		post_fsm_update();  stage++;
+
+		TranslateActionToPathParams(); stage++;
+
+		// информировать squad о своих целях
+		squad_notify();
+	}
+	__except(EXCEPTION_EXECUTE_HANDLER)
+	{
+		string4096 info;
+		GetObjectInfo(StateMan, info, NULL);
+		Msg("!#EXCEPTION: catched in CBaseMonster::update_fsm, probably restrictor issue, StateMan = %s, stage = %d. Monster %s will be killed", info, stage, this->Name_script());
+		SetHealth(-1);
+	}
 
 #ifdef DEBUG
 	debug_fsm						();

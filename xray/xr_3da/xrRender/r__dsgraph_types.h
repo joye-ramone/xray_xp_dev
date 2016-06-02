@@ -3,11 +3,11 @@
 #include	"fixedmap.h"
 
 #ifndef USE_MEMORY_MONITOR
-#	define USE_DOUG_LEA_ALLOCATOR_FOR_RENDER
+ #	define USE_DOUG_LEA_ALLOCATOR_FOR_RENDER
 #endif // USE_MEMORY_MONITOR
 
 #ifdef USE_DOUG_LEA_ALLOCATOR_FOR_RENDER
-#	include	"doug_lea_memory_allocator.h"
+#	include	"../common/doug_lea_memory_allocator.h"
 
 	template <class T>
 	class doug_lea_alloc {

@@ -23,7 +23,7 @@ extern bool	g_b_ClearGameCaptions;
 
 void CLevel::remove_objects	()
 {
-	if (!IsGameTypeSingle()) Msg("CLevel::remove_objects - Start");
+	MsgCB("* CLevel::remove_objects - Start");
 	BOOL						b_stored = psDeviceFlags.test(rsDisableObjectsAsCrows);
 
 	Game().reset_ui				();
@@ -53,8 +53,8 @@ void CLevel::remove_objects	()
 	ph_commander().clear		();
 	ph_commander_scripts().clear();
 
-	if(!g_dedicated_server)
-		space_restriction_manager().clear	();
+	LL_CheckTextures			();
+
 
 	psDeviceFlags.set			(rsDisableObjectsAsCrows, b_stored);
 	g_b_ClearGameCaptions		= true;
@@ -85,11 +85,14 @@ void CLevel::remove_objects	()
 		Objects.Update(true);
 	}
 
+	if(!g_dedicated_server)
+		space_restriction_manager().clear	();
+
 	g_pGamePersistent->destroy_particles		(false);
 
 //.	xr_delete									(m_seniority_hierarchy_holder);
 //.	m_seniority_hierarchy_holder				= xr_new<CSeniorityHierarchyHolder>();
-	if (!IsGameTypeSingle()) Msg("CLevel::remove_objects - End");
+	MsgCB ("* CLevel::remove_objects - End");
 }
 
 #ifdef DEBUG
@@ -98,7 +101,8 @@ void CLevel::remove_objects	()
 
 void CLevel::net_Stop		()
 {
-	Msg							("- Disconnect");
+	Msg							("- Disconnect (CLevel::net_Stop)");
+	
 	bReady						= false;
 	m_bGameConfigStarted		= FALSE;
 	game_configured				= FALSE;
@@ -111,7 +115,8 @@ void CLevel::net_Stop		()
 	if (Server) {
 		Server->Disconnect		();
 		xr_delete				(Server);
-	}
+	}	
+	
 
 	if (!g_dedicated_server)
 		ai().script_engine().collect_all_garbage	();
@@ -224,6 +229,8 @@ u32	CLevel::Objects_net_Save	(NET_Packet* _Packet, u32 start, u32 max_object_siz
 
 void CLevel::ClientSave	()
 {
+	script_gc();
+	LL_CheckTextures();
 	NET_Packet		P;
 	u32				start	= 0;
 
@@ -265,17 +272,17 @@ void CLevel::Send		(NET_Packet& P, u32 dwFlags, u32 dwTimeout)
 }
 
 void CLevel::net_Update	()
-{
+{	
 	if(game_configured){
 		// If we have enought bandwidth - replicate client data on to server
 		Device.Statistic->netClient2.Begin	();
-		ClientSend					();
+		ClientSend					();	    busy_warn(DEBUG_INFO, 3);	
 		Device.Statistic->netClient2.End		();
 	}
 	// If server - perform server-update
 	if (Server && OnServer())	{
 		Device.Statistic->netServer.Begin();
-		Server->Update					();
+		Server->Update					(); busy_warn(DEBUG_INFO, 3);
 		Device.Statistic->netServer.End	();
 	}
 }

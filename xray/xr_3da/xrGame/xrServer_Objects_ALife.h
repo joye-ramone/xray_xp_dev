@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: xrServer_Objects_ALife.h
 //	Created 	: 19.09.2002
-//  Modified 	: 04.06.2003
+//  Modified 	: 12.11.2014
 //	Author		: Oles Shyshkovtsov, Alexander Maksimchuk, Victor Reutskiy and Dmitriy Iassenev
 //	Description : Server objects for ALife simulator
 ////////////////////////////////////////////////////////////////////////////
@@ -105,6 +105,7 @@ public:
 #ifdef XRGAME_EXPORTS
 	CALifeSimulator					*m_alife_simulator;
 #endif
+	bool							m_bReleased;	
 
 									CSE_ALifeObject		(LPCSTR caSection);
 	virtual							~CSE_ALifeObject	();
@@ -542,16 +543,38 @@ add_to_type_list(CSE_ALifeTeamBaseZone)
 #define script_type_list save_type_list(CSE_ALifeTeamBaseZone)
 
 
-class CSE_InventoryBox :public CSE_ALifeDynamicObjectVisual
+extern void add_online_impl		(CSE_ALifeDynamicObject *object, const bool &update_registries);
+extern void add_offline_impl	(CSE_ALifeDynamicObject *object, const xr_vector<ALife::_OBJECT_ID> &saved_children, const bool &update_registries);
+
+class CSE_InventoryBoxAbstract {
+protected:
+	bool			m_opened;
+public:
+
+	CSE_InventoryBoxAbstract()
+	{
+	}
+};
+
+class CSE_InventoryBox :public CSE_ALifeDynamicObjectVisual, public CSE_InventoryBoxAbstract
 {
 public:
 						CSE_InventoryBox	(LPCSTR caSection):CSE_ALifeDynamicObjectVisual(caSection){};
 	virtual				~CSE_InventoryBox	(){};
 #ifdef XRGAME_EXPORTS
-	virtual void		add_offline			(const xr_vector<ALife::_OBJECT_ID> &saved_children, const bool &update_registries);
-	virtual void		add_online			(const bool &update_registries);
+	virtual void		add_offline			(const xr_vector<ALife::_OBJECT_ID> &saved_children, const bool &update_registries)
+	{
+		add_offline_impl (smart_cast<CSE_ALifeDynamicObjectVisual*>(this), saved_children, update_registries);
+		CSE_ALifeDynamicObjectVisual::add_offline(saved_children, update_registries);
+	}
+	virtual void		add_online			(const bool &update_registries)
+	{
+		add_online_impl (smart_cast<CSE_ALifeDynamicObjectVisual*>(this), update_registries);
+		CSE_ALifeDynamicObjectVisual::add_online(update_registries);
+	};
 #endif
 };
+
 
 #pragma warning(pop)
 

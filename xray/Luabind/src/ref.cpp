@@ -26,6 +26,8 @@
 #include <luabind/lua_include.hpp>
 #include <luabind/detail/debug.hpp>
 
+extern xr_string last_destroyed;
+
 namespace luabind { namespace detail
 {
 
@@ -163,13 +165,22 @@ namespace luabind { namespace detail
 	void LUABIND_API unref(lua_State *L, int ref)
 	{
 		LUABIND_CHECK_STACK(L);
+		static int errors = 0;
+		static lua_State* L_failed = NULL;
 
-		int t = LUA_REGISTRYINDEX;
-		if (ref >= 0) {
+		int t = LUA_REGISTRYINDEX;		
+		if (ref >= 0 && L != L_failed) __try {
 			lua_rawgeti(L, t, FREELIST_REF);
 			lua_rawseti(L, t, ref);  /* t[ref] = t[FREELIST_REF] */
 			lua_pushnumber(L, ref);
 			lua_rawseti(L, t, FREELIST_REF);  /* t[FREELIST_REF] = ref */
+			// MsgCB("#$CONTEXT: unref successful for %d, last_destroyed = %s ", ref, last_destroyed.c_str());
+		}
+		__except (EXCEPTION_EXECUTE_HANDLER) {
+			Msg("! #EXCEPTION: catched in luabind::detail::unref L= 0x%p, ref = %d, last_destroyed = %s", (PVOID)L, ref, last_destroyed.c_str());
+			if ( (++errors & 31) == 1 )
+				MsgCB("$#DUMP_CONTEXT");			
+			L_failed = L;
 		}
 	}
 

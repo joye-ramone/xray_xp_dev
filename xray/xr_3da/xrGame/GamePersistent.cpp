@@ -15,10 +15,14 @@
 #include "weaponhud.h"
 #include "stalker_animation_data_storage.h"
 #include "stalker_velocity_holder.h"
-
+#include "../x_ray.h"
+#include "../resourcemanager.h"
 #include "../CameraManager.h"
 #include "actor.h"
 #include "script_engine.h"
+#include "string_table.h"
+
+#pragma optimize("gyts", on)
 
 #ifndef MASTER_GOLD
 #	include "custommonster.h"
@@ -118,14 +122,36 @@ void CGamePersistent::RegisterModel(IRender_Visual* V)
 extern void clean_game_globals	();
 extern void init_game_globals	();
 
+volatile ULONG g_threads = 0;
+
+void mtParallel_1(void *)
+{
+  InterlockedIncrement(&g_threads);  
+  Log(*CStringTable().translate("Hello world!"));
+  InterlockedDecrement(&g_threads);
+}
+
+void mtParallel_2(void *)
+{
+  InterlockedIncrement(&g_threads);
+  Log("* Init game globals...");
+  init_game_globals			();
+  InterlockedDecrement(&g_threads);
+}
+
 void CGamePersistent::OnAppStart()
 {
+	thread_spawn(mtParallel_1, "mtParallelInit_1", 0, 0);
+	thread_spawn(mtParallel_2, "mtParallelInit_2", 0, 0);
+	Device.Resources->DeferredLoad(TRUE);
 	// load game materials
 	GMLib.Load					();
-	init_game_globals			();
+	Log("* __super::OnAppStart...");
 	__super::OnAppStart			();
 	m_pUI_core					= xr_new<ui_core>();
+	Log("* creating CMainMenu object");
 	m_pMainMenu					= xr_new<CMainMenu>();
+	while (g_threads > 0) Sleep(10);
 }
 
 
@@ -144,6 +170,9 @@ void CGamePersistent::OnAppEnd	()
 	GMLib.Unload				();
 
 }
+
+
+#pragma optimize("gyts", off)
 
 void CGamePersistent::Start		(LPCSTR op)
 {
@@ -217,8 +246,7 @@ void CGamePersistent::WeathersUpdate()
 
 		int data_set				= (Random.randF()<(1.f-Environment().CurrentEnv.weight))?0:1; 
 		CEnvDescriptor* _env		= Environment().Current[data_set]; VERIFY(_env);
-		if (!_env)
-			Msg("!ERROR: Environment().Current[%d] == NULL", data_set); // alpet: сия проблема всплывает, при вызове level.on_frame в скриптах
+		// if (!_env) Msg("!ERROR: Environment().Current[%d] == NULL", data_set); // alpet: сия проблема всплывает, при вызове level.on_frame в скриптах
 		CEnvAmbient* env_amb		= _env ? _env->env_ambient : NULL; // _env->env_ambient; // 
 		if (env_amb){
 			// start sound
@@ -324,6 +352,7 @@ void CGamePersistent::update_game_intro			()
 extern CUISequencer * g_tutorial;
 extern CUISequencer * g_tutorial2;
 
+
 void CGamePersistent::OnFrame	()
 {
 	if(g_tutorial2){ 
@@ -383,17 +412,12 @@ void CGamePersistent::OnFrame	()
 		}
 #endif // MASTER_GOLD
 	}
+	busy_warn(DEBUG_INFO, 3);
 	__super::OnFrame			();
+	busy_warn(DEBUG_INFO, 3);
 
-	if(!Device.Paused())
-		Engine.Sheduler.Update		();
-
-	// update weathers ambient
-	if(!Device.Paused())
-		WeathersUpdate				();
-
-	if	(0!=pDemoFile){
-		if	(Device.dwTimeGlobal>uTime2Change){
+	if	(0 != pDemoFile) {
+		if	(Device.dwTimeGlobal > uTime2Change){
 			// Change level + play demo
 			if			(pDemoFile->elapsed()<3)	pDemoFile->seek(0);		// cycle
 
@@ -410,6 +434,17 @@ void CGamePersistent::OnFrame	()
 			uTime2Change		= 0xffffffff;	// Block changer until Event received
 		}
 	}
+
+	u32 elps = Device.frame_elapsed();
+	if (!Device.Paused() && elps <= 10)
+	{
+		Engine.Sheduler.Update();
+		if (!busy_warn(DEBUG_INFO, 3))
+		{
+			WeathersUpdate();
+			busy_warn(DEBUG_INFO, 3);
+		}
+	}	
 
 #ifdef DEBUG
 	if ((m_last_stats_frame + 1) < m_frame_counter)
@@ -520,13 +555,18 @@ void CGamePersistent::OnRenderPPUI_PP()
 void CGamePersistent::LoadTitle(LPCSTR str)
 {
 	string512			buff;	
-	LPCSTR alt_text = try_call_luafunc("on_load_title", str); // позволяет дополнительно менять загрузочные экраны
-	if (strstr(alt_text, "#ERROR") || strstr(alt_text, "#OK"));
+	if (strstr(str, "#"))
+		strcpy_s(buff, 512, str); // значения с тегом передавать напрямую, они для отладки
 	else
-		str = alt_text;
-	sprintf_s			(buff, "%s...", CStringTable().translate(str).c_str());
-	pApp->LoadTitleInt	(buff);
-	
+	{
+		LPCSTR alt_text = TryCallLuafunc("on_load_title", str); // позволяет дополнительно менять загрузочные экраны
+		if (strstr(alt_text, "#ERROR") || 0 == strcmp(alt_text, "OK"));
+		else
+			str = alt_text;
+
+		sprintf_s(buff, "%s...", CStringTable().translate(str).c_str());
+	}
+	pApp->LoadTitleInt	(buff);	
 }
 
 bool CGamePersistent::CanBePaused()

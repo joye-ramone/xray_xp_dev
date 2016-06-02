@@ -152,8 +152,8 @@ DLL_API void LogPacketError(LPCSTR format, ...)
 #ifdef PRINT_SCRIPT_TRACEBACK // этот дефайн надо заблокировать перед сборкой проекта xr_3da, для избежания кольцевой ссылки при линковке
 #pragma comment( lib, "xr_3da.lib" )
 	if (!g_game_lua) return;	
-	LPCSTR trace = get_lua_traceback(g_game_lua, 2);
-	Msg("~ %s", trace);
+	LPCSTR trace = GetLuaTraceback();
+	Msg("! %s", trace);
 #endif
 	LogStackTrace("problem here:");
 	if (IsDebuggerPresent())

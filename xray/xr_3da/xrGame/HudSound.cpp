@@ -89,7 +89,8 @@ void HUD_SOUND::PlaySound	(	HUD_SOUND&		hud_snd,
 								const Fvector&	position,
 								const CObject*	parent,
 								bool			b_hud_mode,
-								bool			looped)
+								bool			looped,
+								int				*sequential)
 {
 	if (hud_snd.sounds.empty())	return;
 
@@ -100,8 +101,14 @@ void HUD_SOUND::PlaySound	(	HUD_SOUND&		hud_snd,
 	if(looped)
 		flags |= sm_Looped;
 
-	
-	hud_snd.m_activeSnd = &hud_snd.sounds[ Random.randI(hud_snd.sounds.size()) ];
+	int index = Random.randI(hud_snd.sounds.size());
+	if (sequential)
+	{
+		index = *sequential;
+		*sequential = (++*sequential) % hud_snd.sounds.size();
+	}
+
+	hud_snd.m_activeSnd = &hud_snd.sounds[ index ];
 
 	hud_snd.m_activeSnd->snd.play_at_pos	(const_cast<CObject*>(parent),
 									flags&sm_2D?Fvector().set(0,0,0):position,

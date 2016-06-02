@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: script_game_object_script2.cpp
 //	Created 	: 25.09.2003
-//  Modified 	: 29.06.2004
+//  Modified 	: 04.12.2014
 //	Author		: Dmitriy Iassenev
 //	Description : XRay Script game object script export
 ////////////////////////////////////////////////////////////////////////////
@@ -83,6 +83,7 @@ class_<CScriptGameObject> &script_register_game_object1(class_<CScriptGameObject
 		.def("id",							&CScriptGameObject::ID)
 		.def("story_id",					&CScriptGameObject::story_id)
 		.def("section",						&CScriptGameObject::Section)
+		.def("set_section",					&CScriptGameObject::SetSection)
 		.def("name",						&CScriptGameObject::Name)
 		.def("parent",						&CScriptGameObject::Parent)
 		.def("mass",						&CScriptGameObject::Mass)
@@ -123,8 +124,8 @@ class_<CScriptGameObject> &script_register_game_object1(class_<CScriptGameObject
 		.def("object",						(CScriptGameObject *(CScriptGameObject::*)(int))(&CScriptGameObject::GetObjectByIndex))
 		.def("active_item",					&CScriptGameObject::GetActiveItem)
 		
-		.def("set_callback",				(void (CScriptGameObject::*)(GameObject::ECallbackType, const luabind::functor<void> &))(&CScriptGameObject::SetCallback))
-		.def("set_callback",				(void (CScriptGameObject::*)(GameObject::ECallbackType, const luabind::functor<void> &, const luabind::object &))(&CScriptGameObject::SetCallback))
+		.def("set_callback",				(void (CScriptGameObject::*)(GameObject::ECallbackType, const luabind::functor<int> &))(&CScriptGameObject::SetCallback))
+		.def("set_callback",				(void (CScriptGameObject::*)(GameObject::ECallbackType, const luabind::functor<int> &, const luabind::object &))(&CScriptGameObject::SetCallback))
 		.def("set_callback",				(void (CScriptGameObject::*)(GameObject::ECallbackType))(&CScriptGameObject::SetCallback))
 
 		.def("set_patrol_extrapolate_callback",	(void (CScriptGameObject::*)())(&CScriptGameObject::set_patrol_extrapolate_callback))

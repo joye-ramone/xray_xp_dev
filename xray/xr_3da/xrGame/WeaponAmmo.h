@@ -1,5 +1,6 @@
 #pragma once
 #include "inventory_item_object.h"
+#include <ComplexVar.h>
 
 class CCartridge 
 {
@@ -31,6 +32,8 @@ public:
 
 class CWeaponAmmo :	public CInventoryItemObject {
 	typedef CInventoryItemObject		inherited;
+protected:
+	CComplexVarInt					*m_pBoxCurr;
 public:
 									CWeaponAmmo			(void);
 	virtual							~CWeaponAmmo		(void);
@@ -47,10 +50,12 @@ public:
 	virtual void					renderable_Render	();
 
 	virtual bool					Useful				() const;
-	virtual float					Weight				();
+	virtual float					Weight				() const;
 
 	virtual u32						Cost				() const;
 	bool							Get					(CCartridge &cartridge);
+	u16								get_box_curr		() const;
+	void							set_box_curr		(u16 value);
 
 	float		m_kDist, m_kDisp, m_kHit, m_kImpulse, m_kPierce, m_kAP, m_kAirRes;
 	int			m_buckShot;
@@ -58,10 +63,10 @@ public:
 	float		fWallmarkSize;
 	u8			m_u8ColorID;
 
-	u16			m_boxSize;
-	u16			m_boxCurr;
-	bool		m_tracer;
-
+	u16				m_boxSize;
+	
+	bool			m_tracer;
+	
 
 public:
 	virtual CInventoryItem *can_make_killing	(const CInventory *inventory) const;

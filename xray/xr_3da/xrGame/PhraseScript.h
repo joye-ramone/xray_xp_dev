@@ -48,7 +48,11 @@ public:
 			void				AddDontHasInfo	(LPCSTR str);
 			void				AddGiveInfo		(LPCSTR str);
 			void				AddDisableInfo	(LPCSTR str);
+						
+
 protected:
+	
+
 	//загрузка содержания последовательности тагов в контейнер строк 
 	template<class T> 
 		void					LoadSequence		(CUIXml* ui_xml, XML_NODE* phrase_node, LPCSTR tag, T&  str_vector);
@@ -79,3 +83,6 @@ protected:
 	INFO_VECTOR					m_HasInfo;
 	INFO_VECTOR					m_DontHasInfo;
 };
+
+
+LPCSTR	DialogDebugContext(); 

@@ -5,18 +5,41 @@
 
 XRCORE_API CInifile *pSettings	= NULL;
 
+#pragma optimize("gyts", off)
+
+
+xr_map<shared_str, int> g_IniFiles;
+
+extern bool shared_str_initialized;
+
+void DumpIniFiles(bool bClear)
+{
+	if (g_IniFiles.empty() || !shared_str_initialized) return;
+
+	MsgCB("#PERF: not closed ini-files dump:");
+	auto it = g_IniFiles.begin();
+	for (; it != g_IniFiles.end(); it++)
+	{
+		MsgCB("\t\t %-40s = %d", it->first.c_str(), it->second);		
+	}
+	if (bClear)
+		g_IniFiles.clear();
+}
+
+
+
 CInifile* CInifile::Create(const char* szFileName, BOOL ReadOnly)
 {	return xr_new<CInifile>(szFileName,ReadOnly); }
 
 void CInifile::Destroy(CInifile* ini)
 {	xr_delete(ini); }
 
-bool sect_pred(const CInifile::Sect *x, LPCSTR val)
+XRCORE_API bool sect_pred(const CInifile::Sect *x, LPCSTR val)
 {
 	return xr_strcmp(*x->Name,val)<0;
 };
 
-bool item_pred(const CInifile::Item& x, LPCSTR val)
+XRCORE_API bool item_pred(const CInifile::Item& x, LPCSTR val)
 {
     if ((!x.first) || (!val))	return x.first<val;
     else				   		return xr_strcmp(*x.first,val)<0;
@@ -73,30 +96,34 @@ BOOL	CInifile::Sect::line_exist( LPCSTR L, LPCSTR* val )
 }
 //------------------------------------------------------------------------------
 
+
 CInifile::CInifile(IReader* F ,LPCSTR path)
 {
+	ref_count   = 1;
 	fName		= 0;
 	bReadOnly	= TRUE;
 	bSaveAtEnd	= FALSE;
+	get_section = NULL;
+	if (pSettings)	
+		smIncludeMacro = pSettings->smIncludeMacro;	
+
 	Load		(F,path);
 }
 
 CInifile::CInifile(LPCSTR szFileName, BOOL ReadOnly, BOOL bLoad, BOOL SaveAtEnd)
 {
-	fName		= szFileName?xr_strdup(szFileName):0;
-    bReadOnly	= ReadOnly;
+
+	ref_count   = 1;
     bSaveAtEnd	= SaveAtEnd;
+	get_section = NULL;
+	if (pSettings)	
+		smIncludeMacro = pSettings->smIncludeMacro;	
+
+
 	if (bLoad)
-	{	
-    	string_path	path,folder; 
-		_splitpath	(fName, path, folder, 0, 0 );
-        strcat		(path,folder);
-		IReader* R 	= FS.r_open(szFileName);
-        if (R){
-			Load		(R,path);
-			FS.r_close	(R);
-        }
-	}
+		Load(szFileName, ReadOnly);
+	else
+		fName = xr_strdup(szFileName); // TODO: leak probability high
 }
 
 CInifile::~CInifile( )
@@ -106,15 +133,32 @@ CInifile::~CInifile( )
 			Log		("!Can't save inifile:",fName);
 	}
 
+	if (fName && shared_str_initialized)
+	{
+		auto it = g_IniFiles.find(fName);
+		if (it != g_IniFiles.end())
+		{
+			if (--it->second <= 0)
+				g_IniFiles.erase(it);
+		}
+	}
 	xr_free			(fName);
 
 	RootIt			I = DATA.begin();
 	RootIt			E = DATA.end();
 	for ( ; I != E; ++I)
-		xr_delete	(*I);
+		xr_delete	(I->second);
 }
 
-static void	insert_item(CInifile::Sect *tgt, const CInifile::Item& I)
+void CInifile::release()
+{
+	 ref_count--; 
+	 if (ref_count <= 0) 
+		xr_delete( (CInifile*)this); 
+}
+
+
+XRCORE_API void	insert_item(CInifile::Sect *tgt, const CInifile::Item& I)
 {
 	CInifile::SectIt_	sect_it		= std::lower_bound(tgt->Data.begin(),tgt->Data.end(),*I.first,item_pred);
 	if (sect_it!=tgt->Data.end() && sect_it->first.equal(I.first)){ 
@@ -127,12 +171,52 @@ static void	insert_item(CInifile::Sect *tgt, const CInifile::Item& I)
 	}
 }
 
+void	CInifile::Load(LPCSTR szFileName, BOOL ReadOnly) {
+
+	DATA.clear(); // Root reloading, not recursive
+
+	fName		= szFileName ? xr_strdup(szFileName) : NULL;
+	if (fName && shared_str_initialized)
+	{
+		auto it = g_IniFiles.find(fName);
+		if (it != g_IniFiles.end())
+			MsgCB("#PERF: already opened ini-file %s, count = %d ", fName, it->second++);
+		else
+			g_IniFiles[fName] = 0;
+	}
+
+    bReadOnly	= ReadOnly;
+	
+    string_path	path,folder; 
+	_splitpath	(fName, path, folder, 0, 0 );
+    strcat_s		(path, sizeof(path), folder);
+	IReader* R 	= FS.r_open(szFileName);
+    if (R){
+		Load		(R,path);
+		FS.r_close	(R);
+    }
+	
+}
+
+
+void	CInifile::AddSection(Sect *pSection)
+{	
+	// RootIt I		= std::lower_bound(DATA.begin(),DATA.end(),*pSection->Name,sect_pred);
+	shared_str name (pSection->Name);
+	RootIt I =  DATA.find(name);
+	if ((I!=DATA.end()) && (I->first == name))
+		Debug.fatal(DEBUG_INFO, "Duplicate section '%s' found in file %s. ",*name, (fName ? fName : "NULL"));
+
+	 DATA[name] = pSection;	
+}
+
+
 void	CInifile::Load(IReader* F, LPCSTR path)
 {
 	R_ASSERT(F);
 	Sect		*Current = 0;
 	string4096	str;
-	string4096	str2;
+	string4096	str2;	
 
 	while (!F->eof())
 	{
@@ -155,26 +239,31 @@ void	CInifile::Load(IReader* F, LPCSTR path)
 #endif
 		}
 
-        if (str[0] && (str[0]=='#') && strstr(str,"#include")){
-        	string64	inc_name;	
+        if (str[0] && (str[0]=='#') && strstr(str, "#include")) {
+        	xr_string	inc_name;	
 			R_ASSERT	(path&&path[0]);
-        	if (_GetItem	(str,1,inc_name,'"')){
-            	string_path	fn,inc_path,folder;
-                strconcat	(sizeof(fn),fn,path,inc_name);
+        	if (_GetItem	(str, 1, inc_name, '"')) {
+            	string_path	fn, inc_path, folder;
+
+				for (auto it = smIncludeMacro.begin(); it != smIncludeMacro.end(); it++)
+				{
+					const shared_str &macro = it->first;
+					auto pos = inc_name.find(macro.c_str());
+					if (pos == xr_string::npos) continue;
+					inc_name.replace(pos, macro.size(), it->second.c_str());
+				}
+
+                strconcat	(sizeof(fn), fn, path, inc_name.c_str());
 				_splitpath	(fn,inc_path,folder, 0, 0 );
 				strcat		(inc_path,folder);
-            	IReader* I 	= FS.r_open(fn); R_ASSERT3(I,"Can't find include file:", inc_name);
+            	IReader* I 	= FS.r_open(fn); R_ASSERT2(I, make_string("Can't find include file %s for %s", inc_name.c_str(), fName));
             	Load		(I,inc_path);
                 FS.r_close	(I);
             }
         }else if (str[0] && (str[0]=='[')){
 			// insert previous filled section
-			if (Current){
-				RootIt I		= std::lower_bound(DATA.begin(),DATA.end(),*Current->Name,sect_pred);
-				if ((I!=DATA.end())&&((*I)->Name==Current->Name))
-					Debug.fatal(DEBUG_INFO,"Duplicate section '%s' found.",*Current->Name);
-				DATA.insert		(I,Current);
-			}
+			if (Current)
+				AddSection(Current);
 			Current				= xr_new<Sect>();
 			Current->Name		= 0;
 			// start new section
@@ -230,12 +319,7 @@ void	CInifile::Load(IReader* F, LPCSTR path)
 		}
 	}
 	if (Current)
-	{
-		RootIt I		= std::lower_bound(DATA.begin(),DATA.end(),*Current->Name,sect_pred);
-		if ((I!=DATA.end())&&((*I)->Name==Current->Name))
-			Debug.fatal(DEBUG_INFO,"Duplicate section '%s' found.",*Current->Name);
-		DATA.insert		(I,Current);
-	}
+		AddSection(Current);	
 }
 
 bool	CInifile::save_as( LPCSTR new_fname )
@@ -251,9 +335,11 @@ bool	CInifile::save_as( LPCSTR new_fname )
         string512		temp,val;
         for (RootIt r_it=DATA.begin(); r_it!=DATA.end(); ++r_it)
 		{
-            sprintf_s		(temp,sizeof(temp),"[%s]",*(*r_it)->Name);
+			Sect *sect = r_it->second;
+			Items &list = sect->Data;
+			sprintf_s		(temp,sizeof(temp),"[%s]", *sect->Name);
             F->w_string	(temp);
-            for (SectCIt s_it=(*r_it)->Data.begin(); s_it!=(*r_it)->Data.end(); ++s_it)
+            for (SectCIt s_it= list.begin(); s_it != list.end(); ++s_it)
             {
                 const Item&	I = *s_it;
                 if (*I.first) {
@@ -303,15 +389,25 @@ bool	CInifile::save_as( LPCSTR new_fname )
 
 BOOL	CInifile::section_exist( LPCSTR S )
 {
-	RootIt I = std::lower_bound(DATA.begin(),DATA.end(),S,sect_pred);
-	return (I!=DATA.end() && xr_strcmp(*(*I)->Name,S)==0);
+	// RootIt I = std::lower_bound(DATA.begin(),DATA.end(),S,sect_pred);
+	RootIt I = DATA.find(S);
+	if (I != DATA.end() && xr_strcmp(I->second->Name, S) == 0) 
+		return TRUE;
+	if (get_section)
+		return get_section(this, S) != NULL;
+	return FALSE;
+}
+
+void    CInifile::SetIncludeMacro(const shared_str &key, const shared_str &value)
+{
+	smIncludeMacro[key] = value;
 }
 
 BOOL	CInifile::line_exist( LPCSTR S, LPCSTR L )
 {
 	if (!section_exist(S)) return FALSE;
 	Sect&	I = r_section(S);
-	SectCIt A = std::lower_bound(I.Data.begin(),I.Data.end(),L,item_pred);
+	SectCIt A = std::lower_bound(I.Data.begin(), I.Data.end(), L, item_pred);
 	return (A!=I.Data.end() && xr_strcmp(*A->first,L)==0);
 }
 
@@ -334,14 +430,49 @@ BOOL			CInifile::section_exist	( const shared_str& S	)					{ return	section_exis
 //--------------------------------------------------------------------------------------
 // Read functions
 //--------------------------------------------------------------------------------------
-CInifile::Sect& CInifile::r_section( LPCSTR S )
+
+CInifile::Sect* unsafe_read_section(CInifile &source, LPCSTR S)
 {
-	char	section[256]; strcpy_s(section,sizeof(section),S); strlwr(section);
-	RootIt I = std::lower_bound(DATA.begin(),DATA.end(),section,sect_pred);
-	if (!(I!=DATA.end() && xr_strcmp(*(*I)->Name,section)==0))
-		Debug.fatal(DEBUG_INFO,"Can't open section '%s'",S);
-	return	**I;
+	CInifile::Sect *result = NULL;
+	string256	section; 
+	strcpy_s(section,sizeof(section), S); 
+	strlwr(section);
+
+	// RootIt I = std::lower_bound(DATA.begin(), DATA.end(), section, sect_pred);
+	auto &map = source.sections();
+	auto I = map.find(section);			
+
+	if (!(I != map.end() && (I->second->Name == section)))
+	{
+		if (source.get_section)
+			result = source.get_section(&source, section);
+
+		if (!result)
+			Debug.fatal(DEBUG_INFO, "Can't open/get section '%s'", S);
+	}
+	else
+		result = I->second;
+	
+	return result;
 }
+
+
+CInifile::Sect& CInifile::r_section( LPCSTR S )
+{	
+	__try
+	{
+		R_ASSERT2(this, "CInifile::r_section, this = NULL!");
+		R_ASSERT2(S, "r_section parameter unassigned!");
+		return *unsafe_read_section(*this, S);		
+	}
+	__except (SIMPLE_FILTER)
+	{
+		Msg("!#EXCEPTION: catched in CIinifile::r_section %s", S);
+	}
+	
+	NODEFAULT;
+}
+
 
 LPCSTR	CInifile::r_string(LPCSTR S, LPCSTR L)
 {
@@ -399,8 +530,18 @@ s32 CInifile::r_s32(LPCSTR S, LPCSTR L)
 }
 float CInifile::r_float(LPCSTR S, LPCSTR L)
 {
-	LPCSTR		C = r_string(S,L);
-	return		float(atof( C ));
+	LPCSTR		C = r_string(S, L);	
+	float       R = 0;
+	if (C && strlen(C))
+	__try
+	{
+		R = float(atof(C));
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER) 
+	{
+		Msg("! #EXCEPTION(CInifile::r_float): atof(%s) failed, section = '%s', key = '%s' ", C, S, L);
+	}
+	return R;
 }
 Fcolor CInifile::r_fcolor( LPCSTR S, LPCSTR L )
 {
@@ -512,8 +653,7 @@ void	CInifile::w_string	( LPCSTR S, LPCSTR L, LPCSTR			V, LPCSTR comment)
 		// create _new_ section
 		Sect			*NEW = xr_new<Sect>();
 		NEW->Name		= sect;
-		RootIt I		= std::lower_bound(DATA.begin(),DATA.end(),sect,sect_pred);
-		DATA.insert		(I,NEW);
+		AddSection(NEW);		
 	}
 
 	// parse line/value

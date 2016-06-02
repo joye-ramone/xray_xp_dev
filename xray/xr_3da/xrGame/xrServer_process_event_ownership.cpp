@@ -1,7 +1,10 @@
 #include "stdafx.h"
 #include "xrserver.h"
 #include "xrserver_objects.h"
+#include "../luaicp_events.h"
 #include "../../build_config_defines.h"
+
+#pragma optimize("gyts", off)
 
 void ReplaceOwnershipHeader	(NET_Packet& P)
 {
@@ -19,22 +22,42 @@ void xrServer::Process_event_ownership(NET_Packet& P, ClientID sender, u32 time,
 	CSE_Abstract*		e_parent	= game->get_entity_from_eid	(id_parent);
 	CSE_Abstract*		e_entity	= game->get_entity_from_eid	(id_entity);
 
-	#ifdef DEBUG
+	if (id_parent == e_entity->ID_Parent)
+	{
+		MsgCB("$#CONTEXT: repeat event ownership for object %s to parent %s skipped! ", ent_name_safe(id_entity).c_str(), ent_name_safe(id_parent).c_str());
+		return; // already parent		
+    }
+
+#ifdef DEBUG
 	Msg("sv ownership id_parent %s id_entity %s [%d]",ent_name_safe(id_parent).c_str(), ent_name_safe(id_entity).c_str(), Device.dwFrame);
-	#endif
+#else
+	
+	if (e_entity)
+		MsgCB("$#CONTEXT: event ownership for object %s to parent %s, current owner = %d ", ent_name_safe(id_entity).c_str(), ent_name_safe(id_parent).c_str(), (int) e_entity->ID_Parent);
+	else
+		MsgCB("$#CONTEXT: event ownership for object %s to parent %s ", ent_name_safe(id_entity).c_str(), ent_name_safe(id_parent).c_str());
+
+#endif
+
+
+	if(!e_entity)		return;
+
+	if (P.r_elapsed() >= 2)	P.r_u16(); // callback suppres flag
+
+	R_ASSERT			(/*e_entity &&*/ e_parent);
+	
+	if (0xffff != e_entity->ID_Parent)
+	{
+		MsgCB("$#CONTEXT: sv !ownership (entity already has parent) new_parent %s id_parent %s id_entity %s [%d]",
+					ent_name_safe(e_entity->ID_Parent).c_str(), ent_name_safe(id_parent).c_str(), ent_name_safe(id_entity).c_str(), Device.dwFrame);
+		return;
+	}
 
 	#ifdef LUAICP_COMPAT
 	// для обновлений реестра объектов в перехватчике
-	MsgCB("sv ownership id_parent %s id_entity %s [%d]", ent_name_safe(id_parent).c_str(), ent_name_safe(id_entity).c_str(), Device.dwFrame);
+	// MsgCB("sv ownership id_parent %s id_entity %s [%d]", ent_name_safe(id_parent).c_str(), ent_name_safe(id_entity).c_str(), Device.dwFrame);
+	process_object_event(EVT_OBJECT_PARENT | EVT_OBJECT_SERVER, id_entity, NULL, e_entity, id_parent);
 	#endif
-
-	if(!e_entity)		return;
-	R_ASSERT			(/*e_entity &&*/ e_parent);
-	if (0xffff != e_entity->ID_Parent)
-	{
-		Msg("sv !ownership (entity already has parent) new_parent %s id_parent %s id_entity %s [%d]",ent_name_safe(e_entity->ID_Parent).c_str(), ent_name_safe(id_parent).c_str(), ent_name_safe(id_entity).c_str(), Device.dwFrame);
-		return;
-	}
 
 	xrClientData*		c_parent		= e_parent->owner;
 	xrClientData*		c_entity		= e_entity->owner;

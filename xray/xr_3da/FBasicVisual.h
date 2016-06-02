@@ -53,6 +53,7 @@ public:
 	ref_shader					shader_ref;					// pipe state, shared
 	shared_str					shader_name;				// added by alpet, for unique texture/shader loading
 	shared_str					textures;				    // added by alpet, for unique texture/shader loading	
+	bool						prefetched;					// added by alpet for optimize experiment
 	LPCSTR						get_shader_name()		   { return *shader_name; }  // alpet: export to scripts
 	LPCSTR						get_texture_name()		   { return *textures; }     // alpet: export to scripts
 

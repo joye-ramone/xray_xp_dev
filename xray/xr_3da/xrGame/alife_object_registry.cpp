@@ -12,6 +12,8 @@
 #include "../../build_config_defines.h"
 #include "ai_debug.h"
 
+#pragma optimize("gyts", off)
+
 CALifeObjectRegistry::CALifeObjectRegistry	(LPCSTR section)
 {
 
@@ -22,13 +24,13 @@ CALifeObjectRegistry::CALifeObjectRegistry	(LPCSTR section)
 
 CALifeObjectRegistry::~CALifeObjectRegistry	()
 {
-	OBJECT_REGISTRY::iterator		I = m_objects.begin();
-	OBJECT_REGISTRY::iterator		E = m_objects.end();
-	for ( ; I != E; ++I) {
+	for (auto it = m_objects.begin(); it != m_objects.end(); it++) {
 		// hack, should be revisited in case of not intended behaviour
-		(*I).second->on_unregister	();
-		xr_delete					((*I).second);
+		CSE_ALifeDynamicObject *obj = it->second;
+		obj->on_unregister	();		
+		xr_delete					(obj);
 	}
+	m_mapping.clear();
 }
 
 void CALifeObjectRegistry::save				(IWriter &memory_stream, CSE_ALifeDynamicObject *object, u32 &object_count)

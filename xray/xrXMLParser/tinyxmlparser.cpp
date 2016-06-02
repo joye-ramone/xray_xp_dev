@@ -27,6 +27,8 @@ distribution.
 
 #include "tinyxml.h"
 
+#pragma optimize("gyts", on)
+
 //#define DEBUG_PARSER
 #if defined( DEBUG_PARSER )
 #	if defined( DEBUG ) && defined( _MSC_VER )
@@ -83,6 +85,24 @@ const int TiXmlBase::utf8ByteTable[256] =
 		3,	3,	3,	3,	3,	3,	3,	3,	3,	3,	3,	3,	3,	3,	3,	3,	// 0xe0 0xe0 to 0xef 3 byte
 		4,	4,	4,	4,	4,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1	// 0xf0 0xf0 to 0xf4 4 byte, 0xf5 and higher invalid
 };
+
+
+LPCSTR strip_str(LPCSTR src, size_t max_length = 1000)
+{
+	static string4096 buff;
+	src = src ? src : "NULL";
+	if (src == buff) return src; // already applied
+	max_length = _min(max_length, 4090);
+	if (xr_strlen(src) >= max_length)
+	{
+		strncpy_s(buff, 4095, src, max_length);
+		strcat_s(buff, 4095, "...");
+	}
+	else
+		strcpy_s(buff, max_length, src);
+	return buff;
+}
+
 
 
 void TiXmlBase::ConvertUTF32ToUTF8( unsigned long input, char* output, int* length )
@@ -800,8 +820,18 @@ void TiXmlDocument::SetError( int err, const char* pError, TiXmlParsingData* dat
 	// The first error in a chain is more accurate - don't set again!
 	if ( error )
 		return;
+	if (!pError)
+	 	 pError = "(null)";
+	
+	pError = strip_str(pError);
+	if (data)
+		location = data->cursor;
+	else
+		location.Clear();
 
-	assert( err > 0 && err < TIXML_ERROR_STRING_COUNT );
+	Msg("! #XML_ERROR: TiXmlDocument::SetError line %d, column %d, error = %d, data = %p:\n %s ", location.row + 1, location.col + 1, err, data, pError);
+	R_ASSERT2( err > 0 && err < TIXML_ERROR_STRING_COUNT, make_string("%d. %s", err, pError));
+
 	error   = true;
 	errorId = err;
 	errorDesc = errorString[ errorId ];
@@ -1046,6 +1076,8 @@ void TiXmlElement::StreamIn (std::istream * in, TIXML_STRING * tag)
 }
 #endif
 
+
+
 const char* TiXmlElement::Parse( const char* p, TiXmlParsingData* data, TiXmlEncoding encoding )
 {
 	p = SkipWhiteSpace( p, encoding );
@@ -1089,7 +1121,7 @@ const char* TiXmlElement::Parse( const char* p, TiXmlParsingData* data, TiXmlEnc
 	// tag or an end tag.
 	while ( p && *p )
 	{
-		pErr = p;
+		pErr = p;	 	
 		p = SkipWhiteSpace( p, encoding );
 		if ( !p || !*p )
 		{

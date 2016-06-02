@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: ai_crow.cpp
 //	Created 	: 13.05.2002
-//  Modified 	: 13.05.2002
+//  Modified 	: 03.12.2014
 //	Author		: Dmitriy Iassenev
 //	Description : AI Behaviour for monster "Crow"
 ////////////////////////////////////////////////////////////////////////////
@@ -12,6 +12,9 @@
 #include "../../hudmanager.h"
 #include "../../level.h"
 #include "../../../skeletonanimated.h"
+#include "../../xrServer_Objects_ALife.h"
+
+// #pragma optimize("gyts", off)
 
 void CAI_Crow::SAnim::Load	(CKinematicsAnimated* visual, LPCSTR prefix)
 {
@@ -70,6 +73,7 @@ void CAI_Crow::OnHitEndPlaying	(CBlend* /**B/**/)
 CAI_Crow::CAI_Crow		()
 {
 	init				();
+	XFORM().identity    ();
 }
 
 CAI_Crow::~CAI_Crow		()
@@ -125,6 +129,15 @@ void CAI_Crow::Load( LPCSTR section )
 
 BOOL CAI_Crow::net_Spawn		(CSE_Abstract* DC)
 {
+	XFORM().c.set(0, 50, 0);
+	CSE_ALifeDynamicObject *se_obj = smart_cast<CSE_ALifeDynamicObject *>(DC);
+	if (se_obj)
+	{
+		clamp<float>(se_obj->o_Position.x, -1500.f, 1500.f);
+		clamp<float>(se_obj->o_Position.y, -1500.f, 1500.f);
+		clamp<float>(se_obj->o_Position.z, -1500.f, 1500.f);
+	}
+
 	BOOL R		= inherited::net_Spawn	(DC);
 	setVisible	(TRUE);
 	setEnabled	(TRUE);

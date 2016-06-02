@@ -23,9 +23,10 @@ namespace SpaceRestrictionHolder {
 };
 
 class CSpaceRestrictionHolder {
-public:
-	typedef xr_map<shared_str,CSpaceRestrictionBridge*>	RESTRICTIONS;
+	friend class CSpaceRestrictionBridge;
 
+public:
+	typedef xr_map<shared_str,CSpaceRestrictionBridge*>	RESTRICTIONS;	
 private:
 	enum {
 		MAX_RESTRICTION_PER_TYPE_COUNT	= u32(128),
@@ -38,17 +39,19 @@ private:
 	shared_str						m_default_in_restrictions;
 
 protected:
+			bool					m_finalization;	
+
 			shared_str				normalize_string				(shared_str space_restrictors);
 	IC		void					collect_garbage					();
 	virtual void					on_default_restrictions_changed	() = 0;
 			void					clear							();
-
+	CSpaceRestrictionBridge*		register_fake_restrictor		(shared_str restrictor_id);
 public:
 	IC								CSpaceRestrictionHolder			();
 	virtual							~CSpaceRestrictionHolder		();
 			SpaceRestrictionHolder::CBaseRestrictionPtr	restriction	(shared_str space_restrictors);
-			void					register_restrictor				(CSpaceRestrictor *space_restrictor, const RestrictionSpace::ERestrictorTypes &restrictor_type);
-			void					unregister_restrictor			(CSpaceRestrictor *space_restrictor);
+	CSpaceRestrictionBridge*		register_restrictor				(CSpaceRestrictor *space_restrictor, const RestrictionSpace::ERestrictorTypes &restrictor_type);
+			void					unregister_restrictor			(CSpaceRestrictor *space_restrictor, LPCSTR szMsg = NULL);
 	IC		shared_str				default_out_restrictions		() const;
 	IC		shared_str				default_in_restrictions			() const;
 };

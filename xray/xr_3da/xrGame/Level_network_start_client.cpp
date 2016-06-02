@@ -8,6 +8,8 @@
 #include "../igame_persistent.h"
 #include "PhysicsGamePars.h"
 #include "ai_space.h"
+#include "script_vars_storage.h"
+#include "../xr_ioconsole.h"
 
 extern	pureFrame*				g_pNetProcessor;
 
@@ -33,6 +35,7 @@ bool	CLevel::net_start_client1				()
 								CStringTable().translate("st_client_connecting_to").c_str(), name_of_server);
 
 	g_pGamePersistent->LoadTitle				(temp);
+	MsgCB("##PERF: CLevel::net_start_client1 end");
 	return true;
 }
 
@@ -46,7 +49,7 @@ bool	CLevel::net_start_client2				()
 	}
 
 	connected_to_server = Connect2Server(*m_caClientOptions);
-	
+	MsgCB("##PERF: CLevel::net_start_client2 end");
 	return true;
 }
 
@@ -74,8 +77,9 @@ bool	CLevel::net_start_client3				()
 		m_name					= level_name;
 		// Load level
 		R_ASSERT2				(Load(level_id),"Loading failed.");
-
+		MsgCB("##PERF: CLevel::net_start_client3 end");
 	}
+	
 	return true;
 }
 
@@ -130,24 +134,45 @@ bool	CLevel::net_start_client4				()
 				Sleep(5); 
 			}
 */
-		}
+		MsgCB("##PERF: CLevel::net_start_client4 end");
+	}
 	return true;
 }
 
 bool	CLevel::net_start_client5				()
 {
 	if(connected_to_server){
-		// HUD
-
+		// HUD		
 		// Textures
 		if	(!g_dedicated_server)
 		{
 			pHUD->Load							();
 			g_pGamePersistent->LoadTitle				("st_loading_textures");
+			// оптимизация загрузки текстур. Игнор неактуальных для текущего сейва
+			PSCRIPT_VAR pv = g_ScriptVars.find_var("unused_textures");
+			if (pv && pv->T && ( GetAsyncKeyState(VK_SHIFT) & 0xC000 == 0) )
+			{
+				CScriptVarsTable &T = *pv->T;
+				auto &tmap = Device.Resources->textures();
+				string16 buff;
+				for (auto it = tmap.begin(); it != tmap.end(); it++)
+				{
+					shared_str name(it->first);
+					LPCSTR index = itoa(name._get()->dwCRC, buff, 10);
+					if (T.find_var(index) && !strstr(it->first, "sky") && !strstr(it->first, "glow")) // !strstr(it->first, "pfx")
+					{
+						it->second->m_skip_prefetch = true;
+						MsgV("5PERF", "skip prefetch activated for~C0A %s~C07", it->first);
+					}
+				} // for
+			}
+
+
 			Device.Resources->DeferredLoad		(FALSE);
 			Device.Resources->DeferredUpload	();
 			LL_CheckTextures					();
-		}
+		}		
+		MsgCB("##PERF: CLevel::net_start_client5 end");
 	}
 	return true;
 }
@@ -163,6 +188,7 @@ bool	CLevel::net_start_client6				()
 		g_pGamePersistent->LoadTitle		("st_client_synchronising");
 		Device.PreCache						(30);
 		net_start_result_total				= TRUE;
+		MsgCB("##PERF: CLevel::net_start_client6 end");
 	}else{
 		net_start_result_total				= FALSE;
 	}

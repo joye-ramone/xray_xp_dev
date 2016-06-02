@@ -23,8 +23,8 @@ public:
 		IC bool operator()(const char* x, const char* y) const
 		{	return xr_strcmp(x,y)<0;	}
 	};
-	typedef xr_map<LPCSTR,IConsole_Command*,str_pred>	vecCMD;
-	typedef vecCMD::iterator						vecCMD_IT;
+	typedef			xr_map<LPCSTR,IConsole_Command*,str_pred>	vecCMD;
+	typedef			vecCMD::iterator						vecCMD_IT;
 	enum			{ MAX_LEN = 1024 };
 private:
 	u32				last_mm_timer;
@@ -42,16 +42,18 @@ private:
 	BOOL			bRepeat;
 	BOOL			RecordCommands;
 protected:
-	int				scroll_delta;
+	int				scroll_delta;	
+	int				page_lines;
 	char			editor[MAX_LEN];
 	BOOL			bCursor;
 
 	CGameFont		*pFont;
 public:
-	virtual ~CConsole(){};
-	string64		ConfigFile;
-	BOOL			bVisible;
+	virtual			~CConsole(){};
+	char			ConfigFile [60];
+	BOOL			bVisible;			 // WARN: flag used in luaicp !!!
 	vecCMD			Commands;
+	
 
 	void			AddCommand			(IConsole_Command*);	
 	void			RemoveCommand		(IConsole_Command*);

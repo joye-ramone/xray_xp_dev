@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: alife_update_manager.h
 //	Created 	: 25.12.2002
-//  Modified 	: 12.05.2004
+//  Modified 	: 17.02.2016
 //	Author		: Dmitriy Iassenev
 //	Description : ALife Simulator update manager
 ////////////////////////////////////////////////////////////////////////////
@@ -27,6 +27,10 @@
 using namespace ALife;
 
 extern string_path g_last_saved_game;
+#pragma optimize("gyts", off)
+DLL_API bool  g_AllowSkipUpdate = true;
+
+
 
 class CSwitchPredicate {
 private:
@@ -99,16 +103,36 @@ void CALifeUpdateManager::update_scheduled	(bool init_ef)
 {
 	if (init_ef)
 		init_ef_storage					();
-
+	u32 before = Device.frame_elapsed();
+	size_t size  = scheduled().objects().size();
+	size_t count = scheduled().objects_per_update();
 	START_PROFILE("ALife/scheduled");
-	scheduled().update					();
+	scheduled().update					();	 
 	STOP_PROFILE
+	u32 after = Device.frame_elapsed();
+	if (after - before > 50)
+		MsgCB("##PERF_WARN: CALifeUpdateManager::update_scheduled  frame elapsed before = %d ms, after = %d ms, objects per update = %d / %d ", before, after, count, size);
 }
+
+ENGINE_API float g_fTimeInteractive;
 
 void CALifeUpdateManager::update			()
 {
+	u32 before = Device.frame_elapsed();
+	u32 median = (u32)round(Device.fTimeDelta * 1000.f);
+	bool check_timeout = Device.b_is_Active && Device.b_is_Ready && g_fTimeInteractive > 30.f && g_AllowSkipUpdate;
+
+	if (before > median + 200 && check_timeout)
+	{
+		MsgCB("##PERF_WARN: CALifeUpdateManager::update skipped update_switch due frame elapsed before = %d ms ", before);
+		return;
+	}
 	update_switch						();
-	update_scheduled					(false);
+	u32 after = Device.frame_elapsed();	
+	if (after < median + 200 || !check_timeout)
+		update_scheduled(false);
+	else
+		MsgCB("##PERF_WARN: CALifeUpdateManager::update skipped update_scheduled due frame elapsed before = %d ms, after = %d ms ", before, after);
 }
 
 void CALifeUpdateManager::shedule_Update	(u32 dt)
@@ -255,13 +279,17 @@ void CALifeUpdateManager::new_game			(LPCSTR save_name)
 	for ( ; I != E; ++I)
 		(*I).second->on_register		();
 
+#ifndef NLC_EXTENSIONS
 	save								(save_name);
+#endif
 
 	Msg									("* New game is successfully created!");
 }
 
 void CALifeUpdateManager::load			(LPCSTR game_name, bool no_assert, bool new_only)
 {
+
+	pApp->LoadPrepare();
 	g_pGamePersistent->LoadTitle		("st_loading_alife_simulator");
 
 #ifdef DEBUG
@@ -508,7 +536,7 @@ void CALifeUpdateManager::remove_restriction(ALife::_OBJECT_ID id, ALife::_OBJEC
 		case RestrictionSpace::eRestrictorTypeOut : {
 			xr_vector<ALife::_OBJECT_ID>::iterator	I = std::find(creature->m_dynamic_out_restrictions.begin(),creature->m_dynamic_out_restrictions.end(),restriction_id);
 			if (I == creature->m_dynamic_out_restrictions.end()) {
-				Msg							("~ cannot remove restriction with id [%d][%s] to the entity with id [%d][%s], because it is not added",restriction_id,object_restrictor->name_replace(),id,object->name_replace());
+				Msg							("# cannot remove restriction with id [%d][%s] to the entity with id [%d][%s], because it is not added",restriction_id,object_restrictor->name_replace(),id,object->name_replace());
 				return;
 			}
 
@@ -519,7 +547,7 @@ void CALifeUpdateManager::remove_restriction(ALife::_OBJECT_ID id, ALife::_OBJEC
 		case RestrictionSpace::eRestrictorTypeIn : {
 			xr_vector<ALife::_OBJECT_ID>::iterator	I = std::find(creature->m_dynamic_in_restrictions.begin(),creature->m_dynamic_in_restrictions.end(),restriction_id);
 			if (I == creature->m_dynamic_in_restrictions.end()) {
-				Msg							("~ cannot remove restriction with id [%d][%s] to the entity with id [%d][%s], because it is not added",restriction_id,object_restrictor->name_replace(),id,object->name_replace());
+				Msg							("# cannot remove restriction with id [%d][%s] to the entity with id [%d][%s], because it is not added",restriction_id,object_restrictor->name_replace(),id,object->name_replace());
 				return;
 			}
 

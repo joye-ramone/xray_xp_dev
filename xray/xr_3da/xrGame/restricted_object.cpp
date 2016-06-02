@@ -129,22 +129,37 @@ bool CRestrictedObject::accessible			(const Fvector &position, float radius) con
 	Fsphere						sphere;
 	sphere.P					= position;
 	sphere.R					= radius;
-	return						(Level().space_restriction_manager().accessible(object().ID(),sphere));
+	bool result 			    = Level().space_restriction_manager().accessible(object().ID(),sphere);
+
+
+	return result;
 	STOP_PROFILE;
+	
 }
 
 bool CRestrictedObject::accessible			(u32 level_vertex_id) const
 {
+	bool result = false;
+
 	START_PROFILE("Restricted Object/Accessible");
-	VERIFY						(ai().level_graph().valid_vertex_id(level_vertex_id));
-	return						(accessible(level_vertex_id,EPS_L));
+	// FORCE_VERIFY			(ai().level_graph().valid_vertex_id(level_vertex_id));	
+	try
+	{
+		R_ASSERT2 (!IsBadReadPtr(this, sizeof(CRestrictedObject)), "this is bad pointer!");
+		result = (accessible(level_vertex_id, EPS_L));
+	}
+	catch (...)
+	{
+		Msg("!#EXCEPTION: cached in CRestrictedObject::accessible, level_vertex_id = %d, self_name = %s ", level_vertex_id, object().Name_script());
+	}
 	STOP_PROFILE;
+	return result;
 }
 
 bool CRestrictedObject::accessible			(u32 level_vertex_id, float radius) const
 {
 	START_PROFILE("Restricted Object/Accessible");
-	VERIFY						(ai().level_graph().valid_vertex_id(level_vertex_id));
+	FORCE_VERIFY				(ai().level_graph().valid_vertex_id(level_vertex_id));
 	return						(Level().space_restriction_manager().accessible(object().ID(),level_vertex_id,radius));
 	STOP_PROFILE;
 }

@@ -7,6 +7,9 @@
 ////////////////////////////////////////////////////////////////////////////
 #include "script_export_space.h"
 #include "CustomOutfit.h"
+#include "CustomMonster.h"
+#include "movement_manager.h"
+
 // alpet : в этом файле при добавлении экспортеров с зависимост€ми наследовани€, необходимо соблюдать пор€док - сначала экспортируютс€ базовые классы
 // NOTE  : требуетс€ именно класс вместо структуры, чтобы объ€вить его френдом 
 
@@ -96,3 +99,21 @@ add_to_type_list(CWeaponScript)
 #undef script_type_list
 #define script_type_list save_type_list(CWeaponScript)
 
+class CCustomMonsterScript
+{
+public:
+	u32 GetDestVertexId(CCustomMonster *monster)
+	{
+		u32 vertex = 0;
+		if (monster->m_movement_manager != NULL)
+		{
+			vertex = monster->m_movement_manager->level_dest_vertex_id();
+		}
+		return vertex;
+	}
+
+	DECLARE_SCRIPT_REGISTER_FUNCTION
+};
+add_to_type_list(CCustomMonsterScript)
+#undef script_type_list
+#define script_type_list save_type_list(CCustomMonsterScript)

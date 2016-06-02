@@ -15,9 +15,12 @@
 #include "game_base_space.h"
 #include "MathUtils.h"
 #include "clsid_game.h"
+#include "Actor.h"
 #ifdef DEBUG
 #include "phdebug.h"
 #endif
+
+#pragma optimize("gyts", off)
 
 CWeaponMagazinedWGrenade::CWeaponMagazinedWGrenade(LPCSTR name,ESoundTypes eSoundType) : CWeaponMagazined(name, eSoundType)
 {
@@ -49,6 +52,7 @@ void CWeaponMagazinedWGrenade::Load	(LPCSTR section)
 	CRocketLauncher::Load	(section);
 	
 	
+	
 	//// Sounds
 	HUD_SOUND::LoadSound(section,"snd_shoot_grenade"	, sndShotG		, m_eSoundShot);
 	HUD_SOUND::LoadSound(section,"snd_reload_grenade"	, sndReloadG	, m_eSoundReload);
@@ -74,6 +78,12 @@ void CWeaponMagazinedWGrenade::Load	(LPCSTR section)
 	animGet				(mhud_show_w_gl,	pSettings->r_string(*hud_sect, "anim_draw_gl"));
 	animGet				(mhud_hide_w_gl,	pSettings->r_string(*hud_sect, "anim_holster_gl"));
 	animGet				(mhud_shots_w_gl,	pSettings->r_string(*hud_sect, "anim_shoot_gl"));
+
+	if (pSettings->line_exist(*hud_sect, "anim_idle_sprint_g"))
+	   animGet			(mhud_idle_sprint_g,		pSettings->r_string(*hud_sect, "anim_idle_sprint_g"));	
+	if (pSettings->line_exist(*hud_sect, "anim_idle_sprint_gl"))
+	   animGet			(mhud_idle_sprint_w_gl,		pSettings->r_string(*hud_sect, "anim_idle_sprint_gl"));
+
 
 	if(this->IsZoomEnabled())
 	{
@@ -106,7 +116,8 @@ void CWeaponMagazinedWGrenade::Load	(LPCSTR section)
 	else
 		m_ammoName2 = 0;
 
-	iMagazineSize2 = iMagazineSize;
+	iMagazineSize2 = iMagazineSize; // сохранить базовое значение размера магазина
+	
 }
 
 void CWeaponMagazinedWGrenade::net_Destroy()
@@ -218,7 +229,7 @@ void  CWeaponMagazinedWGrenade::PerformSwitchGL()
 {
 	m_bGrenadeMode		= !m_bGrenadeMode;
 
-	iMagazineSize		= m_bGrenadeMode?1:iMagazineSize2;
+	iMagazineSize		= m_bGrenadeMode ? 1 : iMagazineSize2;
 
 	m_ammoTypes.swap	(m_ammoTypes2);
 
@@ -233,6 +244,13 @@ void  CWeaponMagazinedWGrenade::PerformSwitchGL()
 	while(l_magazine.size()) { m_magazine2.push_back(l_magazine.back()); l_magazine.pop_back(); }
 	iAmmoElapsed = (int)m_magazine.size();
 
+	AdjustZoomOffset();
+	
+}
+
+void CWeaponMagazinedWGrenade::AdjustZoomOffset ()
+{
+	// inherited::AdjustZoomOffset ()
 	if(m_bZoomEnabled && m_pHUD)
 	{
 		if(m_bGrenadeMode)
@@ -278,6 +296,10 @@ void CWeaponMagazinedWGrenade::state_Fire(float dt)
 		p1.set	(get_LastFP2()); 
 		d.set	(get_LastFD());
 		
+		m_bFireSingleShot = true;
+		iMagazineSize	  = 1;
+		if (iAmmoElapsed > 1) iAmmoElapsed = 1; // сожрать лишние гранаты.
+
 		if(H_Parent())
 		{ 
 			CInventoryOwner* io		= smart_cast<CInventoryOwner*>(H_Parent());
@@ -297,7 +319,10 @@ void CWeaponMagazinedWGrenade::state_Fire(float dt)
 		while (fTime<=0 && (iAmmoElapsed>0) && (IsWorking() || m_bFireSingleShot))
 		{
 
-			fTime			+=	fTimeToFire;
+			float fDelayCoef = 1.0f; // коэффициент растет, по мере завершения магазина
+			float mag_full = (float) GetAmmoElapsed() / (float)GetAmmoMagSize();  // сколько остается патронов
+			fDelayCoef += (1.0f - mag_full) * fTimeToFireFade; 
+			fTime += fTimeToFire * fDelayCoef;
 
 			++m_iShotNum;
 			OnShot			();
@@ -305,11 +330,11 @@ void CWeaponMagazinedWGrenade::state_Fire(float dt)
 			// Ammo
 			if(Local()) 
 			{
-				VERIFY(m_magazine.size());
+				FORCE_VERIFY(m_magazine.size());
 				m_magazine.pop_back	();
 				--iAmmoElapsed;
 			
-				VERIFY((u32)iAmmoElapsed == m_magazine.size());
+				FORCE_VERIFY((u32)iAmmoElapsed == m_magazine.size());
 
 				if(!iAmmoElapsed) 
 					OnMagazineEmpty();
@@ -436,11 +461,15 @@ void CWeaponMagazinedWGrenade::OnEvent(NET_Packet& P, u16 type)
 
 void CWeaponMagazinedWGrenade::ReloadMagazine() 
 {
+	if (m_bGrenadeMode)
+		iMagazineSize = 1;
+
 	inherited::ReloadMagazine();
 
 	//перезарядка подствольного гранатомета
 	if(iAmmoElapsed && !getRocketCount() && m_bGrenadeMode) 
 	{
+
 //.		shared_str fake_grenade_name = pSettings->r_string(*m_pAmmo->cNameSect(), "fake_grenade_name");
 		shared_str fake_grenade_name = pSettings->r_string(*m_ammoTypes[m_ammoType], "fake_grenade_name");
 		
@@ -597,7 +626,7 @@ bool	CWeaponMagazinedWGrenade::UseScopeTexture()
 {
 	if (IsGrenadeLauncherAttached() && m_bGrenadeMode) return false;
 	
-	return true;
+	return inherited::UseScopeTexture();
 };
 
 float	CWeaponMagazinedWGrenade::CurrentZoomFactor	()
@@ -682,6 +711,47 @@ void CWeaponMagazinedWGrenade::PlayAnimShoot()
 			inherited::PlayAnimShoot();
 	}
 }
+
+bool CWeaponMagazinedWGrenade::TryPlayAnimIdle()
+{
+	VERIFY(GetState() == eIdle);
+	if (!IsZoomed()){
+		CActor* pActor = smart_cast<CActor*>(H_Parent());
+		if (pActor)
+		{
+			CEntity::SEntityState st;
+			pActor->g_State(st);		 
+			if (st.bSprint && st.fVelocity > 1)
+			{
+				PlayAnimSprint();
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
+void CWeaponMagazinedWGrenade::PlayAnimSprint()
+{	
+	if(this->m_bGrenadeMode)
+	{		
+		if (mhud_idle_sprint_g.size())
+			m_pHUD->animPlay(random_anim(mhud_idle_sprint_g),TRUE,this, GetState());
+		else
+			inherited::TryPlayAnimIdle();
+	}
+	else
+	{
+		if (IsGrenadeLauncherAttached() && mhud_idle_sprint_w_gl.size())
+		{
+			m_pHUD->animPlay(random_anim(mhud_idle_sprint_w_gl), TRUE, this, GetState());
+		}
+		else
+			inherited::TryPlayAnimIdle();
+	}
+}
+
 
 void  CWeaponMagazinedWGrenade::PlayAnimModeSwitch()
 {

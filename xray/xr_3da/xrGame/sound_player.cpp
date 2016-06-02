@@ -93,25 +93,35 @@ void CSoundPlayer::remove			(u32 internal_type)
 
 bool CSoundPlayer::check_sound_legacy(u32 internal_type) const
 {
-	SOUND_COLLECTIONS::const_iterator	J = m_sounds.find(internal_type);
-	if (m_sounds.end() == J) {
+	R_ASSERT2(this, "CSoundPlayer::check_sound_legacy this unassigned!");
+	__try
+	{
+
+		SOUND_COLLECTIONS::const_iterator	J = m_sounds.find(internal_type);
+		if (m_sounds.end() == J) {
 #ifdef DEBUG
-		ai().script_engine().script_log(eLuaMessageTypeMessage,"Can't find sound with internal type %d (sound_script = %d)",internal_type,StalkerSpace::eStalkerSoundScript);
+			ai().script_engine().script_log(eLuaMessageTypeMessage,"Can't find sound with internal type %d (sound_script = %d)",internal_type,StalkerSpace::eStalkerSoundScript);
 #endif
-		return						(false);
+			return						(false);
+		}
+
+		VERIFY(m_sounds.end() != J);
+		const CSoundCollectionParamsFull	&sound = (*J).second.first;
+		if (sound.m_synchro_mask & m_sound_mask)
+			return						(false);
+
+		xr_vector<CSoundSingle>::const_iterator	I = m_playing_sounds.begin();
+		xr_vector<CSoundSingle>::const_iterator	E = m_playing_sounds.end();
+		for (; I != E; ++I)
+			if ((*I).m_synchro_mask & sound.m_synchro_mask)
+				if ((*I).m_priority <= sound.m_priority)
+					return				(false);
+
 	}
-
-	VERIFY								(m_sounds.end() != J);
-	const CSoundCollectionParamsFull	&sound = (*J).second.first;
-	if (sound.m_synchro_mask & m_sound_mask)
-		return						(false);
-
-	xr_vector<CSoundSingle>::const_iterator	I = m_playing_sounds.begin();
-	xr_vector<CSoundSingle>::const_iterator	E = m_playing_sounds.end();
-	for ( ; I != E; ++I)
-		if ((*I).m_synchro_mask & sound.m_synchro_mask)
-			if ((*I).m_priority <= sound.m_priority)
-				return				(false);
+	__except (SIMPLE_FILTER)
+	{
+		MsgCB("!#EXCEPTION: catched in CSoundPlayer::check_sound_legacy");
+	}
 	return							(true);
 }
 

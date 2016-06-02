@@ -426,6 +426,8 @@ void CBulletManager::Render	()
 	}
 }
 
+#pragma optimize("gyts", off)
+
 void CBulletManager::CommitRenderSet		()	// @ the end of frame
 {
 	m_BulletsRendered	= m_Bullets			;
@@ -450,8 +452,11 @@ void CBulletManager::CommitEvents			()	// @ the start of frame
 			{
 				if (E.bullet.flags.allow_sendhit && GameID() != GAME_SINGLE)
 					Game().m_WeaponUsageStatistic->OnBullet_Remove(&E.bullet);
-				m_Bullets[E.tgt_material] = m_Bullets.back();
-				m_Bullets.pop_back();
+				if (m_Bullets.size() > E.tgt_material) // alpet: затычка против странного вылета
+				{
+					m_Bullets[E.tgt_material] = m_Bullets.back();
+					m_Bullets.pop_back();
+				}
 			}break;
 		}		
 	}

@@ -31,7 +31,7 @@ private:
 private:
 	CActor*											m_object;
 	void				UpdateTutorialThresholds	();
-	void 				UpdateSatiety				();
+	void 				UpdateSatiety				(float weight, float velocity);
 public:
 						CActorCondition				(CActor *object);
 	virtual				~CActorCondition			(void);
@@ -88,6 +88,9 @@ protected:
 	float m_fOverweightJumpK;
 	float m_fAccelK;
 	float m_fSprintK;
+
+	float m_fWeightCoef;				// alpet: коэффициент текущего перевеса
+	float m_fCurrentMaxWalkWeight;	
 public:
 	float	m_MaxWalkWeight;
 protected:
@@ -106,4 +109,5 @@ protected:
 
 	float m_fLimpingHealthBegin;
 	float m_fLimpingHealthEnd;
+	float m_fTirednessSatietyCoef; // alpet: коэфициент влияния усталости (низкой стамины) на сытость
 };

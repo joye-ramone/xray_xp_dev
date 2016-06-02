@@ -121,7 +121,7 @@ void CActor::PickupModeUpdate()
 		!Level().m_feel_deny.is_object_denied(smart_cast<CGameObject*>(inventory().m_pTarget)) )
 	{
 		NET_Packet P;
-		u_EventGen(P,GE_OWNERSHIP_TAKE, ID());
+		u_EventGen(P, GE_OWNERSHIP_TAKE, ID());
 		P.w_u16(inventory().m_pTarget->object().ID());
 		u_EventSend(P);
 	}

@@ -38,7 +38,7 @@
 #include "saved_game_wrapper.h"
 #include "level_graph.h"
 #include "../resourcemanager.h"
-#include "doug_lea_memory_allocator.h"
+#include "../common/doug_lea_memory_allocator.h"
 #include "cameralook.h"
 
 #include "GameSpy/GameSpy_Full.h"
@@ -128,41 +128,75 @@ CUIOptConCom g_OptConCom;
 	extern		u32 game_lua_memory_usage	();
 #endif // SEVERAL_ALLOCATORS
 
+XRCORE_API size_t	ext_vm_usage();
+DLL_API void		stat_memory_impl()
+{
+	Memory.mem_compact		();
+	HANDLE _crt_h		= (HANDLE)_get_heap_handle();
+	HANDLE _process_h		= GetProcessHeap();
+
+	u32		_crt_heap		= mem_usage_impl(_crt_h, 0,0);
+	u32		_process_heap	= mem_usage_impl(0, 0, 0);
+	u32     _lib_heap		= mem_usage_impl( (HANDLE)1, 0, 0);
+	u32		_fs_heap		= mem_usage_impl( (HANDLE)2, 0, 0);		
+#ifdef SEVERAL_ALLOCATORS
+	u32		_game_lua		= game_lua_memory_usage();
+	u32		_engine_lua		= engine_lua_memory_usage();
+	u32		_render			= ::Render->memory_usage();
+	
+#endif // SEVERAL_ALLOCATORS
+	int		_eco_strings	= (int)g_pStringContainer->stat_economy			();
+	int		_eco_smem		= (int)g_pSharedMemoryContainer->stat_economy	();
+	u32		m_base=0,c_base=0,m_lmaps=0,c_lmaps=0;
+	u64     m_total = ext_vm_usage();
+
+		
+	if (Device.Resources)	Device.Resources->_GetMemoryUsage	(m_base,c_base,m_lmaps,c_lmaps);
+		
+	log_vminfo	();
+		
+	size_t  w_free, w_reserved, w_committed;
+	vminfo	(&w_free, &w_reserved, &w_committed);
+	static size_t last_tx_mu = 0;
+	static size_t last_vmem = 0;
+	size_t sum = (m_base + m_lmaps);	
+	// m_total += (m_base + m_lmaps + w_reserved);
+	size_t vmem_avail = AvailVideoMemory();
+	Msg		("* [ D3D ]: textures[%7d K %+4dK], c_base[%5d K], c_lmaps [%5d K], vmem_avail[%7d K %+4dK] ",
+			  sum / 1024,		 int(sum - last_tx_mu) / 1024, c_base / 1024, c_lmaps / 1024, 
+			  vmem_avail / 1024, int(vmem_avail - last_vmem) / 1024 );
+	last_tx_mu = sum;
+	last_vmem  = vmem_avail;
+
+#ifndef SEVERAL_ALLOCATORS
+	Msg		("* [x-ray]: crt heap[%d K], process heap[%d K]",_crt_heap/1024,_process_heap/1024);
+#else // SEVERAL_ALLOCATORS
+	if (1) // _crt_heap != _process_heap
+		Msg		("# [x-ray]: crt heap[%d K], process heap[%d K], lib heap [%d K], game lua[%d K], engine lua[%d K], render[%d K], fs[%d K]",
+					_crt_heap/1024, _process_heap/1024, _lib_heap/1024, _game_lua/1024, _engine_lua/1024, _render/1024, _fs_heap/1024);
+	else
+		Msg		("# [x-ray]: crt & process heap[%d K], game lua[%d K], engine lua[%d K], render[%d K]",_crt_heap/1024, _game_lua/1024,_engine_lua/1024,_render/1024);
+#endif // SEVERAL_ALLOCATORS
+	m_total += _crt_heap + _process_heap + _lib_heap + _game_lua + _engine_lua + _render;
+
+	Msg		("* [x-ray]: economy: strings[%d K], smem[%d K]",_eco_strings/1024,_eco_smem);
+		
+	m_total += _eco_strings + _eco_smem * 1024;
+	Msg ("* [total]: [%.3f M], [external]: [%.3f M] ", (float)m_total / 1048576.f, ((float)w_committed - (float)m_total) / 1048576.f );
+
+#ifdef DEBUG
+	Msg		("* [x-ray]: file mapping: memory[%d K], count[%d]",g_file_mapped_memory/1024,g_file_mapped_count);
+	dump_file_mappings	();
+#endif // DEBUG
+}
+
+
 class CCC_MemStats : public IConsole_Command
 {
 public:
 	CCC_MemStats(LPCSTR N) : IConsole_Command(N)  { bEmptyArgsHandled = TRUE; };
 	virtual void Execute(LPCSTR args) {
-		Memory.mem_compact		();
-		u32		_crt_heap		= mem_usage_impl((HANDLE)_get_heap_handle(),0,0);
-		u32		_process_heap	= mem_usage_impl(GetProcessHeap(),0,0);
-#ifdef SEVERAL_ALLOCATORS
-		u32		_game_lua		= game_lua_memory_usage();
-		u32		_engine_lua		= engine_lua_memory_usage();
-		u32		_render			= ::Render->memory_usage();
-#endif // SEVERAL_ALLOCATORS
-		int		_eco_strings	= (int)g_pStringContainer->stat_economy			();
-		int		_eco_smem		= (int)g_pSharedMemoryContainer->stat_economy	();
-		u32		m_base=0,c_base=0,m_lmaps=0,c_lmaps=0;
-		
-		if (Device.Resources)	Device.Resources->_GetMemoryUsage	(m_base,c_base,m_lmaps,c_lmaps);
-		
-		log_vminfo	();
-		
-		Msg		("* [ D3D ]: textures[%d K]", (m_base+m_lmaps)/1024);
-
-#ifndef SEVERAL_ALLOCATORS
-		Msg		("* [x-ray]: crt heap[%d K], process heap[%d K]",_crt_heap/1024,_process_heap/1024);
-#else // SEVERAL_ALLOCATORS
-		Msg		("* [x-ray]: crt heap[%d K], process heap[%d K], game lua[%d K], engine lua[%d K], render[%d K]",_crt_heap/1024,_process_heap/1024,_game_lua/1024,_engine_lua/1024,_render/1024);
-#endif // SEVERAL_ALLOCATORS
-
-		Msg		("* [x-ray]: economy: strings[%d K], smem[%d K]",_eco_strings/1024,_eco_smem);
-
-#ifdef DEBUG
-		Msg		("* [x-ray]: file mapping: memory[%d K], count[%d]",g_file_mapped_memory/1024,g_file_mapped_count);
-		dump_file_mappings	();
-#endif // DEBUG
+		stat_memory_impl();
 	}
 };
 
@@ -186,7 +220,42 @@ public:
 	}
 	virtual void	Info	(TInfo& I)		
 	{
-		strcpy_s(I,"game difficulty"); 
+		strcpy_s(I, 256, "game difficulty"); 
+	}
+};
+
+
+
+class CCC_GameBalance : public IConsole_Command {
+public:
+	CCC_GameBalance(LPCSTR N):
+		 IConsole_Command(N)
+		  { bEmptyArgsHandled = false; }
+
+	virtual void Execute(LPCSTR sub)
+	{
+		if (sub && (0 == strcmpi(sub, "default") || 0 == strcmpi(sub, "light")))
+			g_game_balance = sub;
+		else
+			return;
+		
+		if (pSettings)
+		{
+			Msg("* reloading settings with game_balance %s", *g_game_balance);
+			pSettings->SetIncludeMacro("$game_balance$", g_game_balance);
+			pSettings->SetIncludeMacro("models\\objects\\", xrx_sprintf("models\\objects_%s\\", *g_game_balance));
+			pSettings->reload();
+		}
+	}
+	virtual void	Info	(TInfo& I)
+	{
+		strcpy_s(I, sizeof(I), "g_game_balance default|light");
+	}
+	virtual void	Status	(TStatus& S)	
+	{ 
+		if (!g_game_balance)
+			 g_game_balance = "default";
+		strcpy_s(S, sizeof(S), *g_game_balance);
 	}
 };
 
@@ -574,7 +643,7 @@ public:
 	CCC_FlushLog(LPCSTR N) : IConsole_Command(N)  { bEmptyArgsHandled = true; };
 	virtual void Execute(LPCSTR /**args/**/) {
 		FlushLog();
-		Msg		("* Log file has been saved successfully!");
+		MsgV		("3", "* Log file has been saved successfully!");
 	}
 };
 
@@ -1351,6 +1420,40 @@ public:
 	  }
 };
 
+class CCC_ReloadTextures : public IConsole_Command {
+public:
+	CCC_ReloadTextures(LPCSTR N):
+		 IConsole_Command(N)
+		  { bEmptyArgsHandled = true; }
+	virtual void Execute(LPCSTR sub)
+	{
+		CResourceManager &mgr = *Device.Resources;
+		auto &map = mgr.textures();
+		mgr.DeferredLoad(TRUE);
+		for (auto it = map.begin(); it != map.end(); it++)
+		{
+			CTexture &t = *it->second;
+			if ( (!xr_strlen(sub) || strstr(it->first, sub)))
+			{
+				Msg("##PERF: planned for reload %s", it->first);
+				t.m_skip_prefetch = false;
+				t.m_count_apply = 1;
+				t.m_time_apply = Device.fTimeGlobal;
+				t.m_need_now   = true;
+				t.Unload();
+				t.Load();
+			}
+
+		}
+		mgr.DeferredLoad(FALSE);
+		mgr.DeferredUpload();
+	}
+	virtual void	Info	(TInfo& I)
+	{
+		strcpy_s(I, sizeof(I), "texture file/path name part, or _ for reload maximum textures");
+	}
+};
+
 
 void CCC_RegisterCommands()
 {
@@ -1361,7 +1464,8 @@ void CCC_RegisterCommands()
 	// game
 	psActorFlags.set(AF_ALWAYSRUN, true);
 	CMD3(CCC_Mask,				"g_always_run",			&psActorFlags,	AF_ALWAYSRUN);
-	CMD1(CCC_GameDifficulty,	"g_game_difficulty"		);
+	CMD1(CCC_GameBalance,		"g_game_balance"		);
+	CMD1(CCC_GameDifficulty,	"g_game_difficulty"		);	
 
 	CMD3(CCC_Mask,				"g_backrun",			&psActorFlags,	AF_RUN_BACKWARD);
 
@@ -1380,11 +1484,10 @@ void CCC_RegisterCommands()
 #ifndef MASTER_GOLD
 	CMD1(CCC_ALifeTimeFactor,		"al_time_factor"		);		// set time factor
 	CMD1(CCC_ALifeSwitchDistance,	"al_switch_distance"	);		// set switch distance
-	CMD1(CCC_ALifeProcessTime,		"al_process_time"		);		// set process time
-	CMD1(CCC_ALifeObjectsPerUpdate,	"al_objects_per_update"	);		// set process time
 	CMD1(CCC_ALifeSwitchFactor,		"al_switch_factor"		);		// set switch factor
 #endif // MASTER_GOLD
-
+	CMD1(CCC_ALifeProcessTime,		"al_process_time"		);		// set process time
+	CMD1(CCC_ALifeObjectsPerUpdate,	"al_objects_per_update"	);		// set process time
 
 	CMD3(CCC_Mask,				"hud_weapon",			&psHUD_Flags,	HUD_WEAPON);
 	CMD3(CCC_Mask,				"hud_info",				&psHUD_Flags,	HUD_INFO);
@@ -1405,10 +1508,15 @@ void CCC_RegisterCommands()
 	CMD4(CCC_Float,				"hud_fov",				&psHUD_FOV,		0.1f,	1.0f);
 	CMD4(CCC_Float,				"fov",					&g_fov,			5.0f,	180.0f);
 #endif // DEBUG
+		// Demo
 
-	// Demo
 	CMD1(CCC_DemoPlay,			"demo_play"				);
+#if defined(HARDCORE) && defined(NLC_EXTENSIONS)
+	FS_Path *fsp = FS.get_path("$game_config$");
+	if (fsp && GetFileAttributes(fsp->m_Path) != INVALID_FILE_ATTRIBUTES) // add only if gamedata\config opened
+#endif 
 	CMD1(CCC_DemoRecord,		"demo_record"			);
+
 
 #ifndef MASTER_GOLD
 	// ai
@@ -1423,8 +1531,9 @@ void CCC_RegisterCommands()
 	CMD3(CCC_Mask,				"mt_alife",				&g_mt_config,	mtALife);
 #endif // MASTER_GOLD
 
+	CMD4(CCC_Integer,			"lua_gcstep",			&psLUA_GCSTEP,	1, 100);
 #ifdef DEBUG
-	CMD4(CCC_Integer,			"lua_gcstep",			&psLUA_GCSTEP,	1, 1000);
+	
 	CMD3(CCC_Mask,				"ai_debug",				&psAI_Flags,	aiDebug);
 	CMD3(CCC_Mask,				"ai_dbg_brain",			&psAI_Flags,	aiBrain);
 	CMD3(CCC_Mask,				"ai_dbg_motion",		&psAI_Flags,	aiMotion);
@@ -1508,12 +1617,14 @@ void CCC_RegisterCommands()
 
 
 //#ifndef MASTER_GOLD
+#ifndef NLC_EXTENSIONS
 	CMD1(CCC_JumpToLevel,	"jump_to_level"		);
 	CMD3(CCC_Mask,			"g_god",			&psActorFlags,	AF_GODMODE	);
 	CMD3(CCC_Mask,			"g_unlimitedammo",	&psActorFlags,	AF_UNLIMITEDAMMO);
 	CMD1(CCC_Script,		"run_script");
 	CMD1(CCC_ScriptCommand,	"run_string");
 	CMD1(CCC_TimeFactor,	"time_factor");		
+#endif
 //#endif // MASTER_GOLD
 
 	CMD3(CCC_Mask,		"g_autopickup",			&psActorFlags,	AF_AUTOPICKUP);
@@ -1606,7 +1717,8 @@ void CCC_RegisterCommands()
 	CMD4(CCC_Vector3,		"psp_cam_offset",				&CCameraLook2::m_cam_offset, Fvector().set(-1000,-1000,-1000),Fvector().set(1000,1000,1000));
 #endif // MASTER_GOLD
 
-	CMD1(CCC_GSCheckForUpdates, "check_for_updates");
+	// CMD1(CCC_GSCheckForUpdates, "check_for_updates");
+	CMD1(CCC_ReloadTextures, "reload_textures");
 #ifdef DEBUG
 	CMD1(CCC_DumpObjects,							"dump_all_objects");
 	CMD3(CCC_String, "stalker_death_anim", dbg_stalker_death_anim, 32);

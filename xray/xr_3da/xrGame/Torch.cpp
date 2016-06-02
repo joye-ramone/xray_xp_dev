@@ -48,11 +48,6 @@ CTorch::CTorch(void)
 	fBrightness					= 1.f;
 	b_lastState					= false;
 
-	/*m_NightVisionRechargeTime	= 6.f;
-	m_NightVisionRechargeTimeMin= 2.f;
-	m_NightVisionDischargeTime	= 10.f;
-	m_NightVisionChargeTime		= 0.f;*/
-
 	m_prev_hp.set				(0,0);
 	m_delta_h					= 0;
 	SetSlot						(TORCH_SLOT);
@@ -64,10 +59,6 @@ CTorch::~CTorch(void)
 	light_render.destroy	();
 	light_omni.destroy	();
 	glow_render.destroy		();
-	HUD_SOUND::DestroySound	(m_NightVisionOnSnd);
-	HUD_SOUND::DestroySound	(m_NightVisionOffSnd);
-	HUD_SOUND::DestroySound	(m_NightVisionIdleSnd);
-	HUD_SOUND::DestroySound	(m_NightVisionBrokenSnd);
 }
 
 inline bool CTorch::can_use_dynamic_lights	()
@@ -88,107 +79,7 @@ void CTorch::Load(LPCSTR section)
 	light_trace_bone		= pSettings->r_string(section,"light_trace_bone");
 
 
-	m_bNightVisionEnabled = !!pSettings->r_bool(section,"night_vision");
-	if(m_bNightVisionEnabled)
-	{
-		HUD_SOUND::LoadSound(section,"snd_night_vision_on"	, m_NightVisionOnSnd	, SOUND_TYPE_ITEM_USING);
-		HUD_SOUND::LoadSound(section,"snd_night_vision_off"	, m_NightVisionOffSnd	, SOUND_TYPE_ITEM_USING);
-		HUD_SOUND::LoadSound(section,"snd_night_vision_idle", m_NightVisionIdleSnd	, SOUND_TYPE_ITEM_USING);
-		HUD_SOUND::LoadSound(section,"snd_night_vision_broken", m_NightVisionBrokenSnd, SOUND_TYPE_ITEM_USING);
-
-	
-		/*m_NightVisionRechargeTime		= pSettings->r_float(section,"night_vision_recharge_time");
-		m_NightVisionRechargeTimeMin	= pSettings->r_float(section,"night_vision_recharge_time_min");
-		m_NightVisionDischargeTime		= pSettings->r_float(section,"night_vision_discharge_time");
-		m_NightVisionChargeTime			= m_NightVisionRechargeTime;*/
-	}
 }
-
-void CTorch::SwitchNightVision()
-{
-	if (OnClient()) return;
-	SwitchNightVision(!m_bNightVisionOn);	
-}
-
-void CTorch::SwitchNightVision(bool vision_on)
-{
-	if(!m_bNightVisionEnabled) return;
-	
-	if(vision_on /*&& (m_NightVisionChargeTime > m_NightVisionRechargeTimeMin || OnClient())*/)
-	{
-		//m_NightVisionChargeTime = m_NightVisionDischargeTime*m_NightVisionChargeTime/m_NightVisionRechargeTime;
-		m_bNightVisionOn = true;
-	}
-	else
-	{
-		m_bNightVisionOn = false;
-	}
-
-	CActor *pA = smart_cast<CActor *>(H_Parent());
-
-	if(!pA)					return;
-	bool bPlaySoundFirstPerson = (pA == Level().CurrentViewEntity());
-
-	LPCSTR disabled_names	= pSettings->r_string(cNameSect(),"disabled_maps");
-	LPCSTR curr_map			= *Level().name();
-	u32 cnt					= _GetItemCount(disabled_names);
-	bool b_allow			= true;
-	string512				tmp;
-	for(u32 i=0; i<cnt;++i){
-		_GetItem(disabled_names, i, tmp);
-		if(0==stricmp(tmp, curr_map)){
-			b_allow = false;
-			break;
-		}
-	}
-
-	CCustomOutfit* pCO=pA->GetOutfit();
-	if(pCO&&pCO->m_NightVisionSect.size()&&!b_allow){
-		HUD_SOUND::PlaySound(m_NightVisionBrokenSnd, pA->Position(), pA, bPlaySoundFirstPerson);
-		return;
-	}
-
-	if(m_bNightVisionOn){
-		CEffectorPP* pp = pA->Cameras().GetPPEffector((EEffectorPPType)effNightvision);
-		if(!pp){
-			if (pCO&&pCO->m_NightVisionSect.size())
-			{
-				AddEffector(pA,effNightvision, pCO->m_NightVisionSect);
-				HUD_SOUND::PlaySound(m_NightVisionOnSnd, pA->Position(), pA, bPlaySoundFirstPerson);
-				HUD_SOUND::PlaySound(m_NightVisionIdleSnd, pA->Position(), pA, bPlaySoundFirstPerson, true);
-			}
-		}
-	}else{
- 		CEffectorPP* pp = pA->Cameras().GetPPEffector((EEffectorPPType)effNightvision);
-		if(pp){
-			pp->Stop			(1.0f);
-			HUD_SOUND::PlaySound(m_NightVisionOffSnd, pA->Position(), pA, bPlaySoundFirstPerson);
-			HUD_SOUND::StopSound(m_NightVisionIdleSnd);
-		}
-	}
-}
-
-
-void CTorch::UpdateSwitchNightVision   ()
-{
-	if(!m_bNightVisionEnabled) return;
-	if (OnClient()) return;
-
-
-	/*if(m_bNightVisionOn)
-	{
-		m_NightVisionChargeTime			-= Device.fTimeDelta;
-
-		if(m_NightVisionChargeTime<0.f)
-			SwitchNightVision(false);
-	}
-	else
-	{
-		m_NightVisionChargeTime			+= Device.fTimeDelta;
-		clamp(m_NightVisionChargeTime, 0.f, m_NightVisionRechargeTime);
-	}*/
-}
-
 
 void CTorch::Switch()
 {
@@ -278,7 +169,6 @@ BOOL CTorch::net_Spawn(CSE_Abstract* DC)
 	Switch					(torch->m_active);
 	VERIFY					(!torch->m_active || (torch->ID_Parent != 0xffff));
 	
-	SwitchNightVision		(false);
 
 	m_delta_h				= PI_DIV_2-atan((range*0.5f)/_abs(TORCH_OFFSET.x));
 
@@ -288,7 +178,6 @@ BOOL CTorch::net_Spawn(CSE_Abstract* DC)
 void CTorch::net_Destroy() 
 {
 	Switch					(false);
-	SwitchNightVision		(false);
 
 	inherited::net_Destroy	();
 }
@@ -299,27 +188,19 @@ void CTorch::OnH_A_Chield()
 	m_focus.set						(Position());
 }
 
-void CTorch::OnH_B_Independent	(bool just_before_destroy) 
+void CTorch::OnH_B_Independent(bool just_before_destroy)
 {
-	inherited::OnH_B_Independent	(just_before_destroy);
-	time2hide						= TIME_2_HIDE;
+	inherited::OnH_B_Independent(just_before_destroy);
+	time2hide = TIME_2_HIDE;
 
-	Switch						(false);
-	SwitchNightVision			(false);
-
-	HUD_SOUND::StopSound		(m_NightVisionOnSnd);
-	HUD_SOUND::StopSound		(m_NightVisionOffSnd);
-	HUD_SOUND::StopSound		(m_NightVisionIdleSnd);
-
-	//m_NightVisionChargeTime		= m_NightVisionRechargeTime;
+	Switch(false);
 }
+
 
 void CTorch::UpdateCL() 
 {
 	inherited::UpdateCL			();
 	
-	UpdateSwitchNightVision		();
-
 	if (!m_switched_on)			return;
 
 	CBoneInstance			&BI = smart_cast<CKinematics*>(Visual())->LL_GetBoneInstance(guid_bone);
@@ -470,7 +351,7 @@ void CTorch::net_Export			(NET_Packet& P)
 
 	BYTE F = 0;
 	F |= (m_switched_on ? eTorchActive : 0);
-	F |= (m_bNightVisionOn ? eNightVisionActive : 0);
+	//F |= (m_bNightVisionOn ? eNightVisionActive : 0);
 	const CActor *pA = smart_cast<const CActor *>(H_Parent());
 	if (pA)
 	{
@@ -487,33 +368,15 @@ void CTorch::net_Import			(NET_Packet& P)
 	
 	BYTE F = P.r_u8();
 	bool new_m_switched_on				= !!(F & eTorchActive);
-	bool new_m_bNightVisionOn			= !!(F & eNightVisionActive);
 
 	if (new_m_switched_on != m_switched_on)			Switch						(new_m_switched_on);
-	if (new_m_bNightVisionOn != m_bNightVisionOn)	
-	{
-//		Msg("CTorch::net_Import - NV[%d]", new_m_bNightVisionOn);
 
-		SwitchNightVision			(new_m_bNightVisionOn);
-	}
 }
 
-bool  CTorch::can_be_attached		() const
-{
-//	if( !inherited::can_be_attached() ) return false;
+#define ATTACHABLE_ITEM CTorch // вместо шаблона - инклуд
+#include "can_be_attached.inc"
+#undef ATTACHABLE_ITEM
 
-	const CActor *pA = smart_cast<const CActor *>(H_Parent());
-	if (pA) 
-	{
-		u32 slot = GetSlot();
-		PIItem item = pA->inventory().m_slots[slot].m_pIItem;
-		if( (const CTorch*)smart_cast<CTorch*>(item) == this )
-			return true;
-		else
-			return false;
-	}
-	return true;
-}
 void CTorch::afterDetach			()
 {
 	inherited::afterDetach	();

@@ -163,7 +163,7 @@ const char *luaO_pushvfstring (lua_State *L, const char *fmt, va_list argp) {
     fmt = e+2;
   }
   pushstr(L, fmt);
-  luaV_concat(L, n+1, cast_int(L->top - L->base) - 1);
+  luaV_concat(L, n + 1, cast_int(L->top - L->base) - 1);
   L->top -= n;
   return svalue(L->top - 1);
 }

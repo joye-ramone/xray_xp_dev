@@ -272,19 +272,29 @@ IC static int CollideIntoGroup(dGeomID o1, dGeomID o2,dJointGroupID jointGroup,C
 	}
 	return collided_contacts;
 }
-void NearCallback(CPHObject* obj1,CPHObject* obj2, dGeomID o1, dGeomID o2)
-{	
-	
-	CPHIsland* island1=obj1->DActiveIsland();
-	CPHIsland* island2=obj2->DActiveIsland();
-	obj2->near_callback(obj1);
-	int MAX_CONTACTS=-1;
-	if(!island1->CanMerge(island2,MAX_CONTACTS)) return;
-	if(CollideIntoGroup(o1,o2,ContactGroup,island1,MAX_CONTACTS)!=0)
-	{	
-		obj1->MergeIsland(obj2);
-		if(!obj2->is_active())obj2->EnableObject(obj1);
+void NearCallback(CPHObject* obj1, CPHObject* obj2, dGeomID o1, dGeomID o2)
+{
+	if (obj1 && obj2)
+		__try
+	{
+		CPHIsland* island1 = obj1->DActiveIsland();
+		CPHIsland* island2 = obj2->DActiveIsland();
+		obj2->near_callback(obj1);
+		int MAX_CONTACTS = -1;
+		if (!island1->CanMerge(island2, MAX_CONTACTS)) return;
+		if (CollideIntoGroup(o1, o2, ContactGroup, island1, MAX_CONTACTS) != 0)
+		{
+			obj1->MergeIsland(obj2);
+			if (!obj2->is_active())obj2->EnableObject(obj1);
+		}
 	}
+	__except (SIMPLE_FILTER)
+	{
+		Msg("!#EXCEPTION: catched in NearCallback, obj1 = 0x%p, obj2 = 0x%p, o1 = 0x%p, o2 = 0x%p", obj1, obj2, o1, o2);
+	}
+	else
+		Msg("!#ERRROR: NearCallback bad arguments obj1 = 0x%p, obj2 = 0x%p ", obj1, obj2);
+
 }
 void CollideStatic(dGeomID o2,CPHObject* obj2)
 {

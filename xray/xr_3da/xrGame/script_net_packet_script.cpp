@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: script_net packet_script.cpp
 //	Created 	: 06.02.2004
-//  Modified 	: 24.06.2004
+//  Modified 	: 27.11.2014
 //	Author		: Dmitriy Iassenev
 //	Description : XRay Script net packet class script export
 ////////////////////////////////////////////////////////////////////////////
@@ -86,6 +86,7 @@ void CScriptNetPacket::script_register(lua_State *L)
 			.def("w_dir",			&NET_Packet::w_dir			)
 			.def("w_sdir",			&NET_Packet::w_sdir			)
 			.def("w_stringZ",		(void (NET_Packet::*)(LPCSTR))(&NET_Packet::w_stringZ	))
+			.def("w_time",			&NET_Packet::w_time			)		
 			.def("w_matrix",		&NET_Packet::w_matrix		)
 			.def("w_clientID",		&NET_Packet::w_clientID		)
 			.def("w_chunk_open8",	&NET_Packet::w_chunk_open8	)
@@ -125,6 +126,7 @@ void CScriptNetPacket::script_register(lua_State *L)
 			.def("r_dir",			&NET_Packet::r_dir			)
 			.def("r_sdir",			&NET_Packet::r_sdir			)
 			.def("r_stringZ",		&r_stringZ)
+			.def("r_time",			&NET_Packet::r_time			)		
 			.def("r_matrix",		&NET_Packet::r_matrix		)
 			.def("r_clientID",		&r_clientID					)
 			.def("r_elapsed",		&NET_Packet::r_elapsed		)

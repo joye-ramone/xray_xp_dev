@@ -19,10 +19,10 @@
 class CALifeObjectRegistry {
 public:
 	typedef xr_map<ALife::_OBJECT_ID,CSE_ALifeDynamicObject*>	OBJECT_REGISTRY;
-
+	typedef xr_map<shared_str,CSE_ALifeDynamicObject*>			OBJECT_MAPPING;
 protected:
 	OBJECT_REGISTRY					m_objects;
-
+	OBJECT_MAPPING					m_mapping;
 private:
 			void					save					(IWriter &memory_stream, CSE_ALifeDynamicObject *object, u32 &object_count);
 
@@ -37,8 +37,12 @@ public:
 	IC		void					add						(CSE_ALifeDynamicObject *object);
 	IC		void					remove					(const ALife::_OBJECT_ID &id, bool no_assert = false);
 	IC		CSE_ALifeDynamicObject	*object					(const ALife::_OBJECT_ID &id, bool no_assert = false) const;
+	IC		CSE_ALifeDynamicObject	*object					(shared_str name, bool no_assert = false) const;
 	IC		const OBJECT_REGISTRY	&objects				() const;
+	IC		const OBJECT_MAPPING	&mapping				() const;
+
 	IC		OBJECT_REGISTRY			&objects				();
+	IC		OBJECT_MAPPING			&mapping				();
 };
 
 #include "alife_object_registry_inline.h"

@@ -48,8 +48,13 @@ public:
 	IC	void	getcenter(Tvector& center)				{ center.add(rb,lt); center.div(2); }
 	IC	void	getsize(Tvector& sz)					{ sz.sub(rb,lt); }
 
-	IC	T		width()		const							{return rb.x-lt.x;}
-	IC	T		height()	const							{return rb.y-lt.y;}
+	IC	T		width()		const							{ return rb.x-lt.x; }
+	IC	T		height()	const							{ return rb.y-lt.y; }
+	IC	int		int_width()	  const							{ return (int)round(rb.x-lt.x + 0.5f); }
+	IC	int		int_height()  const							{ return (int)round(rb.y-lt.y + 0.5f); }
+
+	IC  void    set_width(T w)							    { rb.x = lt.x + w; }
+	IC  void    set_height(T h)							    { rb.y = lt.y + h; }
 
 	IC	SelfRef	shrink(T x, T y)							{ lt.x+=x; lt.y+=y; rb.x-=x; rb.y-=y;	return *this;	};
 	IC	SelfRef	grow(T x, T y)								{ lt.x-=x; lt.y-=y; rb.x+=x; rb.y+=y;	return *this;	};

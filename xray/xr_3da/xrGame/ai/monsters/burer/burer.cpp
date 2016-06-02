@@ -29,8 +29,9 @@ CBurer::CBurer()
 
 CBurer::~CBurer()
 {
+	TTelekinesis::clear_deactivate();
 	xr_delete(StateMan);
-	xr_delete(m_fast_gravi);
+	xr_delete(m_fast_gravi);	
 }
 
 
@@ -348,7 +349,8 @@ void CBurer::Die(CObject* who)
 	TScanner::on_destroy();
 
 	if (com_man().ta_is_active()) com_man().ta_deactivate();
-	CTelekinesis::Deactivate();
+	TTelekinesis::deactivate();
+	TTelekinesis::Deactivate();	
 }
 
 void CBurer::on_scanning()

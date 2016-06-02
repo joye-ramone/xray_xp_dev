@@ -18,7 +18,7 @@
 #include "lobject.h"
 #include "lstate.h"
 #include "ljit.h"
-
+#pragma optimize("gyts", off)
 
 
 Closure *luaF_newCclosure (lua_State *L, int nelems, Table *e) {
@@ -146,7 +146,7 @@ Proto *luaF_newproto (lua_State *L) {
 
 
 void luaF_freeproto (lua_State *L, Proto *f) {
-  luaJIT_freeproto(L, f);
+  luaJIT_freeproto(L, f); 
   luaM_freearray(L, f->code, f->sizecode, Instruction);
   luaM_freearray(L, f->p, f->sizep, Proto *);
   luaM_freearray(L, f->k, f->sizek, TValue);

@@ -6,6 +6,12 @@
 
 struct SCallbackInfo;
 
+typedef struct DialogRef
+{
+	CUIDialogWnd	*m_dialog;
+} SDialogRef, *PSDialogRef;
+
+
 class CUIDialogWndEx :public CUIDialogWnd, public DLL_Pure
 {
 typedef CUIDialogWnd				inherited;
@@ -17,8 +23,11 @@ private:
 	virtual void				SendMessage			(CUIWindow* pWnd, s16 msg, void* pData = NULL);
 			SCallbackInfo*		NewCallback			();
 protected:
+			xr_string		    self_name;
+			lua_State		     *m_lua_vm;		
+			PSDialogRef			m_self_ref;
+			  
 			bool				Load				(LPCSTR xml_name);
-
 public:
 			void				Register			(CUIWindow* pChild);
 			void				Register			(CUIWindow* pChild, LPCSTR name);
@@ -26,7 +35,9 @@ public:
 	virtual						~CUIDialogWndEx		();
 			void				AddCallback			(LPCSTR control_id, s16 event, const luabind::functor<void> &lua_function);
 			void				AddCallback			(LPCSTR control_id, s16 event, const luabind::functor<void> &functor, const luabind::object &object);
-	virtual void				Update				();
+			void				Destroy				();
+	virtual	void				ScriptInit			(lua_State *L);
+	virtual void				Update				();	
 	virtual bool				OnKeyboard			(int dik, EUIMessages keyboard_action);
 	virtual bool				Dispatch			(int cmd, int param)				{return true;}
 

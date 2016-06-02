@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "script_fvector.h"
+#include "script_coords.h"
 #include "script_fcolor.h"
 #include "script_fmatrix.h"
 #include "script_flags.h"

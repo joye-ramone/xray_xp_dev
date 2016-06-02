@@ -161,7 +161,7 @@ void game_cl_Deathmatch::SetBuyMenuItems		(PRESET_ITEMS* pItems, BOOL OnlyPreset
 				CWeaponAmmo* pAmmo = smart_cast<CWeaponAmmo*> (pItem);
 				if (pAmmo)
 				{
-					if (pAmmo->m_boxCurr != pAmmo->m_boxSize) continue;
+					if (pAmmo->get_box_curr() != pAmmo->m_boxSize) continue;
 				}
 				pCurBuyMenu->ItemToSlot(pItem->object().cNameSect(), Addons);
 			}
@@ -180,7 +180,7 @@ void game_cl_Deathmatch::SetBuyMenuItems		(PRESET_ITEMS* pItems, BOOL OnlyPreset
 				CWeaponAmmo* pAmmo = smart_cast<CWeaponAmmo*> (pItem);
 				if (pAmmo)
 				{
-					if (pAmmo->m_boxCurr != pAmmo->m_boxSize) continue;
+					if (pAmmo->get_box_curr() != pAmmo->m_boxSize) continue;
 				}
 				pCurBuyMenu->ItemToBelt(pItem->object().cNameSect());
 			}
@@ -204,7 +204,7 @@ void game_cl_Deathmatch::SetBuyMenuItems		(PRESET_ITEMS* pItems, BOOL OnlyPreset
 				CWeaponAmmo* pAmmo = smart_cast<CWeaponAmmo*> (pItem);
 				if (pAmmo)
 				{
-					if (pAmmo->m_boxCurr != pAmmo->m_boxSize) continue;
+					if (pAmmo->get_box_curr() != pAmmo->m_boxSize) continue;
 				}
 				pCurBuyMenu->ItemToRuck(pItem->object().cNameSect(), Addons);
 			}
@@ -246,7 +246,7 @@ void game_cl_Deathmatch::CheckItem			(PIItem pItem, PRESET_ITEMS* pPresetItems, 
 	CWeaponAmmo* pAmmo = smart_cast<CWeaponAmmo*> (pItem);
 	if (pAmmo)
 	{
-		if (pAmmo->m_boxCurr != pAmmo->m_boxSize) return;
+		if (pAmmo->get_box_curr() != pAmmo->m_boxSize) return;
 	}
 	//-----------------------------------------------------	
 	PRESET_ITEMS_it PresetItemIt = std::find(pPresetItems->begin(), pPresetItems->end(), BigID);

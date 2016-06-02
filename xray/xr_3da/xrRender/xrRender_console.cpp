@@ -2,6 +2,7 @@
 #pragma		hdrstop
 
 #include	"xrRender_console.h"
+#include    "../api_defines.h"
 #include    "../../../build_config_defines.h"
 
 u32			ps_Preset				=	2	;
@@ -15,7 +16,6 @@ xr_token							qpreset_token							[ ]={
 };
 
 // Common
-//int		ps_r__Supersample			= 1		;
 int			ps_r__LightSleepFrames		= 10	;
 
 float		ps_r__Detail_l_ambient		= 0.9f	;
@@ -109,6 +109,10 @@ int			ps_r2_wait_sleep			= 0;
 float		ps_r2_lt_smooth				= 1.f;				// 1.f
 float		ps_r2_slight_fade			= 1.f;				// 1.f
 
+XRTEXTURES_API Flags32  ps_r2_tx_flags;
+
+ENGINE_API int	ps_r_msaa_level;
+
 // KD start
 Flags32		ps_common_flags				= { 0 };		// r1-only
 u32			ps_steep_parallax			= 0;
@@ -178,7 +182,7 @@ public:
 	void	apply	()	{
 		if (0==HW.pDevice)	return	;
 		int	val = *value;	clamp(val,1,16);
-		for (u32 i=0; i<HW.Caps.raster.dwStages; i++)
+		for (u32 i=0; i < HW.Caps.raster.dwStages; i++)
 			CHK_DX(HW.pDevice->SetSamplerState( i, D3DSAMP_MAXANISOTROPY, val	));
 	}
 	CCC_tf_Aniso(LPCSTR N, int*	v) : CCC_Integer(N, v, 1, 16)		{ };
@@ -312,9 +316,6 @@ void		xrRender_initconsole	()
 	CMD1(CCC_ModelPoolStat,"stat_models"		);
 #endif // DEBUG
 	CMD4(CCC_Float,		"r__wallmark_ttl",		&ps_r__WallmarkTTL,			1.0f,	50.f*60.f);
-
-//	CMD4(CCC_Integer,	"r__supersample",		&ps_r__Supersample,			1,		4		);
-
 	Fvector	tw_min,tw_max;
 	
 	CMD4(CCC_Float,		"r__geometry_lod",		&ps_r__LOD,					0.1f,	/*1.2f*/ 3.0f		);	// KD: extended from 1.2 to 3.0
@@ -393,8 +394,8 @@ void		xrRender_initconsole	()
 	CMD3(CCC_Mask,		"r2_sun_details",		&ps_r2_ls_flags,			R2FLAG_SUN_DETAILS);
 	CMD3(CCC_Mask,		"r2_sun_focus",			&ps_r2_ls_flags,			R2FLAG_SUN_FOCUS);
 //	CMD3(CCC_Mask,		"r2_sun_static",		&ps_r2_ls_flags,			R2FLAG_SUN_STATIC);
-//	CMD3(CCC_Mask,		"r2_exp_splitscene",	&ps_r2_ls_flags,			R2FLAG_EXP_SPLIT_SCENE);
-//	CMD3(CCC_Mask,		"r2_exp_donttest_uns",	&ps_r2_ls_flags,			R2FLAG_EXP_DONT_TEST_UNSHADOWED);
+// CMD3(CCC_Mask,		"r2_exp_splitscene",	&ps_r2_ls_flags,			R2FLAG_EXP_SPLIT_SCENE);
+// CMD3(CCC_Mask,		"r2_exp_donttest_uns",	&ps_r2_ls_flags,			R2FLAG_EXP_DONT_TEST_UNSHADOWED);
 	
 	CMD3(CCC_Mask,		"r2_sun_tsm",			&ps_r2_ls_flags,			R2FLAG_SUN_TSM	);
 	CMD4(CCC_Float,		"r2_sun_tsm_proj",		&ps_r2_sun_tsm_projection,	.001f,	0.8f	);
@@ -419,7 +420,8 @@ void		xrRender_initconsole	()
 	CMD4(CCC_Integer,	"r2_gi_photons",		&ps_r2_GI_photons,			8,		256		);
 	CMD4(CCC_Float,		"r2_gi_refl",			&ps_r2_GI_refl,				EPS_L,	0.99f	);
 
-	CMD4(CCC_Integer,	"r2_wait_sleep",		&ps_r2_wait_sleep,			0,		1		);
+	CMD4(CCC_Integer,	"r2_wait_sleep",		&ps_r2_wait_sleep,			0,		10		);
+	CMD4(CCC_Integer,	"r__msaa_level",		&ps_r_msaa_level,			0,		16		);
 
 #ifdef DEBUG
 	CMD4(CCC_Integer,	"r2_dhemi_count",		&ps_r2_dhemi_count,			4,		25		);
@@ -450,7 +452,9 @@ void		xrRender_initconsole	()
 #ifdef KD_DETAIL_RADIUS
 	CMD4(CCC_detail_radius,	"r__detail_radius",		&ps_r__detail_radius,		49,	250	);
 #endif
-	CMD3(CCC_Mask,			"r__actor_shadow",		&ps_common_flags,			RFLAG_ACTOR_SHADOW	);
+	// CMD3(CCC_Mask,			"r__actor_shadow",		&ps_common_flags,			RFLAG_ACTOR_SHADOW	);
+	CMD3(CCC_Mask,			"r2_allow_nonpow2",		&ps_r2_tx_flags,			R2FLAG_ALLOW_NONPOW2	);
+	CMD3(CCC_Mask,			"r2_default_pool",		&ps_r2_tx_flags,			R2FLAG_DEFAULT_POOL	);
 }
 
 void	xrRender_apply_tf		()

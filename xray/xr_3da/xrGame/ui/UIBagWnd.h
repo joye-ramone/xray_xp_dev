@@ -3,6 +3,7 @@
 #include "UIStatic.h"
 #include "UIDragDropListEx.h"
 #include "UI3tButton.h"
+#include <ComplexVar.h>
 #include "../xrServer_Objects_ALife_Items.h"
 
 class CUITabButtonMP;
@@ -122,7 +123,7 @@ CUICellItem*	CreateItem				(const shared_str& name_sect);
 	void			UpdateBuyPossibility();
 	virtual void	Update				();
 
-	int				m_money;
+	CComplexVarInt	m_money;
 
 protected:
 

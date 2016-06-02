@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: xrServer_Objects_script.cpp
 //	Created 	: 19.09.2002
-//  Modified 	: 23.06.2004
+//  Modified 	: 04.12.2014
 //	Author		: Dmitriy Iassenev
 //	Description : Server objects script export
 ////////////////////////////////////////////////////////////////////////////
@@ -14,14 +14,29 @@
 
 using namespace luabind;
 
+
 LPCSTR get_section_name(const CSE_Abstract *abstract)
 {
 	return	(abstract->name());
 }
 
-LPCSTR get_name(const CSE_Abstract *abstract)
+void set_section_name(CSE_Abstract *abstract, LPCSTR section)
+{
+	abstract->set_name(section);
+	string64 buff;
+	sprintf_s(buff, 63, "%s%d", section, abstract->ID);
+	abstract->set_name_replace(buff);
+}
+
+
+LPCSTR get_name_replace (const CSE_Abstract *abstract)
 {
 	return	(abstract->name_replace());
+}
+
+void chg_name_replace (CSE_Abstract *abstract, LPCSTR new_name)
+{
+	abstract->set_name_replace(new_name);
 }
 
 CScriptIniFile *get_spawn_ini(CSE_Abstract *abstract)
@@ -96,6 +111,9 @@ void CPureServerObject::script_register(lua_State *L)
 	];
 }
 
+void cse_set_position	(CSE_Abstract* O, float x, float y, float z) { O->o_Position.set(x, y, z); }
+void cse_set_direction  (CSE_Abstract* O, float x, float y, float z) { O->o_Angle.set(x, y, z); }
+
 void CSE_Abstract::script_register(lua_State *L)
 {
 	typedef CWrapperBase<CSE_Abstract> WrapType;
@@ -106,14 +124,19 @@ void CSE_Abstract::script_register(lua_State *L)
 			.def_readonly	("parent_id",		&BaseType::ID_Parent)
 			.def_readonly	("script_version",	&BaseType::m_script_version)
 			.def_readwrite	("position",		&BaseType::o_Position)
+			.def_readwrite	("direction",		&BaseType::o_Angle)
 			.def			("section_name",	&get_section_name)
-			.def			("name",			&get_name)
+			.def			("set_section_name",&set_section_name)
+			.def			("name",			&get_name_replace)
+			.def			("set_name",		&chg_name_replace)
 			.def			("clsid",			&BaseType::script_clsid)
 			.def			("spawn_ini",		&get_spawn_ini)
 			.def			("STATE_Read",		&BaseType::STATE_Read, &WrapType::STATE_Read_static)
 			.def			("STATE_Write",		&BaseType::STATE_Write, &WrapType::STATE_Write_static)
 			.def			("UPDATE_Read",		&BaseType::UPDATE_Read, &WrapType::UPDATE_Read_static)
-			.def			("UPDATE_Write",		&BaseType::UPDATE_Write, &WrapType::UPDATE_Write_static)
+			.def			("UPDATE_Write",	&BaseType::UPDATE_Write, &WrapType::UPDATE_Write_static)
+			.def			("set_position",    &cse_set_position)
+			.def			("set_direction",   &cse_set_direction)
 //			.def(		constructor<LPCSTR>())
 	];
 }

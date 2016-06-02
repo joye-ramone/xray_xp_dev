@@ -50,6 +50,7 @@ bool CAI_Stalker::useful		(const CItemManager *manager, const CGameObject *objec
 			memory().danger().add(CDangerObject(entity_alive,object->Position(),Device.dwTimeGlobal,CDangerObject::eDangerTypeGrenade,CDangerObject::eDangerPerceiveTypeVisual,object));
 	}
 
+	
 	if (!memory().item().useful(object))
 		return			(false);
 

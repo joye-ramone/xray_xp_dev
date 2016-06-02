@@ -970,7 +970,7 @@ void IPureServer::BannedList_Load()
 	
 	for( ;it!=it_e; ++it)
 	{
-		const shared_str& sect_name	= (*it)->Name;
+		const shared_str& sect_name	= it->first;
 		IBannedClient* Cl			= xr_new<IBannedClient>();
 		Cl->Load					(ini, sect_name);
 		BannedAddresses.push_back	(Cl);

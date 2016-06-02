@@ -82,6 +82,9 @@ void game_sv_GameState::script_register(lua_State *L)
 
 		.def("setHMS"				,&xrTime::setHMS)
 		.def("setHMSms"				,&xrTime::setHMSms)
+		.def("updHMS"				,&xrTime::updHMS)
+		.def("updHMSms"				,&xrTime::updHMSms)
+
 		.def("set"					,&xrTime::set)
 		.def("get"					,&xrTime::get, out_value(_2) + out_value(_3) + out_value(_4) + out_value(_5) + out_value(_6) + out_value(_7) + out_value(_8))
 		.def("dateToString"			,&xrTime::dateToString)
@@ -89,6 +92,7 @@ void game_sv_GameState::script_register(lua_State *L)
 		// declarations
 		def("time",					get_time),
 		def("get_game_time",		get_time_struct),
+		def("set_game_time",		set_time_struct),
 //		def("get_surge_time",	Game::get_surge_time),
 //		def("get_object_by_name",Game::get_object_by_name),
 	

@@ -85,6 +85,7 @@ BOOL CLevel::net_Start	( LPCSTR op_server, LPCSTR op_client )
 	g_loading_events.push_back	(LOADING_EVENT(this,&CLevel::net_start5));
 	g_loading_events.push_back	(LOADING_EVENT(this,&CLevel::net_start6));
 	
+	MsgCB("##PERF: CLevel::net_start1 end");
 	return net_start_result_total;
 
 }
@@ -127,6 +128,7 @@ bool CLevel::net_start1				()
 			pApp->Level_Set			(id);
 		}
 	}
+	MsgCB("##PERF: CLevel::net_start1 end");
 	return true;
 }
 
@@ -144,6 +146,7 @@ bool CLevel::net_start2				()
 		Server->SLS_Default		();
 		m_name					= Server->level_name(m_caServerOptions);
 	}
+	MsgCB("##PERF: CLevel::net_start2 end");
 	return true;
 }
 
@@ -188,6 +191,7 @@ bool CLevel::net_start3				()
 		sprintf_s(cmd, "cdkey %s", _strupr(CDKey));
 		Console->Execute			(cmd);
 	}
+	MsgCB("##PERF: CLevel::net_start3 end");
 	return true;
 }
 
@@ -204,6 +208,7 @@ bool CLevel::net_start4				()
 	g_loading_events.push_front	(LOADING_EVENT(this,&CLevel::net_start_client2));
 	g_loading_events.push_front	(LOADING_EVENT(this,&CLevel::net_start_client1));
 
+	MsgCB("##PERF: CLevel::net_start4 end");
 	return false;
 }
 
@@ -220,6 +225,8 @@ bool CLevel::net_start5				()
 			Server->SLS_Clear();
 		};
 	};
+
+	MsgCB("##PERF: CLevel::net_start5 end");
 	return true;
 }
 #include "hudmanager.h"
@@ -285,7 +292,7 @@ bool CLevel::net_start6()
 				HUD().GetUI()->OnConnected();
 		}
 	}
-
+	MsgCB("##PERF: CLevel::net_start6 end");
 	return false;
 }
 

@@ -7,6 +7,7 @@
 #include "game_cl_base.h"
 #include "ai_space.h"
 #include "alife_object_registry.h"
+#include "../luaicp_events.h"
 
 xr_string xrServer::ent_name_safe(u16 eid)
 {
@@ -29,13 +30,15 @@ void xrServer::Process_event_destroy	(NET_Packet& P, ClientID sender, u32 time, 
 	Msg								("sv destroy object %s [%d]", ent_name_safe(id_dest).c_str(), Device.dwFrame);
 #endif
 
+	CSE_Abstract*					e_dest = game->get_entity_from_eid	(id_dest);	// кто должен быть уничтожен
 #ifdef LUAICP_COMPAT
 	// для обновлений реестра объектов в перехватчике
-	MsgCB("sv destroy object %s [%d]", ent_name_safe(id_dest).c_str(), Device.dwFrame);
+	// MsgCB("sv destroy object %s [%d]", ent_name_safe(id_dest).c_str(), Device.dwFrame);
+	process_object_event(EVT_OBJECT_DESTROY | EVT_OBJECT_SERVER, id_dest, NULL, e_dest, 1);
 #endif
 
 
-	CSE_Abstract*					e_dest = game->get_entity_from_eid	(id_dest);	// кто должен быть уничтожен
+	
 	if (!e_dest) 
 	{
 		Msg							("!SV:ge_destroy: [%d] not found on server",id_dest);

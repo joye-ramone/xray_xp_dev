@@ -37,6 +37,9 @@ public:
 		const char*		_name;
 		u32				_dummy;
 	};
+
+	mdbg				m_last_allocs [256];
+	u32					n_last_alloc;
 public:
 	xrMemory			();
 	void				_initialize		(BOOL _debug_mode=FALSE);

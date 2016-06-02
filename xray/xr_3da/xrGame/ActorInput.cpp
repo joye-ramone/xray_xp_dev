@@ -41,7 +41,8 @@
 
 
 bool g_bAutoClearCrouch = true;
-
+int  g_iCrouchState		= 0;
+#pragma optimize("gyts", off)
 #include "script_engine.h"
 void CActor::IR_OnKeyboardPress(int cmd)
 {
@@ -82,64 +83,74 @@ void CActor::IR_OnKeyboardPress(int cmd)
 	}else
 		if(inventory().Action(cmd, CMD_START))					return;
 
-	switch(cmd){
-	case kJUMP:		
+	switch (cmd){
+	case kJUMP:
+	{
+		mstate_wishful |= mcJump;
 		{
-			mstate_wishful |= mcJump;
-			{
-//				NET_Packet	P;
-//				u_EventGen(P, GE_ACTOR_JUMPING, ID());
-//				u_EventSend(P);
-			}
-		}break;
+			//				NET_Packet	P;
+			//				u_EventGen(P, GE_ACTOR_JUMPING, ID());
+			//				u_EventSend(P);
+		}
+	}break;
 	case kCROUCH_TOGGLE:
-		{
-			g_bAutoClearCrouch = !g_bAutoClearCrouch;
-			if (!g_bAutoClearCrouch)
-				mstate_wishful |= mcCrouch;
-
-		}break;
-	case kSPRINT_TOGGLE:	
-		{
-			if (mstate_wishful & mcSprint)
-				mstate_wishful &=~mcSprint;
-			else
-				mstate_wishful |= mcSprint;					
-		}break;
-	case kCAM_1:	cam_Set			(eacFirstEye);				break;
-	case kCAM_2:	cam_Set			(eacLookAt);				break;
-	case kCAM_3:	cam_Set			(eacFreeLook);				break;
+	{
+#ifdef NLC_EXTENSIONS
+		g_iCrouchState = (g_iCrouchState + 1) % 3;
+#else
+		g_iCrouchState = 1 - g_iCrouchState;
+#endif
+		g_bAutoClearCrouch = (g_iCrouchState == 0);
+		if (!g_bAutoClearCrouch)
+			mstate_wishful |= mcCrouch;
+		if (g_iCrouchState > 1)
+			mstate_wishful |= mcAccel;
+	}break;
+	case kSPRINT_TOGGLE:
+	{
+		if (mstate_wishful & mcSprint)
+			mstate_wishful &= ~mcSprint;
+		else
+			mstate_wishful |= mcSprint;
+	}break;
+	case kCAM_1:	cam_Set(eacFirstEye);				break;
+	case kCAM_2:	cam_Set(eacLookAt);				break;
+	case kCAM_3:	cam_Set(eacFreeLook);				break;
 	case kNIGHT_VISION:
-		{
-			const xr_vector<CAttachableItem*>& all = CAttachmentOwner::attached_objects();
-			xr_vector<CAttachableItem*>::const_iterator it = all.begin();
-			xr_vector<CAttachableItem*>::const_iterator it_e = all.end();
-			for(;it!=it_e;++it){
-				CTorch* torch = smart_cast<CTorch*>(*it);
-				if (torch){		
-					torch->SwitchNightVision();
-					break;
-				}
-			}
-		}break;
-	case kTORCH:{ 
+	{
 		const xr_vector<CAttachableItem*>& all = CAttachmentOwner::attached_objects();
 		xr_vector<CAttachableItem*>::const_iterator it = all.begin();
 		xr_vector<CAttachableItem*>::const_iterator it_e = all.end();
-		for(;it!=it_e;++it){
-				CTorch* torch = smart_cast<CTorch*>(*it);
-				if (torch){		
-					torch->Switch();
-					break;
-				}
+		for (; it != it_e; ++it){
+			CCustomOutfit* outfit = smart_cast<CCustomOutfit*>(*it);
+			if (outfit && outfit->NightVisionDevice()) {
+				outfit->NightVisionDevice()->SwitchNightVision();
+				break;
+			}
+			CNightVisionDevice* nvd = smart_cast<CNightVisionDevice*>(*it);
+			if (nvd) 
+				nvd->SwitchNightVision();
+
 		}
-		}break;
-	case kWPN_1:	
-	case kWPN_2:	
-	case kWPN_3:	
-	case kWPN_4:	
-	case kWPN_5:	
-	case kWPN_6:	
+	}break;
+	case kTORCH:{
+		const xr_vector<CAttachableItem*>& all = CAttachmentOwner::attached_objects();
+		xr_vector<CAttachableItem*>::const_iterator it = all.begin();
+		xr_vector<CAttachableItem*>::const_iterator it_e = all.end();
+		for (; it != it_e; ++it){
+			CTorch* torch = smart_cast<CTorch*>(*it);
+			if (torch){
+				torch->Switch();
+				break;
+			}
+		}
+	}break;
+	case kWPN_1:
+	case kWPN_2:
+	case kWPN_3:
+	case kWPN_4:
+	case kWPN_5:
+	case kWPN_6:
 	case kWPN_RELOAD:
 		//Weapons->ActivateWeaponID	(cmd-kWPN_1);			
 		break;
@@ -147,84 +158,145 @@ void CActor::IR_OnKeyboardPress(int cmd)
 		ActorUse();
 		break;
 	case kDROP:
-		b_DropActivated			= TRUE;
-		f_DropPower				= 0;
+		b_DropActivated = TRUE;
+		f_DropPower = 0;
 		break;
 	case kNEXT_SLOT:
-		{
-			OnNextWeaponSlot();
-		}break;
+	{
+		OnNextWeaponSlot();
+	}break;
 	case kPREV_SLOT:
-		{
-			OnPrevWeaponSlot();
-		}break;
+	{
+		OnPrevWeaponSlot();
+	}break;
 
 	case kUSE_BANDAGE:
 	case kUSE_MEDKIT:
+	{
+		if (IsGameTypeSingle())
 		{
-			if(IsGameTypeSingle())
+			PIItem itm = inventory().item((cmd == kUSE_BANDAGE) ? CLSID_IITEM_BANDAGE : CLSID_IITEM_MEDKIT);
+			if (itm)
 			{
-				PIItem itm = inventory().item((cmd==kUSE_BANDAGE)?  CLSID_IITEM_BANDAGE:CLSID_IITEM_MEDKIT );	
-				if(itm)
-				{
-					inventory().Eat				(itm);
-					SDrawStaticStruct* _s		= HUD().GetUI()->UIGame()->AddCustomStatic("item_used", true);
-					_s->m_endTime				= Device.fTimeGlobal+3.0f;// 3sec
-					string1024					str;
-					strconcat					(sizeof(str),str,*CStringTable().translate("st_item_used"),": ", itm->Name());
-					_s->wnd()->SetText			(str);
-				}
+				inventory().Eat(itm);
+				SDrawStaticStruct* _s = HUD().GetUI()->UIGame()->AddCustomStatic("item_used", true);
+				_s->m_endTime = Device.fTimeGlobal + 3.0f;// 3sec
+				string1024					str;
+				strconcat(sizeof(str), str, *CStringTable().translate("st_item_used"), ": ", itm->Name());
+				_s->wnd()->SetText(str);
 			}
-		}break;
+		}
+	}break;
 #ifdef INV_NEW_SLOTS_SYSTEM
 	case kUSE_SLOT_QUICK_ACCESS_0:
 	case kUSE_SLOT_QUICK_ACCESS_1:
 	case kUSE_SLOT_QUICK_ACCESS_2:
 	case kUSE_SLOT_QUICK_ACCESS_3:
+	{
+		if (IsGameTypeSingle())
 		{
-			if(IsGameTypeSingle())
-			{
-				PIItem itm = 0;
-				switch (cmd){
-				case kUSE_SLOT_QUICK_ACCESS_0:
-					
-					itm = inventory().m_slots[SLOT_QUICK_ACCESS_0].m_pIItem;
-					break;
-				case kUSE_SLOT_QUICK_ACCESS_1:	
-					itm = inventory().m_slots[SLOT_QUICK_ACCESS_1].m_pIItem;
-					break;
-				case kUSE_SLOT_QUICK_ACCESS_2:
-					itm = inventory().m_slots[SLOT_QUICK_ACCESS_2].m_pIItem;
-					break;
-				case kUSE_SLOT_QUICK_ACCESS_3:
-					itm = inventory().m_slots[SLOT_QUICK_ACCESS_3].m_pIItem;
-					break;					
-				}
+			PIItem itm = 0;
+			switch (cmd){
+			case kUSE_SLOT_QUICK_ACCESS_0:
 
-				if (itm){
-					CMedkit*			pMedkit				= smart_cast<CMedkit*>			(itm);
-					CAntirad*			pAntirad			= smart_cast<CAntirad*>			(itm);
-					CEatableItem*		pEatableItem		= smart_cast<CEatableItem*>		(itm);
-					CBottleItem*		pBottleItem			= smart_cast<CBottleItem*>		(itm);				
-					string1024					str;
-					
-					if(pMedkit || pAntirad || pEatableItem || pBottleItem){
-						PIItem iitm = inventory().Same(itm,true);
-						if(iitm){
-							inventory().Eat(iitm);
-							strconcat(sizeof(str),str,*CStringTable().translate("st_item_used"),": ", iitm->Name());
-						}else{
-							inventory().Eat(itm);
-							strconcat(sizeof(str),str,*CStringTable().translate("st_item_used"),": ", itm->Name());
-						}
-						
-						SDrawStaticStruct* _s		= HUD().GetUI()->UIGame()->AddCustomStatic("item_used", true);
-						_s->m_endTime				= Device.fTimeGlobal+3.0f;// 3sec
-						_s->wnd()->SetText			(str);
+				itm = inventory().m_slots[SLOT_QUICK_ACCESS_0].m_pIItem;
+				break;
+			case kUSE_SLOT_QUICK_ACCESS_1:
+				itm = inventory().m_slots[SLOT_QUICK_ACCESS_1].m_pIItem;
+				break;
+			case kUSE_SLOT_QUICK_ACCESS_2:
+				itm = inventory().m_slots[SLOT_QUICK_ACCESS_2].m_pIItem;
+				break;
+			case kUSE_SLOT_QUICK_ACCESS_3:
+				itm = inventory().m_slots[SLOT_QUICK_ACCESS_3].m_pIItem;
+				break;
+			}
+
+			if (itm){
+				CMedkit*			pMedkit = smart_cast<CMedkit*>			(itm);
+				CAntirad*			pAntirad = smart_cast<CAntirad*>			(itm);
+				CEatableItem*		pEatableItem = smart_cast<CEatableItem*>		(itm);
+				CBottleItem*		pBottleItem = smart_cast<CBottleItem*>		(itm);
+				string1024					str;
+
+				if (pMedkit || pAntirad || pEatableItem || pBottleItem){
+					PIItem iitm = inventory().Same(itm, true);
+					if (iitm){
+						inventory().Eat(iitm);
+						strconcat(sizeof(str), str, *CStringTable().translate("st_item_used"), ": ", iitm->Name());
 					}
+					else{
+						inventory().Eat(itm);
+						strconcat(sizeof(str), str, *CStringTable().translate("st_item_used"), ": ", itm->Name());
+					}
+
+					SDrawStaticStruct* _s = HUD().GetUI()->UIGame()->AddCustomStatic("item_used", true);
+					_s->m_endTime = Device.fTimeGlobal + 3.0f;// 3sec
+					_s->wnd()->SetText(str);
 				}
 			}
-		}break;
+		}
+	}break;
+#ifdef LUAICP_COMPAT
+	case kKICK:
+		CGameObject *O = ObjectWeLookingAt();
+		// if (!O)	O = smart_cast<CGameObject*> ( PersonWeLookingAt());
+		// 
+		if (O)
+		{		
+			static float kick_impulse = READ_IF_EXISTS(pSettings, r_float, "actor", "kick_impulse", 250.f);
+			Fvector dir = Direction();
+			dir.y = sin (15.f / 180.f * PI);
+			dir.normalize();
+			float mass_f = 1.f;
+			CPhysicsShellHolder *sh = smart_cast<CPhysicsShellHolder*>(O);						
+			if (sh) 
+			    mass_f = sh->GetMass();
+
+			PIItem itm = smart_cast<PIItem>(O);
+			if (itm) 
+				 mass_f = itm->Weight();
+			
+			CInventoryOwner *io = smart_cast<CInventoryOwner*> (O);
+			if (io)
+				mass_f += io->GetCarryWeight();			
+			
+			if (mass_f < 1)
+				mass_f = 1;
+				
+
+			u16 bone_id = 0;
+			collide::rq_result& RQ = HUD().GetCurrentRayQuery();
+			if (RQ.O == O && RQ.element != 0xffff)
+				bone_id = (u16)RQ.element;
+
+			clamp<float>(mass_f, 0.1f, 100.f); // ограничить параметры хита
+
+			//shell->applyForce(dir, kick_power * conditions().GetPower());
+			Fvector h_pos = O->Position();
+			SHit hit = SHit (0.001f * mass_f, dir, this, bone_id, h_pos, kick_impulse, ALife::eHitTypePhysicStrike);		
+			O->Hit (&hit);
+			/*CEntityAlive *EA = smart_cast<CEntityAlive*>(O);
+			if (EA)
+			{
+				static float alive_kick_power = 3.f;
+				float real_imp = kick_impulse / mass_f;
+				dir.mul(pow(real_imp, alive_kick_power));
+				EA->character_physics_support()->movement()->AddControlVel(dir);
+				EA->character_physics_support()->movement()->ApplyImpulse(dir.normalize(), kick_impulse * alive_kick_power);
+			}
+*/
+
+			conditions().ConditionJump (mass_f / 50);
+			if (mass_f > 5)
+			{
+				hit.boneID = 0;  // пока не ясно, куда лушче ГГ ударить (в ногу надо?)
+				this->Hit(&hit); // сила действия равна силе противодействия
+			}
+		}
+	
+		break;
+#endif
 #endif		
 		
 	}
@@ -409,11 +481,26 @@ void CActor::ActorUse()
 
 	if(m_pUsableObject)m_pUsableObject->use(this);
 	
-	if(m_pInvBoxWeLookingAt && m_pInvBoxWeLookingAt->nonscript_usable())
+	if (m_pInvBoxWeLookingAt && m_pInvBoxWeLookingAt->object().nonscript_usable() &&
+		// заглядывать в стационарные ящики можно и с нажатым Ctrl 
+		( m_pInvBoxWeLookingAt->object().cNameSect() == "inventory_box" || 	!Level().IR_GetKeyState(DIK_LCONTROL))
+	  )
 	{
-		CUIGameSP* pGameSP = smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame());
-		if(pGameSP) pGameSP->StartCarBody(this, m_pInvBoxWeLookingAt );
-		return;
+		// если контейнер открыт и руки свободны
+		if (m_pInvBoxWeLookingAt->IsOpened())
+		{
+
+			CUIGameSP* pGameSP = smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame());
+			if (pGameSP) pGameSP->StartCarBody(this, m_pInvBoxWeLookingAt);
+			PickupModeOff();
+			return;
+		}
+		else
+		{
+			auto obj = m_pInvBoxWeLookingAt->cast_game_object(); // inv_box
+			if (obj)
+				Msg(" inventory_box %s is closed", obj->Name_script());
+		}
 	}
 
 	if(!m_pUsableObject||m_pUsableObject->nonscript_usable())

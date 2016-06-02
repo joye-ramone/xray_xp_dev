@@ -27,9 +27,9 @@ void	CStatTimer::FrameStart	()
 }
 void	CStatTimer::FrameEnd	()
 {
-	float _time			= 1000.f*float(double(accum)/double(CPU::qpc_freq)	)	;
-	if (_time > result)	result	=	_time		;
-	else				result	=	0.99f*result + 0.01f*_time; // EMA 100
+	float _time			= 1000.f * float(double(accum)/double(CPU::qpc_freq)	)	;
+	if (_time > result)	result	=	_time;
+	else				result	=	0.99f * result + 0.01f * _time; // EMA 100
 	CalcEMA(xrs[0], result, 10);
 	CalcEMA(xrs[1], result, 100);
 	CalcEMA(xrs[2], result, 1000);

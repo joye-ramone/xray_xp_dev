@@ -3,6 +3,15 @@
 #include "../HudManager.h"
 #include "../object_broker.h"
 #include "../callback_info.h"
+#include <lua.h>
+#include <luabind\luabind.hpp>
+
+// #include "uiscriptwnd_script.h"
+
+extern LPCSTR raw_lua_class_name(lua_State *L);
+extern u32	  g_last_gc;
+
+u32 last_dialog_destroy = 0;
 
 struct event_comparer{
 	shared_str			name;
@@ -16,11 +25,20 @@ struct event_comparer{
 
 CUIDialogWndEx::CUIDialogWndEx():inherited()
 {
-	Hide();
+	Hide();	
+	m_lua_vm  = NULL;
+	m_self_ref = NULL;
+	self_name = "new";
 }
 
 CUIDialogWndEx::~CUIDialogWndEx()
 {
+	g_last_gc = Device.dwTimeGlobal;  // чтобы отодвинуть очистку мусора
+	last_dialog_destroy = g_last_gc;
+	MsgCB("# #DBG: CUIDialogWndEx destructor for %s ", WindowName_script());
+	if (m_self_ref)
+		m_self_ref->m_dialog = NULL;
+
 	try {
 		delete_data(m_callbacks);
 	}
@@ -68,9 +86,10 @@ void CUIDialogWndEx::AddCallback(LPCSTR control_id, s16 event, const luabind::fu
 	SCallbackInfo* c	= NewCallback ();
 	c->m_callback.set	(lua_function);
 	c->m_controlName	= control_id;
-	c->m_event			= event;
+	c->m_event			= event;		
 	
 }
+
 
 void CUIDialogWndEx::AddCallback (LPCSTR control_id, s16 event, const luabind::functor<void> &functor, const luabind::object &object)
 {
@@ -78,8 +97,27 @@ void CUIDialogWndEx::AddCallback (LPCSTR control_id, s16 event, const luabind::f
 	c->m_callback.set	(functor,object);
 	c->m_controlName	= control_id;
 	c->m_event			= event;
+	if (self_name == "new")
+	{
+		m_lua_vm = object.lua_state();
+		if (m_lua_vm)
+		{
+			self_name = "";
+			int top = lua_gettop(m_lua_vm);
+			int err = luaL_loadstring(m_lua_vm, "return get_script_name()");
+  		    if (0 == err)
+	  		    err = lua_pcall(m_lua_vm, 0, 1, 0);
+			if (0 == err && lua_isstring(m_lua_vm, -1))			
+				self_name = xr_sprintf("%s.", lua_tostring(m_lua_vm, -1));							
+			else
+				Msg("! #WARN: get_script_name returned @%s for lua_State = %s", lua_typename(m_lua_vm, -1), get_lvm_name(m_lua_vm));	
+			object.pushvalue();
+			self_name += raw_lua_class_name(m_lua_vm);
+			lua_settop(m_lua_vm, top);
+			SetWindowName(self_name.c_str());
+		}
+	}
 }
-
 
 
 bool CUIDialogWndEx::OnKeyboard(int dik, EUIMessages keyboard_action)

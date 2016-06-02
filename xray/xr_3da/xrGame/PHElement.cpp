@@ -364,9 +364,15 @@ void CPHElement::Activate(const Fmatrix& start_from,bool disable){
 void CPHElement::Update(){
 	if(!isActive()) return;
 	if(m_flags.test(flActivating)) m_flags.set(flActivating,FALSE);
-	if( !dBodyIsEnabled(m_body)&&!m_flags.test(flUpdate)/*!bUpdate*/) return;
-
+	if( !dBodyIsEnabled(m_body)&&!m_flags.test(flUpdate)/*!bUpdate*/) return;	
 	InterpolateGlobalTransform(&mXFORM);
+	Fvector &p = mXFORM.c;
+	if (abs(p.x) > 3000 || abs(p.y) > 3000 || abs(p.z) > 3000)
+	{
+		Msg("!#ERR: Invalid element position = %f, %f, %f", p.x, p.y, p.z);
+		// p.set(0, 0, 0);
+	}
+
 	VERIFY2(_valid(mXFORM),"invalid position in update");
 }
 

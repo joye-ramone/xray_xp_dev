@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: xrServer_Objects_ALife.h
 //	Created 	: 19.09.2002
-//  Modified 	: 04.06.2003
+//  Modified 	: 12.11.2014
 //	Author		: Oles Shyshkovtsov, Alexander Maksimchuk, Victor Reutskiy and Dmitriy Iassenev
 //	Description : Server objects items for ALife simulator
 ////////////////////////////////////////////////////////////////////////////
@@ -92,21 +92,39 @@ SERVER_ENTITY_DECLARE_BEGIN(CSE_ALifeItemTorch,CSE_ALifeItem)
 //флаги
 	enum EStats{
 		eTorchActive				= (1<<0),
-		eNightVisionActive			= (1<<1),
 		eAttached					= (1<<2)
 	};
 	bool							m_active;
-	bool							m_nightvision_active;
 	bool							m_attached;
 									CSE_ALifeItemTorch	(LPCSTR caSection);
     virtual							~CSE_ALifeItemTorch	();
 	virtual BOOL					Net_Relevant			();
 
-	SERVER_ENTITY_DECLARE_END
+SERVER_ENTITY_DECLARE_END
 		add_to_type_list(CSE_ALifeItemTorch)
 #define script_type_list save_type_list(CSE_ALifeItemTorch)
 
-		SERVER_ENTITY_DECLARE_BEGIN(CSE_ALifeItemEatable, CSE_ALifeItem)
+SERVER_ENTITY_DECLARE_BEGIN(CSE_ALifeItemNVD, CSE_ALifeItem)
+//флаги
+	enum EStats{
+		eEnabled					= (1<<0),
+		eActive						= (1<<1),
+		eAttached					= (1<<2)
+	};
+	bool							m_active;
+	bool							m_enabled;
+	bool							m_attached;
+									CSE_ALifeItemNVD	(LPCSTR caSection);
+    virtual							~CSE_ALifeItemNVD	();
+	virtual BOOL					Net_Relevant			();
+
+SERVER_ENTITY_DECLARE_END
+		add_to_type_list(CSE_ALifeItemNVD)
+#define script_type_list save_type_list(CSE_ALifeItemNVD)
+
+
+
+SERVER_ENTITY_DECLARE_BEGIN(CSE_ALifeItemEatable, CSE_ALifeItem)
 							CSE_ALifeItemEatable(LPCSTR);
 		virtual				~CSE_ALifeItemEatable();
 		virtual		BOOL	Net_Relevant();
@@ -282,6 +300,8 @@ add_to_type_list(CSE_ALifeItemBolt)
 
 SERVER_ENTITY_DECLARE_BEGIN(CSE_ALifeItemCustomOutfit,CSE_ALifeItem)
 	u32								m_ef_equipment_type;
+	xr_map<s16, float>				m_detailed_condition;
+
 									CSE_ALifeItemCustomOutfit	(LPCSTR caSection);
 	virtual							~CSE_ALifeItemCustomOutfit	();
 	virtual u32						ef_equipment_type			() const;
@@ -289,6 +309,33 @@ SERVER_ENTITY_DECLARE_BEGIN(CSE_ALifeItemCustomOutfit,CSE_ALifeItem)
 SERVER_ENTITY_DECLARE_END
 add_to_type_list(CSE_ALifeItemCustomOutfit)
 #define script_type_list save_type_list(CSE_ALifeItemCustomOutfit)
+
+
+
+class CSE_InventoryContainer : public CSE_InventoryBoxAbstract, public CSE_ALifeItem
+{
+public:
+						CSE_InventoryContainer			(LPCSTR caSection) : CSE_ALifeItem(caSection) {};
+	virtual				~CSE_InventoryContainer		() {};
+#ifdef XRGAME_EXPORTS
+	virtual void		add_offline			(const xr_vector<ALife::_OBJECT_ID> &saved_children, const bool &update_registries)
+	{
+		add_offline_impl (smart_cast<CSE_ALifeDynamicObjectVisual*>(this), saved_children, update_registries);
+		CSE_ALifeItem::add_offline(saved_children, update_registries);
+	}
+	virtual void		add_online			(const bool &update_registries)
+	{
+		add_online_impl (smart_cast<CSE_ALifeDynamicObjectVisual*>(this), update_registries);
+		CSE_ALifeItem::add_online(update_registries);
+	};
+#endif
+
+};
+
+
+add_to_type_list(CSE_InventoryContainer)
+#define script_type_list save_type_list(CSE_InventoryContainer)
+
 
 #pragma warning(pop)
 

@@ -209,7 +209,7 @@ bool CScriptGameObject::critically_wounded		()
 
 bool CScriptGameObject::IsInvBoxEmpty()
 {
-	CInventoryBox* ib = smart_cast<CInventoryBox*>(&object());
+	IInventoryBox* ib = smart_cast<IInventoryBox*>(&object());
 	if(!ib) 
 		return			(false);
 	else
@@ -284,6 +284,6 @@ TEST_OBJECT_CLASS(CScriptGameObject::IsGrenade,				CGrenade)
 TEST_OBJECT_CLASS(CScriptGameObject::IsBottleItem,			CBottleItem)
 TEST_OBJECT_CLASS(CScriptGameObject::IsTorch,				CTorch)
 TEST_OBJECT_CLASS(CScriptGameObject::IsWeaponGL,			CWeaponMagazinedWGrenade)
-TEST_OBJECT_CLASS(CScriptGameObject::IsInventoryBox,		CInventoryBox)
+TEST_OBJECT_CLASS(CScriptGameObject::IsInventoryBox,		IInventoryBox)
 
 // KD

@@ -31,6 +31,8 @@
 	#define SLOTS_TOTAL			11	
 #endif
 
+extern const LPCSTR SLOTS_NAMES[SLOTS_TOTAL];
+
 #define RUCK_HEIGHT			280
 #define RUCK_WIDTH			7
 

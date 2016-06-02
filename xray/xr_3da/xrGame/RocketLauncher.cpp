@@ -35,7 +35,7 @@ void CRocketLauncher::SpawnRocket(LPCSTR rocket_section, CGameObject* parent_roc
 	l_tpTemporary->m_tNodeID	= (g_dedicated_server)?u32(-1) : parent_rocket_launcher->ai_location().level_vertex_id();
 	// Fill
 	D->s_name			= rocket_section;
-	D->set_name_replace	("");
+	D->set_name_replace	("#rocket");
 	
 	D->s_gameid			=	u8(GameID());
 	D->s_RP				=	0xff;

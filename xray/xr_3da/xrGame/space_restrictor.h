@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: space_restrictor.h
 //	Created 	: 17.08.2004
-//  Modified 	: 17.08.2004
+//  Modified 	: 21.12.2014
 //	Author		: Dmitriy Iassenev
 //	Description : Space restrictor
 ////////////////////////////////////////////////////////////////////////////
@@ -11,6 +11,8 @@
 #include "gameobject.h"
 #include "restriction_space.h"
 #include "script_export_space.h"
+
+class CSpaceRestrictionShape;
 
 class CSpaceRestrictor : public CGameObject {
 private:
@@ -38,8 +40,7 @@ private:
 	mutable BOXES				m_boxes;
 	mutable Fsphere				m_selfbounds;
 	mutable bool				m_actuality;
-
-private:
+protected:
 			u8					m_space_restrictor_type;
 private:
 	IC		void				actual				(bool value) const;
@@ -47,6 +48,8 @@ private:
 			bool				prepared_inside		(const Fsphere &sphere) const;
 
 public:
+	CSpaceRestrictionShape*		m_owner_shape;
+
 	IC							CSpaceRestrictor	();
 	virtual						~CSpaceRestrictor	();
 	virtual	BOOL				net_Spawn			(CSE_Abstract* data);

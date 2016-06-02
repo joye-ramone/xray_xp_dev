@@ -10,8 +10,6 @@
 #include "blender_bloom_build.h"
 #include "blender_luminance.h"
 
-const u32 extra_textures = 1;
-
 void	CRenderTarget::u_setrt			(const ref_rt& _1, const ref_rt& _2, const ref_rt& _3, IDirect3DSurface9* zb)
 {
 	VERIFY									(_1);
@@ -417,46 +415,35 @@ CRenderTarget::CRenderTarget		()
 		// Build noise table
 		if (1)
 		{
-			// Surfaces			
-			D3DLOCKED_RECT				R[TEX_jitter_count + extra_textures];
-
-			// HD noise
-			int hd_width = dwWidth  < 1920 ? dwWidth : 1920;
-			int hd_height = dwHeight < 1080 ? dwHeight : 1080;
-
-			for (int it=0; it < (TEX_jitter_count + extra_textures); it++)
+			// Surfaces
+			D3DLOCKED_RECT				R[TEX_jitter_count];
+			for (int it=0; it<TEX_jitter_count; it++)
 			{
-				int w = TEX_jitter, h = TEX_jitter;
-				if (it >= TEX_jitter_count)
-				{
-					w = hd_width;
-					h = hd_height;
-				}
-
 				string_path					name;
 				sprintf						(name,"%s%d",r2_jitter,it);
-				R_CHK	(D3DXCreateTexture	(HW.pDevice,w,h,1,0,D3DFMT_Q8W8V8U8,D3DPOOL_MANAGED,&t_noise_surf[it]));
+				R_CHK	(D3DXCreateTexture	(HW.pDevice,TEX_jitter,TEX_jitter,1,0,D3DFMT_Q8W8V8U8,D3DPOOL_MANAGED,&t_noise_surf[it]));
 				t_noise[it]					= Device.Resources->_CreateTexture	(name);
 				t_noise[it]->surface_set	(t_noise_surf[it]);
 				R_CHK						(t_noise_surf[it]->LockRect	(0,&R[it],0,0));
-
-				// Fill it,
-				for (int y = 0; y < h; y++)
-				{
-					for (int x = 0; x < w; x++)					
-					{
-						DWORD	data;						
-						generate_jitter(&data, 1);
-						u32*	p = (u32*)(LPBYTE(R[it].pBits) + y*R[it].Pitch + x * 4);
-						*p = data;						
-					}
-				}
-
-				Msg("RENDER: unlocking texture %d, size = %d x %d ", it, w, h);
-				R_CHK(t_noise_surf[it]->UnlockRect(0));
 			}
 
-
+			// Fill it,
+			for (u32 y=0; y<TEX_jitter; y++)
+			{
+				for (u32 x=0; x<TEX_jitter; x++)
+				{
+					DWORD	data	[TEX_jitter_count];
+					generate_jitter	(data,TEX_jitter_count);
+					for (u32 it=0; it<TEX_jitter_count; it++)
+					{
+						u32*	p	=	(u32*)	(LPBYTE (R[it].pBits) + y*R[it].Pitch + x*4);
+								*p	=	data	[it];
+					}
+				}
+			}
+			for (int it=0; it<TEX_jitter_count; it++)	{
+				R_CHK						(t_noise_surf[it]->UnlockRect(0));
+			}
 		}
 	}
 
@@ -498,7 +485,7 @@ CRenderTarget::~CRenderTarget	()
 	_RELEASE					(rt_smap_ZB);
 
 	// Jitter
-	for (int it = 0; it<(TEX_jitter_count + extra_textures); it++)	{
+	for (int it=0; it<TEX_jitter_count; it++)	{
 		t_noise	[it]->surface_set	(NULL);
 #ifdef DEBUG
 		_SHOW_REF("t_noise_surf[it]",t_noise_surf[it]);
@@ -521,4 +508,22 @@ CRenderTarget::~CRenderTarget	()
 	xr_delete					(b_accum_direct			);
 	xr_delete					(b_accum_mask			);
 	xr_delete					(b_occq					);
+
+	__try  // destruction debug
+	{
+		s_occq			= NULL;
+		s_accum_mask	= NULL;
+		s_accum_direct  = NULL;
+		s_accum_point	= NULL;
+		s_accum_spot	= NULL;
+		s_accum_reflected = NULL;
+		s_bloom = NULL;
+
+	}
+	__except (SIMPLE_FILTER)
+	{
+		Log("! #EXCEPTION: in CRenderTarget destructor");
+	}
+
+	MsgCB("# #DBG: CRenderTarget destructor completed!");
 }

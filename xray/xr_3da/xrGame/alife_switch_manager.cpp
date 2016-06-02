@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: alife_switch_manager.cpp
 //	Created 	: 25.12.2002
-//  Modified 	: 12.05.2004
+//  Modified 	: 12.11.2014
 //	Author		: Dmitriy Iassenev
 //	Description : ALife Simulator switch manager
 ////////////////////////////////////////////////////////////////////////////
@@ -77,18 +77,25 @@ void CALifeSwitchManager::remove_online(CSE_ALifeDynamicObject *object, bool upd
 	START_PROFILE("ALife/switch/remove_online")
 	object->m_bOnline			= false;
 	
-	m_saved_chidren				= object->children;
+	m_saved_children			= object->children;
 	CSE_ALifeTraderAbstract		*inventory_owner = smart_cast<CSE_ALifeTraderAbstract*>(object);
-	if (inventory_owner) {
-		m_saved_chidren.erase	(
+	CSE_InventoryBox			*inventory_box	 = smart_cast<CSE_InventoryBox*>(object);
+	CSE_InventoryContainer		*inventory_cont  = smart_cast<CSE_InventoryContainer*>(object);
+
+
+	if (inventory_owner || inventory_box || inventory_cont) {
+		m_saved_children.erase	(
 			std::remove_if(
-				m_saved_chidren.begin(),
-				m_saved_chidren.end(),
+				m_saved_children.begin(),
+				m_saved_children.end(),
 				remove_non_savable_predicate(&server())
 			),
-			m_saved_chidren.end()
+			m_saved_children.end()
 		);
 	}
+	if (strstr(object->name(), "rucksack"))
+		Msg("# processing remove_offline for %s id = %d, saved_children = %d ",
+				object->name(), object->ID, m_saved_children.size());
 
 	server().Perform_destroy	(object,net_flags(TRUE,TRUE));
 	VERIFY						(object->children.empty());
@@ -101,7 +108,7 @@ void CALifeSwitchManager::remove_online(CSE_ALifeDynamicObject *object, bool upd
 		Msg						("[LSS] Destroying object [%s][%s][%d]",object->name_replace(),*object->s_name,object->ID);
 #endif
 
-	object->add_offline			(m_saved_chidren,update_registries);
+	object->add_offline			(m_saved_children,update_registries);
 	STOP_PROFILE
 }
 

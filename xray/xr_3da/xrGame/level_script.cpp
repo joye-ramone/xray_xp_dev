@@ -673,6 +673,19 @@ u8  get_level_id(CLevelGraph *graph) { return graph->level_id(); }
 u32 get_vertex_count(CLevelGraph *graph) { return graph->header().vertex_count(); }
 
 
+void reinit_shown_ui()
+{
+	if (auto pUI = HUD().GetUI() )
+	{
+		if (auto pGameSP = smart_cast<CUIGameSP*>(pUI->UIGame()) )
+		{
+			pGameSP->ReInitShownUI();
+		}
+	}
+}
+
+
+
 #pragma optimize("s",on)
 void CLevel::script_register(lua_State *L)
 {
@@ -854,8 +867,8 @@ void CLevel::script_register(lua_State *L)
 		def("get_trade_wnd",		&get_trade_wnd),
 		// alpet: сокращенные функции запуска-остановки диалогов
 		def("start_dialog",			&start_dialog),
-		def("stop_dialog",			&stop_dialog)			
-
+		def("stop_dialog",			&stop_dialog),
+		def("reinit_shown_ui",		&reinit_shown_ui)
 	];
 }
  

@@ -11,7 +11,9 @@
 #include "../../xrNetServer/net_utils.h"
 #include "clsid_game.h"
 #include "xrServer_Objects_ALife_Items.h"
-#include "clsid_game.h"
+#include "migration.h"
+
+#pragma optimize("gyts", off)
 
 #ifndef XRGAME_EXPORTS
 #	include "bone.h"
@@ -304,7 +306,6 @@ void CSE_ALifeItem::OnEvent					(NET_Packet &tNetPacket, u16 type, u32 time, Cli
 CSE_ALifeItemTorch::CSE_ALifeItemTorch		(LPCSTR caSection) : CSE_ALifeItem(caSection)
 {
 	m_active					= false;
-	m_nightvision_active		= false;
 	m_attached					= false;
 }
 
@@ -337,7 +338,6 @@ void CSE_ALifeItemTorch::UPDATE_Read		(NET_Packet	&tNetPacket)
 	
 	BYTE F = tNetPacket.r_u8();
 	m_active					= !!(F & eTorchActive);
-	m_nightvision_active		= !!(F & eNightVisionActive);
 	m_attached					= !!(F & eAttached);
 }
 
@@ -347,12 +347,72 @@ void CSE_ALifeItemTorch::UPDATE_Write		(NET_Packet	&tNetPacket)
 
 	BYTE F = 0;
 	F |= (m_active ? eTorchActive : 0);
-	F |= (m_nightvision_active ? eNightVisionActive : 0);
 	F |= (m_attached ? eAttached : 0);
 	tNetPacket.w_u8(F);
 }
 
 void CSE_ALifeItemTorch::FillProps			(LPCSTR pref, PropItemVec& values)
+{
+	inherited::FillProps			(pref,	 values);
+}
+
+
+////////////////////////////////////////////////////////////////////////////
+// CSE_ALifeItemNVD
+////////////////////////////////////////////////////////////////////////////
+CSE_ALifeItemNVD::CSE_ALifeItemNVD		(LPCSTR caSection) : CSE_ALifeItem(caSection)
+{
+	m_active					= false;	
+	m_attached					= false;
+	m_enabled					= true;
+}
+
+CSE_ALifeItemNVD::~CSE_ALifeItemNVD		()
+{
+}
+
+BOOL	CSE_ALifeItemNVD::Net_Relevant			()
+{
+	if (m_attached) return true;
+	return inherited::Net_Relevant();
+}
+
+
+void CSE_ALifeItemNVD::STATE_Read			(NET_Packet	&tNetPacket, u16 size)
+{
+	if (m_wVersion > 20)
+		inherited::STATE_Read	(tNetPacket,size);
+
+}
+
+void CSE_ALifeItemNVD::STATE_Write		(NET_Packet	&tNetPacket)
+{
+	inherited::STATE_Write		(tNetPacket);
+}
+
+void CSE_ALifeItemNVD::UPDATE_Read		(NET_Packet	&tNetPacket)
+{
+	inherited::UPDATE_Read		(tNetPacket);
+	
+	BYTE F = tNetPacket.r_u8();	
+	m_active					= !!(F & eActive);
+	m_enabled					= !!(F & eEnabled);
+	m_attached					= !!(F & eAttached);
+}
+
+void CSE_ALifeItemNVD::UPDATE_Write		(NET_Packet	&tNetPacket)
+{
+	inherited::UPDATE_Write		(tNetPacket);
+
+	BYTE F = 0;
+
+	F |= (m_active   ?  eActive : 0);
+	F |= (m_enabled  ? eEnabled : 0);
+	F |= (m_attached ? eAttached : 0);
+	tNetPacket.w_u8(F);
+}
+
+void CSE_ALifeItemNVD::FillProps			(LPCSTR pref, PropItemVec& values)
 {
 	inherited::FillProps			(pref,	 values);
 }
@@ -1058,12 +1118,56 @@ void CSE_ALifeItemCustomOutfit::UPDATE_Read		(NET_Packet	&tNetPacket)
 {
 	inherited::UPDATE_Read			(tNetPacket);
 	tNetPacket.r_float_q8			(m_fCondition,0.0f,1.0f);
+	if (m_wVersion >= 120 && tNetPacket.r_elapsed() >= 5)
+	{
+		u32 tag;
+		int _pos = tNetPacket.r_tell();
+		tag = tNetPacket.r_u32();
+		if (tag != 0xBACED078)   // ugly version hack
+		{
+			tNetPacket.r_seek(_pos);
+			return;
+		}
+
+
+
+		m_detailed_condition.clear();
+		int pairs = (int) tNetPacket.r_u8();
+		R_ASSERT(pairs < 100);
+		for (int i = 0; i < pairs; i++)
+		{
+			s16 bone = tNetPacket.r_s16();
+			float cv = tNetPacket.r_float_q16 (0.f, 1.f);
+			m_detailed_condition[bone] = cv;
+		}
+	}
+
 }
 
 void CSE_ALifeItemCustomOutfit::UPDATE_Write		(NET_Packet	&tNetPacket)
 {
 	inherited::UPDATE_Write			(tNetPacket);
-	tNetPacket.w_float_q8			(m_fCondition,0.0f,1.0f);
+	tNetPacket.w_float_q8			(m_fCondition, 0.0f, 1.0f);
+	if (m_wVersion < 120) return;
+	// if (m_wVersion < SPAWN_VERSION);
+	int pairs = m_detailed_condition.size();
+	tNetPacket.w_u32(MIG_PACKET_120);
+	if (pairs >= 0 && pairs < 255)
+		tNetPacket.w_u8((u8)pairs);
+	else
+	{	// not initialized 		
+		tNetPacket.w_u8(0);
+		return;
+	}
+
+
+	for (auto it = m_detailed_condition.begin(); it != m_detailed_condition.end(); it++)
+	{
+		tNetPacket.w_s16(it->first);
+		tNetPacket.w_float_q16 (it->second, 0.f, 1.f);
+	}
+
+
 }
 
 void CSE_ALifeItemCustomOutfit::FillProps			(LPCSTR pref, PropItemVec& items)

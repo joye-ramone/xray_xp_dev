@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: space_restriction_composition.cpp
 //	Created 	: 17.08.2004
-//  Modified 	: 27.08.2004
+//  Modified 	: 21.12.2014
 //	Author		: Dmitriy Iassenev
 //	Description : Space restriction composition
 ////////////////////////////////////////////////////////////////////////////
@@ -12,6 +12,8 @@
 #include "space_restriction_holder.h"
 #include "space_restriction_bridge.h"
 #include "restriction_space.h"
+#include "space_restrictor.h"
+#include "space_restriction_shape.h"
 #include "ai_space.h"
 #include "level_graph.h"
 #include "graph_engine.h"
@@ -26,11 +28,16 @@
 #	include "space_restrictor.h"
 #endif // DEBUG
 
+#pragma optimize("gyts", off)
+
 int g_restriction_checker = 0;
 
 CSpaceRestrictionComposition::~CSpaceRestrictionComposition	()
 {
 	--g_restriction_checker;
+	delete_data(m_restrictions);
+	m_restrictions.clear();
+	m_space_restrictors = "";
 }
 
 struct CMergePredicate {
@@ -49,12 +56,19 @@ struct CMergePredicate {
 
 IC	void CSpaceRestrictionComposition::merge	(CBaseRestrictionPtr restriction)
 {
+
 	m_restrictions.push_back	(restriction);
 	m_border.insert				(m_border.begin(),restriction->border().begin(),restriction->border().end());
 }
 
+bool CSpaceRestrictionComposition::effective() const
+{
+	return ( m_restrictions.size() > 1 ) || m_type_none;
+}
+
 bool CSpaceRestrictionComposition::inside					(const Fsphere &sphere)
 {
+	m_last_inside = false;
 	if (!initialized()) {
 		initialize				();
 		if (!initialized())
@@ -66,46 +80,82 @@ bool CSpaceRestrictionComposition::inside					(const Fsphere &sphere)
 
 	RESTRICTIONS::iterator		I = m_restrictions.begin();
 	RESTRICTIONS::iterator		E = m_restrictions.end();
-	for ( ; I != E; ++I)
-		if ((*I)->inside(sphere))
-			return				(true);
+	for (; I != E;)
+	{
+		RESTRICTIONS::iterator curr = I; I++;
+		auto &srb = *curr;		
+		const auto &base = srb->object();
+		const CSpaceRestrictionShape *shape = smart_cast<const CSpaceRestrictionShape*> (&base);
+		if (shape)
+		{
+			CSpaceRestrictor *rest = shape->m_restrictor;
+			if (NULL == rest || NULL == rest->CFORM())
+			{
+				Msg("! #ERR: attempt check restrictor 0x%p  without CFORM. Probably restrictor object was destroyed! Restriction create time = %d ", 
+								rest, shape->m_create_time);
+				m_restrictions.erase(curr);
+				// return (false);
+				continue;
+			}
+		}
+					
+		m_last_inside = (srb->inside(sphere));
+		if (m_last_inside)
+			break;
+	}
 
-	return						(false);
+	return						(m_last_inside);
 }
 
 void CSpaceRestrictionComposition::initialize	()
 {
 	u32							n = _GetItemCount(*m_space_restrictors);
 	VERIFY						(n);
-	if (n == 1) {
+	if (n == 1) { // случай фейкового рестриктора-заглушки, его бесполезно инициализировать		 
 #ifdef DEBUG		
 		m_correct				= true;
 		check_restrictor_type	();
 #endif
+		m_init_count++;
+		// m_initialized			= true;
 		return;
 	}
 
 	string256					element;
 
-	for (u32 i=0; i<n ;++i)
-		if (!m_space_restriction_holder->restriction(_GetItem(*m_space_restrictors,i,element))->initialized())
-			return;
+	u32 good = 0;
 
-	Fsphere						*spheres = (Fsphere*)_alloca(n*sizeof(Fsphere));
-	for (u32 i=0; i<n ;++i) {
-		SpaceRestrictionHolder::CBaseRestrictionPtr	restriction = 
-			m_space_restriction_holder->restriction(
-				_GetItem(
-					*m_space_restrictors,
-					i,
-					element
-				)
-			);
-
-		merge					(restriction);
-
-		spheres[i]				= restriction->sphere();
+	for (u32 i = 0; i < n; ++i) {
+		LPCSTR name = _GetItem(*m_space_restrictors, i, element);
+		auto restr = m_space_restriction_holder->restriction(name);
+		if (restr->initialized())
+			good++;
+		else
+		{
+			restr->initialize();
+			if (!restr->initialized())
+			{
+				// MsgCB("! #FAILED: initialize restriction %s", name);
+				return;
+			}
+		}
 	}
+
+	if (!good) return;
+	good = 0;
+
+	Fsphere						*spheres = (Fsphere*)_alloca(n * sizeof(Fsphere));
+	for (u32 i = 0; i < n; ++i) {
+		LPCSTR name = _GetItem(*m_space_restrictors, i, element);
+		auto restr	= m_space_restriction_holder->restriction(name);
+		if (restr->initialized()) {
+			merge(restr);
+			spheres[good] = restr->sphere();
+			good++;
+		}
+	}
+
+	m_incomplete				= (good < n); // не все входящие элементы инициализированы
 
 	// computing almost minimum sphere which covers all the almost minimum spheres
 	Fbox3						temp;
@@ -116,7 +166,7 @@ void CSpaceRestrictionComposition::initialize	()
 	temp.max.y					= spheres[0].P.y + spheres[0].R;
 	temp.max.z					= spheres[0].P.z + spheres[0].R;
 
-	for (u32 i=1; i<n; ++i) {
+	for (u32 i=1; i < good; ++i) {
 		temp.min.x				= _min(temp.min.x,spheres[i].P.x - spheres[i].R);
 		temp.min.y				= _min(temp.min.y,spheres[i].P.y - spheres[i].R);
 		temp.min.z				= _min(temp.min.z,spheres[i].P.z - spheres[i].R);
@@ -128,10 +178,12 @@ void CSpaceRestrictionComposition::initialize	()
 	m_sphere.P.mad				(temp.min,temp.max,.5f);
 	m_sphere.R					= m_sphere.P.distance_to(spheres[0].P) + spheres[0].R;
 
-	for (u32 i=1; i<n ;++i)
+	for (u32 i=1; i < good; ++i)
 		m_sphere.R				= _max(m_sphere.R,m_sphere.P.distance_to(spheres[i].P) + spheres[i].R);
 
 	m_sphere.R					+= EPS_L;
+
+	if (m_incomplete) return;
 
 	m_initialized				= true;
 

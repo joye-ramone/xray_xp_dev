@@ -30,6 +30,8 @@
 #include "ljit.h"
 
 
+#pragma comment(lib, "xrCore.lib")
+#pragma optimize("gyts", off)
 
 static const char *getfuncname (lua_State *L, CallInfo *ci, const char **name);
 
@@ -613,7 +615,16 @@ static void addinfo (lua_State *L, const char *msg) {
     int line = currentline(L, ci);
     luaO_chunkid(buff, getstr(getluaproto(ci)->source), LUA_IDSIZE);
     luaO_pushfstring(L, "%s:%d: %s", buff, line, msg);
+	xr_MsgCB("! #addinfo.isLua(L=0x%p): %s:%d: ", (void*)L, buff, line);
   }
+  else
+	  if (ci->func && LUA_TFUNCTION == ci->func->tt)
+	  {
+		  const char* info = GetFunctionInfo(ci->func->value.p);
+		  luaO_pushfstring(L, "ci->func: %s", info);
+		  xr_MsgCB("! #addinfo.!isLua(L=0x%p): %s", (void*)L, info);		  
+	  }
+  
 }
 
 
@@ -629,12 +640,26 @@ void luaG_errormsg (lua_State *L) {
   luaD_throw(L, LUA_ERRRUN);
 }
 
+__declspec(dllimport) void 	__stdcall xr_MsgCB(char* format, ...); 
 
 void luaG_runerror (lua_State *L, const char *fmt, ...) {
   va_list argp;
-  va_start(argp, fmt);
-  addinfo(L, luaO_pushvfstring(L, fmt, argp));
-  va_end(argp);
-  luaG_errormsg(L);
+  const char* info = "(null)";
+  __try
+  {
+	  {
+		  va_start(argp, fmt);
+		  info = luaO_pushvfstring(L, fmt, argp);
+		  xr_MsgCB("! #ERROR(luaG_runerror): %s", info);
+		  addinfo(L, info);
+		  va_end(argp);
+	  }	  
+
+	  luaG_errormsg(L);
+  }
+  __except (1)
+  {
+	  xr_MsgCB("! #EXCEPTION: in luaG_runerror, fmt = '%s'", fmt);
+  }
 }
 

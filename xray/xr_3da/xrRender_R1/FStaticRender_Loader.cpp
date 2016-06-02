@@ -4,7 +4,7 @@
 #include "../xrLevel.h"
 #include "../x_ray.h"
 #include "../IGame_Persistent.h"
-#include "../../xrCore/stream_reader.h"
+#include "../xrCore/stream_reader.h"
 
 #pragma warning(push)
 #pragma warning(disable:4995)
@@ -193,7 +193,7 @@ void CRender::LoadBuffers	(CStreamReader *base_fs)
 			// count, size
 			u32 vCount			= fs->r_u32	();
 			u32 vSize			= D3DXGetDeclVertexSize	(dcl,0);
-			Msg	("* [Loading VB] %d verts, %d Kb",vCount,(vCount*vSize)/1024);
+			MsgV				("7LOAD_GEOM", "* [Loading VB] %d verts, %d Kb",vCount,(vCount*vSize)/1024);
 
 			// Create and fill
 			BYTE*	pData		= 0;

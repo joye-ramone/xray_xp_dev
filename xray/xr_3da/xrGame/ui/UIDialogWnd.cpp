@@ -20,6 +20,11 @@ CUIDialogWnd:: CUIDialogWnd()
 
 CUIDialogWnd::~ CUIDialogWnd()
 {
+	if (m_pHolder)
+	{
+		m_pHolder->RemoveDialogToRender(this); // alpet: подстраховка
+	}
+
 }
 
 void CUIDialogWnd::Show()

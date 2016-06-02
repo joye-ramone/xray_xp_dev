@@ -34,8 +34,8 @@ void CRender::Screenshot		(IRender_interface::ScreenshotMode mode, LPCSTR name)
 {
 	if (!Device.b_is_Ready)			return;
 	if ((psDeviceFlags.test(rsFullscreen)) == 0) {
-		Log("~ Can't capture screen while in windowed mode...");
-		return;
+		// Log("~ Can't capture screen while in windowed mode...");
+		// return;
 	}
 
 	// Create temp-surface
@@ -52,22 +52,24 @@ void CRender::Screenshot		(IRender_interface::ScreenshotMode mode, LPCSTR name)
 	if(hr!=D3D_OK)		return;
 
 	// Image processing (gamma-correct)
-	u32* pPixel		= (u32*)D.pBits;
-	u32* pEnd		= pPixel+(Device.dwWidth*Device.dwHeight);
-	D3DGAMMARAMP	G;
-	Device.Gamma.GenLUT	(G);
-	for (int i=0; i<256; i++) {
-		G.red	[i]	/= 256;
-		G.green	[i]	/= 256;
-		G.blue	[i]	/= 256;
-	}
-	for (;pPixel!=pEnd; pPixel++)	{
-		u32 p = *pPixel;
-		*pPixel = color_xrgb	(
-			G.red	[color_get_R(p)],
-			G.green	[color_get_G(p)],
-			G.blue	[color_get_B(p)]
-			);
+	if (!strstr(Core.Params, "-no_gammacorr")) {
+		u32* pPixel = (u32*)D.pBits;
+		u32* pEnd = pPixel + (Device.dwWidth*Device.dwHeight);
+		D3DGAMMARAMP	G;
+		Device.Gamma.GenLUT(G);
+		for (int i = 0; i < 256; i++) {
+			G.red[i] /= 256;
+			G.green[i] /= 256;
+			G.blue[i] /= 256;
+		}
+		for (; pPixel != pEnd; pPixel++)	{
+			u32 p = *pPixel;
+			*pPixel = color_xrgb(
+				G.red[color_get_R(p)],
+				G.green[color_get_G(p)],
+				G.blue[color_get_B(p)]
+				);
+		}
 	}
 	hr					= pFB->UnlockRect();
 	if(hr!=D3D_OK)		goto _end_;

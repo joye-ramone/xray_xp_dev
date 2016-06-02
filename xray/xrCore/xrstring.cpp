@@ -7,6 +7,8 @@ XRCORE_API	extern		str_container*	g_pStringContainer	= NULL;
 
 #define		HEADER		12			// ref + len + crc
 
+// #pragma optimize("gyts", off)
+
 str_value*	str_container::dock		(str_c value)
 {
 	if (0==value)				return 0;
@@ -21,7 +23,7 @@ str_value*	str_container::dock		(str_c value)
 	// calc len
 	u32		s_len				= xr_strlen(value);
 	u32		s_len_with_zero		= (u32)s_len+1;
-	VERIFY	(HEADER+s_len_with_zero < 4096);
+	// FORCE_VERIFY	(HEADER + s_len_with_zero < 4096);
 
 	// setup find structure
 	string16	header;
@@ -37,19 +39,19 @@ str_value*	str_container::dock		(str_c value)
 		cdb::iterator	save	= I;
 		for (; I!=container.end() && (*I)->dwCRC == sv->dwCRC; ++I)	{
 			str_value*	V		= (*I);
-			if	(V->dwLength!=sv->dwLength)			continue;
-			if	(0!=memcmp(V->value,value,s_len))	continue;
+			if	(V->dwLength != sv->dwLength)			continue;
+			if	(0 != memcmp(V->value,value,s_len))	continue;
 			result				= V;				// found
 			break;
 		}
 	}
 
 	// it may be the case, string is not fount or has "non-exact" match
-	if (0==result)				{
+	if (0 == result) {
 		// Insert string
 //		DUMP_PHASE;
 
-		result					= (str_value*)Memory.mem_alloc(HEADER+s_len_with_zero
+		result					= (str_value*)Memory.mem_alloc(HEADER + s_len_with_zero
 #ifdef DEBUG_MEMORY_NAME
 			, "storage: sstring"
 #endif // DEBUG_MEMORY_NAME
@@ -58,53 +60,38 @@ str_value*	str_container::dock		(str_c value)
 //		DUMP_PHASE;
 
 		result->dwReference		= 0;
-		result->dwLength		= sv->dwLength;
+		result->dwLength			= sv->dwLength;
 		result->dwCRC			= sv->dwCRC;
-		CopyMemory				(result->value,value,s_len_with_zero);
+		CopyMemory				(result->value, value, s_len_with_zero);
 		container.insert		(result);
 	}
 	cs.Leave					();
 
 	return	result;
 }
-
-void str_container::clean()
+#pragma optimize("gyts", off)
+void		str_container::clean	()
 {
-	cs.Enter();
-	for (auto it = container.begin(); it != container.end(); )	
-	{
-		auto	sv		= *it;
-		auto	curr	= it++;
-
-		if (!sv->dwReference)	
+	cs.Enter	();
+	cdb::iterator	it	= container.begin	();
+	cdb::iterator	end	= container.end		();
+	for (; it!=end; )	{
+		str_value*	sv = *it;
+		if (0==sv->dwReference)	
 		{
-			auto	len_flag = (sv->dwLength == xr_strlen(sv->value) );
-			if (!len_flag)
-			{
-				Msg("! WARNING! xrCore:str_container::clean: string len[%d] corruption", sv->dwLength);
-			}
-			else
-			{
-				auto	crc_flag = (sv->dwCRC == crc32(sv->value,sv->dwLength) );
-				if (!crc_flag)
-				{
-					Msg("! WARNING! xrCore:str_container::clean: string crc[%d] corruption", sv->dwCRC);
-				}
-				else
-				{
-					xr_free(sv); // Очищать будем заведомо корректную память.
-				}
-			}
-			container.erase(curr); // Скорее всего тут будет утечка на проблемных строках, которые не очищаются.
-		} 
+			cdb::iterator	i_current	= it;
+			cdb::iterator	i_next		= ++it;
+			xr_free			(sv);
+			container.erase	(i_current);
+			it							= i_next;
+		} else {
+			it++;
+		}
 	}
-
-	if (container.empty() )
-	{
-		container.clear();
-	}
-	cs.Leave();
+	if (container.empty())	container.clear	();
+	cs.Leave	();
 }
+#pragma optimize("gyts", on)
 
 void		str_container::verify	()
 {
@@ -154,6 +141,18 @@ u32			str_container::stat_economy		()
 
 str_container::~str_container		()
 {
+	cdb::iterator	it	= container.begin	();
+	cdb::iterator	end	= container.end		();
+	u32 unref = 0;
+	for (; it != end; it++)	{
+		str_value*	sv = *it;
+		if (sv->dwReference > 0)
+			unref++;			
+		sv->dwReference = 0;		
+	}
+
 	clean	();
+	if (unref > 0)
+		MsgCB ("!#LEAK: unreferenced shared strings = %d", unref);
 	//R_ASSERT(container.empty());
 }

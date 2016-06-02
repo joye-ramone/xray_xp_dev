@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: alife_storage_manager.h
 //	Created 	: 25.12.2002
-//  Modified 	: 12.05.2004
+//  Modified 	: 23.10.2014
 //	Author		: Dmitriy Iassenev
 //	Description : ALife Simulator storage manager
 ////////////////////////////////////////////////////////////////////////////
@@ -32,7 +32,7 @@ public:
 			bool	load					(LPCSTR	save_name = 0);
 			void	save					(LPCSTR	save_name = 0, bool update_name = true);
 			void	save					(NET_Packet &net_packet);
-	IC		LPCSTR	save_name				(BOOL bLoaded);	
+	IC		LPCSTR	save_name				(BOOL bLoaded) const;	
 			
 };
 

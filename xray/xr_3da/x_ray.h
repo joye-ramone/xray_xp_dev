@@ -26,6 +26,9 @@ private:
 	ref_shader				sh_progress;
 //	ref_shader				sh_progress2;
 	int						load_stage;
+	float					load_times[4];
+	CTimer					load_timer;
+
 	shared_str				load_texture;	
 	shared_str				curr_texture;
 
@@ -50,8 +53,10 @@ public:
 	void					Level_Set			(u32 ID);
 
 	// Loading
+	void				    LoadPrepare			();
 	void					LoadBegin			();
 	void					LoadEnd				();
+	int						LoadStage			();
 	void					LoadTitleInt		(LPCSTR str);
 	void					SetLoadLogo			(ref_shader NewLoadLogo);
 	void					LoadSwitch			();

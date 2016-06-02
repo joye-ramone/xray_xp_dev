@@ -4,6 +4,8 @@
 #include "igame_objectpool.h"
 #include "xr_object.h"
 
+#pragma optimize("gyts", off)
+
 IGame_ObjectPool::IGame_ObjectPool(void)
 {
 }
@@ -50,6 +52,7 @@ void IGame_ObjectPool::clear()
 
 CObject*	IGame_ObjectPool::create			( LPCSTR	name	)
 {
+	R_ASSERT2 (name, "IGame_ObjectPool::create(NULL)!" );
 	CLASS_ID CLS		=	pSettings->r_clsid		(name,"class");
 	CObject* O			=	(CObject*) NEW_INSTANCE	(CLS);
 	O->Load				(name);

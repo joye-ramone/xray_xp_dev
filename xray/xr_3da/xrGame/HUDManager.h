@@ -42,9 +42,12 @@ class CHUDManager :
 {
 	friend class CUI;
 private:
+	typedef xr_map<CUIWindow*, u32> CUIGarbage;
+
 	CUI*					pUI;
 	CHitMarker				HitMarker;
 	CHUDTarget*				m_pHUDTarget;
+	CUIGarbage				m_ui_garbage;
 	bool					b_online;
 public:
 							CHUDManager			();
@@ -67,7 +70,8 @@ public:
 	//текущий предмет на который смотрит HUD
 	collide::rq_result&		GetCurrentRayQuery	();
 
-
+	void					ProcessDestroy		(u32 time_now);  // alpet: уничтожение окон из списка m_ui_garbage
+	void					PostDestroy			(CUIWindow *wnd, u32 after);
 	//устанвка внешнего вида прицела в зависимости от текущей дисперсии
 	void					SetCrosshairDisp	(float dispf, float disps = 0.f);
 	void					ShowCrosshair		(bool show);
@@ -76,5 +80,6 @@ public:
 	virtual void			OnScreenRatioChanged();
 	virtual void			OnDisconnected		();
 	virtual void			OnConnected			();
-	virtual void			net_Relcase			(CObject *object);
+	virtual void			net_Relcase			(CObject *object);	
+
 };

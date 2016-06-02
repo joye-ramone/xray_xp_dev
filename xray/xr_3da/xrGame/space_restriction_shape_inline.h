@@ -1,12 +1,16 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: space_restriction_shape_inline.h
 //	Created 	: 17.08.2004
-//  Modified 	: 27.08.2004
+//  Modified 	: 21.12.2014
 //	Author		: Dmitriy Iassenev
 //	Description : Space restriction shape inline functions
 ////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+
+#include "space_restrictor.h"
+
+extern int g_game_cycle;
 
 IC	Fvector	CSpaceRestrictionShape::position		(const CCF_Shape::shape_def &data) const
 {
@@ -36,17 +40,21 @@ IC	CSpaceRestrictionShape::CSpaceRestrictionShape	(CSpaceRestrictor *space_restr
 {
 	m_default					= default_restrictor;
 	m_initialized				= true;
-	
+	m_bridge					= NULL;
 
-	VERIFY						(space_restrictor);
+	R_ASSERT					(space_restrictor);
 	m_restrictor				= space_restrictor;
+	m_restrictor->m_owner_shape = this;	
+
+	m_create_cycle				= g_game_cycle;
+	m_create_time				= Device.dwTimeGlobal;
 	
 	build_border				();
 }
 
 IC	void CSpaceRestrictionShape::initialize			()
 {
-	VERIFY						(m_initialized);
+	FORCE_VERIFY				(m_initialized);
 }
 
 IC	bool CSpaceRestrictionShape::shape				() const

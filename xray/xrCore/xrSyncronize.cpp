@@ -39,6 +39,8 @@ xrCriticalSection::xrCriticalSection	()
 {
 	pmutex							= xr_alloc<CRITICAL_SECTION>(1);
 	InitializeCriticalSection		( (CRITICAL_SECTION*)pmutex	);
+	dwCreatorThread					= GetCurrentThreadId();
+	dwOwnerThread					= NULL;
 }
 
 xrCriticalSection::~xrCriticalSection	()
@@ -51,6 +53,13 @@ xrCriticalSection::~xrCriticalSection	()
 	extern void OutputDebugStackTrace	(const char *header);
 #endif // DEBUG
 
+LPCSTR  xrCriticalSection::Dump		()
+{
+	static string256 temp;
+	sprintf_s(temp, 256, "pmutex = 0x%p, creator = %d, owner = %d", pmutex, dwCreatorThread, dwOwnerThread);
+	return temp;
+}
+
 void	xrCriticalSection::Enter	()
 {
 #ifdef PROFILE_CRITICAL_SECTIONS
@@ -62,14 +71,19 @@ void	xrCriticalSection::Enter	()
 	profiler						temp(m_id);
 #endif // PROFILE_CRITICAL_SECTIONS
 	EnterCriticalSection			( (CRITICAL_SECTION*)pmutex );
+	dwOwnerThread					= GetCurrentThreadId();
 }
 
 void	xrCriticalSection::Leave	()
 {
 	LeaveCriticalSection			( (CRITICAL_SECTION*)pmutex );
+	dwOwnerThread					= NULL;
 }
 
 BOOL	xrCriticalSection::TryEnter	()
 {
-	return TryEnterCriticalSection	( (CRITICAL_SECTION*)pmutex );
+	BOOL result = TryEnterCriticalSection	( (CRITICAL_SECTION*)pmutex );
+	if (result)
+		dwOwnerThread					= GetCurrentThreadId();
+	return result;
 }

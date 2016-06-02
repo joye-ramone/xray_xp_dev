@@ -74,7 +74,7 @@ void CLightProjector::set_object	(IRenderable* O)
 				spatial->spatial_updatesector	();
 				if (0==spatial->spatial.sector)	{
 					CObject*		obj = dynamic_cast<CObject*>(O);
-					if (obj)		Msg	("! Invalid object '%s' position. Outside of sector structure.",obj->cName().c_str());
+					if (obj)		Msg	("! Invalid object '%s' position. Outside of sector structure.",obj->Name_script());
 					current			= 0;
 				}
 			}

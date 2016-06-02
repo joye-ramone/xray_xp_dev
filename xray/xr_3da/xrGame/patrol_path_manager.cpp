@@ -11,13 +11,18 @@
 #include "patrol_path_manager.h"
 #include "script_game_object.h"
 #include "restricted_object.h"
+#include "space_restriction_bridge.h"
+#include "space_restriction_base.h"
 #include "ai_space.h"
 #include "script_engine.h"
 #include "ai_object_location.h"
 #include "script_entity_space.h"
 #include "script_callback_ex.h"
 #include "game_object_space.h"
+#include "xrServer_Objects_ALife.h"
 #include "level_graph.h"
+
+#pragma optimize("gyts", off)
 
 #if 1//def DEBUG
 #	include "space_restriction_manager.h"
@@ -25,22 +30,30 @@
 static void show_restrictions	(LPCSTR restrictions)
 {
 	string256			temp;
-	for (int i=0, n=_GetItemCount(restrictions); i<n; ++i)
-		Msg				("     %s",_GetItem(restrictions,i,temp));
+	SpaceRestrictionHolder::CBaseRestrictionPtr	restr;
+
+	for (int i = 0, n = _GetItemCount(restrictions); i < n; ++i)
+	{
+		LPCSTR id   = _GetItem(restrictions, i, temp);
+		restr = Level().space_restriction_manager().restriction(id);
+		auto *impl = restr->get_implementation();
+		LPCSTR prefix = impl->m_last_inside ? "$     in" : "&     out";		
+		MsgCB("%s %s", prefix, id);
+	}
 }
 
 bool show_restrictions			(CRestrictedObject *object)
 {
-	Msg					("DEFAULT OUT RESTRICTIONS :");
+	MsgCB					("DEFAULT OUT RESTRICTIONS :");
 	show_restrictions	(*Level().space_restriction_manager().default_out_restrictions() ? *Level().space_restriction_manager().default_out_restrictions() : "");
 
-	Msg					("DEFAULT IN RESTRICTIONS  :");
+	MsgCB					("DEFAULT IN RESTRICTIONS  :");
 	show_restrictions	(*Level().space_restriction_manager().default_in_restrictions()  ? *Level().space_restriction_manager().default_in_restrictions()  : "");
 
-	Msg					("OUT RESTRICTIONS         :");
+	MsgCB					("OUT RESTRICTIONS         :");
 	show_restrictions	(*object->out_restrictions() ? *object->out_restrictions() : "");
 
-	Msg					("IN RESTRICTIONS          :");
+	MsgCB					("IN RESTRICTIONS          :");
 	show_restrictions	(*object->in_restrictions()  ? *object->in_restrictions()  : "");
 
 	return				(false);
@@ -145,14 +158,30 @@ void CPatrolPathManager::select_point(const Fvector &position, u32 &dest_vertex_
 			}
 			default			: NODEFAULT;
 		}
-		R_ASSERT2			(
-			vertex || show_restrictions(m_object),
-			make_string(
-				"any vertex in patrol path [%s] in inaccessible for object [%s]",
-				*m_path_name,
-				*m_game_object->cName()
-			)
-		);
+
+		if (vertex || show_restrictions(m_object))
+		{
+		   // vertex found, ok?	
+		}
+		else
+		{
+			Msg("!#WARN: any vertex in patrol path [%s] inaccessible for object [%s]. Trying reset path",	*m_path_name, *m_game_object->cName());
+			m_actuality			= true;
+			m_completed			= false;
+			vertex				= m_path->vertex(0); // m_game_object->level_vertex_id();			
+			
+			auto *se_obj = m_game_object->alife_object();
+			if (!vertex && se_obj)
+			{
+				m_game_object->Position().y -= 5.f;
+				se_obj->position().y -= 5.f;
+				se_obj->try_switch_offline();
+			}
+						// Fvector dir; dir.set (0, 0, 0);
+			// SHit HDS = SHit(300.f, dir, m_game_object, 0, m_game_object->Position(), 0.f, ALife::eHitTypeTelepatic);
+			// m_game_object->Hit(&HDS);
+			return;
+		}
 		R_ASSERT2			(
 			ai().level_graph().valid_vertex_id(vertex->data().level_vertex_id()),
 			make_string(

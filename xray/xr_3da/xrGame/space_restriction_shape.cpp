@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: space_restriction_shape.cpp
 //	Created 	: 17.08.2004
-//  Modified 	: 27.08.2004
+//  Modified 	: 21.12.2014
 //	Author		: Dmitriy Iassenev
 //	Description : Space restriction shape
 ////////////////////////////////////////////////////////////////////////////
@@ -52,8 +52,20 @@ struct CShapeTestPredicate {
 #endif
 
 
+CSpaceRestrictionShape::~CSpaceRestrictionShape()
+{
+	if (m_restrictor)
+		m_restrictor->m_owner_shape = NULL;
+}
+
 void CSpaceRestrictionShape::fill_shape		(const CCF_Shape::shape_def &shape)
 {
+	if (!m_restrictor)
+	{
+		Msg("! #ERROR: CSpaceRestrictionShape::fill_shape m_restrictor == NULL ");
+		return;
+	}
+
 	Fvector							start,dest;
 	switch (shape.type) {
 		case 0 : {
@@ -211,6 +223,13 @@ void CSpaceRestrictionShape::test_correctness	()
 
 bool CSpaceRestrictionShape::inside	(const Fsphere &sphere)
 {
+	if (!m_restrictor)
+	{
+		// Msg("!#ERROR: CSpaceRestrictionShape::inside m_restrictor == NULL ");
+		return (false);
+	}
+
+
 	VERIFY							(m_initialized);
 	VERIFY							(m_restrictor);
 	return							(m_restrictor->inside(sphere));
@@ -218,6 +237,12 @@ bool CSpaceRestrictionShape::inside	(const Fsphere &sphere)
 
 shared_str	CSpaceRestrictionShape::name() const
 {
+	if (!m_restrictor)
+	{
+		Msg("!#ERROR: CSpaceRestrictionShape::fill_shape m_restrictor == NULL ");
+		return "(null)";
+	}
+
 	VERIFY							(m_restrictor);
 	return							(m_restrictor->cName());
 }
@@ -225,6 +250,13 @@ shared_str	CSpaceRestrictionShape::name() const
 Fsphere CSpaceRestrictionShape::sphere	() const
 {
 	Fsphere							result;
+	if (!m_restrictor)
+	{
+		result.P.set(0, 0, 0);
+		result.R = 0;
+		Msg("! #ERROR: CSpaceRestrictionShape::sphere m_restrictor == NULL ");
+		return result;
+	}
 	m_restrictor->Center			(result.P);
 	result.R						= m_restrictor->Radius();
 	return							(result);

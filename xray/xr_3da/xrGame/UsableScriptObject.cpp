@@ -22,7 +22,7 @@ bool CUsableScriptObject::use(CGameObject* who_use)
 	VERIFY(who_use);
 	CGameObject* pThis = smart_cast<CGameObject*>(this); VERIFY(pThis);
 	
-	pThis->callback(GameObject::eUseObject)(pThis->lua_game_object(),who_use->lua_game_object());
+	pThis->callback(GameObject::eUseObject)(pThis->lua_game_object(), who_use->lua_game_object());
 
 	return true;
 }

@@ -43,7 +43,7 @@ protected:
 	//-1 - порция одна и больше не бывает (чтоб не выводить надпись в меню)
 	int						m_iPortionsNum;
 	int						m_iStartPortionsNum;
-
+	
 	// Для поддержки серверного класса. Real Wolf. 09.09.2014.
 	virtual void			net_Export(NET_Packet&);
 	virtual void			net_Import(NET_Packet&);

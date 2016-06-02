@@ -455,7 +455,7 @@ void game_cl_mp::OnChatMessage(NET_Packet* P)
 	{
 	case 0: Msg("%s: %s : %s",		*st.translate("mp_chat"), PlayerName, ChatMsg); break;
 	case 1: Msg("- %s: %s : %s",	*st.translate("mp_chat"), PlayerName, ChatMsg); break;
-	case 2: Msg("~ %s: %s : %s",	*st.translate("mp_chat"), PlayerName, ChatMsg); break;
+	case 2: Msg("# %s: %s : %s",	*st.translate("mp_chat"), PlayerName, ChatMsg); break;
 	}
 	
 //#endif

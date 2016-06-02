@@ -30,4 +30,7 @@ LUAI_FUNC void luaG_errormsg (lua_State *L);
 LUAI_FUNC int luaG_checkcode (const Proto *pt);
 LUAI_FUNC int luaG_checkopenop (Instruction i);
 
+__declspec(dllimport) void 		  __stdcall xr_MsgCB(char* format, ...);  // alpet: вывод ошибок средствами xrCore log
+__declspec(dllimport) const char* __stdcall GetFunctionInfo(void *p);	  // alpet: получение информации о функции по указателю	
+
 #endif

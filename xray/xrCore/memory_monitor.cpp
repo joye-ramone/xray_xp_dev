@@ -16,6 +16,7 @@ STATIC LPCSTR					output_extension = ".bin";
 STATIC bool						detaching = false;
 STATIC CRITICAL_SECTION			critical_section;
 
+
 namespace memory_monitor {
 STATIC inline FILE *file()
 {
@@ -129,7 +130,7 @@ void memory_monitor::monitor_free		(const void *deallocation_address)
 		fwrite					(&deallocation_address,sizeof(deallocation_address),1,file());
 		fwrite					(&temp,sizeof(temp),1,file());
 #else
-		fprintf (file(), "-%p\n", deallocation_address);
+		fprintf (file(), "-%08p\n", deallocation_address);
 #endif
 	}
 

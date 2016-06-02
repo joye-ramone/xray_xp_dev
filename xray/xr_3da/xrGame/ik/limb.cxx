@@ -454,8 +454,8 @@ int Limb::SetGoal(const Matrix  G, int limits)
 
 static void init_error(char *msg)
 {
-    fprintf(stderr, "You forgot to call SetGoal or SetGoalPos in %s\n", msg);
-    exit(0);
+	Msg("! #FATAL: You forgot to call SetGoal or SetGoalPos in %s\n", msg);
+    abort();
 }
 
 //

@@ -119,9 +119,11 @@ public:
 	IDirect3DQuery9*											q_sync_point[2]	;
 	u32															q_sync_count	;
 private:
+	int															i_swi_allocated;
+
 	// Loading / Unloading
 	void							LoadBuffers					(CStreamReader	*fs,	BOOL	_alternative);
-	void							LoadVisuals					(IReader	*fs);
+	void							LoadVisuals					(IReader	*fs, bool is_chunk);
 	void							LoadLights					(IReader	*fs);
 	void							LoadPortals					(IReader	*fs);
 	void							LoadSectors					(IReader	*fs);
@@ -159,6 +161,7 @@ public:
 	IC u32							occq_begin					(u32&	ID		)	{ return HWOCC.occq_begin	(ID);	}
 	IC void							occq_end					(u32&	ID		)	{ HWOCC.occq_end	(ID);			}
 	IC u32							occq_get					(u32&	ID		)	{ return HWOCC.occq_get		(ID);	}
+	IC float						occq_elapsed				(				)   { return HWOCC.occq_elapsed (  );	}
 
 	ICF void						apply_object				(IRenderable*	O)
 	{
@@ -196,8 +199,7 @@ public:
 
 	virtual	void					level_Load					(IReader*);
 	virtual void					level_Unload				();
-
-	virtual IDirect3DBaseTexture9*	texture_load			(LPCSTR	fname, u32& msize);
+				
 	virtual HRESULT					shader_compile			(
 		LPCSTR							name,
 		LPCSTR                          pSrcData,

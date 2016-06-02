@@ -28,6 +28,7 @@ IRender_Visual::IRender_Visual		()
 	vis.clear			();
 	shader_name			= 0;
 	textures			= 0;
+	prefetched			= false;
 }
 
 IRender_Visual::~IRender_Visual		()
@@ -45,7 +46,18 @@ void IRender_Visual::Load		(const char* N, IReader *data, u32 )
 #ifdef DEBUG
 	dbg_name	= N;
 #endif	
+	MsgCB("$#CONTEXT: Loading visual %s from reader 0x%p pointer = 0x%p, position = %d, elapsed = %d", N, data, data->pointer(), data->tell(), data->elapsed());
 
+	static volatile ULONG load_count = 0;
+	ULONG last = InterlockedIncrement(&load_count);
+	if (last % 1500 == 0)
+		MsgCB ("##PERF: loading %d visual/mesh... ", last);
+
+
+
+	R_ASSERT2(!IsBadReadPtr(data->pointer(), data->elapsed()), "Invalid data pointer in IReader");
+	R_ASSERT2(data->length_mib() < 4250, make_string("to large reader size = %.3lf MiB for %s ", data->length_mib(), N));
+	// if (data->length64() > 0) R_ASSERT2(data->tell64() < data->length64(),	 make_string("reader position %lf >= size %lf for %s", data->tell_mib(), data->length_mib(), N));
 	// header
 	VERIFY		(data);
 	ogf_header	hdr;

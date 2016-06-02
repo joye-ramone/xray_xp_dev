@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: script_game_object_script4.cpp
 //	Created 	: 14.08.2014
-//  Modified 	: 15.08.2014
+//  Modified 	: 19.11.2014
 //	Author		: Alexander Petrov
 //	Description : Script Actor (params)
 ////////////////////////////////////////////////////////////////////////////
@@ -50,12 +50,24 @@
 #include "ai_object_location.h"
 
 
-template <typename T>
-T* script_game_object_cast (CScriptGameObject *script_obj)
+void *lua_to_object(lua_State *L, int index, LPCSTR class_name)
 {
-	CGameObject *obj = &script_obj->object();
-	return smart_cast<T *>(obj);
+	using namespace luabind::detail;
+	if (lua_isuserdata(L, index))
+	{
+		object_rep* rep = is_class_object(L, index);
+		if (rep && strstr(rep->crep()->name(), class_name))
+			return rep->ptr();
+	}
+	return NULL;
 }
+
+
+CScriptGameObject *lua_script_game_object(lua_State *L, int index)
+{	
+	return (CScriptGameObject *) lua_to_object(L, index, "game_object");
+}
+
 
 
 CEntityCondition *get_obj_conditions(CScriptGameObject *script_obj)
@@ -134,8 +146,13 @@ CGameObject *client_obj(u32 id)
 	return smart_cast<CGameObject*>(obj);
 }
 
+void lua_pushgameobject(lua_State *L, CScriptGameObject *obj) // overloaded 1
+{
+	using namespace luabind::detail;
+	convert_to_lua<CScriptGameObject*>(L, obj);
+}
 
-void lua_pushgameobject(lua_State *L, CGameObject *obj)
+void lua_pushgameobject(lua_State *L, CGameObject *obj) // overloaded 2
 {
 	using namespace luabind::detail;
 
@@ -148,9 +165,11 @@ void lua_pushgameobject(lua_State *L, CGameObject *obj)
 			test_pushobject<CTorch>						(L, obj) ||						
 			test_pushobject<CArtefact>					(L, obj) ||			
 			test_pushobject<CEatableItemObject>			(L, obj) ||
+			test_pushobject<CInventoryContainer>		(L, obj) ||
 			test_pushobject<CGrenade>					(L, obj) ||
 			test_pushobject<CMissile>					(L, obj) ||
 			test_pushobject<CCustomOutfit>				(L, obj) ||
+			test_pushobject<CWeaponAmmo>				(L, obj) ||
 			test_pushobject<CWeaponMagazinedWGrenade>	(L, obj) ||
 			test_pushobject<CWeaponMagazined>			(L, obj) ||
 			test_pushobject<CWeapon>					(L, obj) ||
@@ -171,6 +190,7 @@ void lua_pushgameobject(lua_State *L, CGameObject *obj)
 	 	 test_pushobject<CHelicopter>				(L, obj) ||
 		 test_pushobject<CSpaceRestrictor>			(L, obj) ||
 		 test_pushobject<CCustomZone>				(L, obj) ||
+		 test_pushobject<IInventoryBox>				(L, obj) ||
 		 test_pushobject<CEntityAlive>				(L, obj) ||
 		 test_pushobject<CEntity>					(L, obj)	 
 	   ) return;
@@ -181,26 +201,17 @@ void lua_pushgameobject(lua_State *L, CGameObject *obj)
 CGameObject *lua_togameobject(lua_State *L, int index)
 {
 	using namespace luabind::detail;
-	CScriptGameObject *script_obj = NULL;
-	CGameObject *obj = NULL;
-
-	if (lua_isuserdata(L, index))
-	{
-		object_rep* rep = is_class_object(L, index);
-		if (rep && strstr(rep->crep()->name(), "game_object"))
-		{
-			script_obj = (CScriptGameObject *)rep->ptr();
-			obj = &script_obj->object();
-		}
-
-	}
 	if (lua_isnumber(L, index))
 	{
 		u32 id = lua_tointeger(L, index);
 		if (id < 0xFFFF)
-			obj = client_obj(id);
+			return client_obj(id);
 	}
-
+	
+	CScriptGameObject *script_obj = lua_script_game_object(L, index);
+	CGameObject *obj = NULL;
+	if (script_obj)		
+		obj = &script_obj->object();
 	return obj;
 }
 
@@ -283,7 +294,7 @@ void dynamic_engine_object(lua_State *L)
 		lua_pushnil (L);
 }
 
-void raw_get_interface(CScriptGameObject *script_obj, lua_State *L) // deprecated
+void raw_get_interface(CScriptGameObject *script_obj, lua_State *L)
 {	
 	script_obj->set_lua_state(L);  // for future use
 	CGameObject *obj = &script_obj->object();
@@ -292,6 +303,17 @@ void raw_get_interface(CScriptGameObject *script_obj, lua_State *L) // deprecate
 	static int top = lua_gettop(L);
 	VERIFY(type == LUA_TUSERDATA && top > 0);
 }
+
+void raw_get_inv_item(CScriptGameObject *script_obj, lua_State *L)
+{
+	script_obj->set_lua_state(L);  
+	CGameObject *obj = &script_obj->object();
+	if (smart_cast<CInventoryItem*>(obj))
+		lua_pushgameobject(L, obj);
+	else
+		lua_pushnil(L);
+}
+
 
 #pragma message(" get_interface raw function")
 using namespace luabind;
@@ -314,7 +336,10 @@ u32 get_level_id(u32 gvid)
 
 LPCSTR get_level_name_by_id (u32 level_id)
 {
- 	return ai().game_graph().header().level((GameGraph::_LEVEL_ID) level_id).name().c_str();
+	if (level_id < 0xff)
+		return ai().game_graph().header().level((GameGraph::_LEVEL_ID) level_id).name().c_str();
+	else
+		return "l255_invalid_level";
 }
 
 bool	get_obj_alive(CScriptGameObject *O)
@@ -322,7 +347,7 @@ bool	get_obj_alive(CScriptGameObject *O)
 	CGameObject *obj = &O->object();
 	CEntityAlive *ent = smart_cast<CEntityAlive*> (obj);
 	if (ent)
-		return ent->g_Alive();
+		return !!ent->g_Alive();
 	else
 		return false;
 }
@@ -334,6 +359,91 @@ u32 obj_level_id(CScriptGameObject *O)
 
 LPCSTR obj_level_name(CScriptGameObject *O) { return get_level_name_by_id ( obj_level_id(O) ); }
 
+#ifndef LUABIND_NO_ERROR_CHECKING3
+extern IWriter *OpenMemoryDumper();
+extern void CloseDumper(IWriter* &dumper);
+extern void print_class(lua_State *L, luabind::detail::class_rep *crep);
+#endif
+
+
+DLL_API bool GetUserdataInfo(lua_State *L, int index, LPSTR buffer, size_t buff_size)
+{
+	using namespace luabind::detail;
+	// strcpy_s(buffer, buff_size, "no_info");
+	if (!lua_isuserdata(L, index)) return false; 
+	void *obj_ptr = lua_touserdata(L, index);
+	__try
+	{		
+		object_rep* rep = is_class_object(L, index);
+		ZeroMemory(buffer, buff_size);
+
+		if (rep)
+		{
+			LPCSTR type = rep->crep()->name();
+			if (!stricmp(type, "game_object"))
+			{
+				CScriptGameObject *O = lua_script_game_object(L, index);
+				CGameObject &obj = O->object();
+				shared_str *tmp = xr_new<shared_str>();
+
+				tmp->sprintf("game_object #%5d %-25s %s", obj.ID(), obj.Name_script(), obj.CppClassName()).c_str();
+				if (tmp->size() >= buff_size)
+					strncpy_s(buffer, buff_size, **tmp, _TRUNCATE);
+				else
+					strcpy_s(buffer, buff_size, **tmp);
+				buffer[tmp->size()] = 0;
+
+				xr_delete(tmp);
+			}
+			else
+			{
+				strcpy_s(buffer, buff_size, type);
+				MsgCB("$#CONTEXT: GetUserDataInfo for object class '%s' ", buffer);
+#ifndef LUABIND_NO_ERROR_CHECKING3
+				IWriter *dump = NULL;
+				if (buff_size > 128)
+					__try
+				{
+					dump = OpenMemoryDumper();
+					print_class(L, rep->crep());
+					dump->flush();
+					if (dump->tell() > 0)
+					{
+						CMemoryWriter *mw = smart_cast<CMemoryWriter *>(dump);
+						size_t _size = __min(buff_size - 1, mw->size());
+						strncpy_s(buffer, buff_size, (LPCSTR)mw->pointer(), _size);
+						buffer[_size] = 0;
+					}
+				}
+				__except (SIMPLE_FILTER)
+				{
+					Msg("!#EXCEPTION: catched while print_class %s", buffer);
+				}
+				if (dump) CloseDumper(dump);
+#endif		
+			}
+			return true;
+		}
+
+	}
+	__except (SIMPLE_FILTER)
+	{
+		sprintf_s(buffer, buff_size, "#EXCEPTION catched for obj = 0x%p ", obj_ptr);
+	}
+	return false;
+}
+
+int get_object_info(lua_State *L)
+{
+	static string4096 buffer;
+
+	if (lua_isuserdata(L, 1))
+		GetUserdataInfo(L, 1, buffer, 4096);
+	else
+		sprintf_s(buffer, 4096, "type = %s ", lua_typename(L, 1));
+	lua_pushstring(L, buffer);
+	return 1;
+}
 
 
 #pragma optimize("s",on)
@@ -345,22 +455,25 @@ class_<CScriptGameObject> &script_register_game_object3(class_<CScriptGameObject
 		// alpet: export object cast		 
 		.def("get_game_object",				&CScriptGameObject::object)
 		.def("get_alife_object",			&CScriptGameObject::alife_object)
-		.def("get_actor",					&script_game_object_cast<CActorObject>)
-		.def("get_anomaly",					&script_game_object_cast<CCustomZone>)
-		.def("get_artefact",				&script_game_object_cast<CArtefact>)		
-		.def("get_base_monster",			&script_game_object_cast<CBaseMonster>)
-		.def("get_eatable_item",			&script_game_object_cast<CEatableItemObject>)
-		.def("get_grenade",					&script_game_object_cast<CGrenade>)
-		.def("get_inventory_item",			&script_game_object_cast<CInventoryItemObject>)
-		.def("get_inventory_owner",			&script_game_object_cast<CInventoryOwner>)
-		.def("get_interface",				&raw_get_interface, raw(_2))
-		.def("get_missile",					&script_game_object_cast<CMissile>)
-		.def("get_outfit",					&script_game_object_cast<CCustomOutfit>)
-		.def("get_space_restrictor",		&script_game_object_cast<CSpaceRestrictor>)
+		.def("get_actor",					&script_game_object_cast<CActorObject>,			raw(_2))
+		.def("get_ammo",					&script_game_object_cast<CWeaponAmmo>,			raw(_2))
+		.def("get_anomaly",					&script_game_object_cast<CCustomZone>,			raw(_2))
+		.def("get_artefact",				&script_game_object_cast<CArtefact>,			raw(_2))		
+		.def("get_base_monster",			&script_game_object_cast<CBaseMonster>,			raw(_2))
+		.def("get_container",				&script_game_object_cast<CInventoryContainer>,	raw(_2))
+		.def("get_eatable_item",			&script_game_object_cast<CEatableItemObject>,	raw(_2))
+		.def("get_grenade",					&script_game_object_cast<CGrenade>,				raw(_2))
+		.def("get_inventory_box",			&script_game_object_cast<IInventoryBox>,		raw(_2))
+		.def("get_inventory_item",			&raw_get_inv_item, raw(_2))
+		.def("get_inventory_owner",			&script_game_object_cast<CInventoryOwner>,		raw(_2))
+		.def("get_interface",				&raw_get_interface,								raw(_2))
+		.def("get_missile",					&script_game_object_cast<CMissile>,				raw(_2))
+		.def("get_outfit",					&script_game_object_cast<CCustomOutfit>,		raw(_2))
+		.def("get_space_restrictor",		&script_game_object_cast<CSpaceRestrictor>,		raw(_2))
 		.def("get_torch",					&get_torch)
-		.def("get_weapon",					&script_game_object_cast<CWeapon>)
-		.def("get_weapon_m",				&script_game_object_cast<CWeaponMagazined>)
-		.def("get_weapon_mwg",				&script_game_object_cast<CWeaponMagazinedWGrenade>)
+		.def("get_weapon",					&script_game_object_cast<CWeapon>,				raw(_2))
+		.def("get_weapon_m",				&script_game_object_cast<CWeaponMagazined>,		raw(_2))
+		.def("get_weapon_mwg",				&script_game_object_cast<CWeaponMagazinedWGrenade>, raw(_2))
 		.def("get_weapon_hud",				&CScriptGameObject::GetWeaponHUD)
 		.def("get_hud_visual",				&CScriptGameObject::GetWeaponHUD_Visual)
 		.def("load_hud_visual",				&CScriptGameObject::LoadWeaponHUD_Visual)
@@ -376,7 +489,8 @@ class_<CScriptGameObject> &script_register_game_object3(class_<CScriptGameObject
 		def("script_object_class_name",		&script_object_class_name, raw(_1)),
 		def("engine_object",				&dynamic_engine_object, raw(_1)),		
 		def("get_actor_obj",				&Actor),
-		def("get_level_id",					&get_level_id)
+		def("get_level_id",					&get_level_id),
+		def("get_object_info",				&get_object_info, raw(_1))
 
 		#pragma message("+ game_object.extensions export end")
 	; return instance;

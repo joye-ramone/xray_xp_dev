@@ -9,6 +9,7 @@
 #include <math.h>
 #include <stdarg.h>
 #include <string.h>
+#include <stdio.h>
 
 #define lapi_c
 #define LUA_CORE
@@ -440,7 +441,18 @@ LUA_API void lua_pushinteger (lua_State *L, lua_Integer n) {
 LUA_API void lua_pushlstring (lua_State *L, const char *s, size_t len) {
   lua_lock(L);
   luaC_checkGC(L);
-  setsvalue2s(L, L->top, luaS_newlstr(L, s, len));
+  __try
+  {
+	  TString *v = luaS_newlstr(L, s, len);
+	  setsvalue2s(L, L->top, v);
+  }
+  __except (1)
+  {
+	  char      msg[16384];
+	  if (len <= 16383 && strlen(s) < 16383)
+		  sprintf_s(msg, 16383, "#EXCEPTION: lua_pushlstring('%s', %d)\n", s, len);
+	  perror(msg);	  
+  }
   api_incr_top(L);
   lua_unlock(L);
 }
@@ -540,10 +552,19 @@ LUA_API void lua_getfield (lua_State *L, int idx, const char *k) {
   StkId t;
   TValue key;
   lua_lock(L);
-  t = index2adr(L, idx);
-  api_checkvalidindex(L, t);
-  setsvalue(L, &key, luaS_new(L, k));
-  luaV_gettable(L, t, &key, L->top);
+  __try
+  {
+	  t = index2adr(L, idx);
+	  api_checkvalidindex(L, t);
+	  setsvalue(L, &key, luaS_new(L, k));
+	  luaV_gettable(L, t, &key, L->top);
+  }
+  __except (1)
+  {
+	  char msg[256];
+	  sprintf_s(msg, 256, "#EXCEPTION: lua_getfield(%d, %s)\n", idx, k);
+	  perror(msg);
+  }
   api_incr_top(L);
   lua_unlock(L);
 }

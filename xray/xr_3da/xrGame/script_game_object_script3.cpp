@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: script_game_object_script3.cpp
 //	Created 	: 25.09.2003
-//  Modified 	: 29.06.2004
+//  Modified 	: 29.11.2014
 //	Author		: Dmitriy Iassenev
 //	Description : XRay Script game object script export
 ////////////////////////////////////////////////////////////////////////////
@@ -147,6 +147,7 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("drop_item",					&CScriptGameObject::DropItem)
 		.def("drop_item_and_teleport",		&CScriptGameObject::DropItemAndTeleport)
 		.def("transfer_item",				&CScriptGameObject::TransferItem)
+		.def("transfer_items",				&CScriptGameObject::TransferItems,  raw(_2))
 		.def("transfer_money",				&CScriptGameObject::TransferMoney)
 		.def("give_money",					&CScriptGameObject::GiveMoney)
 		.def("money",						&CScriptGameObject::Money)
@@ -371,18 +372,22 @@ class_<CScriptGameObject> &script_register_game_object2(class_<CScriptGameObject
 		.def("detach_vehicle",				&CScriptGameObject::DetachVehicle)
 		.def("set_position",				&CScriptGameObject::SetPosition)
 		.def("set_direction",				&CScriptGameObject::SetDirection)
+		.def("set_rotation",				&CScriptGameObject::SetRotation) // alpet: more flexible method
 		.def("heal_wounds",					&CScriptGameObject::HealWounds)
 		.def("get_visual_ini",				&CScriptGameObject::GetVisualIni)
 		.def("set_description",				&CScriptGameObject::SetDescription)
-		.def("set_name",					&CScriptGameObject::SetName)
-		.def("set_name_short",				&CScriptGameObject::SetNameShort)
+		.def("set_item_name",				&CScriptGameObject::SetItemName)
+		.def("set_item_name_short",			&CScriptGameObject::SetItemNameShort)
 		.def("set_weight",					&CScriptGameObject::SetWeight)
 		.def("set_cost",					&CScriptGameObject::SetCost)
 		.def("get_description",				&CScriptGameObject::GetDescription)
-		.def("get_name",					&CScriptGameObject::GetName)
-		.def("get_name_short",				&CScriptGameObject::GetNameShort)
+		.def("get_item_name",				&CScriptGameObject::GetItemName)
+		.def("get_item_name_short",			&CScriptGameObject::GetItemNameShort)
 		.def("get_cell_item",				&CScriptGameObject::GetCellItem)
 		.def("open_inventory_box",			&CScriptGameObject::OpenInventoryBox)
 		.def("get_bone_name",				&CScriptGameObject::GetBoneName)
+
+		.def("set_name",					&CScriptGameObject::SetObjectName)
+		.def("xform",						&CScriptGameObject::GetXFORM)
 	;return	(instance);
 }

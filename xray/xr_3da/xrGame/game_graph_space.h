@@ -39,6 +39,13 @@ namespace GameGraph {
 		xrGUID					m_guid;
 
 	public:
+		SLevel() {
+			m_name = "invalid_level";
+			m_id   = 255;
+			m_offset.set (0, 0, 0);
+			Memory.mem_fill(&m_guid, 0xff, sizeof(m_guid));
+		}
+
 		IC const shared_str &name		() const
 		{
 			return				(m_name);
@@ -71,6 +78,8 @@ namespace GameGraph {
 	};
 
 	typedef associative_vector<_LEVEL_ID,SLevel>		LEVEL_MAP;
+	extern  SLevel						g_invalid_level;  // затычка для ошибок с id уровня
+
 
 #pragma pack(push,1)
 #ifdef AI_COMPILER
@@ -140,6 +149,7 @@ namespace GameGraph {
 		IC	const SLevel			*level				(LPCSTR level_name, bool) const;
 		IC	void					load				(IReader *reader);
 		IC	void					save				(IWriter *reader);
+		IC	bool					valid_level(const _LEVEL_ID &id) const;
 		friend class CGameGraph;
 	};
 #pragma pack(pop)

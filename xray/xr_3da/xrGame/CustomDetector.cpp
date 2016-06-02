@@ -9,6 +9,7 @@
 #include "cameraEffector.h"
 #include "actor.h"
 #include "ai_sounds.h"
+#include "clsid_game.h"
 
 ZONE_INFO::ZONE_INFO	()
 {
@@ -164,6 +165,35 @@ void CCustomDetector::UpdateCL()
 			zone_info.snd_time += Device.dwTimeDelta;
 	}
 }
+
+#pragma optimize("gyts", off)
+
+void CCustomDetector::RadiationAlert(float restore_speed)
+{
+	auto it = m_ZoneTypeMap.find(CLSID_Z_RADIO);
+	if (it == m_ZoneTypeMap.end()) return;
+	ZONE_TYPE& zone_type = it->second;
+	static ZONE_INFO zone_info;
+	static float amplify_coef = 10000.f;
+	
+	restore_speed *= amplify_coef;
+
+	zone_info.cur_freq = zone_type.min_freq +
+		(zone_type.max_freq - zone_type.min_freq) * restore_speed;
+
+	float current_snd_time = 1000.f / zone_info.cur_freq;
+			
+	if((float)zone_info.snd_time > current_snd_time)
+	{
+		zone_info.snd_time	= 0;
+		HUD_SOUND::PlaySound	(zone_type.detect_snds, Fvector().set(0,0,0), this, true, false);
+	} 
+	else 
+		zone_info.snd_time += Device.dwTimeDelta;
+}
+
+
+
 
 void CCustomDetector::feel_touch_new(CObject* O) 
 {

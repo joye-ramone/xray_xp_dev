@@ -30,7 +30,6 @@ void CStatePsyDogHideAbstract::execute()
 
 	object->anim().accel_activate		(eAT_Aggressive);
 	object->anim().accel_set_braking	(false);
-
 	object->sound().play				(MonsterSound::eMonsterSoundAggressive, 0,0,object->db().m_dwAttackSndDelay);
 }
 

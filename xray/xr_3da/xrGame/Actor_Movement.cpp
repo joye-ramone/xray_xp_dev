@@ -26,6 +26,8 @@ static const float	s_fJumpTime			= 0.3f;
 static const float	s_fJumpGroundTime	= 0.1f;	// для снятия флажка Jump если на земле
 	   const float	s_fFallTime			= 0.2f;
 
+#pragma optimize("gyts", off)
+
 IC static void generate_orthonormal_basis1(const Fvector& dir,Fvector& updir, Fvector& right)
 {
 
@@ -141,6 +143,7 @@ void CActor::g_cl_CheckControls(u32 mstate_wf, Fvector &vControlAccel, float &Ju
 	mstate_old = mstate_real;
 	vControlAccel.set	(0,0,0);
 
+
 	if (!(mstate_real&mcFall) && (character_physics_support()->movement()->Environment()==CPHMovementControl::peInAir)) 
 	{
 		m_fFallTime				-=	dt;
@@ -192,17 +195,31 @@ void CActor::g_cl_CheckControls(u32 mstate_wf, Fvector &vControlAccel, float &Ju
 		// jump
 		m_fJumpTime				-=	dt;
 
+		float tot_mass		= GetMass() + GetCarryWeight();
+		float max_mass		= GetMass() + MaxCarryWeight();
+		float over_weight_coef	=  tot_mass / max_mass; // при значении больше 1 - перевес
+
 		if ( CanJump() && (mstate_wf&mcJump) )
 		{
 			mstate_real			|=	mcJump;
 			m_bJumpKeyPressed	=	TRUE;
-			Jump				= m_fJumpSpeed;
+			float k				= 1.f;
+#ifdef		HARDCORE
+			k					= conditions().GetPower();			
+			k					/= over_weight_coef;
+			clamp <float>		(k, 0.3, 3);
+			if (k > 2)
+				k = log2(k) + 1; // нелинейность при слишком малой загрузке инвентаря и чрезвычайно мощных артефактах добавления носимого веса
+#endif	
+			Jump				= m_fJumpSpeed * k;
 			m_fJumpTime			= s_fJumpTime;
 
 
 			//уменьшить силу игрока из-за выполненого прыжка
+#ifndef		HARDCORE
 			if (!GodMode())
-				conditions().ConditionJump(inventory().TotalWeight() / MaxCarryWeight());
+#endif
+				conditions().ConditionJump(GetCarryWeight() / MaxCarryWeight());
 		}
 
 		/*
@@ -252,7 +269,7 @@ void CActor::g_cl_CheckControls(u32 mstate_wf, Fvector &vControlAccel, float &Ju
 		{
 			BOOL	bAccelerated		= isActorAccelerated(mstate_real, IsZoomAimingMode())&&CanAccelerate();
 
-
+			clamp<float>(over_weight_coef, 0.85, 3);
 
 			// correct "mstate_real" if opposite keys pressed
 			if (_abs(vControlAccel.z)<EPS)	mstate_real &= ~(mcFwd+mcBack		);
@@ -261,7 +278,9 @@ void CActor::g_cl_CheckControls(u32 mstate_wf, Fvector &vControlAccel, float &Ju
 			// normalize and analyze crouch and run
 			float	scale				= vControlAccel.magnitude();
 			if (scale>EPS)	{
-				scale	=	m_fWalkAccel/scale;
+				scale	=	m_fWalkAccel/scale;				
+				scale   /=  over_weight_coef;
+
 				if (bAccelerated)
 					if (mstate_real&mcBack)
 						scale *= m_fRunBackFactor;
@@ -543,6 +562,12 @@ bool	CActor::CanJump				()
 		!character_physics_support()->movement()->PHCapture() &&((mstate_real&mcJump)==0) && (m_fJumpTime<=0.f) 
 		&& !m_bJumpKeyPressed &&!m_bZoomAimingMode;// && ((mstate_real&mcCrouch)==0);
 
+#ifdef HARDCORE
+	// float weight_coef = GetCarryWeight() / inventory().GetMaxWeight();
+	// if (weight_coef > 1.f && conditions().GetPower() < 0.3f) return false;
+	if (conditions().GetPower() < 0.001f) return false;
+#endif
+
 	return can_Jump;
 }
 
@@ -565,6 +590,11 @@ bool	CActor::CanMove				()
 		return false;
 	
 	}
+
+	CUIDialogWnd *IR = HUD().GetUI()->MainInputReceiver();
+	if (IR) 
+		return false;
+
 
 	if(IsTalking())
 		return false;

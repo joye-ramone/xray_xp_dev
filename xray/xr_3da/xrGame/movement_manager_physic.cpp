@@ -24,6 +24,8 @@
 
 #define DISTANCE_PHISICS_ENABLE_CHARACTERS 2.f
 
+#pragma optimize("gyts", off)
+
 float CMovementManager::speed			(CPHMovementControl *movement_control) const
 {
 	VERIFY					(movement_control);
@@ -47,7 +49,41 @@ void CMovementManager::apply_collision_hit(CPHMovementControl *movement_control)
 		di->HitDir(dir);
 
 //		object().Hit	(movement_control->gcontact_HealthLost,dir,di->DamageInitiator(),movement_control->ContactBone(),di->HitPos(), 0.f,ALife::eHitTypeStrike);
-		SHit	HDS = SHit(movement_control->gcontact_HealthLost,dir,di->DamageInitiator(),movement_control->ContactBone(),di->HitPos(), 0.f,di->HitType());
+		CObject *who = di->DamageInitiator();
+		SHit	HDS = SHit(movement_control->gcontact_HealthLost,dir, who, movement_control->ContactBone(),di->HitPos(), 0.f,di->HitType());
+		static string128 last_hit_info = { 0 };
+		string128 buff;		
+		float coef = 0.01f;
+
+		if (who)
+		{
+			LPCSTR szWho = who->Name_script();
+			if (object().ID() == who->ID())
+			{
+				coef == 0;
+				szWho = "self";
+			}
+
+			sprintf_s(buff, 128, "#[~T]. #HIT: collision %s with %s, power = %.3f, impulse = %.3f ", object().Name_script(), szWho, HDS.power, HDS.impulse);
+			
+
+		}
+		else
+			sprintf_s(buff, 128, "#[~T]. #HIT: collision with object %s, power = %.3f, impulse = %.3f ", object().Name_script(), HDS.power, HDS.impulse);
+
+		if (xr_strcmp(buff, last_hit_info) != 0)
+		{
+			MsgCB(buff);
+			strcpy_s(last_hit_info, 128, buff);
+		}
+
+		CGameObject *obj = smart_cast<CGameObject*>(who);
+
+		if (obj && obj->cast_stalker())
+			HDS.power *= coef;
+
+
+
 		object().Hit(&HDS);
 	}
 }

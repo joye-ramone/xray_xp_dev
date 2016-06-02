@@ -92,9 +92,9 @@ void SimpleJtLimit::init(int jt_type,
 	type = jt_type; 
 	break;
     default:
-	printf("Invalid Joint Type passed to SimpleJtLimit %d\n", jt_type);
-	exit(0);
-	break;
+		Msg("! #FATAL:Invalid Joint Type passed to SimpleJtLimit %d\n", jt_type);
+		abort();
+		break;
     }
 }
 
@@ -421,9 +421,9 @@ void ComplexJtLimit::init(int jt_type,
 	type = jt_type; 
 	break;
     default:
-	printf("Invalid Joint Type passed to ComplexJtLimit %d\n", jt_type);
-	exit(0);
-	break;
+		Msg("! #FATAL: Invalid Joint Type passed to ComplexJtLimit %d\n", jt_type);
+		abort();
+		break;
     }
 }
 

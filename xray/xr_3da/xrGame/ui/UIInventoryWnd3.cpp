@@ -12,10 +12,14 @@
 #include "../game_base.h"
 #include "../game_cl_base.h"
 #include "../xr_level_controller.h"
+#include "../InventoryContainer.h"
+#include "../UIGameSP.h"
 #include "UICellItem.h"
 #include "UIListBoxItem.h"
 #include "../CustomOutfit.h"
+#include "../string_table.h"
 
+#pragma optimize("gyts", off)
 
 void CUIInventoryWnd::EatItem(PIItem itm)
 {
@@ -65,12 +69,12 @@ void CUIInventoryWnd::ActivatePropertiesBox()
 	CBottleItem*		pBottleItem			= smart_cast<CBottleItem*>		(CurrentIItem());
     
 	bool	b_show			= false;
+	char	temp[64];
 
-
+#if !defined(NLC_EXTENSIONS)
 #if defined(INV_NEW_SLOTS_SYSTEM)
 	// Добавим в контекстное меню выбор слота. Real Wolf.
-	auto slots = CurrentIItem()->GetSlots();
-	char temp[64];
+	auto slots = CurrentIItem()->GetSlots();	
 	for(u8 i = 0; i < (u8)slots.size(); ++i) 
 	{
 		if (slots[i] != NO_ACTIVE_SLOT && slots[i] != GRENADE_SLOT)
@@ -87,12 +91,14 @@ void CUIInventoryWnd::ActivatePropertiesBox()
 				}
 			}
 	};
+
 #else
 	if(!pOutfit && CurrentIItem()->GetSlot()!=NO_ACTIVE_SLOT && !m_pInv->m_slots[CurrentIItem()->GetSlot()].m_bPersistent && m_pInv->CanPutInSlot(CurrentIItem()))
 	{
 		UIPropertiesBox.AddItem("st_move_to_slot",  NULL, INVENTORY_TO_SLOT_ACTION);
 		b_show			= true;
 	}
+#endif
 #endif
 
 #if defined(GRENADE_FROM_BELT)
@@ -194,11 +200,22 @@ void CUIInventoryWnd::ActivatePropertiesBox()
 	#else
 		for(u8 i = 0; i < OUTFIT_SLOT; ++i) 
 		{
-			 if(m_pInv->m_slots[i].m_pIItem && m_pInv->m_slots[i].m_pIItem->CanAttach(pScope) )
+			auto &S = m_pInv->m_slots[i];
+			auto *I = S.m_pIItem;
+			 if(I && I->CanAttach(pScope))
 			 {
 				PIItem tgt = m_pInv->m_slots[i].m_pIItem;
 				sprintf_s(temp, "st_attach_scope_to_%d", i);
-				UIPropertiesBox.AddItem(temp,  (void*)tgt, INVENTORY_ATTACH_ADDON);
+				string64 text;
+				strcpy_s (text, 64, CStringTable().translate(temp).c_str());
+				LPSTR sub = strstr(text, xrx_sprintf("%d", i));
+				if (sub)
+				{
+					strcpy_s(sub, 32, I->NameShort());
+					sprintf_s(sub + xr_strlen(sub), 32, " [%d]", i);
+				}
+
+				UIPropertiesBox.AddItem(text,  (void*)tgt, INVENTORY_ATTACH_ADDON);
 				b_show			= true;
 			 }
 		};	
@@ -257,25 +274,51 @@ void CUIInventoryWnd::ActivatePropertiesBox()
 	};		
 	#endif
 	}
-	LPCSTR _action = NULL;
+	
+	u32 cnt = CurrentItem()->ChildsCount() + 1;
+	// если в ячейке 2 предмета, cnt = 2
+	if (cnt > 9) cnt = 9;
+	PIItem iitm = (PIItem)CurrentItem()->m_pData;
 
-	if(pMedkit || pAntirad)
+	for (u32 i = 0; i < cnt; i ++)
 	{
-		_action					= "st_use";
-	}
-	else if(pEatableItem)
-	{
-		if(pBottleItem)
-			_action					= "st_drink";
-		else
-			_action					= "st_eat";
-	}
+		LPCSTR _action = NULL;
 
-	if(_action){
-		UIPropertiesBox.AddItem(_action,  NULL, INVENTORY_EAT_ACTION);
-		b_show			= true;
-	}
+		if (i > 0)
+		{
+			CUICellItem*	itm = CurrentItem()->Child((u32)(i - 1));
+			iitm = (PIItem)itm->m_pData;
+		}
 
+
+		if (pMedkit || pAntirad)
+		{
+			if (cnt > 1 && iitm)
+			{
+				sprintf_s(temp, "caption_use(%d, %d)", i + 1, iitm->object().ID()); // script schema
+				_action = temp;
+			}
+			else
+				_action = "st_use";
+
+		}
+		else if (pEatableItem)
+		{
+			if (pBottleItem)
+				_action = "st_drink";
+			else
+				_action = "st_eat";
+			cnt = 0;
+		}
+
+		if (_action) {
+			UIPropertiesBox.AddItem(_action, iitm, INVENTORY_EAT_ACTION);
+			b_show = true;
+		}
+
+				
+		
+	}
 	bool disallow_drop	= (pOutfit&&bAlreadyDressed);
 	disallow_drop		|= !!CurrentIItem()->IsQuestItem();
 
@@ -308,7 +351,8 @@ void CUIInventoryWnd::ProcessPropertiesBoxClicked	()
 {
 	if(UIPropertiesBox.GetClickedItem())
 	{
-		auto num = UIPropertiesBox.GetClickedItem()->GetTAG();
+		auto num  = UIPropertiesBox.GetClickedItem()->GetTAG();
+		void *itm = UIPropertiesBox.GetClickedItem()->GetData();
 #ifdef INV_NEW_SLOTS_SYSTEM
 		if (num >= INVENTORY_TO_SLOT0_ACTION && num <= INVENTORY_TO_SLOT15_ACTION)
 		{
@@ -386,8 +430,10 @@ void CUIInventoryWnd::ProcessPropertiesBoxClicked	()
 				DropCurrentItem(b_all);
 			}break;
 		case INVENTORY_EAT_ACTION:
-			EatItem(CurrentIItem());
-			break;
+			{
+				PIItem item = itm ? (PIItem)itm : CurrentIItem();
+				EatItem(item);
+			} break;
 		case INVENTORY_ATTACH_ADDON:
 			AttachAddon((PIItem)(UIPropertiesBox.GetClickedItem()->GetData()));
 			break;
@@ -429,6 +475,15 @@ bool CUIInventoryWnd::TryUseItem(PIItem itm)
 		EatItem(itm);
 		return true;
 	}
+
+	//CInventoryContainer  *pContainer		= smart_cast<CInventoryContainer*> (itm);
+	//if (pContainer && pContainer->Useful())
+	//{
+	//	HUD().GetUI()->StartStopMenu( HUD().GetUI()->MainInputReceiver(), true);
+	//	CUIGameSP* pGameSP = smart_cast<CUIGameSP*>(HUD().GetUI()->UIGame());
+	//	if(pGameSP) pGameSP->StartCarBody(Actor(), pContainer);
+	//}
+
 	return false;
 }
 

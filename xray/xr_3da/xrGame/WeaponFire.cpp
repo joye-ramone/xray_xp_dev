@@ -53,7 +53,7 @@ float CWeapon::GetWeaponDeterioration	()
 
 void CWeapon::FireTrace		(const Fvector& P, const Fvector& D)
 {
-	VERIFY		(m_magazine.size());
+	FORCE_VERIFY	(m_magazine.size());
 
 	CCartridge &l_cartridge = m_magazine.back();
 //	Msg("ammo - %s", l_cartridge.m_ammoSect.c_str());
@@ -86,7 +86,7 @@ void CWeapon::FireTrace		(const Fvector& P, const Fvector& D)
 	
 	// Ammo
 	m_magazine.pop_back	();
-	--iAmmoElapsed;
+	iAmmoElapsed = m_magazine.size();
 
 	//проверить не произошла ли осечка
 	CheckForMisfire();
@@ -123,6 +123,7 @@ void CWeapon::StopShooting		()
 
 void CWeapon::FireEnd				() 
 {
+	FindAmmo (true);
 	CShootingObject::FireEnd();
 	ClearShotEffector();
 }

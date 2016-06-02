@@ -46,6 +46,7 @@
 #include "alife_simulator.h"
 #include "alife_object_registry.h"
 #include "client_spawn_manager.h"
+#include "ActorStats.h"
 
 #ifdef DEBUG
 #	include "debug_renderer.h"
@@ -628,6 +629,9 @@ void CCustomMonster::HitSignal(float /**perc/**/, Fvector& /**vLocalDir/**/, COb
 
 void CCustomMonster::Die	(CObject* who)
 {
+	if (who && who->ID() == Actor()->ID())
+		g_ActorGameStats.AddSimpleEvent(STAT_EVENT_KILL, "%s", Name_script());
+
 	inherited::Die			(who);
 	//Level().RemoveMapLocationByID(this->ID());
 	Actor()->SetActorVisibility	(ID(),0.f);

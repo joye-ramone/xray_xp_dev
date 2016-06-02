@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: ai_stalker.h
 //	Created 	: 25.02.2003
-//  Modified 	: 25.02.2003
+//  Modified 	: 06.12.2014
 //	Author		: Dmitriy Iassenev
 //	Description : AI Behaviour for monster "Stalker"
 ////////////////////////////////////////////////////////////////////////////
@@ -352,7 +352,7 @@ protected:
 			bool						conflicted						(const CInventoryItem *item, const CWeapon *new_weapon, bool new_wepon_enough_ammo, int new_weapon_rank) const;
 			void						update_conflicted				(CInventoryItem *item, const CWeapon *new_weapon);
 			void						remove_personal_only_ammo		(const CInventoryItem *item);
-			void						on_after_take					(const CGameObject *object);
+			void						on_after_take					(CGameObject *object);
 	virtual bool						AllowItemToTrade 				(CInventoryItem const * item, EItemPlace place) const;
 public:
 	IC		CStalkerAnimationManager	&animation						() const;

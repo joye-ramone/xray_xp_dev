@@ -61,7 +61,6 @@ void CStateBurerAttackRunAroundAbstract::execute()
 	object->path().set_target_point			(selected_point);
 	object->path().set_generic_parameters	();
 	object->path().set_use_covers			(false);
-
 	object->set_state_sound						(MonsterSound::eMonsterSoundAggressive);
 }
 

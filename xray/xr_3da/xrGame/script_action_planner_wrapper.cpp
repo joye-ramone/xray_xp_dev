@@ -30,8 +30,15 @@ void CScriptActionPlannerWrapper::update		()
 	if ((psAI_Flags.test(aiGOAPScript) && !m_use_log) || (!psAI_Flags.test(aiGOAPScript) && m_use_log))
 		set_use_log							(!!psAI_Flags.test(aiGOAPScript));
 #endif
-
-	luabind::call_member<void>				(this,"update");
+	lua_State *L = this->m_object->lua_state();	
+	if (L)
+	{
+		int top = lua_gettop(L);
+		lua_pushinteger(L, top);
+		lua_setglobal(L, "g_lua_stack_top");
+		luabind::call_member<void>(this, "update");
+		lua_settop(L, top);
+	}
 }
 
 void CScriptActionPlannerWrapper::update_static	(CScriptActionPlanner *planner)

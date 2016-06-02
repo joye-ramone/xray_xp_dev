@@ -2,6 +2,8 @@
 #define _INCDEF_NETUTILS_H_
 #pragma once
 
+
+#include "../xr_3da/xrGame/xr_time.h"
 #include "client_id.h"
 #include "../xr_3da/stdafx.h"
 #include "../../build_config_defines.h"
@@ -17,6 +19,7 @@ const	u32			NET_PacketSizeLimit	= 16384;//8192;
 const	u32			NET_PacketSizeLimit	= 8192; //16384;//8192;
 #endif
 // const	u32			NET_PacketSizeLimit	= 16384; 
+
 
 struct	NET_Buffer
 {
@@ -67,7 +70,7 @@ public:
 	IC void w_vec3		( const Fvector& a) { w(&a,3*sizeof(float));	}			// vec3
 	IC void w_vec4		( const Fvector4& a){ w(&a,4*sizeof(float));	}			// vec4
 	IC void w_u64		( u64 a			)	{ w(&a,8);					}			// qword (8b)
-	IC void w_s64		( s64 a			)	{ w(&a,8);					}			// qword (8b)
+	IC void w_s64		( s64 a			)	{ w(&a,8);					}			// qword (8b)	
 	IC void w_u32		( u32 a			)	{ w(&a,4);					}			// dword (4b)
 	IC void w_s32		( s32 a			)	{ w(&a,4);					}			// dword (4b)
 	IC void w_u24		( u32 a			)	{ w(&a,3);					}			// dword (3b)
@@ -117,6 +120,13 @@ public:
     	if (*p)	w(*p,(u32)xr_strlen(p)+1);
         else	w_u8(0);
 	}
+
+	IC void w_time				(const xrTime &t)
+	{
+		xrTime tmp(t);		
+		w(&tmp.raw_get(), sizeof(ALife::_TIME_ID));
+	}
+
 	IC void w_matrix			(Fmatrix& M)
 	{
 		w_vec3	(M.i);
@@ -277,6 +287,11 @@ public:
         dest		= LPCSTR(&B.data[r_pos]);
         r_advance	(dest.size()+1);
     }
+
+	IC void		r_time			(xrTime& t)
+	{ 		 
+		r(&t.raw_get(), sizeof(ALife::_TIME_ID));
+	}
 
 	IC void		r_matrix		(Fmatrix& M)
 	{

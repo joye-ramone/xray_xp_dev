@@ -1,0 +1,9 @@
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+ <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+   <ClCompile>
+    <PreprocessorDefinitions>%(PreprocessorDefinitions);_SECURE_SCL=0;_ITERATOR_DEBUG_LEVEL=0;</PreprocessorDefinitions>
+    <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+    <SmallerTypeCheck>false</SmallerTypeCheck>
+   </ClCompile>
+ </ItemDefinitionGroup>
+</Project>

@@ -14,6 +14,7 @@
 
 #pragma comment(lib,"ode.lib")
 #pragma comment(lib,"xr_3da.lib")
+#pragma comment(lib,"xrTextures.lib")
 
 /*
 #ifdef NDEBUG
@@ -24,6 +25,8 @@ namespace std {
 	}
 }
 #endif // #ifdef NDEBUG*/
+int g_game_cycle = 0;
+
 
 extern "C" {
 	DLL_API DLL_Pure*	__cdecl xrFactory_Create		(CLASS_ID clsid)

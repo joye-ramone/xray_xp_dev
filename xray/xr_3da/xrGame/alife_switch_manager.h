@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: alife_switch_manager.h
 //	Created 	: 25.12.2002
-//  Modified 	: 12.05.2004
+//  Modified 	: 12.11.2014
 //	Author		: Dmitriy Iassenev
 //	Description : ALife Simulator switch manager
 ////////////////////////////////////////////////////////////////////////////
@@ -22,7 +22,7 @@ protected:
 	float			m_offline_distance;
 
 private:
-	OBJECT_VECTOR	m_saved_chidren;
+	OBJECT_VECTOR	m_saved_children;
 
 protected:
 			bool	synchronize_location	(CSE_ALifeDynamicObject	*object);

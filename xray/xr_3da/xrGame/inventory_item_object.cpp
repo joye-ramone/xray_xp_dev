@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: inventory_item_object.cpp
 //	Created 	: 24.03.2003
-//  Modified 	: 27.12.2004
+//  Modified 	: 12.11.2014
 //	Author		: Victor Reutsky, Yuri Dobronravin
 //	Description : Inventory item object implementation
 ////////////////////////////////////////////////////////////////////////////
@@ -40,6 +40,7 @@ LPCSTR CInventoryItemObject::NameShort		()
 {
 	return						(CInventoryItem::NameShort());
 }
+
 /*
 LPCSTR CInventoryItemObject::NameComplex	()
 {
@@ -101,6 +102,10 @@ void CInventoryItemObject::OnH_A_Chield		()
 
 void CInventoryItemObject::UpdateCL			()
 {
+	auto *pobj = H_Parent();
+	if (pobj && 0 == pobj->ID() && Position().distance_to(pobj->Position()) > 1.f)
+		ChangePosition(pobj->Position());
+
 	CPhysicItem::UpdateCL				();
 	CInventoryItem::UpdateCL			();
 }

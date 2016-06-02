@@ -15,6 +15,8 @@
 XRCORE_API	Fmatrix			Fidentity;
 XRCORE_API	Dmatrix			Didentity;
 XRCORE_API	CRandom			Random;
+XRCORE_API	bool			g_bFPUInitialized = false;
+
 
 #ifdef _M_AMD64
 u16			getFPUsw()		{ return 0;	}
@@ -58,12 +60,12 @@ u16 getFPUsw()
 
 namespace FPU 
 {
-	u16			_24	=0;
-	u16			_24r=0;
-	u16			_53	=0;
-	u16			_53r=0;
-	u16			_64	=0;
-	u16			_64r=0;
+	u16			_24	 = 0;
+	u16			_24r = 0;
+	u16			_53	 = 0;
+	u16			_53r = 0;
+	u16			_64	 = 0;
+	u16			_64r = 0;
 
 	XRCORE_API void 	m24		()	{
 		u16		p	= _24;
@@ -119,6 +121,7 @@ namespace FPU
 #endif	//XRCORE_STATIC
 
 		::Random.seed	( u32(CPU::GetCLK()%(1i64<<32i64)) );
+		g_bFPUInitialized = true;
 	}
 };
 #endif
@@ -156,6 +159,8 @@ namespace CPU
 	void Detect	()
 	{
 		// General CPU identification
+		FPU::_64r = 0;
+
 		if (!_cpuid	(&ID))	
 		{
 			// Core.Fatal		("Fatal error: can't detect CPU/FPU.");
@@ -167,7 +172,7 @@ namespace CPU
 		u32			dwStart,dwTest;
 
 		SetPriorityClass		(GetCurrentProcess(),REALTIME_PRIORITY_CLASS);
-
+		MsgCB("##PERF: CPU::Detect start ");
 		// Detect Freq
 		dwTest	= timeGetTime();
 		do { dwStart = timeGetTime(); } while (dwTest==dwStart);
@@ -192,8 +197,7 @@ namespace CPU
 			start			=	QPC();
 			qpc_overhead	+=	QPC()-start-dummy;
 		}
-		qpc_overhead		/=	256;
-
+		qpc_overhead		/=	256;		
 		SetPriorityClass	(GetCurrentProcess(),NORMAL_PRIORITY_CLASS);
 
 		clk_per_second	-=	clk_overhead;
@@ -209,6 +213,7 @@ namespace CPU
 		clk_to_milisec = float(double(a/b));
 		a = 1000000;b = double(clk_per_second);
 		clk_to_microsec = float(double(a/b));
+		MsgCB("##PERF: CPU::Detect end");
 	}
 };
 

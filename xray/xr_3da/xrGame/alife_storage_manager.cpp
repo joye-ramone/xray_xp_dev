@@ -6,6 +6,8 @@
 //	Description : ALife Simulator storage manager
 ////////////////////////////////////////////////////////////////////////////
 
+// #define  RTC_COMPRESSION
+
 #include "stdafx.h"
 #include "alife_storage_manager.h"
 #include "alife_simulator_header.h"
@@ -22,14 +24,20 @@
 #include "string_table.h"
 #include "../igame_persistent.h"
 #include "script_vars_storage.h"
+#include "ActorStats.h"
 
 using namespace ALife;
 
 extern string_path g_last_saved_game;
 
+XRCORE_API u32		g_load_stage;
+XRCORE_API string64 g_szLastLevel;
+
 CALifeStorageManager::~CALifeStorageManager	()
 {
 }
+
+// #pragma optimize("gyts", off)
 
 void CALifeStorageManager::save	(LPCSTR save_name, bool update_name)
 {
@@ -77,6 +85,8 @@ void CALifeStorageManager::save	(LPCSTR save_name, bool update_name)
 	writer->w					(dest_data,dest_count);
 	xr_free						(dest_data);
 	FS.w_close					(writer);
+
+	g_ActorGameStats.AddSimpleEvent(STAT_EVENT_SAVE, "%s,%s", m_save_name, Level().name().c_str());
 #ifdef DEBUG
 	Msg							("* Game %s is successfully saved to file '%s' (%d bytes compressed to %d)",m_save_name,temp,source_count,dest_count + 4);
 #else // DEBUG
@@ -89,6 +99,10 @@ void CALifeStorageManager::save	(LPCSTR save_name, bool update_name)
 
 void CALifeStorageManager::load	(void *buffer, const u32 &buffer_size, LPCSTR file_name)
 {
+	g_load_stage ++;
+	g_ActorGameStats.OpenStatsFile ();
+
+
 	IReader						source(buffer,buffer_size);
 	header().load				(source);
 	time_manager().load			(source);
@@ -121,10 +135,17 @@ void CALifeStorageManager::load	(void *buffer, const u32 &buffer_size, LPCSTR fi
 
 	for (I = B; I != E; ++I)
 		(*I).second->on_register();
+
+	LPCSTR lname;
+	lname = level_name().c_str();
+	strcpy_s (g_szLastLevel, 64, lname);
+	g_ActorGameStats.AddSimpleEvent(STAT_EVENT_LOAD, "%s,%s", file_name, lname);
+	g_ActorGameStats.FlushRecord();
 }
 
 bool CALifeStorageManager::load	(LPCSTR save_name)
 {
+	g_load_stage = 1;
 	CTimer						timer;
 	timer.Start					();
 	string256					save;
@@ -135,6 +156,15 @@ bool CALifeStorageManager::load	(LPCSTR save_name)
 	}
 	else
 		strconcat				(sizeof(m_save_name),m_save_name,save_name,SAVE_EXTENSION);
+
+#ifdef NLC_EXTENSIONS	 
+	if (stricmp(save_name, "all") == 0)
+	{
+		Msg("!ERROR: not acceptable load all.sav. Please use 'New Game' instead ");
+		Debug.fatal(DEBUG_INFO, "invalid savename %s", save_name);
+		return (false);
+	}
+#endif
 
 	strcpy_s (m_loaded_save, sizeof(m_loaded_save) - 1, m_save_name);
 
@@ -160,8 +190,9 @@ bool CALifeStorageManager::load	(LPCSTR save_name)
 
 	u32							source_count = stream->r_u32();
 	void						*source_data = xr_malloc(source_count);
-	rtc_decompress				(source_data,source_count,stream->pointer(),stream->length() - 3*sizeof(u32));
-	FS.r_close					(stream);
+	rtc_decompress				(source_data, source_count, stream->pointer(), stream->length() - 3 * sizeof(u32));
+
+	FS.r_close(stream);
 	load						(source_data, source_count, file_name);
 	xr_free						(source_data);
 

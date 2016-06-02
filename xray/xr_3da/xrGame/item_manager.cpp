@@ -17,6 +17,8 @@
 #include "ai_space.h"
 #include "profiler.h"
 
+#define USEFUL_RADIUS 1.1f
+
 bool CItemManager::is_useful		(const CGameObject *object) const
 {
 	return					(m_object->useful(this,object));
@@ -37,10 +39,20 @@ bool CItemManager::useful			(const CGameObject *object) const
 	if (!const_cast<CGameObject*>(object)->UsedAI_Locations())
 		return				(false);
 
+	const Fvector &dst_pos = object->Position();
+	const Fvector &src_pos = m_object->Position();
+	float distance = src_pos.distance_to(dst_pos);
+
+	if (distance > 32.f) // alpet: проверяется дистанция, на которой назначены действующие рестрикторы, с учетом радиуса захвата аномалий
+		return				(false); 		   
+		
 	if (!m_object->movement().restrictions().accessible(object->Position()))
 		return				(false);
 
-	if (!m_object->movement().restrictions().accessible(object->ai_location().level_vertex_id()))
+   if (strstr(object->Name_script(), "af_gold_fish"))
+		MsgCB("$#CONTEXT: %s useful for %s, distance = %.1f ",  m_object->Name_script(), object->Name_script(), distance);
+
+	if (!m_object->movement().restrictions().accessible(object->ai_location().level_vertex_id(), USEFUL_RADIUS))
 		return				(false);
 
 	const CInventoryItem	*inventory_item = smart_cast<const CInventoryItem*>(object);
@@ -55,14 +67,15 @@ bool CItemManager::useful			(const CGameObject *object) const
 
 float CItemManager::do_evaluate		(const CGameObject *object) const
 {
-	VERIFY3					(
-		m_object->movement().restrictions().accessible(
-			object->ai_location().level_vertex_id()
-		),
-		*m_object->cName(),
-		*object->cName()
-	);
-	return					(m_object->evaluate(this,object));
+	u32 lvid = object->ai_location().level_vertex_id();
+
+	if  ( m_object->movement().restrictions().accessible(lvid, USEFUL_RADIUS) )
+		  return					(m_object->evaluate(this,object));
+
+		// *m_object->cName(),
+		// *object->cName()
+
+	return 0.0f;
 }
 
 float CItemManager::evaluate		(const CGameObject *object) const

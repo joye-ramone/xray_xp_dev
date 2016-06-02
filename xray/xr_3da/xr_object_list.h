@@ -5,11 +5,12 @@
 class	ENGINE_API	CObject;
 class	NET_Packet	;
 
+#define FAST_OBJECT_MAP
+
 class	ENGINE_API 				CObjectList
 {
 private:
 	// data
-	xr_map<u32,CObject*>		map_NETID			;
 	xr_vector<CObject*>			destroy_queue		;
 	xr_vector<CObject*>			objects_active		;
 	xr_vector<CObject*>			objects_sleeping	;
@@ -20,6 +21,13 @@ private:
 
 	CObject**					objects_dup			;
 	u32							objects_dup_memsz	;
+
+#ifdef FAST_OBJECT_MAP
+	CObject**					m_items;
+#else
+	xr_map<u32,CObject*>		map_NETID			;
+#endif
+
 
 public:
 	typedef fastdelegate::FastDelegate1<CObject*>	RELCASE_CALLBACK;

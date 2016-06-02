@@ -1,7 +1,11 @@
 #include "pch_script.h"
 #include "f1.h"
 
+
 CF1::CF1(void) {
+	m_flags.set				(Fbelt, TRUE);
+	m_weight				= .1f;
+	SetSlot (GRENADE_SLOT);
 }
 
 CF1::~CF1(void) {

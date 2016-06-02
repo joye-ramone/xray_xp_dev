@@ -9,6 +9,7 @@
 #include "game_cl_base.h"
 #include "entity_alive.h"
 #include "..\SkeletonCustom.h"
+#include "Actor.h"
 #include "object_broker.h"
 
 #define MAX_HEALTH 1.0f
@@ -18,6 +19,8 @@
 #define MAX_POWER 1.0f
 #define MAX_RADIATION 1.0f
 #define MAX_PSY_HEALTH 1.0f
+
+#pragma optimize("gyts", off)
 
 CEntityConditionSimple::CEntityConditionSimple()
 {
@@ -291,23 +294,24 @@ void CEntityCondition::UpdateCondition()
 
 
 
-float CEntityCondition::HitOutfitEffect(float hit_power, ALife::EHitType hit_type, s16 element, float AP)
-{
+float CEntityCondition::HitOutfitEffect(SHit *pHDS)
+{	// float hit_power, ALife::EHitType hit_type, s16 &element, float AP
     CInventoryOwner* pInvOwner		= smart_cast<CInventoryOwner*>(m_object);
-	if(!pInvOwner)					return hit_power;
+	if(!pInvOwner)					return pHDS->power;
 
 	CCustomOutfit* pOutfit			= (CCustomOutfit*)pInvOwner->inventory().m_slots[OUTFIT_SLOT].m_pIItem;
-	if(!pOutfit)					return hit_power;
+	if(!pOutfit)					return pHDS->power;
 
-	float new_hit_power				= hit_power;
-
-	if (hit_type == ALife::eHitTypeFireWound)
-		new_hit_power				= pOutfit->HitThruArmour(hit_power, element, AP);
-	else
-		new_hit_power				*= pOutfit->GetHitTypeProtection(hit_type,element);
+	float new_hit_power				= pHDS->power;
+	//увеличить изношенность костюма, перед попаданием в цель
+	pOutfit->Hit					(pHDS);
 	
-	//увеличить изношенность костюма
-	pOutfit->Hit					(hit_power, hit_type);
+
+	if (pHDS->hit_type == ALife::eHitTypeFireWound)
+		new_hit_power				= pOutfit->HitThruArmour(pHDS);
+	else
+		new_hit_power				*= pOutfit->GetHitTypeProtection(pHDS);
+	
 
 	return							new_hit_power;
 }
@@ -366,8 +370,8 @@ CWound* CEntityCondition::ConditionHit(SHit* pHDS)
 
 	float hit_power_org = pHDS->damage();
 	float hit_power = hit_power_org;
-	hit_power = HitOutfitEffect(hit_power, pHDS->hit_type, pHDS->boneID, pHDS->ap);
-
+	hit_power = HitOutfitEffect(pHDS);
+	
 	bool bAddWound = true;
 	switch(pHDS->hit_type)
 	{
@@ -452,6 +456,16 @@ float CEntityCondition::BleedingSpeed()
 void CEntityCondition::UpdateHealth()
 {
 	float bleeding_speed		= BleedingSpeed() * m_fDeltaTime * m_change_v.m_fV_Bleeding;
+	CActor *pActor = smart_cast<CActor*> (m_object);
+
+	if (pActor)
+	{
+		u32 state = pActor->get_state();
+		bleeding_speed *= (state & mcSprint) != 0 ? 2.0f : 1.0f;
+		bleeding_speed *= (state & mcAccel) != 0 ? 1.3f : 1.0f;
+	}
+
+
 	m_bIsBleeding				= fis_zero(bleeding_speed)?false:true;
 	m_fDeltaHealth				-= CanBeHarmed() ? bleeding_speed : 0;
 	m_fDeltaHealth				+= m_fDeltaTime * m_change_v.m_fV_HealthRestore;

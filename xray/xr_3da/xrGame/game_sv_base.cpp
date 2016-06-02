@@ -822,7 +822,7 @@ void game_sv_GameState::MapRotation_ListMaps	()
 	{
 		xr_string MapName = m_pMapRotation_List[i];
 		if (i==0)
-			Msg("~   %d. %s (%s) (current)", i+1, *st.translate(MapName.c_str()), MapName.c_str());
+			Msg("#   %d. %s (%s) (current)", i+1, *st.translate(MapName.c_str()), MapName.c_str());
 		else
 			Msg("  %d. %s (%s)", i+1, *st.translate(MapName.c_str()), MapName.c_str());
 	}

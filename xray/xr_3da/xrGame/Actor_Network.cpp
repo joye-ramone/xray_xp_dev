@@ -54,6 +54,8 @@ int			g_dwInputUpdateDelta		= 20;
 BOOL		net_cl_inputguaranteed		= FALSE;
 CActor*		g_actor						= NULL;
 
+XRCORE_API u32 g_load_stage;
+
 CActor*			Actor()	
 {	
 	VERIFY		(g_actor); 
@@ -85,7 +87,11 @@ void CActor::net_Export	(NET_Packet& P)					// export to server
 {
 	//CSE_ALifeCreatureAbstract
 	u8					flags = 0;
+#ifdef NLC_EXTENSIONS
+	P.w_float			(-GetfHealth() * 100);
+#else
 	P.w_float			(GetfHealth());
+#endif
 	P.w_u32				(Level().timeServer());
 	P.w_u8				(flags);
 	Fvector				p = Position();
@@ -303,6 +309,9 @@ void		CActor::net_Import_Base				( NET_Packet& P)
 	//CSE_ALifeCreatureAbstract
 	float health;
 	P.r_float			(health);
+#ifdef NLC_EXTENSIONS
+	health = abs(health) > 1 ? (-health) / 100 : health;
+#endif
 	//----------- for E3 -----------------------------
 	if (OnClient())SetfHealth(health);
 	//------------------------------------------------
@@ -495,12 +504,16 @@ void	CActor::net_Import_Physic_proceed	( )
 
 BOOL CActor::net_Spawn		(CSE_Abstract* DC)
 {
+	NET_SpawnFrame = Device.dwFrame;
+	NET_SpawnTime  = Device.dwTimeGlobal;
+	g_load_stage ++;
 	g_pGamePersistent->LoadTitle		("st_actor_netspawn");   // alpet: для отображения дополнительной длительной фазы загрузки, после короткого этапа "Синхронизации"
 	pApp->LoadBegin();
 	m_holder_id				= ALife::_OBJECT_ID(-1);
 	m_feel_touch_characters = 0;
 	m_snd_noise			= 0.0f;
 	m_sndShockEffector	= NULL;
+	m_dwUpdateCount		= 0;
 /*	m_followers			= NULL;*/
 	if (m_pPhysicsShell)
 	{
@@ -689,7 +702,13 @@ BOOL CActor::net_Spawn		(CSE_Abstract* DC)
 		setLocal(FALSE);
 	};
 
-	pApp->LoadEnd();
+
+	FS.gather_file_stat("x", 'd', 0, 0); // dump stats
+	
+	// pApp->LoadEnd();
+	g_load_stage ++;
+	NET_SpawnTime  = Device.dwTimeGlobal;
+	NET_SpawnFrame = Device.dwFrame;
 	return					TRUE;
 }
 
@@ -742,6 +761,7 @@ void CActor::net_Destroy	()
 	if(g_actor == this) g_actor= NULL;
 
 	Engine.Sheduler.Unregister	(this);
+	g_load_stage = 0;
 }
 
 void CActor::net_Relcase	(CObject* O)

@@ -19,7 +19,7 @@ CScriptParticlesCustom::CScriptParticlesCustom(CScriptParticles* owner, LPCSTR c
 
 CScriptParticlesCustom::~CScriptParticlesCustom()
 {
-//	Msg							("~CScriptParticlesCustom: 0x%08x",*(int*)&m_owner);
+//	Msg							("# ~CScriptParticlesCustom: 0x%08x",*(int*)&m_owner);
 	xr_delete					(m_animator);
 }
 

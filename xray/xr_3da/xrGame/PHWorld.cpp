@@ -162,8 +162,8 @@ void CPHWorld::Destroy()
 }
 void CPHWorld::SetGravity(float g)
 {
-	m_gravity				=g;
-	dWorldID phWorld		=0;
+	m_gravity				= g;
+	dWorldID phWorld		= 0;
 	dWorldSetGravity		(phWorld, 0,-m_gravity, 0);//-2.f*9.81f
 
 }
@@ -180,10 +180,11 @@ void CPHWorld::OnFrame()
 #ifdef DEBUG 
 	DBG_DrawFrameStart();
 	DBG_DrawStatBeforeFrameStep();
-#endif
-	Device.Statistic->Physics.Begin		();
-	FrameStep							(Device.fTimeDelta);
+#endif	
+	Device.Statistic->Physics.Begin		();					  busy_warn(DEBUG_INFO, 4);
+	FrameStep							(Device.fTimeDelta);  busy_warn(DEBUG_INFO, 5);
 	Device.Statistic->Physics.End		();
+	
 #ifdef DEBUG
 	DBG_DrawStatAfterFrameStep();
 

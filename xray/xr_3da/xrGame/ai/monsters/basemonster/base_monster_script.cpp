@@ -19,7 +19,6 @@
 #include "../../../patrol_path_manager.h"
 #include "../../../patrol_path_manager_space.h"
 
-
 using namespace MonsterSpace;
 using namespace MonsterSound;
 
@@ -172,8 +171,11 @@ bool CBaseMonster::bfAssignAnimation(CScriptEntityAction *tpEntityAction)
 	return				(true);
 }
 
+
 bool CBaseMonster::bfAssignSound(CScriptEntityAction *tpEntityAction)
 {
+	
+
 	CScriptSoundAction	&l_tAction = tpEntityAction->m_tSoundAction;
 	if (l_tAction.completed()) return false;
 
@@ -181,6 +183,10 @@ bool CBaseMonster::bfAssignSound(CScriptEntityAction *tpEntityAction)
 		if (!inherited::bfAssignSound(tpEntityAction))
 			return			(false);
 	}
+
+
+	
+
 
 	switch (l_tAction.m_monster_sound) {
 	case	eMonsterSoundIdle:			sound().play(eMonsterSoundIdle,			0, 0, (l_tAction.m_monster_sound_delay == int(-1)) ? db().m_dwIdleSndDelay		: l_tAction.m_monster_sound_delay);		break;
@@ -344,4 +350,3 @@ void CBaseMonster::vfFinishAction(CScriptEntityAction *tpEntityAction)
 {
 	inherited::vfFinishAction(tpEntityAction);
 }
-

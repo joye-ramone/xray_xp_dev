@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: ai_stalker.cpp
 //	Created 	: 25.02.2003
-//  Modified 	: 25.02.2003
+//  Modified 	: 10.12.2014
 //	Author		: Dmitriy Iassenev
 //	Description : AI Behaviour for monster "Stalker"
 ////////////////////////////////////////////////////////////////////////////
@@ -84,6 +84,8 @@ CAI_Stalker::CAI_Stalker			()
 	m_debug_planner					= 0;
 #endif // DEBUG
 	m_registered_in_combat_on_migration	= false;
+	m_ActiveWeapon					= NULL;
+	m_dwWeaponUpdated				= 0;
 }
 
 CAI_Stalker::~CAI_Stalker			()
@@ -296,6 +298,7 @@ void CAI_Stalker::Die				(CObject* who)
 	if (!active_item)
 		return;
 
+	MsgCB("$#CONTEXT: CAI_Stalker::Die checking active item 0x%p %s", active_item, active_item->Name());
 	CWeapon							*weapon = smart_cast<CWeapon*>(active_item);
 	if (!weapon)
 		return;
@@ -640,6 +643,14 @@ void CAI_Stalker::UpdateCL()
 	VERIFY2						(PPhysicsShell()||getEnabled(), *cName());
 
 	if (g_Alive()) {
+		if (m_ActiveWeapon && m_ActiveWeapon->GetAmmoElapsed() < 3 &&
+			Device.dwFrame >  m_dwWeaponUpdated + 20)
+		{
+			m_ActiveWeapon->CheckHaveAmmo();
+			m_ActiveWeapon = NULL;
+		}
+
+
 		if (g_mt_config.test(mtObjectHandler) && CObjectHandler::planner().initialized()) {
 			fastdelegate::FastDelegate0<>								f = fastdelegate::FastDelegate0<>(this,&CAI_Stalker::update_object_handler);
 #ifdef DEBUG

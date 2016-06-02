@@ -72,23 +72,29 @@ bool CXml::Init(LPCSTR path, LPCSTR  xml_filename)
 	// Load and parse xml file
 
 	IReader *F				= FS.r_open(path, xml_filename);
-	if(F==NULL)				return false;
+	if (F == NULL)				return false;
 
-	CMemoryWriter			W;
-	ParseFile				(path, W, F, this);
-	W.w_stringZ				("");
-	FS.r_close				(F);
-
-	m_Doc.Parse				((LPCSTR )W.pointer());
-	if (m_Doc.Error())
 	{
-		string1024			str;
-		sprintf				(str, "XML file:%s value:%s errDescr:%s",m_xml_file_name,m_Doc.Value(), m_Doc.ErrorDesc());
-		R_ASSERT2			(false, str);
+		CMemoryWriter			W;
+		ParseFile(path, W, F, this);
+		W.w_stringZ("");
+		FS.r_close(F);
+		m_Doc.Parse				((LPCSTR )W.pointer());
+	}
+
+	if (m_Doc.Error())
+	{		
+		Debug.fatal			(DEBUG_INFO, "XML parse error, location :%s:%d.%d, value: %s, errDescr: %s, fileSize: %d", 
+									m_xml_file_name, m_Doc.Row(), m_Doc.Column(), m_Doc.Value(), m_Doc.ErrorDesc(), m_Doc.DocumentLength());		
 	} 
-
-	m_root					= m_Doc.FirstChildElement();
-
+	__try
+	{
+		m_root = m_Doc.FirstChildElement();
+	}
+	__except (SIMPLE_FILTER)
+	{
+		Msg("!#EXCEPTION: CXmlInit.");
+	}
 	return true;
 }
 

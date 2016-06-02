@@ -28,7 +28,7 @@ IC CGameGraph::CGameGraph											()
 	R_ASSERT2						(header().version() == XRAI_CURRENT_VERSION,"Graph version mismatch!");
 	m_nodes							= (CVertex*)m_reader->pointer();
 	m_current_level_some_vertex_id	= _GRAPH_ID(-1);
-	m_enabled.assign				(header().vertex_count(),true);
+	m_enabled.assign				(header().vertex_count(),true);	
 #ifdef PRIQUEL
 	u8								*temp = (u8*)(m_nodes + header().vertex_count());
 	temp							+= header().edge_count()*sizeof(CGameGraph::CEdge);
@@ -165,11 +165,19 @@ IC	const GameGraph::LEVEL_MAP &GameGraph::CHeader::levels			() const
 	return						(m_levels);
 }
 
+IC	bool GameGraph::CHeader::valid_level(const _LEVEL_ID &id) const
+{
+	LEVEL_MAP::const_iterator	I = levels().find(id);	
+	return (I != levels().end());	
+}
+
 IC	const GameGraph::SLevel &GameGraph::CHeader::level				(const _LEVEL_ID &id) const
 {
-	LEVEL_MAP::const_iterator	I = levels().find(id);
-	R_ASSERT2					(I != levels().end(),make_string("there is no specified level in the game graph : %d",id));
-	return						((*I).second);
+	LEVEL_MAP::const_iterator	I = levels().find(id);	
+	if (I != levels().end())
+		return						((*I).second);
+	
+	return g_invalid_level; // with default construction
 }
 
 IC	const GameGraph::SLevel &GameGraph::CHeader::level				(LPCSTR level_name) const
@@ -184,8 +192,9 @@ IC	const GameGraph::SLevel &GameGraph::CHeader::level				(LPCSTR level_name) con
 	Msg							("! There is no specified level %s in the game graph!",level_name);
 	return						(levels().begin()->second);
 #else
-	R_ASSERT3					(false,"There is no specified level in the game graph!",level_name);
-	NODEFAULT;
+	return g_invalid_level;
+	// R_ASSERT3					(false,"There is no specified level in the game graph!",level_name);
+	// NODEFAULT;
 #endif
 }
 

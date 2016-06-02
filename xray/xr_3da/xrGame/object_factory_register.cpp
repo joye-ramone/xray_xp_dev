@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: object_factory_register.cpp
 //	Created 	: 27.05.2004
-//  Modified 	: 27.05.2004
+//  Modified 	: 12.11.2014
 //	Author		: Dmitriy Iassenev
 //	Description : Object factory
 ////////////////////////////////////////////////////////////////////////////
@@ -164,6 +164,7 @@
 #	include "space_restrictor.h"
 #	include "smart_zone.h"
 #	include "InventoryBox.h"
+#   include "inventoryContainer.h"
 
 #	include "actor_mp_server.h"
 #	include "actor_mp_client.h"
@@ -352,6 +353,7 @@ void CObjectFactory::register_classes	()
 
 	// Devices
 	ADD(CTorch					,CSE_ALifeItemTorch				,CLSID_DEVICE_TORCH				,"device_torch");
+	ADD(CPortableNVD			,CSE_ALifeItemNVD				,CLSID_DEVICE_NVD				,"device_night_vision");
 	ADD(CPda					,CSE_ALifeItemPDA				,CLSID_DEVICE_PDA				,"device_pda");
 
 	// objects
@@ -370,6 +372,7 @@ void CObjectFactory::register_classes	()
 	ADD(CDestroyablePhysicsObject,CSE_ALifeObjectPhysic			,CLSID_PHYSICS_DESTROYABLE		,"obj_phys_destroyable");
 
 	ADD(CInventoryBox			,CSE_InventoryBox				,CLSID_INVENTORY_BOX			,"inventory_box");
+	ADD(CInventoryContainer		,CSE_InventoryContainer			,CLSID_CONTAINER				,"inventory_container");
 
 	// hack, for dedicated server only
 	// because we do not have scripts
@@ -378,7 +381,7 @@ void CObjectFactory::register_classes	()
 	if (!g_dedicated_server)
 		return;
 
-	ADD(CElectricBall			,CSE_ALifeItemArtefact			,TEXT2CLSID("SCRPTART")			,"artefact_s");
+	ADD(CElectricBall			,CSE_ALifeItemArtefact			,TEXT2CLSID("SCRPTART")			,"artefact_s");	
 	ADD(CTorch					,CSE_ALifeItemTorch				,TEXT2CLSID("TORCH_S")			,"device_torch_s");
 	ADD(CStalkerOutfit			,CSE_ALifeItemCustomOutfit		,TEXT2CLSID("E_STLK")			,"equ_stalker_s");
 	ADD(CScope					,CSE_ALifeItem					,TEXT2CLSID("WP_SCOPE")			,"wpn_scope_s");

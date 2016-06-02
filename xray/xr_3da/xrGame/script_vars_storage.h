@@ -24,7 +24,7 @@
 class NET_Packet;
 class CScriptVarsTable;
 
-typedef struct _SCRIPT_VAR
+typedef struct DLL_API _SCRIPT_VAR
 {
    // string32	   name;
    int		   type;     // tag 
@@ -38,25 +38,30 @@ typedef struct _SCRIPT_VAR
 	   NET_Packet				*P;
    };
 
-   u32							eff_type				() { return type & 0xffff; }
+   IC u32						eff_type				() { return type & 0xffff; }
    void							release					();
    void*						smart_alloc				(int new_type, u32 cb = 4);   
 
-   bool							is_key_boolean          () { return (type & SVT_KEY_MASK) == SVT_KEY_BOOLEAN; }
-   bool							is_key_numeric          () { return (type & SVT_KEY_MASK) == SVT_KEY_NUMERIC; }
+   IC bool						is_key_boolean          () { return (type & SVT_KEY_MASK) == SVT_KEY_BOOLEAN; }
+   IC bool						is_key_numeric          () { return (type & SVT_KEY_MASK) == SVT_KEY_NUMERIC; }
 
-} SCRIPT_VAR;
+} SCRIPT_VAR, *PSCRIPT_VAR;
 
-typedef xr_map<shared_str, SCRIPT_VAR> SCRIPT_VARS_MAP;
 
-class CScriptVarsTable // таблица переменных
+
+class DLL_API CScriptVarsTable // таблица переменных
 {
+public:
+	typedef xr_map<shared_str, SCRIPT_VAR> SCRIPT_VARS_MAP;
+
 private:
 	
 	SCRIPT_VARS_MAP			    m_map;
 	shared_str					m_name;
 	int							ref_count;
 public:
+
+	
 
 	bool					    is_array;
 	bool						zero_key;
@@ -68,20 +73,24 @@ public:
 
 	virtual void				add_ref					() { ref_count ++; }
 	virtual void				release					();				
+		
 
-	ICF SCRIPT_VARS_MAP&		map						() { return m_map; }
-	virtual int					load					(IReader  &memory_stream);
-	virtual int					save					(IWriter  &memory_stream);
+			PSCRIPT_VAR			find_var				(const shared_str &k);
 			void				get						(lua_State *L, LPCSTR k, bool unpack);
 			void				set						(lua_State *L, int key_index, int value_index);
 			void				set						(lua_State *L, LPCSTR k, int index, int key_type);
 	ICF		int					size					()					{ return map().size(); };
 
+
+	ICF SCRIPT_VARS_MAP&		map						() { return m_map; }
+	virtual int					load					(IReader  &memory_stream);
+	virtual int					save					(IWriter  &memory_stream);
+
 	ICF		LPCSTR				name					()					{ LPCSTR res = *m_name; return res ? res : ""; }
 	ICF		void				set_name				(LPCSTR n)			{ m_name = n; }
 };
 
-class CScriptVarsStorage:
+class DLL_API CScriptVarsStorage:
 	public CScriptVarsTable
 {
 	typedef CScriptVarsTable	inherited;
@@ -100,5 +109,5 @@ add_to_type_list(CScriptVarsStorage)
 #define script_type_list save_type_list(CScriptVarsStorage)
 #endif
 
-extern CScriptVarsStorage g_ScriptVars;
+extern DLL_API CScriptVarsStorage g_ScriptVars;
 extern int lua_pushsvt(lua_State *L, CScriptVarsTable *T);

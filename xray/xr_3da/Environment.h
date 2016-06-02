@@ -49,7 +49,7 @@ public:
 	Fvector3			sky_color;		
 	Fvector3			hemi_color;
 
-	void				load		(IReader*		fs);
+	bool				load		(IReader*		fs);
 	float				sum			(CEnvModifier&	_another, Fvector3& view);
 };
 

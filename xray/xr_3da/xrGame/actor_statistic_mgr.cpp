@@ -14,19 +14,24 @@ xr_token actor_stats_token[]={
 	{0,						0}
 };
 */
+#pragma optimize("gyts", off)
+
 void SStatDetailBData::save(IWriter &stream)
 {
 	save_data			(key,			stream);
 	save_data			(int_count,		stream);
-	save_data			(int_points,	stream);
+	int pts				= (int) floor (f_points * 10000);
+	save_data			(pts,		stream);  // чтобы не менялся тип
 	save_data			(str_value,		stream);
 }
 
 void SStatDetailBData::load(IReader &stream)
 {
+	int					pts = 0;
 	load_data			(key,			stream);
 	load_data			(int_count,		stream);
-	load_data			(int_points,	stream);
+	load_data			(pts,			stream);
+	f_points			= (float)pts / 10000.f;
 
 	if(ai().get_alife()->header().version()>0x0002)
 		load_data			(str_value,		stream);
@@ -89,13 +94,13 @@ SStatDetailBData&	SStatSectionData::GetData	(const shared_str& key)
 	data.resize				(data.size()+1);
 	data.back				().key			= key;
 	data.back				().int_count	= 0;
-	data.back				().int_points	= 0;
+	data.back				().f_points		= 0.f;
 	return data.back		();
 }
 
-s32 SStatSectionData::GetTotalPoints() const
+float SStatSectionData::GetTotalPoints() const
 {
-	s32 res = 0;
+	float res = 0;
 	vStatDetailData::const_iterator it		= data.begin();
 	vStatDetailData::const_iterator it_e	= data.end();
 	for(;it!=it_e;++it)
@@ -103,7 +108,7 @@ s32 SStatSectionData::GetTotalPoints() const
 		if((*it).str_value.size()!=0)
 			return -1;
 		
-		res		+= (*it).int_count*(*it).int_points;
+		res		+= (*it).f_points; // alpet: лишенее умножение * (*it).int_count
 	}
 	return res;
 
@@ -151,26 +156,30 @@ void CActorStatisticMgr::AddPoints(const shared_str& key, const shared_str& deta
 	d.str_value					= str_value;
 }
 
-void CActorStatisticMgr::AddPoints(const shared_str& key, const shared_str& detail_key, s32 cnt, s32 pts)
+void CActorStatisticMgr::AddPoints(const shared_str& key, const shared_str& detail_key, s32 cnt, float pts)
 {
 	SStatSectionData& sect		= GetSection		(key);
 	SStatDetailBData& d			= sect.GetData		(detail_key);
 	d.int_count					+= cnt;
-	d.int_points				+= cnt*pts;
+	d.f_points					+= pts * cnt;
 }
 
-s32 CActorStatisticMgr::GetSectionPoints(const shared_str& key)
+float CActorStatisticMgr::GetSectionPoints(const shared_str& key)
 {
-	if( key != "total" )
-		return GetSection(key).GetTotalPoints();
+	if (key != "total")
+	{
+		float pts = GetSection(key).GetTotalPoints();
+		Msg("##DBG: section %s points = %.3f", *key, pts);
+		return pts;
+	}
 	else{//total
-		s32 _total = -1;
+		float _total = -1;
 		vStatSectionData& d					= GetStorage();
 		vStatSectionData::iterator it		= d.begin();
 		vStatSectionData::iterator it_e		= d.end();
 		for(;it!=it_e;++it)
 		{
-			s32 _p = (*it).GetTotalPoints();
+			float _p = (*it).GetTotalPoints();
 
 			if(_p !=-1)
 			{
@@ -179,6 +188,7 @@ s32 CActorStatisticMgr::GetSectionPoints(const shared_str& key)
 				_total += _p;
 			}
 		}
+		Msg("##DBG: section 'total' points = %.3f", _total);
 		return _total;
 	}
 }

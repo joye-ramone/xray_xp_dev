@@ -18,18 +18,21 @@ public:
 #ifdef DEBUG
 	xr_vector<u32>		m_test_storage;
 	bool				m_correct;
-#endif
-
+#endif	
 protected:
-			void		process_borders		();
 
+			void		process_borders		();
 public:
+	bool				m_last_inside;      // alpet: для вывода списка сработавших рестрикторов
+
+	virtual bool		effective			() const;
 			bool		inside				(u32 level_vertex_id, bool partially_inside);
 			bool		inside				(u32 level_vertex_id, bool partially_inside, float radius);
 	virtual	bool		inside				(const Fsphere &sphere) = 0;
 	virtual bool		shape				() const = 0;
 	virtual bool		default_restrictor	() const = 0;
 	virtual	Fsphere		sphere				() const = 0;
+	
 
 public:
 #ifdef DEBUG

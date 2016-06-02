@@ -178,8 +178,8 @@ public:
 	xr_deque<CSE_Abstract*>		game_spawn_queue;
 	xrServer*					Server;
 	GlobalFeelTouch				m_feel_deny;
-
-
+	bool						m_bForceUpdate;
+	xr_vector<u16>				m_lastSpawn;	
 #ifdef BATTLEYE
 	BattlEyeSystem				battleye_system;
 	virtual bool				TestLoadBEClient();

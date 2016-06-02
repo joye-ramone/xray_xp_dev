@@ -255,6 +255,7 @@ CSE_ALifeObject::CSE_ALifeObject			(LPCSTR caSection) : CSE_Abstract(caSection)
 	m_flags.one					();
 	m_story_id					= INVALID_STORY_ID;
 	m_spawn_story_id			= INVALID_SPAWN_STORY_ID;
+	m_bReleased					= false;
 
 #ifdef LUAICP_COMPAT
 	static bool _saved = false;
@@ -268,6 +269,7 @@ CSE_ALifeObject::CSE_ALifeObject			(LPCSTR caSection) : CSE_Abstract(caSection)
 		LogXrayOffset("CSE_ALifeObject.story_id",		this, &m_story_id);
 		LogXrayOffset("CSE_ALifeObject.spawn_sid",		this, &m_spawn_story_id);
 		LogXrayOffset("CSE_ALifeObject.simulator",		this, &m_alife_simulator);
+		LogXrayOffset("CSE_ALifeObject.released",		this, &this->m_bReleased);
 	}
 #endif
 

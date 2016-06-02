@@ -15,7 +15,7 @@ void	CRender::render_lights	(light_Package& LP)
 	// const	u16		smap_unassigned		= u16(-1);
 	{
 		xr_vector<light*>&	source			= LP.v_shadowed;
-		for (u32 it=0; it<source.size(); it++)
+		for (u32 it = 0; it < source.size(); it++)
 		{
 			light*	L		= source[it];
 			L->vis_update	();
@@ -161,7 +161,7 @@ void	CRender::render_lights	(light_Package& LP)
 	// Point lighting (unshadowed, if left)
 	if (!LP.v_point.empty())		{
 		xr_vector<light*>&	Lvec		= LP.v_point;
-		for	(u32 pid=0; pid<Lvec.size(); pid++)	{
+		for	(u32 pid=0; pid < Lvec.size(); pid++)	{
 			Lvec[pid]->vis_update		();
 			if (Lvec[pid]->vis.visible)	{
 				render_indirect			(Lvec[pid]);
@@ -174,7 +174,7 @@ void	CRender::render_lights	(light_Package& LP)
 	// Spot lighting (unshadowed, if left)
 	if (!LP.v_spot.empty())		{
 		xr_vector<light*>&	Lvec		= LP.v_spot;
-		for	(u32 pid=0; pid<Lvec.size(); pid++)	{
+		for	(u32 pid=0; pid < Lvec.size(); pid++)	{
 			Lvec[pid]->vis_update		();
 			if (Lvec[pid]->vis.visible)	{
 				LR.compute_xf_spot		(Lvec[pid]);

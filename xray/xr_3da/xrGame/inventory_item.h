@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: inventory_item.h
 //	Created 	: 24.03.2003
-//  Modified 	: 29.01.2004
+//  Modified 	: 19.12.2014
 //	Author		: Victor Reutsky, Yuri Dobronravin
 //	Description : Inventory item
 ////////////////////////////////////////////////////////////////////////////
@@ -11,6 +11,8 @@
 #include "inventory_space.h"
 #include "hit_immunity.h"
 #include "attachable_item.h"
+#include "ui\UIIconParams.h"
+#include <ComplexVar.h>
 
 class CUIInventoryCellItem;
 
@@ -45,8 +47,11 @@ class CInventoryItem :
 #endif
 {
 	friend class CInventoryScript;
+	friend class CInventory;
 private:
 	typedef CAttachableItem inherited;
+
+	char  m_slots_visibility [SLOTS_TOTAL];
 public:
 	enum EIIFlags{				FdropManual			=(1<<0),
 								FCanTake			=(1<<1),
@@ -63,10 +68,12 @@ public:
 								FIAlwaysTradable	=(1<<12),
 								FIAlwaysUntradable	=(1<<13),
 								FIUngroupable		=(1<<14),
-								FIManualHighlighting	=(1<<15),
+								FIManualHighlighting  =(1<<15)								
 	};
 
 	Flags16						m_flags;
+	CIconParams					m_icon_params;
+
 public:
 								CInventoryItem		();
 	virtual						~CInventoryItem		();
@@ -77,7 +84,7 @@ public:
 	virtual LPCSTR				Name				();
 	virtual LPCSTR				NameShort			();
 //.	virtual LPCSTR				NameComplex			();
-	shared_str					ItemDescription		() { return m_Description; }
+	virtual shared_str			ItemDescription		() const;
 	virtual void				GetBriefInfo		(xr_string& str_name, xr_string& icon_sect_name, xr_string& str_count) {};
 	
 	virtual void				OnEvent				(NET_Packet& P, u16 type);
@@ -122,7 +129,7 @@ public:
 			BOOL				IsQuestItem			()	const	{return m_flags.test(FIsQuestItem);}			
 	virtual	u32					Cost				() const	{ return m_cost; }
 	virtual	void				SetCost				(u32 cost) 	{ m_cost = cost; }
-	virtual float				Weight				() 			{ return m_weight;}		
+	virtual float				Weight				() const	{ return m_weight;}		
 
 public:
 	CInventory*					m_pCurrentInventory;
@@ -131,13 +138,14 @@ public:
 	shared_str					m_nameShort;
 	shared_str					m_nameComplex;
 
-	u32							m_cost;
+	CComplexVarInt				m_cost;
 	float						m_weight;
 	shared_str					m_Description;
 	CUIInventoryCellItem*		m_cell_item;
 
 
 	EItemPlace					m_eItemPlace;
+	Fvector						m_dropTarget;
 
 
 	virtual void				OnMoveToSlot		() {};
@@ -146,7 +154,8 @@ public:
 					
 			int					GetGridWidth		() const ;
 			int					GetGridHeight		() const ;
-			const shared_str&	GetIconName			() const		{return m_icon_name;};
+			const shared_str&	GetIconName			() const		{return m_icon_params.name;};
+			int					GetIconIndex		() const ; 
 			int					GetXPos				() const ;
 			int					GetYPos				() const ;
 	//---------------------------------------------------------------------
@@ -155,7 +164,7 @@ public:
 			float				GetKillMsgWidth		() const ;
 			float				GetKillMsgHeight	() const ;
 	//---------------------------------------------------------------------
-			float				GetCondition		() const					{return m_fCondition;}
+	virtual	float				GetCondition		() const					{return m_fCondition;}
 	virtual	float				GetConditionToShow	() const					{return GetCondition();}
 			void				ChangeCondition		(float fDeltaCondition);
 			
@@ -168,7 +177,7 @@ public:
 			bool				RuckDefault			()							{return !!m_flags.test(FRuckDefault);}
 			
 	virtual bool				CanTake				() const					{return !!m_flags.test(FCanTake);}
-			bool				CanTrade			() const;
+	virtual	bool				CanTrade			() const;
 	virtual bool 				IsNecessaryItem	    (CInventoryItem* item);
 	virtual bool				IsNecessaryItem	    (const shared_str& item_sect){return false;};
 	typedef						u32					SLOT_ID;		
@@ -178,8 +187,11 @@ public:
 	const	xr_vector<SLOT_ID>&	GetSlots			()							{return m_slots;}
 	void						SetSlot				(SLOT_ID slot); // alpet: реально это SelectSlot
 	virtual SLOT_ID				GetSlot				()  const;
-	SLOT_ID						GetSlotsCount		() const					{ return m_slots.size(); }
+ 	SLOT_ID						GetSlotsCount		() const					{ return m_slots.size(); }
 	bool						IsPlaceable			(SLOT_ID min_slot, SLOT_ID max_slot);
+    bool						VisibleInSlot		(SLOT_ID slot) { return m_slots_visibility[slot] > 0; }
+    void						SetVisibleInSlot	(SLOT_ID slot, bool vis); 	
+	virtual	void				SetCondition	    (float fNewCondition) { m_fCondition = fNewCondition; ChangeCondition(0.0f); }		
 #else							
 	virtual SLOT_ID				GetSlot				()  const					{return m_slot;}
 			void				SetSlot				(SLOT_ID slot)				{m_slot = slot;};	
@@ -198,8 +210,6 @@ protected:
 	ALife::_TIME_ID				m_dwItemIndependencyTime;
 
 	float						m_fControlInertionFactor;
-	shared_str					m_icon_name;
-
 	////////// network //////////////////////////////////////////////////
 public:
 	virtual void				make_Interpolation	();
@@ -249,7 +259,8 @@ public:
 
 public:
 	virtual DLL_Pure*			_construct					();
-	IC	CPhysicsShellHolder&	object						() const{ VERIFY		(m_object); return		(*m_object);}
+	IC	CPhysicsShellHolder&	object						() const { FORCE_VERIFY(m_object); return (*m_object); }
+	IC  u16						object_id					() const; 
 	virtual void				on_activate_physic_shell	() { R_ASSERT(0); } //sea
 
 protected:

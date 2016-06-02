@@ -496,7 +496,7 @@ u16 CUIMapWnd::GetIdxByName			(const shared_str& map_name)
 {
 	GameMapsPairIt it				= m_GameMaps.find(map_name);
 	if(it==m_GameMaps.end()){	
-		Msg							("~ Level Map '%s' not registered",map_name.c_str());
+		Msg							(" # Level Map '%s' not registered",map_name.c_str());
 		return						u16(-1);
 	}
 	return (u16)std::distance		(m_GameMaps.begin(),it);

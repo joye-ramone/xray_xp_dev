@@ -64,14 +64,14 @@ class CGameObject :
 	public CUsableScriptObject,
 	public CScriptBinder
 {
-	typedef CObject inherited;
-	bool							m_spawned;
+	typedef CObject inherited;	
 	Flags32							m_server_flags;
 	CAI_ObjectLocation				*m_ai_location;
 	ALife::_STORY_ID				m_story_id;
 	animation_movement_controller	*m_anim_mov_ctrl;	
 protected:
 	shared_str						m_class_name;
+	bool							m_spawned;
 	//врем€ удалени€ объекта
 	bool					m_bObjectRemoved;
 public:
@@ -115,6 +115,7 @@ public:
 	static void				u_EventSend(NET_Packet& P, u32 dwFlags = DPNSEND_GUARANTEED);
 
 	// Methods
+	virtual void			ChangePosition(const Fvector &pos);
 	virtual void			Load(LPCSTR section);
 	virtual BOOL			net_Spawn(CSE_Abstract* DC);
 	virtual void			net_Destroy();
@@ -154,9 +155,9 @@ public:
 	virtual bool			NeedToDestroyObject() const;
 	virtual void			DestroyObject();
 	///////////////////////////////////////////////////////////////////////
-
+		
 	// Position stack
-	virtual	SavedPosition	ps_Element(u32 ID) const;
+	virtual					SavedPosition	ps_Element(u32 ID) const;
 
 	void			setup_parent_ai_locations(bool assign_position = true);
 	void			validate_ai_locations(bool decrement_reference = true);
@@ -292,28 +293,38 @@ public:
 public:
 
 	typedef CScriptCallbackEx<void> CScriptCallbackExVoid;
+	typedef CScriptCallbackEx<int>	CScriptCallbackExInt;
 
 private:
 
-	DEFINE_MAP(GameObject::ECallbackType, CScriptCallbackExVoid, CALLBACK_MAP, CALLBACK_MAP_IT);
+	DEFINE_MAP(GameObject::ECallbackType, CScriptCallbackExInt, CALLBACK_MAP, CALLBACK_MAP_IT);
 	CALLBACK_MAP			*m_callbacks;
+	xr_map<GameObject::ECallbackType, bool>		m_sup_callbacks;
+
 
 public:
 #ifdef OBJECTS_RADIOACTIVE
-	float 							m_fRadiationAccumFactor;          // alpet: скорость по€влени€ вторичной радиактивности
-	float 							m_fRadiationAccumLimit;			  // alpet: предел вторичной радиоактивности 
-	float 							m_fRadiationRestoreSpeed;	
+	float 					m_fRadiationAccumFactor;          // alpet: скорость по€влени€ вторичной радиактивности
+	float 					m_fRadiationAccumLimit;			  // alpet: предел вторичной радиоактивности 
+	float 					m_fRadiationRestoreSpeed;	
+	virtual float		    RadiationRestoreSpeed () const	  { return m_fRadiationRestoreSpeed; }
 #endif
 
-	CScriptCallbackExVoid	&callback(GameObject::ECallbackType type) const;
+	CScriptCallbackExInt	&callback(GameObject::ECallbackType type) const;
+	virtual void			SuppressCallback   (GameObject::ECallbackType type, bool suppress);
+	virtual bool			SuppressedCallback (GameObject::ECallbackType type) const;
+
 	virtual	LPCSTR			visual_name(CSE_Abstract *server_entity);
 
 	virtual	void			On_B_NotCurrentEntity() {};
 
 	CSE_ALifeDynamicObject* alife_object() const; // alpet: возвращает серверный экземпл€р дл€ этого объекта
+	virtual void			ChangeSection(LPCSTR name);  // alpet: дл€ иерархической замены секции, в т.ч. из скриптов
+
 	virtual void			UpdateXFORM(const Fmatrix &upd); // alpet: дл€ обновлени€ позиции и направлени€
 	virtual float			GetHealth() const  { return -1;  } // alpet: дл€ универсального доступа к переменным класса вроде fHealth
-	virtual void			SetHealth(float h) { }
+	virtual void			SetHealth(float h) { }	
+	
 };
 
 #endif // !defined(AFX_GAMEOBJECT_H__3DA72D03_C759_4688_AEBB_89FA812AA873__INCLUDED_)

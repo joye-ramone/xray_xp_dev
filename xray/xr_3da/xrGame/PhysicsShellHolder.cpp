@@ -390,21 +390,31 @@ void CPhysicsShellHolder::on_physics_disable()
 	Level().Send		(net_packet,net_flags(TRUE,TRUE));
 }
 
+#pragma optimize("gyts", off)
+
 void CPhysicsShellHolder::UpdateXFORM(const Fmatrix &upd)
 {
+
+	static u16 test_obj = 7859;
+	if (test_obj == ID())
+	{
+		Log("#~C0E Update transform source:\n~C07 ", upd);
+		Log("#~C0A Object transform current:\n ~C07", XFORM());
+	}
+
 	inherited::UpdateXFORM(upd);
 
-	static int method = 1 + 4 + 8; // alpet: набор флагов для отладки, можно менять значение во время выполнения из Watches
+	static int method = 1 + 4 + 8 + 16; // alpet: набор флагов для отладки, можно менять значение во время выполнения из Watches
 
 	if (PPhysicsShell())
 	{
 		// m_pPhysicsShell->SetTransform(upd);		
 		if (method & 1)
-		{			
-			PPhysicsShell()->mXFORM.set(upd);		
-			PPhysicsShell()->SetGlTransformDynamic(upd);									
+		{
+			PPhysicsShell()->mXFORM.set(upd);
+			PPhysicsShell()->SetGlTransformDynamic(upd);
 		}
-			
+
 		if (method & 2)
 		{   // стянуто из Car.cpp и как-то не так работает
 			bool enable = PPhysicsShell()->isEnabled();
@@ -415,8 +425,8 @@ void CPhysicsShellHolder::UpdateXFORM(const Fmatrix &upd)
 			inv.set(restored_form);
 			inv.invert();
 			replace.mul(upd, inv);
-			PPhysicsShell()->SetTransform (replace);			
-			if (enable) PPhysicsShell()->Enable(); 
+			PPhysicsShell()->SetTransform(replace);
+			if (enable) PPhysicsShell()->Enable();
 			else PPhysicsShell()->Disable();
 			// PPhysicsShell()->GetGlobalTransformDynamic(&XFORM());
 		}
@@ -431,11 +441,27 @@ void CPhysicsShellHolder::UpdateXFORM(const Fmatrix &upd)
 		if (method & 4)
 			PPhysicsShell()->Update();
 
-		if (method & 8)		
+		if (method & 8)
 			PPhysicsShell()->GetGlobalTransformDynamic(&XFORM());
-		
-			
+
+
 
 	}
-		
+	if (method & 16)
+	{
+		inherited::UpdateXFORM(upd);
+		CKinematics *K = PKinematics(Visual());
+		if (K)
+		{
+			K->CalculateBones_Invalidate();
+			K->CalculateBones();
+		}
+	}
+
+	if (test_obj == ID())
+	{
+		// Log(" Update transform source:\n ", upd);
+		Log("#~C0F Update transform result:\n~C07 ", XFORM());
+	}
+
 }

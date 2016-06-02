@@ -15,6 +15,8 @@
 
 ELightAnimLibrary LALib;
 
+#pragma optimize("gyts", on)
+
 CLAItem::CLAItem()
 {
 	fFPS		= 15.f;

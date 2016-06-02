@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: script_game_object.h
 //	Created 	: 25.09.2003
-//  Modified 	: 29.06.2004
+//  Modified 	: 04.12.2014
 //	Author		: Dmitriy Iassenev
 //	Description : Script game object class
 ////////////////////////////////////////////////////////////////////////////
@@ -28,6 +28,7 @@ namespace SightManager {enum ESightType;};
 
 class NET_Packet;
 class CGameTask;
+struct SRotation;
 
 namespace PatrolPathManager { 
 	enum EPatrolStartType;
@@ -139,7 +140,7 @@ public:
 			void				play_cycle			(LPCSTR anim);
 			Fvector				Center				();
 			void				set_lua_state 	    (lua_State *L) { m_lua_state = L; }
-			lua_State*			lua_state ()		{ return m_lua_state;  }
+			lua_State*			lua_state ();		
 	_DECLARE_FUNCTION10	(Position	,	Fvector		);
 	_DECLARE_FUNCTION10	(Direction	,	Fvector		);
 	_DECLARE_FUNCTION10	(Mass		,	float		);
@@ -151,6 +152,7 @@ public:
 			LPCSTR				Name				() const;
 			shared_str			cName				() const;
 			LPCSTR				Section				() const;
+			void				SetSection			(LPCSTR section);
 	// CInventoryItem
 			u32					Cost				() const;
 			float				GetCondition		() const;
@@ -289,7 +291,8 @@ public:
 			void				DropItem			(CScriptGameObject* pItem);
 			void				DropItemAndTeleport	(CScriptGameObject* pItem, Fvector position);
 			void				ForEachInventoryItems(const luabind::functor<void> &functor);
-			void				TransferItem		(CScriptGameObject* pItem, CScriptGameObject* pForWho);
+			void				TransferItem		(CScriptGameObject* pItem, CScriptGameObject* pForWho, bool bNoEvents);
+			void				TransferItems		(lua_State *L);
 			void				TransferMoney		(int money, CScriptGameObject* pForWho);
 			void				GiveMoney			(int money);
 			u32					Money				();
@@ -337,8 +340,8 @@ public:
 
 			
 	// Callbacks			
-			void				SetCallback			(GameObject::ECallbackType type, const luabind::functor<void> &functor);
-			void				SetCallback			(GameObject::ECallbackType type, const luabind::functor<void> &functor, const luabind::object &object);
+			void				SetCallback			(GameObject::ECallbackType type, const luabind::functor<int> &functor);
+			void				SetCallback			(GameObject::ECallbackType type, const luabind::functor<int> &functor, const luabind::object &object);
 			void				SetCallback			(GameObject::ECallbackType type);
 
 			void				set_patrol_extrapolate_callback(const luabind::functor<bool> &functor);
@@ -647,39 +650,44 @@ public:
 			// KD
 
 			// Real Wolf 07.07.2014.
-			void SwitchProjector(bool);
-			bool ProjectorIsOn() const;
+			void				SwitchProjector						(bool);
+			bool				ProjectorIsOn						() const;
 
-			float GetShapeRadius() const;
+			float				GetShapeRadius						() const;
 
-			u16 GetAmmoBoxCurr() const;
-			u16 GetAmmoBoxSize() const;
-			void SetAmmoBoxCurr(u16);
-			void SetAmmoBoxSize(u16);
+			u16					GetAmmoBoxCurr						() const;
+			u16					GetAmmoBoxSize						() const;
+			void				SetAmmoBoxCurr						(u16);
+			void				SetAmmoBoxSize						(u16);
 
-			LPCSTR GetVisualName();
-			void SetVisualName(LPCSTR);
+			LPCSTR				GetVisualName						();
+			void				SetVisualName						(LPCSTR);
 
-			void AttachVehicle(CScriptGameObject*);
-			void DetachVehicle();
-			void SetDirection(const Fvector &dir, float bank);
-			void SetPosition(const Fvector &pos);
+			void				AttachVehicle						(CScriptGameObject*);
+			void				DetachVehicle						();
+			void				SetDirection						(const Fvector &dir, float bank);
+			void				SetRotation							(const SRotation &rot);
+			void				SetPosition							(const Fvector &pos);
+			Fmatrix*			GetXFORM							();
 
-			void HealWounds(float);
-			CScriptIniFile* GetVisualIni() const;
 
-			void SetDescription(LPCSTR);
-			LPCSTR GetDescription() const;
-			void SetName(LPCSTR);
-			LPCSTR GetName() const;
-			void SetNameShort(LPCSTR);
-			LPCSTR GetNameShort() const;
-			void SetWeight(float);
-			void SetCost(u32);
-			CUIStatic* GetCellItem() const;
-			void OpenInventoryBox(CScriptGameObject*) const;
+			void				HealWounds							(float);
+			CScriptIniFile*		GetVisualIni						() const;
 
-			LPCSTR GetBoneName(u16) const;
+			void				SetDescription						(LPCSTR);
+			LPCSTR				GetDescription						() const;
+			void				SetItemName							(LPCSTR);
+			LPCSTR				GetItemName							() const;
+			void				SetItemNameShort					(LPCSTR);
+			LPCSTR				GetItemNameShort					() const;
+			void				SetWeight							(float);
+			void				SetCost								(u32);
+			CUIStatic*			GetCellItem							() const;
+			void				OpenInventoryBox					(CScriptGameObject*) const;
+			LPCSTR				GetBoneName							(u16) const;
+
+			// alpet: object modifiers
+			void				SetObjectName						(LPCSTR szName);
 
 			// alpet: visual functions for CWeapon descedants 
 			_DECLARE_FUNCTION10 (alife_object			,			CSE_ALifeDynamicObject*);
@@ -700,6 +708,8 @@ extern void buy_condition	(float friend_factor, float enemy_factor);
 extern void show_condition	(CScriptIniFile *ini_file, LPCSTR section);
 
 extern void	lua_pushgameobject(lua_State *L, CGameObject *obj);
+extern CScriptGameObject *lua_script_game_object(lua_State *L, int index);
+void   *lua_to_object(lua_State *L, int index, LPCSTR class_name);
 
 template <typename T>
 IC bool test_pushobject(lua_State *L, CGameObject* obj)
@@ -712,6 +722,25 @@ IC bool test_pushobject(lua_State *L, CGameObject* obj)
 		return true;		
 	}
 	return false;
-}
+};
+
+template <typename T>
+IC void script_game_object_cast (CScriptGameObject *script_obj, lua_State *L)
+{	
+	using namespace luabind::detail;
+	if (script_obj)
+	{
+		script_obj->set_lua_state(L);
+		CGameObject *obj = &script_obj->object();
+		T* cobj = smart_cast<T*>(obj);
+		if (cobj)
+		{
+			convert_to_lua<T*>(L, cobj); // for default 
+			return;
+		}			
+	}
+	lua_pushnil(L);	
+};
+
 
 #include "script_game_object_impl.h" // alpet: исправление error LNK2019: unresolved external symbol "public: class CGameObject & __thiscall CScriptGameObject::object(void)const "

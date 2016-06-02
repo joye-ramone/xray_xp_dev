@@ -64,6 +64,7 @@ extern CUIXml*	g_gameTaskXml;
 extern CUIXml*	g_uiSpotXml;
 
 extern void destroy_lua_wpn_params	();
+extern void CleanSharedIniFiles		();
 
 void clean_game_globals()
 {
@@ -130,4 +131,11 @@ void clean_game_globals()
 	xr_delete										(g_uiSpotXml);
 	dump_list_xmls									();
 	DestroyUIGeom									();
+
+	extern int g_game_cycle;
+	extern int i_holder_count;
+	if (i_holder_count != 0)
+		MsgCB("!#LEAK: space restriction holder rest count = %d", i_holder_count);
+
+	CleanSharedIniFiles								();		
 }

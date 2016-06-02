@@ -37,6 +37,8 @@
 	#include "PhysicsShellAnimator.h"
 #endif
 
+#pragma optimize("gyts", off)
+
 IC		bool	PhOutOfBoundaries			(const Fvector& v)
 {
 	return v.y < phBoundaries.y1;

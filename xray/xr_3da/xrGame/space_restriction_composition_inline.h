@@ -13,6 +13,13 @@ IC	CSpaceRestrictionComposition::CSpaceRestrictionComposition	(CSpaceRestriction
 	VERIFY						(space_restriction_holder);
 	m_space_restriction_holder	= space_restriction_holder;
 	m_space_restrictors			= space_restrictors;
+	extern int g_game_cycle;
+	m_create_cycle				= g_game_cycle;
+	m_create_time				= Device.fTimeGlobal;
+	m_init_count				= 0;
+	m_incomplete				= true;
+	m_last_inside				= false;
+	m_type_none					= false;
 #ifdef DEBUG
 	check_restrictor_type		();
 #endif // DEBUG

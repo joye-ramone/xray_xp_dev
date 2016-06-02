@@ -92,6 +92,9 @@ static void resetstack (lua_State *L, int status) {
 }
 
 
+// _declspec(dllimport) void Log(char* msg);
+
+
 void luaD_throw (lua_State *L, int errcode) {
   if (L->errorJmp) {
     L->errorJmp->status = errcode;
@@ -103,8 +106,9 @@ void luaD_throw (lua_State *L, int errcode) {
       resetstack(L, errcode);
       lua_unlock(L);
       G(L)->panic(L);
-    }
-    exit(EXIT_FAILURE);
+    }	
+	// abort();
+	xr_MsgCB("! #THROW(luaD_thow): errcode = %d ", errcode);
   }
 }
 
@@ -375,12 +379,21 @@ int luaD_poscall (lua_State *L, StkId firstResult) {
 ** function position.
 */ 
 void luaD_call (lua_State *L, StkId func, int nResults) {
-  if (++L->nCcalls >= LUAI_MAXCCALLS) {
-    if (L->nCcalls == LUAI_MAXCCALLS)
-      luaG_runerror(L, "C stack overflow");
-    else if (L->nCcalls >= (LUAI_MAXCCALLS + (LUAI_MAXCCALLS>>3)))
+  static int call_check = 0;
+  if (++L->nCcalls >= LUAI_MAXCCALLS && 0 == call_check) {
+	  if (L->nCcalls == LUAI_MAXCCALLS)  {
+		  call_check = 100;
+		  xr_MsgCB("! #ERROR: to many nested calls for luaD_call = %d, func = '%s'", L->nCcalls, GetFunctionInfo(func->value.p));
+		  xr_MsgCB("$#DUMP_CONTEXT");
+		  abort();
+		  luaG_runerror(L, "lua_D_call: C stack overflow");		  
+	  }
+	else
+	 if (L->nCcalls >= (LUAI_MAXCCALLS + (LUAI_MAXCCALLS >> 3)))
       luaD_throw(L, LUA_ERRERR);  /* error while handing stack error */
   }
+  if (call_check) call_check--;
+
   if (luaD_precall(L, func, nResults) == PCRLUA)  /* is a Lua function? */
     luaV_execute(L, 1);  /* call it */
   L->nCcalls--;

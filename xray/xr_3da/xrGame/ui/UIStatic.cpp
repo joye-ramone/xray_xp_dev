@@ -514,7 +514,10 @@ void CUIStatic::SetMask(CUIFrameWindow *pMask)
 //}
 
 CGameFont::EAligment CUIStatic::GetTextAlignment(){
-	return m_pLines->GetTextAlignment();
+	if (m_pLines != NULL)
+		return m_pLines->GetTextAlignment();
+
+	return CGameFont::EAligment::alLeft;
 }
 
 //void CUIStatic::SetTextAlign(CGameFont::EAligment align){
@@ -644,4 +647,18 @@ void CUIStatic::DrawHighlightedText(){
 bool CUIStatic::IsHighlightText()
 {
 	return m_bCursorOverWindow;
+}
+
+// Real Wolf: установка цвета для статика и его детей.
+void CUIStatic::SetColorAll(u32 color)
+{
+	SetColor(color);
+
+	//for (auto it = m_ChildWndList.begin(); it != m_ChildWndList.end(); ++it)
+	//{
+	//	if (auto s = smart_cast<CUIStatic*>(*it))
+	//	{
+	//		s->SetColor(color);
+	//	}
+	//}
 }

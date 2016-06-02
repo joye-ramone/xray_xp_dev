@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: alife_simulator_base.cpp
 //	Created 	: 25.12.2002
-//  Modified 	: 12.05.2004
+//  Modified 	: 17.02.2016
 //	Author		: Dmitriy Iassenev
 //	Description : ALife Simulator base class
 ////////////////////////////////////////////////////////////////////////////
@@ -21,7 +21,9 @@
 #include "xrserver.h"
 #include "level_graph.h"
 #include "script_engine.h"
+#include "script_ini_file.h"
 #include "../lua_tools.h"
+#include "../luaicp_events.h"
 
 #pragma warning(push)
 #pragma warning(disable:4995)
@@ -29,6 +31,9 @@
 #pragma warning(pop)
 
 using namespace ALife;
+
+extern CScriptIniFile *get_system_ini();
+
 
 CALifeSimulatorBase::CALifeSimulatorBase	(xrServer *server, LPCSTR section)
 {
@@ -46,6 +51,8 @@ CALifeSimulatorBase::CALifeSimulatorBase	(xrServer *server, LPCSTR section)
 	m_registry_container		= 0;
 	random().seed				(u32(CPU::QPC() & 0xffffffff));
 	m_can_register_objects		= true;	
+	R_ASSERT(get_system_ini());   // alpet: необходимо инициализировать скриптовой генератор секций
+
 #ifdef LUAICP_COMPAT
 	LogXrayOffset("CALifeSpawnRegistry", this, &this->m_spawns);
 	LogXrayOffset("CALifeObjectRegistry", this, &this->m_objects);
@@ -97,6 +104,16 @@ CSE_Abstract *CALifeSimulatorBase::spawn_item	(LPCSTR section, const Fvector &po
 {
 	CSE_Abstract				*abstract = F_entity_Create(section);
 	R_ASSERT3					(abstract,"Cannot find item with section",section);
+	if (parent_id < 0xffff)
+	{
+		MsgV("5SPAWN", "##DBG: spawn_item %-27s into parent %d", section, parent_id);
+		if (!strstr(section, "ammo_") && 0 == parent_id)
+		{
+			LPCSTR tb = GetLuaTraceback(ActiveLua(), 1); // LuaSafeCall
+			Msg("#from %s", tb);
+		}
+	}
+	MsgCB("$#CONTEXT: spawn_item %s, gvid = %d, lvid = %d, parent_id = %d", section, game_vertex_id, level_vertex_id, (int)parent_id);
 
 	abstract->s_name			= section;
 	abstract->s_gameid			= u8(GAME_SINGLE); // GameID()
@@ -108,15 +125,7 @@ CSE_Abstract *CALifeSimulatorBase::spawn_item	(LPCSTR section, const Fvector &po
 	abstract->m_wVersion		= SPAWN_VERSION;
 	
 	string256					s_name_replace;
-	strcpy						(s_name_replace,*abstract->s_name);
-	if (abstract->ID < 1000)
-		strcat					(s_name_replace,"0");
-	if (abstract->ID < 100)
-		strcat					(s_name_replace,"0");
-	if (abstract->ID < 10)
-		strcat					(s_name_replace,"0");
-	string16					S1;
-	strcat						(s_name_replace,itoa(abstract->ID,S1,10));
+	sprintf_s(s_name_replace, 256, "%s%04d", *abstract->s_name, abstract->ID);	
 	abstract->set_name_replace	(s_name_replace);
 
 	CSE_ALifeDynamicObject		*dynamic_object = smart_cast<CSE_ALifeDynamicObject*>(abstract);
@@ -140,10 +149,17 @@ CSE_Abstract *CALifeSimulatorBase::spawn_item	(LPCSTR section, const Fvector &po
 		 if (parent && parent->name() && strstr(parent->name(), "physic_"))
 		 {
 			 Msg("!WARN: object with section %-32s spawned into %s", section, parent->name());
-			 Msg(" %s", get_lua_traceback(game_lua(), 1));
+			 Msg(" %s", GetLuaTraceback(GameLua(), 1));
 		 }
 			 
 	}
+	if (strstr(section, "inventory_box"))
+	{
+		MsgCB("##LEAK: spawned object with section %s from: ", section);
+		MsgCB(" %s", GetLuaTraceback(GameLua(), 1));	
+	}
+
+
 #endif
 
 	dynamic_object->spawn_supplies	();
@@ -176,16 +192,12 @@ CSE_Abstract *CALifeSimulatorBase::create(CSE_ALifeGroupAbstract *tpALifeGroupAb
 	k->m_bALifeControl			= true;
 	
 	string256					s_name_replace;
-	strcpy						(s_name_replace,*k->s_name);
-	if (k->ID < 1000)
-		strcat					(s_name_replace,"0");
-	if (k->ID < 100)
-		strcat					(s_name_replace,"0");
-	if (k->ID < 10)
-		strcat					(s_name_replace,"0");
-	string16					S1;
-	strcat						(s_name_replace,itoa(k->ID,S1,10));
-	k->set_name_replace			(s_name_replace);
+	sprintf_s(s_name_replace, 256, "%s%04d", *k->s_name, k->ID);
+	if ( xr_strcmp(s_name_replace, k->name_replace()) )
+	{
+		Msg("!#WARN: diff name_replace detected, new = '%s', old = '%s' ", s_name_replace, k->name_replace());		
+	}
+	k->set_name_replace(s_name_replace);
 
 	register_object				(k,true);
 	k->spawn_supplies			();
@@ -279,10 +291,7 @@ void CALifeSimulatorBase::release	(CSE_Abstract *abstract, bool alife_query)
 	}
 #endif
 	CSE_ALifeDynamicObject			*object = objects().object(abstract->ID);
-	VERIFY							(object);
-#ifdef LUAICP_COMPAT
-	MsgCB("se object release [%d]  0x%p", object->ID, object);
-#endif
+	FORCE_VERIFY							(object);
 
 	if (!object->children.empty()) {
 		u32							children_count = object->children.size();
@@ -304,6 +313,7 @@ void CALifeSimulatorBase::release	(CSE_Abstract *abstract, bool alife_query)
 	unregister_object				(object,alife_query);
 	
 	object->m_bALifeControl			= false;
+	object->s_name = NULL;
 
 	if (alife_query)
 		server().entity_Destroy		(abstract);

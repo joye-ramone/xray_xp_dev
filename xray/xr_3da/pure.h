@@ -31,6 +31,8 @@ struct _REG_INFO {
 
 ENGINE_API extern int	__cdecl	_REG_Compare(const void *, const void *);
 
+ENGINE_API bool RP_SafeCall(RP_FUNC *f, void *obj, int profiling);
+
 template <class T> class CRegistrator		// the registrator itself
 {
 	friend ENGINE_API int	__cdecl	_REG_Compare(const void *, const void *);
@@ -41,7 +43,9 @@ public:
 		u32		in_process	:1;
 		u32		changed		:1;
 	};
-	CRegistrator()			{ in_process=false; changed=false;}
+	int						profiling;
+
+	CRegistrator()			{ in_process = false; changed = false; profiling = 0; }
 
 	//
 	void Add	(T *obj, int priority=REG_PRIORITY_NORMAL, u32 flags=0)
@@ -71,22 +75,32 @@ public:
 	void Process(RP_FUNC *f)
 	{
 		in_process = true;
-    	if (R.empty()) return;
-		if (R[0].Prio==REG_PRIORITY_CAPTURE)	f(R[0].Object);
-		else {
-			for (u32 i=0; i<R.size(); i++)
-				if(R[i].Prio!=REG_PRIORITY_INVALID)
-					f(R[i].Object);
+		if (profiling) MsgCB("$#CONTEXT: CRegistrator::Process in, size = %d", R.size());
 
-		}
+    	if (R.empty()) return;
+		u32 i = 0;
+
+		if (R[i].Prio==REG_PRIORITY_CAPTURE)
+			RP_SafeCall(f, R[i].Object, profiling);
+		else {
+			for (i = 0; i < R.size(); i++)
+				if (R[i].Prio != REG_PRIORITY_INVALID)
+				{
+					RP_SafeCall(f, R[i].Object, profiling);					
+				}
+
+		}		
 		if(changed)	Resort();
 		in_process = false;
+		if (profiling) MsgCB("$#CONTEXT: CRegistrator::Process out, last = %d", i);
 	};
 	void Resort	(void)
 	{
+		if (profiling) MsgCB("$#CONTEXT: CRegistrator::Resort");
 		qsort	(&*R.begin(),R.size(),sizeof(_REG_INFO),_REG_Compare);
 		while	((R.size()) && (R[R.size()-1].Prio==REG_PRIORITY_INVALID)) R.pop_back();
 		if (R.empty())		R.clear		();
+		busy_warn(DEBUG_INFO, 3);
 		changed				= false;
 	};
 };

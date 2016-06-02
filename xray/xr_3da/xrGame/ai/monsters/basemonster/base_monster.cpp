@@ -42,6 +42,9 @@
 #include "../../../ai_object_location.h"
 #include "../../../ai_space.h"
 #include "../../../script_engine.h"
+#include "../../../game_cl_single.h"
+
+#pragma optimize("gyts", off)
 
 CBaseMonster::CBaseMonster()
 {
@@ -143,6 +146,12 @@ void CBaseMonster::shedule_Update(u32 dt)
 
 void CBaseMonster::Die(CObject* who)
 {
+	if ((u32)this < 0x10000)
+	{
+		Msg("!#FATAL: CBaseMonster::Die this = 0x%p", this);
+		return;
+	}
+
 	if (StateMan) StateMan->critical_finalize();
 
 	inherited::Die(who);
@@ -231,8 +240,30 @@ void CBaseMonster::SetTurnAnimation(bool turn_left)
 	(turn_left) ? anim().SetCurAnim(eAnimStandTurnLeft) : anim().SetCurAnim(eAnimStandTurnRight);
 }
 
+extern	ESingleGameDifficulty g_SingleGameDifficulty;
+
+
+bool CBaseMonster::RandomIgnoreSound(u32 sound_type) const
+{
+	using namespace MonsterSound;
+	const MonsterSound::EType prob_sounds[] = { eMonsterSoundIdle, eMonsterSoundAggressive, eMonsterSoundAttackHit, eMonsterSoundThreaten, eMonsterSoundSteal };
+	static float prob_treshold = 0.01f;
+
+	for (int i = 0; i < 5; i++) 
+		if (prob_sounds[i] == (MonsterSound::EType)sound_type)
+		{
+			float prob_ignore = rand() * g_SingleGameDifficulty / 32768.f;
+			if (prob_ignore > prob_treshold) return (true); // безмолвные монстры, это страшно?
+		}
+	
+	return (false);
+}
+
+
 void CBaseMonster::set_state_sound(u32 type, bool once)
 {
+	if (RandomIgnoreSound(type)) return;
+
 	if (once) {
 	
 		sound().play(type);

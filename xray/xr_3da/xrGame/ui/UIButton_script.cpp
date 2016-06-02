@@ -38,9 +38,9 @@ void CUIButton::script_register(lua_State *L)
 //.		.def("InitTextureD",			&CUI3tButton::InitTextureDisabled)
 //.		.def("InitTextureT",			&CUI3tButton::InitTextureTouched)
 //.		.def("InitTextureH",			&CUI3tButton::InitTextureHighlighted)
-//.		.def("SetTextColorD",			&CUI3tButton::SetTextColorD)
-//.		.def("SetTextColorT",			&CUI3tButton::SetTextColorT)
-//.		.def("SetTextColorH",			&CUI3tButton::SetTextColorH)
+		.def("SetTextColorD",			&CUI3tButton::SetTextColorD)
+		.def("SetTextColorT",			&CUI3tButton::SetTextColorT)
+		.def("SetTextColorH",			&CUI3tButton::SetTextColorH)
 //.		.def("SetColor",				(void(CUI3tButton::*)(int, int, int)) &CUI3tButton::SetColor)
 		,
 

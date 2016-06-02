@@ -12,6 +12,18 @@
 #pragma warning(pop)
 
 
+BOOL					crash_flag = FALSE;
+
+#pragma optimize("gyts", off)
+
+typedef struct _STACK_SLOT {
+	int		desc;
+	void	*ptr;
+} STACK_SLOT;
+
+typedef xr_vector   <STACK_SLOT> DEBUG_STACK;
+xr_map <DWORD, DEBUG_STACK*>   debug_stacks;
+
 
 
 
@@ -231,9 +243,261 @@ XRCORE_API void LogStackTraceEx(struct _EXCEPTION_POINTERS *pExPtrs)
 	}
 }
 
+typedef struct _FUNC_INFO {
+	PVOID   pAddr;
+	LPSTR   name; 
+	LPDWORD pDisp;
+	BOOL	result;
+	HANDLE  hComplete;
+} FUNC_INFO;
+
+
+void safe_func_name(void *param)
+{
+	FUNC_INFO &info = *(FUNC_INFO*)param;
+	__try
+	{
+		R_ASSERT(info.name);
+
+		SymSetOptions(SymGetOptions() |
+			SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_ANYTHING | SYMOPT_UNDNAME |	SYMOPT_LOAD_LINES);
+		static HANDLE hPID = 0;
+		if (hPID == 0)
+		{
+			hPID = (HANDLE)GetCurrentProcessId();
+			string_path app_bin;
+			GetModuleFileName(0, app_bin, sizeof(app_bin));
+			_strlwr_s(app_bin, sizeof(app_bin));
+			LPSTR exe = strstr(app_bin, "xr_3da.exe");
+			if (exe)
+				exe[0] = 0;
+
+			SymInitialize(hPID, app_bin, TRUE);
+		}
+
+		PIMAGEHLP_SYMBOL sym = (PIMAGEHLP_SYMBOL) VirtualAlloc(NULL, 4096, MEM_COMMIT, PAGE_READWRITE);
+		R_ASSERT2(sym, "VirtualAlloc failed to allocate 4K block");
+		ZeroMemory(sym, 4096);
+		sym->Size = 4096;
+		sym->SizeOfStruct = sizeof(IMAGEHLP_SYMBOL);
+		sym->MaxNameLength = 1020;
+		info.result = SymGetSymFromAddr(hPID, (DWORD)info.pAddr, info.pDisp, sym);
+		LPCSTR name = sym->Name;
+		if (info.result && xr_strlen(name) <= 1020)
+		__try 
+		{
+		   strncpy_s(info.name, 1023, name, 1020);
+		}
+		__except (EXCEPTION_EXECUTE_HANDLER)
+		{
+			sprintf_s(info.name, 1023, "strncpy_s failed, sym->Name length = %d", xr_strlen(name));
+		}
+		VirtualFree(sym, 0, MEM_RELEASE);
+
+	}
+	__finally
+	{
+		SetEvent(info.hComplete);
+	}
+}
+XRCORE_API BOOL GetFunctionInfo(PVOID pAddr, LPSTR name, LPDWORD pDisp)
+{
+	FUNC_INFO info;
+	info.hComplete = CreateEvent(NULL, TRUE, FALSE, NULL);
+	info.name = name;
+	info.pAddr = pAddr;
+	info.pDisp = pDisp;
+	info.result = FALSE;
+	safe_func_name(&info);
+	// thread_spawn(safe_func_name, "safe_func_name_getter", 128 * 1024, &info);
+	// WaitForSingleObject(info.hComplete, 13333);
+	CloseHandle(info.hComplete);
+	return info.result;
+}
+
+XRCORE_API BOOL GetObjectInfo(PVOID pAddr, LPSTR name, LPDWORD pDisp)
+{
+	sprintf_s(name, 64, "unknown @ 0x%p", pAddr);
+
+	PUINT_PTR pContent = (PUINT_PTR)pAddr;
+	if (pContent && !IsBadReadPtr(pContent, 4))
+	{
+		PUINT_PTR vftable = (PUINT_PTR)pContent[0];
+		if (vftable && !IsBadReadPtr(vftable, 4))
+		{
+			BOOL result = GetFunctionInfo((LPVOID)vftable, name, pDisp);
+			if (result)
+			{
+				LPSTR trunc = strstr(name,     "::`vftable'");
+				if (trunc) 
+				   strcpy_s(trunc, 1020 - xr_strlen(name), "*");
+			}
+			return result;
+
+		}
+	}
+	return FALSE;
+}
+
+
+volatile ULONG g_in_filter = 0;
+
+void DumpDebugStack()
+{
+	string2048 buff = { 0 };
+	
+	
+	if (debug_stacks.size() > 0)
+	{
+		MsgCB("##DEBUG_STACK/CONTEXT: ");
+		for (auto _it = debug_stacks.begin(); _it != debug_stacks.end(); _it++)
+		{
+			MsgCB("* for thread %d:", _it->first);
+			DEBUG_STACK &debug_stack = *_it->second;
+			for (int it = debug_stack.size() - 1; it >= 0; it--)
+			{
+				STACK_SLOT &s = debug_stack[it];
+				buff[0] = 0;
+				DWORD disp = 0;
+				sprintf_s(buff, 2048, "%d. ", it);
+				LPSTR line = buff + xr_strlen(buff);
+
+				if (s.desc)
+					GetFunctionInfo(s.ptr, line, &disp);
+				else
+					GetObjectInfo(s.ptr, line, &disp);
+
+				line = buff + xr_strlen(buff);
+
+				if (disp)
+					sprintf_s(line, 2048 - xr_strlen(buff), " + 0x%x", disp);
+
+				MsgCB("*\t%s", buff);
+			} // for stack
+		} // for thread iter
+	}
+}
+
+DEBUG_STACK& ThreadDebugStack()
+{
+	DWORD tid = GetCurrentThreadId();
+	auto it = debug_stacks.find(tid);
+	if (it == debug_stacks.end())
+	{
+		debug_stacks[tid] = xr_new<DEBUG_STACK>();
+		it = debug_stacks.find(tid);
+	}
+	return *it->second;
+}
+
+
+XRCORE_API size_t DebugStackPush(int desc, void *ptr)
+{	
+	DEBUG_STACK &debug_stack = ThreadDebugStack();
+	size_t sz = debug_stack.size();
+	STACK_SLOT s;
+	s.desc = desc;
+	s.ptr  = ptr;
+	debug_stack.push_back(s);
+	return sz;
+}
+
+XRCORE_API void DebugStackPop(size_t dest_sz)
+{
+	DEBUG_STACK &debug_stack = ThreadDebugStack();
+	int loops = 0;
+	while (debug_stack.size() > dest_sz) {
+	   debug_stack.pop_back();
+	   loops++;
+	};
+	if (debug_stack.size() > 100)
+		Log("!#ERROR: to large debug stack");
+}
+
+u32 InnerExceptionFilter(PEXCEPTION_POINTERS pExPtrs)
+{
+	Log("!#FATAL_ERROR: InnerExceptionFilter executed");
+	LogStackTraceEx ( pExPtrs ); 
+	return EXCEPTION_EXECUTE_HANDLER;
+}
+
+
+
 u32 SimpleExceptionFilter (PEXCEPTION_POINTERS pExPtrs)
 {
+	string1024 buff = { 0 };
+	ULONG in_count = InterlockedIncrement(&g_in_filter);
+		
+	buff[0] = 0;
+
+#define  NT_ERROR            0xC0000000
+#define  CPP_ABORT		     0x40000015		
+
+	if (pExPtrs)
+	__try
+	{
+		auto rec = pExPtrs->ExceptionRecord;
+		string128 code_info;
+		sprintf_s(code_info, 128, "0x%08x", rec->ExceptionCode);
+		u32 e0 = rec->ExceptionInformation[0];
+		u32 e1 = rec->ExceptionInformation[1];
+
+		switch (rec->ExceptionCode)
+		{
+		case	STATUS_TIMEOUT:		strcpy_s(code_info, 128,  "Timeout"); break;
+		case STATUS_BREAKPOINT:		strcpy_s(code_info, 128,  "Breakpoint"); break;
+	    case STATUS_SINGLE_STEP:	strcpy_s(code_info, 128,  "Single step or data break"); break;
+		case NT_ERROR + 0x005:		sprintf_s(code_info, 128, "Ошибка доступа %s памяти по адресу 0x%08x ", (e0 > 0 ? "чтения" : "записи"), e1); break;
+		case NT_ERROR + 0x006:		strcpy_s(code_info, 128,  "In page Error"); break;
+		case NT_ERROR + 0x008:		strcpy_s(code_info, 128,  "Неверный дескриптор"); break;		
+		case NT_ERROR + 0x017:		strcpy_s(code_info, 128,  "Недостаточно памяти"); break;
+		case NT_ERROR + 0x01D:		strcpy_s(code_info, 128,  "Illegal instruction"); break;
+		case NT_ERROR + 0x025:		strcpy_s(code_info, 128,  "Nonconttinuable Exception"); break;
+		case NT_ERROR + 0x026:		strcpy_s(code_info, 128,  "Invalid disposition"); break;
+		case NT_ERROR + 0x08C:		strcpy_s(code_info, 128,  "Array Bounds Exceeded"); break;
+		case NT_ERROR + 0x094:		strcpy_s(code_info, 128,  "Целочисленное деление на ноль"); break;
+		case NT_ERROR + 0x095:		strcpy_s(code_info, 128,  "Целочисленное переполнение"); break;
+		case NT_ERROR + 0x096:		strcpy_s(code_info, 128,  "Привилегированная инструкция"); break;
+		case NT_ERROR + 0x0FD:		strcpy_s(code_info, 128,  "Переполнение стека"); break;
+		case NT_ERROR + 0x13A:		strcpy_s(code_info, 128,  "Нажат Ctrl + C"); break;
+		case CPP_ABORT:				strcpy_s(code_info, 128, "C/C++ Abort Exception"); break;
+		}
+
+		string1024 func_info = { 0 };
+		DWORD disp = 0;
+
+		sprintf_s(func_info, "0x%08p", rec->ExceptionAddress);
+
+		if (GetFunctionInfo(rec->ExceptionAddress, func_info, &disp))
+			sprintf_s(func_info + xr_strlen(func_info), 1024 - xr_strlen(func_info), " + 0x%04x", disp);
+			
+
+		sprintf_s(buff, 512, "'%s' at '%s', flags = 0x%04x ", code_info, func_info, rec->ExceptionFlags);
+		MsgCB("##EXCEPTION_INFO:  %s", buff);
+		for (int i = 0; i < (int)rec->NumberParameters; i++)
+			MsgCB("# \t\t ExceptionInformation[%x] = 0x%p", i, (void*) rec->ExceptionInformation[i]);
+
+		DumpDebugStack();
+
+	}
+	__except (InnerExceptionFilter(GetExceptionInformation()))
+	{
+	}
+
 	LogStackTraceEx ( pExPtrs ); 
+		
+	if (IsDebuggerPresent())
+	{
+		SleepEx(500, FALSE);
+		__asm int 3;
+		InterlockedDecrement(&g_in_filter);
+		return EXCEPTION_EXECUTE_HANDLER;
+	}
+
+	if (in_count <= 1)
+		Debug.fatal(DEBUG_INFO, "Вызыван фильтр исключения, информация:\n %s", buff);
+	InterlockedDecrement(&g_in_filter);
+
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 
@@ -242,12 +506,13 @@ void gather_info		(const char *expression, const char *description, const char *
 {
 	force_flush_log = true;
 	LPSTR				buffer = assertion_info;
+	
 	LPCSTR				endline = "\n";
-	LPCSTR				prefix = "[error]";
+	LPCSTR				prefix = "![error]";
 	bool				extended_description = (description && !argument0 && strchr(description,'\n'));
 	for (int i=0; i<2; ++i) {
 		if (!i)
-			buffer		+= sprintf(buffer,"%sFATAL ERROR%s%s",endline,endline,endline);
+			buffer		+= sprintf(buffer,"%s!#FATAL ERROR%s%s",endline,endline,endline);
 		buffer			+= sprintf(buffer,"%sExpression    : %s%s",prefix,expression,endline);
 		buffer			+= sprintf(buffer,"%sFunction      : %s%s",prefix,function,endline);
 		buffer			+= sprintf(buffer,"%sFile          : %s%s",prefix,file,endline);
@@ -294,6 +559,8 @@ void gather_info		(const char *expression, const char *description, const char *
 #endif // USE_MEMORY_MONITOR	
 
 	MsgCB("$#DUMP_CONTEXT"); // alpet: вывод контекста, перед построением стека вызовов
+	HandleCrash("gather_info");
+
 	if (!strstr(GetCommandLine(),"-no_call_stack_assert")) {
 
 #ifdef USE_OWN_ERROR_MESSAGE_WINDOW
@@ -336,7 +603,7 @@ void xrDebug::do_exit	(const std::string &message)
 }
 
 void xrDebug::backend	(const char *expression, const char *description, const char *argument0, const char *argument1, const char *file, int line, const char *function, bool &ignore_always)
-{
+{	
 	force_flush_log = true;
 
 	static xrCriticalSection CS
@@ -372,14 +639,23 @@ void xrDebug::backend	(const char *expression, const char *description, const ch
 #	ifdef USE_OWN_ERROR_MESSAGE_WINDOW
 		ShowWindow(GetTopWindow(NULL), SW_MINIMIZE);
 		ShowCursor(TRUE);
+		MSG msg;
+		for (int i = 0; i < 128; i++)
+		  if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) 
+		    {
+  			   TranslateMessage(&msg);
+			   DispatchMessage(&msg);
+			}
+
 		int					result = 
 			MessageBox(
-				GetTopWindow(NULL),
+				NULL,
 				assertion_info,
 				"Фатальная Ошибка",
-				MB_CANCELTRYCONTINUE|MB_ICONERROR|MB_SYSTEMMODAL
+				MB_CANCELTRYCONTINUE|MB_ICONERROR|MB_TASKMODAL
 			);
 
+		ShowWindow(GetTopWindow(NULL), SW_SHOW);
 		switch (result) {
 			case IDCANCEL : {
 				DEBUG_INVOKE;
@@ -458,22 +734,42 @@ void xrDebug::fail		(const char *e1, const char *e2, const char *e3, const char 
 }
 
 void xrDebug::fail		(const char *e1, const char *e2, const char *e3, const char *e4, const char *file, int line, const char *function, bool &ignore_always)
-{
+{	
 	backend		(e1,e2,e3,e4,file,line,function,ignore_always);
 }
 
-void __cdecl xrDebug::fatal(const char *file, int line, const char *function, const char* F,...)
+void __cdecl xrDebug::fatal(const char *file, int line, const char *function, const char* F, ...)
 {
-	string1024	buffer;
+	string4096	buffer;
+	crash_flag = TRUE;
+	__try
+	{
 
-	va_list		p;
-	va_start	(p,F);
-	vsprintf	(buffer,F,p);
-	va_end		(p);
+		OutputDebugString(" xrDebug::fatal executing ");
+		if (file)
+		{
+			sprintf_s(buffer, MAX_PATH, "from %s:%d", file, line);
+			OutputDebugString(buffer);
+		}
+		if (function)
+		{
+			sprintf_s(buffer, 4096, " in function %s ", function);
+			OutputDebugString(buffer);
+		}
 
-	bool		ignore_always = true;
+		va_list		p;
+		va_start(p, F);
+		vsprintf(buffer, F, p);
+		OutputDebugString(buffer);
+		va_end(p);
 
-	backend		("fatal error","<no expression>",buffer,0,file,line,function,ignore_always);
+		bool		ignore_always = true;
+		backend("fatal error", "<no expression>", buffer, 0, file, line, function, ignore_always);
+	}
+	__finally
+	{
+		crash_flag = FALSE;
+	}
 }
 
 void xrDebug::verify_error		(LPCSTR e1, LPCSTR file, int line, LPCSTR function)
@@ -992,6 +1288,7 @@ LONG WINAPI UnhandledFilter	(_EXCEPTION_POINTERS *pExceptionInfo)
 
 	static void std_out_of_memory_handler	()
 	{
+		MsgCB("!#FATAL: Oops! std_out_of_memory_handler executing...");
 		handler_base					(ERR_OUT_OF_MEMORY);
 	}
 

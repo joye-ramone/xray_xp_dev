@@ -14,6 +14,7 @@
 #include "game_object_space.h"
 #include "trade_parameters.h"
 
+#pragma optimize("gyts", off)
 bool CTrade::CanTrade()
 {
 	CEntity *pEntity;
@@ -146,12 +147,54 @@ CInventoryOwner* CTrade::GetPartner()
 	return pPartner.inv_owner;
 }
 
+extern void lua_pushgameobject(lua_State *L, CScriptGameObject *obj);
+
+float script_calc_price(CTrade *trade, PIItem pItem, bool b_buying)
+{
+	lua_State *L = AuxLua();
+	int top = lua_gettop(L);
+
+	lua_getglobal(L, "item_trade_price");
+	if (!lua_isfunction(L, -1))
+	{
+		lua_pop(L, 1);
+		return 0.f;
+	}
+	float result = 0.f;
+
+	CGameObject* partner = smart_cast<CGameObject*> (trade->GetPartner());
+	CGameObject* self    = smart_cast<CGameObject*> (trade->pThis.inv_owner);
+	CGameObject* item    = smart_cast<CGameObject*> (pItem);
+	
+	lua_pushgameobject(L, partner->lua_game_object());
+	lua_pushgameobject(L, self->lua_game_object());
+	lua_pushgameobject(L, item->lua_game_object());
+	lua_pushboolean	  (L, b_buying ? 1 : 0);
+	if (0 == lua_pcall(L, 4, 1, 0))
+	{
+		result = (float) lua_tonumber(L, -1);
+		lua_pop(L, 1);
+	}
+	else
+	{
+		log_script_error("function 'item_trade_price' breaked with error %s ", lua_tostring(L, -1));
+		lua_pop(L, 1);
+	}
+
+	lua_settop(L, top);
+
+	return result;
+}
+
 u32	CTrade::GetItemPrice(PIItem pItem, bool b_buying)
 {
-	CArtefact				*pArtefact = smart_cast<CArtefact*>(pItem);
-
+	CArtefact				*pArtefact = smart_cast<CArtefact*>(pItem);	
 	// computing base_cost
-	float					base_cost;
+	float					base_cost = script_calc_price(this, pItem, b_buying);
+	if (base_cost > 0)
+		return (u32)floor(base_cost);
+
+
 	if (pArtefact && (pThis.type == TT_ACTOR) && (pPartner.type == TT_TRADER)) {
 		CAI_Trader			*pTrader = smart_cast<CAI_Trader*>(pPartner.inv_owner);
 		VERIFY				(pTrader);

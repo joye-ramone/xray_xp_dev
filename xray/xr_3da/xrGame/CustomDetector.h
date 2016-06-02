@@ -62,6 +62,8 @@ public:
 	virtual void OnMoveToRuck		();
 	virtual void OnMoveToBelt		();
 
+	virtual void RadiationAlert		(float restore_speed);
+
 protected:
 	void StopAllSounds				();
 	void UpdateMapLocations			();

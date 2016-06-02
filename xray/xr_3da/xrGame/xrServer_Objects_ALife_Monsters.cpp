@@ -32,6 +32,8 @@
 #	include "date_time.h"
 #endif
 
+#pragma optimize("gyts", off)
+
 void setup_location_types_section(GameGraph::TERRAIN_VECTOR &m_vertex_types, CInifile *ini, LPCSTR section)
 {
 	VERIFY3							(ini->section_exist(section),"cannot open section",section);
@@ -979,7 +981,15 @@ void CSE_ALifeCreatureAbstract::STATE_Write	(NET_Packet &tNetPacket)
 	tNetPacket.w_u8				(s_team	);
 	tNetPacket.w_u8				(s_squad);
 	tNetPacket.w_u8				(s_group);
+#ifdef NLC_EXTENSIONS
+	if (0 == ID)
+		tNetPacket.w_float		(-fHealth * 100.f);
+	else
+		tNetPacket.w_float			(fHealth);
+#else
 	tNetPacket.w_float			(fHealth);
+#endif
+	
 	save_data					(m_dynamic_out_restrictions,tNetPacket);
 	save_data					(m_dynamic_in_restrictions,tNetPacket);
 	tNetPacket.w				(&m_killer_id,sizeof(m_killer_id));
@@ -997,6 +1007,11 @@ void CSE_ALifeCreatureAbstract::STATE_Read	(NET_Packet &tNetPacket, u16 size)
 
 	if (m_wVersion < 115)
 		fHealth	/=100.0f;
+
+#ifdef NLC_EXTENSIONS
+	if (0 == ID)
+		fHealth = -fHealth * 0.01f;
+#endif
 
 	if (m_wVersion < 32)
 		visual_read				(tNetPacket,m_wVersion);
@@ -1019,8 +1034,15 @@ void CSE_ALifeCreatureAbstract::STATE_Read	(NET_Packet &tNetPacket, u16 size)
 void CSE_ALifeCreatureAbstract::UPDATE_Write(NET_Packet &tNetPacket)
 {
 	inherited::UPDATE_Write		(tNetPacket);
-	
+
+#ifdef NLC_EXTENSIONS
+	if (0 == ID)		
+		tNetPacket.w_float		(-fHealth * 100.f);
+	else
+		tNetPacket.w_float		(fHealth);
+#else
 	tNetPacket.w_float			(fHealth);
+#endif
 	
 	tNetPacket.w_u32			(timestamp		);
 	tNetPacket.w_u8				(flags			);
@@ -1039,6 +1061,11 @@ void CSE_ALifeCreatureAbstract::UPDATE_Read	(NET_Packet &tNetPacket)
 	inherited::UPDATE_Read		(tNetPacket);
 	
 	tNetPacket.r_float			(fHealth);
+#ifdef NLC_EXTENSIONS
+	if (0 == ID)
+		fHealth = -fHealth * 0.01f;
+#endif
+
 	
 	tNetPacket.r_u32			(timestamp		);
 	tNetPacket.r_u8				(flags			);
@@ -1319,6 +1346,11 @@ void CSE_ALifeCreatureActor::STATE_Read		(NET_Packet	&tNetPacket, u16 size)
 		tNetPacket.r_u8			(s_group);
 		if (m_wVersion > 18)
 			tNetPacket.r_float	(fHealth);
+#ifdef NLC_EXTENSIONS
+	if (0 == ID)
+		fHealth = -fHealth * 0.01f;
+#endif
+
 		if (m_wVersion >= 3)
 			visual_read			(tNetPacket,m_wVersion);
 	}

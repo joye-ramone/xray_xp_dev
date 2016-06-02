@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: smart_cast.h
 //	Created 	: 17.09.2004
-//  Modified 	: 17.09.2004
+//  Modified 	: 12.11.2014
 //	Author		: Dmitriy Iassenev
 //	Description : Smart dynamic cast
 ////////////////////////////////////////////////////////////////////////////
@@ -215,6 +215,7 @@
 	DECLARE_SPECIALIZATION	(CSE_Abstract,		CSE_ALifeTraderAbstract,	cast_abstract);
 #	undef cast_type_list
 #	define cast_type_list save_cast_list	(CSE_Abstract,		CSE_ALifeTraderAbstract)
+		
 
 	DECLARE_SPECIALIZATION	(CSE_Abstract, CSE_ALifeGroupAbstract,	cast_abstract);
 #	undef cast_type_list

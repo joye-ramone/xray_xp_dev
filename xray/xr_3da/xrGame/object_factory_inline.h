@@ -10,6 +10,7 @@
 #define object_factory_inlineH
 
 #pragma once
+#pragma optimize ("gyts", off)
 
 IC	const CObjectFactory &object_factory()
 {
@@ -58,10 +59,15 @@ IC	const CObjectFactory::OBJECT_ITEM_STORAGE &CObjectFactory::clsids	() const
 #ifndef NO_XR_GAME
 IC	const CObjectItemAbstract &CObjectFactory::item	(const CLASS_ID &clsid) const
 {
+	//LPCSTR szClass = (LPCSTR)&clsid;
+	//if (szClass) MsgCB("$#CONTEXT: trying get item %s ", szClass);
 	actualize			();
 	const_iterator		I = std::lower_bound(clsids().begin(),clsids().end(),clsid,CObjectItemPredicate());
-	VERIFY				((I != clsids().end()) && ((*I)->clsid() == clsid));
+	FORCE_VERIFY((I != clsids().end()) && ((*I)->clsid() == clsid));
+
 	return				(**I);
+	
+	
 }
 #else
 IC	const CObjectItemAbstract *CObjectFactory::item	(const CLASS_ID &clsid, bool no_assert) const
@@ -96,7 +102,7 @@ IC	int	CObjectFactory::script_clsid	(const CLASS_ID &clsid) const
 {
 	actualize			();
 	const_iterator		I = std::lower_bound(clsids().begin(),clsids().end(),clsid,CObjectItemPredicate());
-	VERIFY				((I != clsids().end()) && ((*I)->clsid() == clsid));
+	FORCE_VERIFY		((I != clsids().end()) && ((*I)->clsid() == clsid));
 	return				(int(I - clsids().begin()));
 }
 

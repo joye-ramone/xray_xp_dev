@@ -12,7 +12,7 @@
 #include "../xrServer_Objects_ALife_Items.h"
 #include "../game_cl_Deathmatch.h"
 
-CUIBagWnd::CUIBagWnd()
+CUIBagWnd::CUIBagWnd() : m_money()
 {
 	m_mlCurrLevel					= mlRoot;
 
@@ -47,7 +47,7 @@ CUIBagWnd::CUIBagWnd()
 	m_bIgnoreMoney					= false;
 	subSection_group3[0] = subSection_group3[1] = subSection_group3[2] = subSection_group3[3] = 0;
 
-	m_money							= 400;
+	m_money  = 400;
 }
 
 CUIBagWnd::~CUIBagWnd()
@@ -195,7 +195,7 @@ int CUIBagWnd::GetItemRank(CUICellItem* itm)
 
 bool CUIBagWnd::UpdatePrice(CUICellItem* pItem, int index)
 {
-	if (m_info[index].price > m_money && !m_bIgnoreMoney)
+	if (m_info[index].price > (int)m_money && !m_bIgnoreMoney)
 	{
 		SET_PRICE_RESTR_COLOR			(pItem);
 		m_info[pItem->m_index].active	= false;
@@ -623,9 +623,9 @@ void CUIBagWnd::BuyItem(CUICellItem* itm)
 	if (!this->m_bIgnoreMoney)
 	{
 		if (m_info[itm->m_index].external)
-			m_money -= m_info[itm->m_index].price/2;
+			m_money = (int)m_money - m_info[itm->m_index].price / 2;
 		else
-			m_money -= m_info[itm->m_index].price;
+			m_money = (int)m_money - m_info[itm->m_index].price;
 
 		GetParent()->SendMessage(this, MP_MONEY_CHANGE);
 	}
@@ -666,9 +666,9 @@ void CUIBagWnd::SellItem(CUICellItem* itm)
 	if (!this->m_bIgnoreMoney)
 	{
 		if (m_info[itm->m_index].external)
-			m_money += m_info[itm->m_index].price/2;
+			m_money = m_money + m_info[itm->m_index].price/2;
 		else
-			m_money += m_info[itm->m_index].price;
+			m_money = m_money + m_info[itm->m_index].price;
 
 		GetParent()->SendMessage(this, MP_MONEY_CHANGE);
 	}
@@ -691,7 +691,7 @@ bool CUIBagWnd::CanBuy(CUICellItem* itm)
 	}
 	else if (m_bIgnoreRank)
 	{
-		if (m_info[itm->m_index].price < m_money)
+		if (m_info[itm->m_index].price < (int)m_money)
 			return true;
 	}
 
@@ -885,7 +885,7 @@ bool CUIBagWnd::HasEnoughtMoney(CUICellItem* itm){
 	if (m_bIgnoreMoney) 
 		return true;
 	R_ASSERT(itm);
-	return m_info[itm->m_index].price <= m_money;
+	return m_info[itm->m_index].price <= (int)m_money;
 }
 
 int CUIBagWnd::GetItemPrice(CUICellItem* itm){

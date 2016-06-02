@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: script_render_device_script.cpp
 //	Created 	: 28.06.2004
-//  Modified 	: 29.07.2014
+//  Modified 	: 17.02.2016
 //	Author		: Dmitriy Iassenev
 //	Description : Script render device script export
 ////////////////////////////////////////////////////////////////////////////
@@ -66,6 +66,7 @@ void CScriptRenderDevice::script_register(lua_State *L)
 //			.def_readonly("full_transform",			&CRenderDevice::mFullTransform)
 			.def_readwrite("fov",					&CRenderDevice::fFOV)
 			.def_readonly("aspect_ratio",			&CRenderDevice::fASPECT)
+			.def_readwrite("warn_freeze",			&CRenderDevice::bWarnFreeze)	
 			.def("time_global",						&time_global)
 			.def_readonly("precache_frame",			&CRenderDevice::dwPrecacheFrame)
 			.def_readonly("frame",					&CRenderDevice::dwFrame)

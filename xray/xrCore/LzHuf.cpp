@@ -12,6 +12,10 @@
 
 //typedef unsigned char BYTE;
 
+extern PVOID fs_alloc(size_t cb);
+extern PVOID fs_realloc(PVOID data, size_t cb);
+extern void  fs_free(PVOID data);
+
 unsigned	textsize = 0, codesize = 0;
 
 char		wterr[] = "Can't write.";
@@ -68,7 +72,7 @@ public:
 	IC void		_putb(int c) {
 		if (out_iterator==out_end) {
 			u32	out_size= u32(out_end-out_start);
-			out_start	= (u8*) xr_realloc(out_start,out_size+1024);
+			out_start	= (u8*) fs_realloc(out_start,out_size+1024);
 			out_iterator= out_start+out_size;
 			out_end		= out_iterator+1024;
 		}
@@ -91,7 +95,7 @@ public:
 	}
 	IC void		Init_Output(int _rsize) {
 		// output
-		out_start	= (u8*)xr_malloc(_rsize);
+		out_start	= (u8*)fs_alloc(_rsize);
 		out_end		= out_start + _rsize;
 		out_iterator= out_start;
 	}
@@ -105,7 +109,7 @@ public:
 		return out_start;
 	}
 	IC void		OutRelease	() {
-		xr_free		(out_start);
+		fs_free		(out_start);
 		out_start	= 0; 
 		out_end		= 0; 
 		out_iterator= 0;
@@ -670,7 +674,7 @@ void _decompressLZ	(u8** dest, unsigned* dest_sz, void* src, unsigned src_sz)
 unsigned _readLZ	(int hf, void* &d, unsigned size)
 {
 	// Read file in memory
-	u8*	data	= (u8*)xr_malloc(size);
+	u8*	data	= (u8*)fs_alloc(size);
 	_read	(hf,data,size);
 	
 	fs.Init_Input(data,data+size);
@@ -679,7 +683,7 @@ unsigned _readLZ	(int hf, void* &d, unsigned size)
     Decode();
 	
 	// Flush cache
-	xr_free	(data);
+	fs_free	(data);
 	d		= fs.OutPointer();
 	return fs.OutSize();
 }

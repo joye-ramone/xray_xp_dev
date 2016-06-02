@@ -144,7 +144,7 @@ namespace luabind {
     }
     
     weak_ref::weak_ref(lua_State* L, int index)
-        : m_impl(new impl(L, index))
+        : m_impl(xr_new<impl>(L, index))
     {
         m_impl->count = 1;
     }
@@ -159,7 +159,10 @@ namespace luabind {
     {
         if (m_impl && --m_impl->count == 0)
         {
-            delete m_impl;
+			MsgCB("$#CONTEXT: weak_ref destructor, m_impl = 0x%p, class = %s ", m_impl, typeid(m_impl).raw_name());
+			xr_delete(m_impl);
+            // delete m_impl;
+			m_impl = NULL;
         }
     }
 

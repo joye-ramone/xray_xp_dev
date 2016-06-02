@@ -39,26 +39,26 @@ BOOL CRenderTarget::Create	()
 	curHeight			= Device.dwHeight;
 
 	// Select mode to operate in
-	float	amount		= ps_r__Supersample?float(ps_r__Supersample):1	;
+	float	amount		= 1; // ps_r__Supersample?float(ps_r__Supersample):
 	float	scale		= _sqrt	(amount);
-	rtWidth				= clampr(iFloor(scale*Device.dwWidth  + .5f), 128, 2048);
-	rtHeight			= clampr(iFloor(scale*Device.dwHeight + .5f), 128, 2048);
-	while (rtWidth%2)	rtWidth	--;
-	while (rtHeight%2)	rtHeight--;
-	Msg					("* SSample: %dx%d",rtWidth,rtHeight);
+	rtWidth				= clampr(iFloor(scale * Device.dwWidth  + .5f), 128, 3072);
+	rtHeight			= clampr(iFloor(scale * Device.dwHeight + .5f), 128, 3072);
+	while (rtWidth  % 2)	rtWidth	--;
+	while (rtHeight % 2)	rtHeight--;
+	Msg					("* SSample: %dx%d", rtWidth, rtHeight);
 
 	// Bufferts
-	RT.create			(RTname,			rtWidth,rtHeight,HW.Caps.fTarget);
-	RT_distort.create	(RTname_distort,	rtWidth,rtHeight,HW.Caps.fTarget);
-	if ((rtHeight!=Device.dwHeight) || (rtWidth!=Device.dwWidth))	{
-		R_CHK		(HW.pDevice->CreateDepthStencilSurface	(rtWidth,rtHeight,HW.Caps.fDepth,D3DMULTISAMPLE_NONE,0,TRUE,&ZB,NULL));
+	RT.create			(RTname,			rtWidth, rtHeight, HW.Caps.fTarget);
+	RT_distort.create	(RTname_distort,	rtWidth, rtHeight, HW.Caps.fTarget);
+	if ((rtHeight != Device.dwHeight) || (rtWidth != Device.dwWidth))	{
+		R_CHK		(HW.pDevice->CreateDepthStencilSurface	(rtWidth, rtHeight, HW.Caps.fDepth, D3DMULTISAMPLE_NONE,0,TRUE,&ZB,NULL));
 	} else {
 		ZB			= HW.pBaseZB;
 		ZB->AddRef	();
 	}
 
 	// Temp ZB, used by some of the shadowing code
-	R_CHK	(HW.pDevice->CreateDepthStencilSurface	(512,512,HW.Caps.fDepth,D3DMULTISAMPLE_NONE,0,TRUE,&pTempZB,NULL));
+	R_CHK	(HW.pDevice->CreateDepthStencilSurface	(512, 512, HW.Caps.fDepth, D3DMULTISAMPLE_NONE,0,TRUE,&pTempZB,NULL));
 
 	// Shaders and stream
 	s_postprocess.create				("postprocess");
@@ -161,7 +161,8 @@ BOOL CRenderTarget::NeedPostProcess()
 
 BOOL CRenderTarget::Perform		()
 {
-	return Available() && ( NeedPostProcess() || (ps_r__Supersample>1) || (frame_distort==(Device.dwFrame-1)));
+#pragma todo("alpet: здесь было использовано сглаживание через ps_r__Supersample")	
+	return Available() && ( NeedPostProcess() || (1 > 1) || (frame_distort==(Device.dwFrame-1)));
 }
 
 #include <dinput.h>

@@ -20,6 +20,7 @@ public:
 
 	NET_Packet*			Retreive();
 	void				Release	();
+ICF u32					ReadyCount() { return ready.size(); };
 };
 
 //==============================================================================
@@ -84,10 +85,11 @@ public:
 	BOOL					net_isFails_Connect		()	{ return net_Connected==EnmConnectionFails;}
 	BOOL					net_isCompleted_Sync	()	{ return net_Syncronised;	}
 	BOOL					net_isDisconnected		()	{ return net_Disconnected;	}
-	LPCSTR					net_SessionName			()	{ return *(net_Hosts.front().dpSessionName); }
+	LPCSTR					net_SessionName			()	{ return *(net_Hosts.front().dpSessionName); }	
 
 	// receive
-	IC virtual	NET_Packet*			net_msg_Retreive		()	{ return net_Queue.Retreive();	}
+	ICF u32					net_msg_count			()	{ return net_Queue.ReadyCount(); }
+	IC virtual	NET_Packet*	net_msg_Retreive		()	{ return net_Queue.Retreive();	}
 	IC void					net_msg_Release			()	{ net_Queue.Release();			}
 
 	// send

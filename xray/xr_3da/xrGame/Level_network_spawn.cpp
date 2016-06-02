@@ -10,6 +10,8 @@
 #include "../xr_object.h"
 #include "../IGame_Persistent.h"
 
+#pragma optimize("gyts", off)
+
 void CLevel::cl_Process_Spawn(NET_Packet& P)
 {
 	// Begin analysis
@@ -98,6 +100,7 @@ void CLevel::g_sv_Spawn		(CSE_Abstract* E)
 
 	// Client spawn
 //	T.Start		();
+	MsgCB("$#CONTEXT: spawn for entity %s ", E->name());
 	CObject*	O		= Objects.Create	(*E->s_name);
 	// Msg				("--spawn--CREATE: %f ms",1000.f*T.GetAsync());
 
@@ -105,6 +108,8 @@ void CLevel::g_sv_Spawn		(CSE_Abstract* E)
 #ifdef DEBUG_MEMORY_MANAGER
 	mem_alloc_gather_stats		(false);
 #endif // DEBUG_MEMORY_MANAGER
+	CTimer perf;
+	perf.Start();
 	if (0==O || (!O->net_Spawn	(E))) 
 	{
 		O->net_Destroy			( );
@@ -144,6 +149,11 @@ void CLevel::g_sv_Spawn		(CSE_Abstract* E)
 	}
 	//---------------------------------------------------------
 	Game().OnSpawn(O);
+	float elps = perf.GetElapsed_sec() * 1000.f;
+	CGameObject *go = smart_cast<CGameObject*> (O);
+	if (elps > 15.f && go)
+		MsgCB("##PERF_WARN:  %25s::net_Spawn for object %s elapsed time =~C0D %.1f~C0B ms", go->CppClassName(), O->Name_script(), elps);
+
 	//---------------------------------------------------------
 #ifdef DEBUG_MEMORY_MANAGER
 	if (g_bMEMO) {
@@ -172,7 +182,7 @@ CSE_Abstract *CLevel::spawn_item		(LPCSTR section, const Fvector &position, u32 
 	
 	// Fill
 	abstract->s_name		= section;
-	abstract->set_name_replace	(section);
+	abstract->set_name_replace	(NULL); // default name
 	abstract->s_gameid		= u8(GameID());
 	abstract->o_Position	= position;
 	abstract->s_RP			= 0xff;

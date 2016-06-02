@@ -134,8 +134,10 @@ CGameFont::~CGameFont()
 	pGeom.destroy		();
 }
 
-#define DI2PX(x) float(iFloor((x+1)*float(::Render->getTarget()->get_width())*0.5f))
-#define DI2PY(y) float(iFloor((y+1)*float(::Render->getTarget()->get_height())*0.5f))
+
+// домножает округленные координаты на половину разрешения экрана?
+#define DI2PX(x) float(iFloor((x+1)*float(::Render->getTarget()->get_width())  * 0.5f)) 
+#define DI2PY(y) float(iFloor((y+1)*float(::Render->getTarget()->get_height()) * 0.5f))
 
 void CGameFont::OutSet			(float x, float y)
 {

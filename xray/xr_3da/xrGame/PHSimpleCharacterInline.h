@@ -20,6 +20,7 @@ void CPHSimpleCharacter::UpdateStaticDamage(dContact* c,SGameMtl* tri_material,b
 					m_collision_damage_info.m_dmc_signum		=	bo1 ? 1.f : -1.f;
 					m_collision_damage_info.m_dmc_type			=	SCollisionDamageInfo::ctStatic;
 					m_collision_damage_info.m_damege_contact	=	*c;
+					m_collision_damage_info.m_material			=   (u16)tri_material->GetID();
 					//m_collision_damage_info.m_object			=	0;
 					m_collision_damage_info.m_obj_id				=	u16(-1);
 				}
@@ -126,6 +127,7 @@ void CPHSimpleCharacter::UpdateDynamicDamage(dContact* c,u16 obj_material_idx,dB
 			m_collision_damage_info.m_dmc_type=SCollisionDamageInfo::ctObject;
 			m_collision_damage_info.m_damege_contact=*c;
 			m_collision_damage_info.m_hit_callback=obj->get_collision_hit_callback();
+			m_collision_damage_info.m_material = obj_material_idx;
 			m_collision_damage_info.m_obj_id=obj->ID();
 		}
 	}

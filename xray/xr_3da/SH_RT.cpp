@@ -83,12 +83,13 @@ void CRT::create	(LPCSTR Name, u32 w, u32 h,	D3DFORMAT f)
 
 void CRT::destroy		()
 {
+	_RELEASE	(pSurface);
+
 	if (pTexture._get())	{
 		pTexture->surface_set	(0);
 		pTexture				= NULL;
 	}
-	_RELEASE	(pRT		);
-	_RELEASE	(pSurface	);
+	_RELEASE	(pRT);	
 }
 void CRT::reset_begin	()
 {
@@ -165,11 +166,13 @@ void CRTC::create	(LPCSTR Name, u32 size,	D3DFORMAT f)
 
 void CRTC::destroy		()
 {
+	_RELEASE	(pSurface);
+
 	pTexture->surface_set	(0);
 	pTexture				= NULL;
 	for (u32 face=0; face<6; face++)
 		_RELEASE	(pRT[face]	);
-	_RELEASE	(pSurface	);
+	
 }
 void CRTC::reset_begin	()
 {

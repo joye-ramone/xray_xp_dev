@@ -63,7 +63,11 @@
 #include "script_callback_ex.h"
 #include "InventoryBox.h"
 #include "location_manager.h"
+#include "PHCapture.h"
+#include "ActorStats.h"
 #include "../../build_config_defines.h"
+#include "CustomDetector.h"
+#include "../x_ray.h"
 
 const u32		patch_frames	= 50;
 const float		respawn_delay	= 1.f;
@@ -77,14 +81,18 @@ static float ICoincidenced = 0;
 
 
 
+
 static Fbox		bbStandBox;
 static Fbox		bbCrouchBox;
 static Fvector	vFootCenter;
 static Fvector	vFootExt;
 
 Flags32			psActorFlags={0};
+XRCORE_API		u32						g_load_stage;
+extern			ENGINE_API BOOL			g_bootComplete;
+static			u32						g_activate_time = 0;
 
-
+#pragma optimize("gyts", off)
 
 CActor::CActor() : CEntityAlive()
 {
@@ -226,6 +234,8 @@ CActor::~CActor()
 
 	xr_delete				(m_anims);
 	xr_delete				(m_vehicle_anims);
+
+	g_activate_time			= 0;
 }
 
 void CActor::reinit	()
@@ -244,6 +254,7 @@ void CActor::reinit	()
 	
 	set_input_external_handler					(0);
 	m_time_lock_accel							= 0;
+	g_activate_time								= 0;
 }
 
 void CActor::reload	(LPCSTR section)
@@ -439,7 +450,15 @@ void	CActor::Hit							(SHit* pHDS)
 {
 	pHDS->aim_bullet = false;
 
-	SHit HDS = *pHDS;
+ 	SHit HDS = *pHDS;
+
+	u32 active_time = g_activate_time ? Device.dwTimeGlobal - g_activate_time : 10000;
+	if (HDS.hit_type == ALife::eHitTypeStrike && active_time < 10000)
+	{
+		Msg("##DBG: actor ignored strinke hit, due active_time = %d", active_time);
+		return;
+	}
+
 	if( HDS.hit_type<ALife::eHitTypeBurn || HDS.hit_type >= ALife::eHitTypeMax )
 	{
 		string256	err;
@@ -554,7 +573,7 @@ void	CActor::Hit							(SHit* pHDS)
 	case GAME_SINGLE:		
 		{
 			float hit_power	= HitArtefactsOnBelt(HDS.damage(), HDS.hit_type);
-
+#ifndef HARDCORE
 			if (GodMode())//psActorFlags.test(AF_GODMODE))
 			{
 				HDS.power = 0.0f;
@@ -563,9 +582,10 @@ void	CActor::Hit							(SHit* pHDS)
 				return;
 			}
 			else 
+#endif
 			{
 				//inherited::Hit		(hit_power,dir,who,element,position_in_bone_space, impulse, hit_type);
-				HDS.power = hit_power;
+				HDS.power = hit_power > 0 ? hit_power : 0;
 				inherited::Hit(&HDS);
 			};
 		}
@@ -597,7 +617,7 @@ void	CActor::Hit							(SHit* pHDS)
 			if (m_bWasBackStabbed) hit_power = (HDS.damage() == 0) ? 0 : 100000.0f;
 			else hit_power	= HitArtefactsOnBelt(HDS.damage(), HDS.hit_type);
 
-			HDS.power			= hit_power;
+			HDS.power			= hit_power > 0 ? hit_power : 0;
 			inherited::Hit		(&HDS);
 
 			if(OnServer() && !g_Alive() && HDS.hit_type==ALife::eHitTypeExplosion)
@@ -717,7 +737,10 @@ void CActor::HitSignal(float perc, Fvector& vLocalDir, CObject* who, s16 element
 void start_tutorial(LPCSTR name);
 void CActor::Die(CObject* who)
 {
+	Msg("#So, sorry, but actor death. Who killer = %s", who->Name_script());
 	inherited::Die		(who);
+
+	g_ActorGameStats.AddSimpleEvent(STAT_EVENT_DEATH, "who=%s", who->Name_script());
 
 	if (OnServer())
 	{	
@@ -817,7 +840,12 @@ void	CActor::SwitchOutBorder(bool new_border_state)
 }
 
 void CActor::g_Physics(Fvector& _accel, float jump, float dt)
-{
+{	
+	static u32 updates = 0;
+	if (!g_bootComplete) return;
+	u32 active_time = g_activate_time ? Device.dwTimeGlobal - g_activate_time : 10000;
+	if (active_time < 1000 || updates++ < 10) return; // исключить приход хит-неожиданностей при запуске
+
 	// Correct accel
 	Fvector						accel;
 	accel.set					(_accel);
@@ -828,29 +856,59 @@ void CActor::g_Physics(Fvector& _accel, float jump, float dt)
 	
 	if(g_Alive())
 	{
-	if(mstate_real&mcClimb&&!cameras[eacFirstEye]->bClampYaw)accel.set(0.f,0.f,0.f);
-	character_physics_support()->movement()->Calculate			(accel,cameras[cam_active]->vDirection,0,jump,dt,false);
-	bool new_border_state=character_physics_support()->movement()->isOutBorder();
-	if(m_bOutBorder!=new_border_state && Level().CurrentControlEntity() == this)
-	{
-		SwitchOutBorder(new_border_state);
-	}
-	character_physics_support()->movement()->GetPosition		(Position());
-	character_physics_support()->movement()->bSleep				=false;
+		if (accel.magnitude() > 135.f)
+			accel.set_length(135.f);
+	
+		if(mstate_real&mcClimb&&!cameras[eacFirstEye]->bClampYaw)accel.set(0.f,0.f,0.f);
+		character_physics_support()->movement()->Calculate			(accel,cameras[cam_active]->vDirection,0,jump,dt,false);
+		bool new_border_state=character_physics_support()->movement()->isOutBorder();
+		if(m_bOutBorder!=new_border_state && Level().CurrentControlEntity() == this)
+		{
+			SwitchOutBorder(new_border_state);
+		}
+		character_physics_support()->movement()->GetPosition		(Position());
+		character_physics_support()->movement()->bSleep				=false;
 	}
 
-	if (Local() && g_Alive()) {
+	
+
+	if (Local() && g_Alive()) 
+	
+	{
 		if (character_physics_support()->movement()->gcontact_Was)
 			Cameras().AddCamEffector		(xr_new<CEffectorFall> (character_physics_support()->movement()->gcontact_Power));
-		if (!fis_zero(character_physics_support()->movement()->gcontact_HealthLost))	{
+
+		float health_lost = character_physics_support()->movement()->gcontact_HealthLost;
+		if (!fis_zero(health_lost))		
+		{
+			// static u32 last_contact_frame = 0;
+
 			const ICollisionDamageInfo* di=character_physics_support()->movement()->CollisionDamageInfo();
-			Fvector hdir;di->HitDir(hdir);
+			Fvector hdir;
+			di->HitDir(hdir);		
+
+			hdir.y = 0; // alpet: чтобы не было взлета в космос при хите			
+
 			SetHitInfo(this, NULL, 0, Fvector().set(0, 0, 0), hdir);
 			//				Hit	(m_PhysicMovementControl->gcontact_HealthLost,hdir,di->DamageInitiator(),m_PhysicMovementControl->ContactBone(),di->HitPos(),0.f,ALife::eHitTypeStrike);//s16(6 + 2*::Random.randI(0,2))
 			if (Level().CurrentControlEntity() == this)
 			{
-				SHit HDS = SHit(character_physics_support()->movement()->gcontact_HealthLost,hdir,di->DamageInitiator(),character_physics_support()->movement()->ContactBone(),di->HitPos(),0.f,di->HitType());
-//				Hit(&HDS);
+				SHit HDS = SHit(health_lost,hdir,di->DamageInitiator(),character_physics_support()->movement()->ContactBone(),di->HitPos(),0.f,di->HitType());
+				if (!(mstate_real&mcFall) && HDS.power > 1.0f)
+					HDS.power *= 0.5f;  // слишком большой хит, от обычного столкновения, возможно что-то прилетело от полтера
+				if (HDS.hit_type == ALife::eHitTypeRadiation)
+					HDS.power *= 0.001f; // alpet: защита от странных коллизий с нефонящими, но отравленными материалами
+				if (HDS.hit_type == ALife::eHitTypeChemicalBurn)
+				{
+					static HUD_SOUND m_buzzHit;
+
+					if (0 == m_buzzHit.sounds.size())
+						HUD_SOUND::LoadSound("zone_buzz", "hit_sound", m_buzzHit, SOUND_TYPE_ITEM);
+
+					HUD_SOUND::PlaySound(m_buzzHit, Position(), this, true);
+				}
+
+				// anomaly\buzz_hit
 
 				NET_Packet	l_P;
 				HDS.GenHeader(GE_HIT, ID());
@@ -858,7 +916,11 @@ void CActor::g_Physics(Fvector& _accel, float jump, float dt)
 				HDS.weaponID = di->DamageInitiator()->ID();
 				HDS.Write_Packet(l_P);
 
-				u_EventSend	(l_P);
+				if (Device.dwFrame - last_hit_frame > 30)
+					u_EventSend(l_P);
+				else
+					Msg("##DBG: collision hit ignored, last_hit_frame = %d, current frame = %d ", last_hit_frame, Device.dwFrame);
+				last_hit_frame = Device.dwFrame;
 			}
 		}
 	}
@@ -882,6 +944,28 @@ float CActor::currentFOV()
 
 void CActor::UpdateCL	()
 {
+	if (0 == m_dwUpdateCount++)
+	{
+		MsgCB("##DBG: CActor first UpdateCL call");
+		pApp->LoadEnd();
+	}
+	CInventory &inv = inventory();
+
+	// alpet: затычка от вылета при нахождении предметов в ненадлежащих слотах
+	if (0 == m_dwUpdateCount % 100)
+	 for (u16 slot = KNIFE_SLOT; slot < SLOTS_TOTAL; slot++)
+		{
+			auto *item = inv.m_slots[slot].m_pIItem;
+			if (!item) continue;
+			// MsgCB(" actor inventory item %d visual = %s ", slot, item->object().cNameVisual().c_str());
+			if (slot == item->GetSlot()) continue;
+			Msg("!#WARN: item %s active slot = %d, but item placed in slot %s ", item->Name(), item->GetSlot(), SLOTS_NAMES[slot]);
+			item->SetSlot(slot);				
+		}
+
+	
+
+
 	if(m_feel_touch_characters>0)
 	{
 		for(xr_vector<CObject*>::iterator it = feel_touch.begin(); it != feel_touch.end(); it++)
@@ -893,6 +977,15 @@ void CActor::UpdateCL	()
 			}
 		}
 	}
+
+
+	
+	SYSTEMTIME st;
+	GetLocalTime(&st);
+	g_ActorGameStats.OnActorUpdate ();
+	if (0 == st.wSecond)
+		g_ActorGameStats.FlushRecord();
+
 	if(m_holder)
 		m_holder->UpdateEx( currentFOV() );
 
@@ -921,6 +1014,18 @@ void CActor::UpdateCL	()
 		psHUD_Flags.set( HUD_CROSSHAIR_RT2, true );
 		psHUD_Flags.set( HUD_DRAW_RT, true );
 	}
+
+	bool allow_crosshair = true;
+#ifdef NLC_EXTENSIONS
+	allow_crosshair = (g_SingleGameDifficulty == egdNovice);
+	if (!inventory().ActiveItem() && g_SingleGameDifficulty < egdMaster)
+	{
+		HUD().SetCrosshairDisp(0.f);
+		HUD().ShowCrosshair(true);
+	}
+
+#endif
+
 	if(pWeapon )
 	{
 		if(pWeapon->IsZoomed())
@@ -938,7 +1043,7 @@ void CActor::UpdateCL	()
 			float fire_disp_full = pWeapon->GetFireDispersion(true);
 
 			HUD().SetCrosshairDisp(fire_disp_full, 0.02f);
-			HUD().ShowCrosshair(pWeapon->use_crosshair());
+			HUD().ShowCrosshair(pWeapon->use_crosshair() && allow_crosshair);
 
 			psHUD_Flags.set( HUD_CROSSHAIR_RT2, pWeapon->show_crosshair() );
 			psHUD_Flags.set( HUD_DRAW_RT,		pWeapon->show_indicators() );
@@ -979,6 +1084,15 @@ float	NET_Jump = 0;
 void CActor::shedule_Update	(u32 DT)
 {
 	setSVU(OnServer());
+
+	if (!g_activate_time)
+	{   // пока управление не перейдет к игроку, отсчет не начинается
+		if (Device.Paused() || !g_bootComplete || g_load_stage < 3);
+		else
+			g_activate_time = Device.dwTimeGlobal;
+	}
+
+
 
 	//установить режим показа HUD для текущего активного слота
 	CHudItem* pHudItem = smart_cast<CHudItem*>(inventory().ActiveItem());	
@@ -1048,20 +1162,23 @@ void CActor::shedule_Update	(u32 DT)
 			f_DropPower			+= dt*0.1f;
 			clamp				(f_DropPower,0.f,1.f);
 		} else {
-			f_DropPower			= 0.f;
+			f_DropPower			*= 0.9f;
 		}
 		if (!Level().IsDemoPlay())
 		{		
 		//-----------------------------------------------------
-		mstate_wishful &=~mcAccel;
+		extern int g_iCrouchState;
+		if (g_iCrouchState < 2)
+			mstate_wishful &=~mcAccel;
+
 		mstate_wishful &=~mcLStrafe;
 		mstate_wishful &=~mcRStrafe;
 		mstate_wishful &=~mcLLookout;
 		mstate_wishful &=~mcRLookout;
 		mstate_wishful &=~mcFwd;
 		mstate_wishful &=~mcBack;
-		extern bool g_bAutoClearCrouch;
-		if (g_bAutoClearCrouch)
+		
+		if (!g_iCrouchState)
 			mstate_wishful &=~mcCrouch;
 		//-----------------------------------------------------
 		}
@@ -1160,11 +1277,16 @@ void CActor::shedule_Update	(u32 DT)
 
 	if(!input_external_handler_installed() && RQ.O &&  RQ.range<inventory().GetTakeDist()) 
 	{
-		m_pObjectWeLookingAt			= smart_cast<CGameObject*>(RQ.O);
-		
 		CGameObject						*game_object = smart_cast<CGameObject*>(RQ.O);
+		if (m_pObjectWeLookingAt != game_object)
+		{
+			callback(GameObject::eSawObject)(game_object->lua_game_object(), lua_game_object());
+		}
+
+		m_pObjectWeLookingAt			= game_object;
+
 		m_pUsableObject					= smart_cast<CUsableScriptObject*>(game_object);
-		m_pInvBoxWeLookingAt			= smart_cast<CInventoryBox*>(game_object);
+		m_pInvBoxWeLookingAt			= smart_cast<IInventoryBox*>(game_object);
 		inventory().m_pTarget			= smart_cast<PIItem>(game_object);
 		m_pPersonWeLookingAt			= smart_cast<CInventoryOwner*>(game_object);
 		m_pVehicleWeLookingAt			= smart_cast<CHolderCustom*>(game_object);
@@ -1472,12 +1594,26 @@ void CActor::OnItemDropUpdate ()
 {
 	CInventoryOwner::OnItemDropUpdate		();
 
-	TIItemContainer::iterator				I = inventory().m_all.begin();
-	TIItemContainer::iterator				E = inventory().m_all.end();
+	auto &list = inventory().m_all;
+	PIItem item = NULL;
+	LPCSTR name = "NULL";
+	__try
+	{
+		TIItemContainer::iterator				I = list.begin();
+		TIItemContainer::iterator				E = list.end();
+		for (; I != E; ++I)
+		{
+			item = (*I);
+			name = item->Name();
+			if (!item->IsInvalid() && !attached(item))
+				attach(item);
+		}
 	
-	for ( ; I != E; ++I)
-		if( !(*I)->IsInvalid() && !attached(*I))
-			attach(*I);
+	}	
+	__except (SIMPLE_FILTER)
+	{
+		Msg("!#EXCEPTION: catched in CActor::OnItemDropUpdate, item = 0x%p, name = %s ", (void*)item, (name ? name : "(null)"));
+	}
 }
 
 
@@ -1538,39 +1674,72 @@ void CActor::UpdateArtefactsOnBelt()
 		update_time		= 0.0f;
 	}
 
+	float summary_rrs = 0.f;
+
 #if defined(ARTEFACTS_FROM_RUCK)
 	for(TIItemContainer::iterator it = inventory().m_all.begin(); inventory().m_all.end() != it; ++it)
 #else
+	if (ArtefactsHaveEffect())
 	for (TIItemContainer::iterator it = inventory().m_belt.begin(); inventory().m_belt.end() != it; ++it)
 #endif
 	{
 		CArtefact*	artefact = smart_cast<CArtefact*>(*it);
-		if (artefact)
+		if (artefact && artefact->m_props_enabled)
 		{
-			conditions().ChangeBleeding(artefact->m_fBleedingRestoreSpeed*f_update_time);
-			conditions().ChangeHealth(artefact->m_fHealthRestoreSpeed*f_update_time);
-			conditions().ChangePower(artefact->m_fPowerRestoreSpeed*f_update_time);
-			conditions().ChangeSatiety(artefact->m_fSatietyRestoreSpeed*f_update_time);
-#ifndef OBJECTS_RADIOACTIVE // alpet: отключается для избежания двойного хита
-			conditions().ChangeRadiation		(artefact->m_fRadiationRestoreSpeed*f_update_time);
+			float k = artefact->GetCondition() > 0.2 ? 2.f : 1.f;
+			conditions().ChangeBleeding  (artefact->m_fBleedingRestoreSpeed  * f_update_time * k);
+			conditions().ChangeHealth    (artefact->m_fHealthRestoreSpeed    * f_update_time * k);
+			conditions().ChangePsyHealth (artefact->m_fPsyHealthRestoreSpeed * f_update_time * k);
+			// if (artefact->m_fHealthRestoreSpeed > 0)		Msg(" health_restore_speed = %8.5f, delta health = %8.5f ", artefact->m_fHealthRestoreSpeed, conditions().fdelta_health());
+			conditions().ChangePower	 (artefact->m_fPowerRestoreSpeed		 * f_update_time * k);
+			conditions().ChangeSatiety   (artefact->m_fSatietyRestoreSpeed   * f_update_time * k);
+			bool   chg_radiation = true;
+#ifdef OBJECTS_RADIOACTIVE // alpet: включается только для убирания радиации
+			chg_radiation = (artefact->RadiationRestoreSpeed () < 0);
 #endif
+			if (chg_radiation)
+			{
+				float affect = artefact->RadiationRestoreSpeed() * f_update_time;
+				summary_rrs += affect;								
+			}
 		}
+		
 
 	} // for belt items
 #ifdef OBJECTS_RADIOACTIVE
-	for (TIItemContainer::iterator it = inventory().m_all.begin(); inventory().m_all.end() != it; ++it)
+	auto &map_all = inventory().m_all;
+
+	for (TIItemContainer::iterator it = map_all.begin(); map_all.end() != it; ++it)
 	{
 		CGameObject *obj = smart_cast<CGameObject*>(*it);
-		conditions().ChangeRadiation		(obj->m_fRadiationRestoreSpeed*f_update_time);
+		if (obj->RadiationRestoreSpeed() > 0) // только увеличение радиации
+		{
+			float affect = obj->RadiationRestoreSpeed() * f_update_time;
+			summary_rrs += affect;			
+		}
 	}
 #endif
+	
+	conditions().ChangeRadiation(summary_rrs);
+	auto &map_slots = inventory().m_slots;
+	if (summary_rrs > 0)
+		for (auto it = map_slots.begin(); it != map_slots.end(); ++it)
+		if (it->m_pIItem)
+		{
+			CGameObject *obj = &it->m_pIItem->object();
+			if (obj->CLS_ID != CLSID_DETECTOR_SIMPLE) continue;
 
+			CCustomDetector *detector = smart_cast<CCustomDetector*>(obj);
+			if (detector)
+				detector->RadiationAlert(summary_rrs);	
+		}
 }
 
 float	CActor::HitArtefactsOnBelt		(float hit_power, ALife::EHitType hit_type)
 {
 	float res_hit_power_k		= 1.0f;
 	float _af_count				= 0.0f;
+	bool  arts_have_effect	    = ArtefactsHaveEffect();
 #if defined(ARTEFACTS_FROM_RUCK)
 	for(TIItemContainer::iterator it = inventory().m_all.begin(); inventory().m_all.end() != it; ++it)
 #else
@@ -1578,13 +1747,13 @@ float	CActor::HitArtefactsOnBelt		(float hit_power, ALife::EHitType hit_type)
 #endif
 	{
 		CArtefact*	artefact = smart_cast<CArtefact*>(*it);
-		if(artefact){
+		if(artefact && artefact->m_props_enabled && arts_have_effect){
 			res_hit_power_k	+= artefact->m_ArtefactHitImmunities.AffectHit(1.0f, hit_type);
 			_af_count		+= 1.0f;
 		}
 	}
 
-#if defined(INV_NEW_SLOTS_SYSTEM) && !defined(ARTEFACTS_FROM_RUCK)
+#if defined(INV_NEW_SLOTS_SYSTEM) && !defined(ARTEFACTS_FROM_RUCK) && !defined(NLC_EXTENSIONS)
 	PIItem helmet = inventory().m_slots[HELMET_SLOT].m_pIItem;
 	if (helmet){
 		CArtefact* helmet_artefact = smart_cast<CArtefact*>(helmet);
@@ -1595,7 +1764,8 @@ float	CActor::HitArtefactsOnBelt		(float hit_power, ALife::EHitType hit_type)
 	}
 #endif
 	res_hit_power_k			-= _af_count;
-	return					res_hit_power_k * hit_power;
+	float					result = res_hit_power_k * hit_power;	
+	return					result > 0 ? result : 0;
 }
 
 void	CActor::SetZoomRndSeed		(s32 Seed)
@@ -1744,10 +1914,28 @@ CVisualMemoryManager	*CActor::visual_memory	() const
 	return							(&memory().visual());
 }
 
+float		CActor::GetCarryWeight() const
+{
+	float add = 0;
+	CPHCapture* capture = character_physics_support()->movement()->PHCapture();
+	if (capture && capture->taget_object())
+	{
+		CPhysicsShellHolder *obj = capture->taget_object();
+		CInventoryOwner *io = smart_cast<CInventoryOwner *> (obj);
+		if (io)
+			add += io->GetCarryWeight();
+
+		add += READ_IF_EXISTS(pSettings, r_float, *obj->cNameSect(), "ph_mass", 0) * 0.1f;
+	}
+	
+	return CInventoryOwner::GetCarryWeight() + add;
+}
+
 float		CActor::GetMass				()
 {
 	return g_Alive()?character_physics_support()->movement()->GetMass():m_pPhysicsShell?m_pPhysicsShell->getMass():0; 
 }
+
 
 bool CActor::is_on_ground()
 {

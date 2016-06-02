@@ -102,12 +102,12 @@ BOOL CTheoraStream::ParseHeaders		()
 		// look for further theora headers 
 		while(header_count && (header_count<3) && 0!=(ret=ogg_stream_packetout(&o_stream_state,&o_packet))){
 			if(ret<0){
-				fprintf(stderr,"Error parsing Theora stream headers; corrupt stream?\n");
-				exit(1);
+				Log("! Error parsing Theora stream headers; corrupt stream?\n");
+				abort();
 			}
 			if(theora_decode_header(&t_info,&t_comment,&o_packet)){
-				printf("Error parsing Theora stream headers; corrupt stream?\n");
-				exit(1);
+				Log("! Error parsing Theora stream headers; corrupt stream?\n");
+				abort();
 			}
 			header_count++;
 			if(header_count==3)break;

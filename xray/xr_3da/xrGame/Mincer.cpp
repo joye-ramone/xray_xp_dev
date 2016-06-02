@@ -136,7 +136,7 @@ void CMincer::NotificateDestroy			(CPHDestroyableNotificate *dn)
 	Fvector position_in_bone_space, throw_in_dir;
 	position_in_bone_space.set		(0.0f, 0.0f, 0.0f);
 	throw_in_dir.set				(1.0f, 0.0f, 1.0f);
-	CreateHit(obj->ID(),ID(),throw_in_dir,0.0f,0,position_in_bone_space,impulse,ALife::eHitTypeExplosion);
+	CreateHit(obj->ID(),ID(),throw_in_dir,0.0f,BI_NONE,position_in_bone_space,impulse,ALife::eHitTypeExplosion);
 }
 
 void CMincer::AffectPullAlife(CEntityAlive* EA,const Fvector& throw_in_dir,float dist)

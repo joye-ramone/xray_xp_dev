@@ -19,6 +19,8 @@ static	INetLog* pClNetLog = NULL;
 #define BASE_PORT			0
 #define END_PORT			65535
 
+// #pragma optimize("gyts", off)
+
 void	dump_URL	(LPCSTR p, IDirectPlay8Address* A)
 {
 	string256	aaaa;
@@ -41,9 +43,21 @@ INetQueue::INetQueue()
 INetQueue::~INetQueue()
 {
 	cs.Enter		();
-	u32				it;
-	for				(it=0; it<unused.size(); it++)	xr_delete(unused[it]);
-	for				(it=0; it<ready.size(); it++)	xr_delete(ready[it]);
+	__try
+	{
+		int				it;
+		MsgCB("#DBG: processing INetQueue destructor, this = 0x%p, unused size = %d, ready size = %d ", this, unused.size(), ready.size());
+		for (it = 0; it < (int) unused.size(); it++)	
+			xr_delete(unused[it]);
+		for (it = 0; it < (int) ready.size();  it++)	
+			xr_delete(ready[it]);
+		unused.clear();
+		ready.clear();
+	}
+	__except (SIMPLE_FILTER)
+	{
+		MsgCB("!#EXCEPTION: catched in INetQueue::~INetQueue()");
+	}
 	cs.Leave		();
 }
 
@@ -832,6 +846,9 @@ void	IPureClient::OnMessage(void* data, u32 size)
 
 	u16						tmp_type;
 	P->r_begin				(tmp_type);
+	if (1 == tmp_type)
+		MsgV("9SPAWN", "probably M_SPAWN event queued");
+
 	net_Queue.CreateCommit	(P);
 }
 

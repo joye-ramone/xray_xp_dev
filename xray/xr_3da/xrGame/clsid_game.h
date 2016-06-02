@@ -137,6 +137,7 @@
 #define CLSID_OBJECT_PHYSIC			MK_CLSID('O','_','P','H','Y','S','I','C')
 #define CLSID_PHYSICS_DESTROYABLE	MK_CLSID('P','_','D','S','T','R','B','L')
 #define CLSID_INVENTORY_BOX			MK_CLSID('O','_','I','N','V','B','O','X')
+#define CLSID_CONTAINER				MK_CLSID('O','_','C','O','N','T','N','R')
 
 // Zones 
 #define CLSID_ZONE					MK_CLSID('Z','_','Z','O','N','E',' ',' ')
@@ -167,6 +168,7 @@
 
 // Devices
 #define CLSID_DEVICE_TORCH			MK_CLSID('D','_','T','O','R','C','H',' ')
+#define CLSID_DEVICE_NVD			MK_CLSID('D','_','N','V','I','S','P',' ')
 #define CLSID_DEVICE_AF_MERGER		MK_CLSID('D','_','A','F','M','E','R','G')
 
 // Inventory items

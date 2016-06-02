@@ -2,7 +2,7 @@
 #pragma hdrstop
 
 #include "ModelPool.h"
-
+#include <xr_ini.h>
 #ifndef _EDITOR
 	#include "..\IGame_Persistent.h"
     #include "..\fmesh.h"
@@ -14,6 +14,7 @@
 	#include "flod.h"
     #include "ftreevisual.h"
     #include "ParticleGroup.h"
+
 #else
     #include "fmesh.h"
     #include "fvisual.h"
@@ -24,6 +25,11 @@
     #include "SkeletonAnimated.h"
 	#include "IGame_Persistent.h"
 #endif
+
+#pragma optimize("gyts", off)
+
+CInifile *vis_prefetch = NULL;
+bool      now_prefetch = false;
 
 IRender_Visual*	CModelPool::Instance_Create(u32 type)
 {
@@ -129,6 +135,8 @@ IRender_Visual*	CModelPool::Instance_Load		(const char* N, BOOL allow_register)
 #endif // DEBUG
 
 	IReader*			data	= FS.r_open(fn);
+	MsgCB("$#CONTEXT: loading visual from file %s, IReader = %p, position = %lf MiB, size = %lf MiB ",
+					fn, data, data->tell_mib(), data->length_mib());
 	ogf_header			H;
 	data->r_chunk_safe	(OGF_HEADER,&H,sizeof(H));
 	V = Instance_Create (H.type);
@@ -138,6 +146,10 @@ IRender_Visual*	CModelPool::Instance_Load		(const char* N, BOOL allow_register)
 
 	// Registration
 	if (allow_register) Instance_Register(N,V);
+
+	if (strstr(fn, "wpn_scope"))
+		Msg("##DBG: loaded visual from %s, into object 0x%p ", fn, V);
+
 
 	return V;
 }
@@ -194,6 +206,9 @@ void CModelPool::Destroy()
 
 	// cleanup motions container
 	g_pMotionsContainer->clean(false);
+
+	if (vis_prefetch)
+		vis_prefetch->save_as();
 }
 
 CModelPool::CModelPool()
@@ -202,12 +217,30 @@ CModelPool::CModelPool()
     bForceDiscard 			= FALSE;
     bAllowChildrenDuplicate	= TRUE; 
 	g_pMotionsContainer		= xr_new<motions_container>();
+	if (!vis_prefetch)
+	{
+		string_path fname;
+		FS.update_path(fname, "$fs_root$", "bin\\vis_prefetch.lst");
+		vis_prefetch = xr_new<CInifile> (fname, FALSE);
+		if (vis_prefetch->section_exist("prefetch"))		
+		{
+			auto &sect = vis_prefetch->r_section("prefetch");
+			for (auto it = sect.Data.begin(); it != sect.Data.end(); it++)
+			{
+			 	float need = (float) atof(*it->second) * 0.5f; // делить пополам
+				float rnd = Random.randF() - 0.5f; // -0.5..+0.5 - добавить случайность, чтобы не было общего выключени€
+				it->second.sprintf("%.3f", need + rnd * 0.1f); 
+			}
+		}
+	}
+
 }
 
 CModelPool::~CModelPool()
 {
 	Destroy					();
 	xr_delete				(g_pMotionsContainer);
+	xr_delete				(vis_prefetch);
 }
 
 IRender_Visual* CModelPool::Instance_Find(LPCSTR N)
@@ -246,10 +279,12 @@ IRender_Visual* CModelPool::Create(const char* name, IReader* data)
 	} else {
 		// 1. Search for already loaded model (reference, base model)
 		IRender_Visual* Base		= Instance_Find		(low_name);
+		shared_str fname;
+		bool is_global = !!FS.exist("$game_meshes$", *fname.sprintf("%s.ogf", low_name));
 
 		if (0==Base){
 			// 2. If not found
-			bAllowChildrenDuplicate	= FALSE;
+			bAllowChildrenDuplicate	= FALSE;															
 			if (data)		Base = Instance_Load(low_name,data,TRUE);
             else			Base = Instance_Load(low_name,TRUE);
 			bAllowChildrenDuplicate	= TRUE;
@@ -260,6 +295,14 @@ IRender_Visual* CModelPool::Create(const char* name, IReader* data)
         // 3. If found - return (cloned) reference
         IRender_Visual*		Model	= Instance_Duplicate(Base);
         Registry.insert		( mk_pair(Model,low_name) );
+
+		if (is_global && vis_prefetch && !now_prefetch && !Base->prefetched)
+		{
+			static int update = 0;			
+			vis_prefetch->w_float("prefetch", low_name, 1.f);
+			if (++update % 100 == 0) vis_prefetch->save_as(); // иногда сохран€ть файл
+			Base->prefetched = true;
+		}
         return				Model;
 	}
 }
@@ -373,8 +416,39 @@ void	CModelPool::Discard	(IRender_Visual* &V, BOOL b_complete)
 	V	=	NULL;
 }
 
+// #pragma optimize("gyts", off)
+
 void CModelPool::Prefetch()
 {
+	
+#ifdef NLC_EXTENSIONS
+	if (!vis_prefetch || !vis_prefetch->section_exist("prefetch")) return;
+	auto &sect = vis_prefetch->r_section("prefetch");
+	now_prefetch = true;
+
+	for (auto it = sect.Data.begin(); it != sect.Data.end(); it++)
+	{
+		const shared_str &low_name = it->first;
+		float need = (float) atof(*it->second);
+
+		if (need > 0.1f && !Instance_Find(*low_name))
+		{
+			// Instance_Load(*low_name, TRUE);
+			shared_str fname;
+			fname.sprintf("%s.ogf", *low_name);
+			if (FS.exist("$game_meshes$", *fname))
+			{
+				IRender_Visual* V	= Create(low_name.c_str());
+				Delete				(V,FALSE);
+			}	
+			else
+				Msg("!#WARN: CModelPool::Prefetch() not exists file %s in global meshes ", fname.c_str());
+		
+		}
+	}
+	now_prefetch = false;
+	
+#else
 	Logging					(FALSE);
 	// prefetch visuals
 	string256 section;
@@ -382,10 +456,21 @@ void CModelPool::Prefetch()
 	CInifile::Sect& sect	= pSettings->r_section(section);
 	for (CInifile::SectCIt I=sect.Data.begin(); I!=sect.Data.end(); I++)	{
 		const CInifile::Item& item= *I;
-		IRender_Visual* V	= Create(item.first.c_str());
+		const shared_str &name = item.first;
+		shared_str fname;				
+
+		if (!FS.exist("$game_meshes$", *fname.sprintf("%s.ogf", *name)))
+		{
+			Msg("!#ERROR: CModelPool::Prefetch() not exists file %s ", fname.c_str());
+			continue;
+		}
+
+		
+		IRender_Visual* V	= Create(name.c_str());
 		Delete				(V,FALSE);
 	}
 	Logging					(TRUE);
+#endif
 }
 
 void CModelPool::ClearPool( BOOL b_complete)

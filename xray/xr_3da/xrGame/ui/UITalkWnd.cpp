@@ -20,6 +20,12 @@
 #include "../../cameraBase.h"
 #include "UIXmlInit.h"
 
+
+
+#pragma optimize("gyts", off)
+
+extern shared_str script_translate(const shared_str& text, const shared_str &value);
+
 CUITalkWnd::CUITalkWnd()
 {
 	m_pActor				= NULL;
@@ -312,6 +318,9 @@ void CUITalkWnd::AskQuestion()
 
 //////////////////////////////////////////////////////////////////////////
 
+
+
+
 void CUITalkWnd::SayPhrase(const shared_str& phrase_id)
 {
 
@@ -328,10 +337,12 @@ void CUITalkWnd::SayPhrase(const shared_str& phrase_id)
 
 //////////////////////////////////////////////////////////////////////////
 
+
+
 void CUITalkWnd::AddQuestion(const shared_str& text, const shared_str& value)
 {
 	if(text.size() == 0) return;
-	UITalkDialogWnd->AddQuestion(*CStringTable().translate(text),value.c_str());
+	UITalkDialogWnd->AddQuestion(*script_translate(text, value),value.c_str());
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -343,7 +354,7 @@ void CUITalkWnd::AddAnswer(const shared_str& text, LPCSTR SpeakerName)
 	PlaySnd			(text.c_str());
 
 	bool i_am = (0 == xr_strcmp(SpeakerName, m_pOurInvOwner->Name()));
-	UITalkDialogWnd->AddAnswer(SpeakerName,*CStringTable().translate(text),i_am);
+	UITalkDialogWnd->AddAnswer(SpeakerName,*script_translate(text, SpeakerName),i_am);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -389,7 +400,8 @@ bool CUITalkWnd::OnKeyboard(int dik, EUIMessages keyboard_action)
 
 void CUITalkWnd::PlaySnd(LPCSTR text)
 {
-	if(xr_strlen(text) == 0) return;
+	size_t l = xr_strlen(text);
+	if(l == 0 || l > 100) return; // не все является звуковым месседжем!
 	StopSnd						();
 	
 	string_path	fn;

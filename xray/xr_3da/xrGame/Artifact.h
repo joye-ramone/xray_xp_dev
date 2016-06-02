@@ -68,14 +68,19 @@ public:
 
 	bool							m_bCanSpawnZone;
 	float							m_fHealthRestoreSpeed;
-#ifndef OBJECTS_RADIOACTIVE
+	float							m_fPsyHealthRestoreSpeed;
+#ifndef OBJECTS_RADIOACTIVE	
 	float 							m_fRadiationRestoreSpeed;
+	virtual float					RadiationRestoreSpeed () const { return m_fRadiationRestoreSpeed; }
 #endif
 	float 							m_fSatietyRestoreSpeed;
 	float							m_fPowerRestoreSpeed;
 	float							m_fBleedingRestoreSpeed;
 	CHitImmunity 					m_ArtefactHitImmunities;
 
+	float							m_additional_weight;
+	float							m_additional_weight2;
+	bool							m_props_enabled;
 protected:
 	MotionSVec						m_anim_idle;
 	MotionSVec						m_anim_idle_sprint;
@@ -102,6 +107,7 @@ public:
 	virtual bool					IsHidden			()	const	{return GetState()==eHidden;}
 	virtual u16						bone_count_to_synchronize	() const;
 
+	
 	// optimization FAST/SLOW mode
 public:						
 	u32						o_render_frame				;

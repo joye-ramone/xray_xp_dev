@@ -39,20 +39,46 @@ public:
 //.		IC void			clear()		{ Data.clear();			}
 	    BOOL			line_exist	(LPCSTR L, LPCSTR* val=0);
 	};
-	typedef	xr_vector<Sect*>		Root;
-	typedef Root::iterator			RootIt;
+///	typedef	xr_vector<Sect*>			Root;
+	typedef	xr_map<shared_str, Sect*>	Root;
+	typedef Root::iterator				RootIt;
+	typedef Sect* (*SECTION_GETTER) (CInifile *ini, LPCSTR S);
+
+	typedef xr_map<shared_str, shared_str> SMap;
+	typedef SMap::iterator				   SMapIt;
 
 	// factorisation
 	static CInifile*	Create		( LPCSTR szFileName, BOOL ReadOnly=TRUE);
 	static void			Destroy		( CInifile*);
     static IC BOOL		IsBOOL		( LPCSTR B)	{ return (xr_strcmp(B,"on")==0 || xr_strcmp(B,"yes")==0 || xr_strcmp(B,"true")==0 || xr_strcmp(B,"1")==0);}
-private:
+protected:
 	LPSTR		fName;
 	Root		DATA;
 	BOOL		bReadOnly;
+	SMap		smIncludeMacro;      // alpet: макросы для подстановки в include
+	
+
+		
+	void		Load			( LPCSTR szFileName, BOOL ReadOnly=TRUE );
 	void		Load			(IReader* F, LPCSTR path);
+				// shared abililites
+
+
 public:
-    BOOL		bSaveAtEnd;
+	int						ref_count;
+    BOOL					bSaveAtEnd;
+	SECTION_GETTER			get_section;
+
+	virtual		void		AddSection(Sect *pSection);
+
+				void		SetIncludeMacro (const shared_str &key, const shared_str &value);
+
+	// управление расшаренным файлом:
+	virtual		CInifile*	add_ref () { ref_count++; return this; }
+	virtual		void		release	(); 
+	ICF			void		reload()   { Load (fname()); }
+
+
 public:
 				CInifile		( IReader* F, LPCSTR path=0 );
 				CInifile		( LPCSTR szFileName, BOOL ReadOnly=TRUE, BOOL bLoadAtStart=TRUE, BOOL SaveAtEnd=TRUE);
@@ -60,6 +86,8 @@ public:
     bool		save_as         ( LPCSTR new_fname=0 );
 
 	LPCSTR		fname			( ) { return fName; };
+	
+
 
 	Sect&		r_section		( LPCSTR S			);
 	Sect&		r_section		( const shared_str& S	);

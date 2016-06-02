@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: script_engine.cpp
 //	Created 	: 01.04.2004
-//  Modified 	: 01.04.2004
+//  Modified 	: 17.02.2016
 //	Author		: Dmitriy Iassenev
 //	Description : XRay Script Engine
 ////////////////////////////////////////////////////////////////////////////
@@ -13,7 +13,9 @@
 #include "script_process.h"
 #include "../lua_tools.h"
 #include "../../build_config_defines.h"
- 
+#include <Windows.h>
+#include <Shlwapi.h>
+
 #ifdef USE_DEBUGGER
 #	include "script_debugger.h"
 #endif
@@ -27,6 +29,9 @@
 
 extern void export_classes(lua_State *L);
 
+// extern void   set_lvm_name(lua_State* L, LPCSTR name, bool add_index = true);
+// extern LPCSTR get_lvm_name(lua_State* L);
+
 #ifdef LUAICP_COMPAT
 void luaicp_error_handler(lua_State *L)
 {
@@ -37,6 +42,91 @@ void luaicp_error_handler(lua_State *L)
 		lua_pop(L, 1);
 }
 #endif
+
+void ResetLuaStates() // удал€ет поток VM AUX Lua
+{
+	if (g_game_lua)
+	{
+		lua_pushnil(g_game_lua);
+		lua_setglobal(g_game_lua, "g_aux_lua"); // remove thread
+	}	
+	g_aux_lua    = NULL;
+}
+
+XRCORE_API LPCSTR  BuildStackTrace();
+
+void PrintStackTrace(LPCSTR msg)
+{
+	lua_State *L = GameLua();
+	LPCSTR tb;
+	if (L)
+	{
+		tb = GetLuaTraceback(L, 2);
+		Msg("# #CRASH report: game_lua_state = 0x%p, msg = %s %s", L, msg, tb);
+	}
+	L = AuxLua();
+	if (L)
+	{
+		tb = GetLuaTraceback(L, 2);
+		Msg("# #CRASH report: aux_lua_state = 0x%p, msg = %s %s", L, msg, tb);
+	}	
+
+	Msg("* PrintStackTrace executed from:\n %s", BuildStackTrace());
+}
+
+
+LPCSTR ExtractFileName(LPCSTR fname)
+{
+	LPCSTR result = fname;
+	for (size_t c = 0; c < xr_strlen(fname); c++)
+		if (fname[c] == '\\') result = &fname[c + 1];
+	return result;
+}
+
+
+void find_scripts(CScriptEngine::SCRIPTS_MAP &map, LPCSTR path)
+{
+	if (!xr_strlen(path)) return;
+	string_path buff;
+	string_path fname;
+	// recursive scan folders first
+	auto *folders = FS.file_list_open(path, FS_ListFolders);
+	if (folders)
+	{
+		auto &folder = *folders;
+		for (size_t f = 0; f < folder.size(); f++)
+		if (!strstr(folder[f], "."))
+		{			
+			strconcat(sizeof(fname), fname, path, folder[f]);
+			find_scripts(map, fname);
+		}
+		FS.file_list_close(folders);
+	}
+
+	// scan files next
+	auto *files = FS.file_list_open(path, FS_ListFiles);
+	if (!files) return;
+	auto &folder = *files;
+
+	for (int i = 0; i < (int)folder.size(); i++)
+	{		
+		strconcat(sizeof(fname), fname, path, folder[i]);
+
+		if ((strstr(fname, ".script") || strstr(fname, ".lua")) && FS.exist(fname))
+		{
+			LPCSTR fstart = ExtractFileName(fname);
+			strcpy_s(buff, sizeof(buff), fstart);
+			_strlwr_s(buff, sizeof(buff));
+			LPCSTR nspace = strtok(buff, ".");
+			map[nspace] = fname;
+		}
+			
+	}
+
+	FS.file_list_close(files);
+}
+
+
 
 CScriptEngine::CScriptEngine			()
 {
@@ -49,11 +139,15 @@ CScriptEngine::CScriptEngine			()
 	m_scriptDebugger		= NULL;
 	restartDebugger			();	
 #endif
+	SetCrashCB(PrintStackTrace);
 }
 
 CScriptEngine::~CScriptEngine			()
 {
+	collect_all_garbage();
+
 	g_game_lua = NULL;
+
 	while (!m_script_processes.empty())
 		remove_script_process(m_script_processes.begin()->first);
 
@@ -75,7 +169,9 @@ void CScriptEngine::unload				()
 
 int CScriptEngine::lua_panic			(lua_State *L)
 {
-	print_output	(L,"PANIC",LUA_ERRRUN);
+	LPCSTR traceback = GetLuaTraceback(L, 1);	
+	print_output	(L,"PANIC",LUA_ERRRUN);	
+	Msg("! %s", traceback);
 	return			(0);
 }
 
@@ -84,7 +180,7 @@ void CScriptEngine::lua_error			(lua_State *L)
 	print_output			(L,"",LUA_ERRRUN);
 
 #if !XRAY_EXCEPTIONS
-	LPCSTR traceback = get_lua_traceback(L, 1);
+	LPCSTR traceback = GetLuaTraceback(L, 1);
 	const char *error = lua_tostring(L, -1);
   #ifndef LUAICP_COMPAT   
 	Debug.fatal(DEBUG_INFO, "LUA error: %s \n %s ", error ? error : "NULL", traceback);
@@ -125,8 +221,16 @@ void CScriptEngine::setup_callbacks		()
 	if (!debugger() || !debugger()->Active() ) 
 #endif
 	{
+#ifdef LUAICP_COMPAT
+		lua_getglobal(lua(), "AtPanicHandler");
+		if (lua_isfunction(lua(), -1))
+			luabind::set_pcall_callback(lua_tocfunction(lua(), -1));
+		lua_pop(lua(), 1);
+#endif
+
 #if !XRAY_EXCEPTIONS
 		luabind::set_error_callback		(CScriptEngine::lua_error);
+		
 #endif
 #ifndef MASTER_GOLD
 		luabind::set_pcall_callback		(CScriptEngine::lua_pcall_failed);
@@ -157,10 +261,11 @@ int auto_load				(lua_State *L)
 		return		(1);
 	}
 
-	ai().script_engine().process_file_if_exists(lua_tostring(L,2),false);
+	ai().script_engine().process_file_if_exists(L, lua_tostring(L,2),false);
 	lua_rawget		(L,1);
 	return			(1);
 }
+
 
 void CScriptEngine::setup_auto_load		()
 {	
@@ -175,13 +280,76 @@ void CScriptEngine::setup_auto_load		()
 	lua_setmetatable					(lua(), value_index);
 }
 
+void LuaTableCleanup(lua_State *L, xr_string space, xr_string context)
+{
+	xr_vector<xr_string> table_keys;
+	int tidx = lua_gettop(L);
+	lua_pushnil		(L);
+	while (lua_next(L, tidx)) 
+	{
+		//  ||
+		if (lua_istable(L, -1) && lua_isstring(L, -2))
+			 	table_keys.push_back(lua_tostring(L, -2));
+		lua_pop(L, 1);
+	}
+
+	if (table_keys.size())
+		MsgCB("$#CONTEXT: %s will be removed %d from %s ", space.c_str(), table_keys.size(), context.c_str());
+
+	for (u32 i = 0; i < table_keys.size(); i++)
+	{
+		LPCSTR s = table_keys[i].c_str();		
+
+		if (xr_strlen(s) > 0)
+		{
+			// MsgCB("*  %s %s", space.c_str(), s);
+			lua_pushstring(L, s);
+			lua_rawget(L, tidx);
+			if (lua_istable(L, -1) && space.size() < 3 && !lua_rawequal(L, -1, tidx))
+				LuaTableCleanup(L, space + "  ", context + "." + s);
+			lua_pop(L, 1);
+			lua_pushnil(L);
+			lua_setfield (L, tidx, s);
+		}
+	}
+	lua_settop(L, tidx);
+}
+
 void CScriptEngine::init				()
 {
-	CScriptStorage::reinit				();
+	Log("*  CScriptEngine::init - (re)creating LUA virtual machine.");
+	LuaFinalize   ();
+	ResetLuaStates();			
+	g_active_lua = NULL;	
 
-	luabind::open						(lua());
-	setup_callbacks						();
+	if (lua()) 
+	{
+		lua_State *L = lua();	
+		set_lvm_name(L, "~g_game_lua");
+		/*		
+		lua_pushstring	(L, "_G");
+		lua_gettable	(L, LUA_GLOBALSINDEX);
+		LuaTableCleanup(L, " ", "_G");		
+		lua_pushnil(L);
+		lua_setglobal(L, "_G");				
+		*/
+	}	
+
+	collect_all_garbage();		
+
+	CScriptStorage::reinit				();
+	g_game_lua = lua();
+
+	luabind::open						(lua());	
 	export_classes						(lua());
+
+	if (g_render_lua)
+	{
+		luabind::open						(g_render_lua);	
+		export_classes						(g_render_lua);
+		process_file_if_exists				(g_render_lua, "render", false);
+	}
+	setup_callbacks						();
 	setup_auto_load						();
 
 #ifdef DEBUG
@@ -197,7 +365,8 @@ void CScriptEngine::init				()
 
 	bool								save = m_reload_modules;
 	m_reload_modules					= true;
-	process_file_if_exists				("_G",false);
+	process_file_if_exists				(lua(), "_G", false);
+
 	m_reload_modules					= save;
 
 	register_script_classes				();
@@ -207,7 +376,8 @@ void CScriptEngine::init				()
 	load_common_scripts					();
 #endif
 	m_stack_level						= lua_gettop(lua());
-	g_game_lua = lua();
+	g_game_lua = lua();	
+	AuxLua();	
 }
 
 void CScriptEngine::remove_script_process	(const EScriptProcessors &process_id)
@@ -238,7 +408,7 @@ void CScriptEngine::load_common_scripts()
 		u32				n = _GetItemCount(caScriptString);
 		string256		I;
 		for (u32 i=0; i<n; ++i) {
-			process_file(_GetItem(caScriptString,i,I));
+			process_file(lua(), _GetItem(caScriptString,i,I));
 			if (object("_G",strcat(I,"_initialize"),LUA_TFUNCTION)) {
 //				lua_dostring			(lua(),strcat(I,"()"));
 				luabind::functor<void>	f;
@@ -251,15 +421,42 @@ void CScriptEngine::load_common_scripts()
 	xr_delete			(l_tpIniFile);
 }
 
-void CScriptEngine::process_file_if_exists	(LPCSTR file_name, bool warn_if_not_exist)
+bool CScriptEngine::lookup_script(string_path &fname, LPCSTR base)
+{
+	string_path lc_base;
+	Memory.mem_fill(fname, 0, sizeof(fname));
+
+	if (0 == m_script_files.size())
+	{
+		FS.update_path(lc_base, "$game_scripts$", "");
+		find_scripts(m_script_files, lc_base);
+	}
+
+	strcpy_s(lc_base, sizeof(lc_base), base);
+	_strlwr_s(lc_base, sizeof(lc_base));
+	
+
+
+	auto it = m_script_files.find(lc_base);
+	if (it != m_script_files.end())
+	{
+		strcpy_s(fname, sizeof(fname), *it->second);
+		return true;
+	}
+
+	return false;
+}
+
+
+void CScriptEngine::process_file_if_exists	(lua_State *L, LPCSTR file_name, bool warn_if_not_exist)
 {
 	u32						string_length = xr_strlen(file_name);
 	if (!warn_if_not_exist && no_file_exists(file_name,string_length))
 		return;
 
-	string_path				S,S1;
-	if (m_reload_modules || (*file_name && !namespace_loaded(file_name))) {
-		FS.update_path		(S,"$game_scripts$",strconcat(sizeof(S1),S1,file_name,".script"));
+	string_path				S;
+	if (m_reload_modules || (*file_name && !namespace_loaded(L, file_name))) {
+		lookup_script  (S, file_name);
 		if (!warn_if_not_exist && !FS.exist(S)) {
 #ifdef DEBUG
 #	ifndef XRSE_FACTORY_EXPORTS
@@ -274,23 +471,25 @@ void CScriptEngine::process_file_if_exists	(LPCSTR file_name, bool warn_if_not_e
 			add_no_file		(file_name,string_length);
 			return;
 		}
+		if (0 == xr_strlen(S)) return;
+
 #ifdef MASTER_GOLD
-		MsgV					("5LOAD_SCRIPT", "* loading script %s",S1);
+		MsgV					("5LOAD_SCRIPT", "* loading script %s", ExtractFileName(S));
 #endif // MASTER_GOLD
 		m_reload_modules	= false;
-		load_file_into_namespace(S,*file_name ? file_name : "_G");
+		load_file_into_namespace (L, S, *file_name ? file_name : "_G");
 	}
 }
 
-void CScriptEngine::process_file	(LPCSTR file_name)
+void CScriptEngine::process_file	(lua_State *L, LPCSTR file_name)
 {
-	process_file_if_exists	(file_name,true);
+	process_file_if_exists	(L, file_name,true);
 }
 
-void CScriptEngine::process_file	(LPCSTR file_name, bool reload_modules)
+void CScriptEngine::process_file	(lua_State *L, LPCSTR file_name, bool reload_modules)
 {
 	m_reload_modules		= reload_modules;
-	process_file_if_exists	(file_name,true);
+	process_file_if_exists	(L, file_name, true);
 	m_reload_modules		= false;
 }
 
@@ -330,8 +529,30 @@ bool CScriptEngine::function_object(LPCSTR function_to_call, luabind::object &ob
 	if (!xr_strlen(function_to_call))
 		return				(false);
 
-	string256				name_space, function;
+	
+#ifdef LUAICP_COMPAT
+	int save_top = lua_gettop(lua());
+	string256 code;
+	// sprintf_s(code, 256, "return %s", function_to_call);
+	strconcat(sizeof(code), code, "return ", function_to_call);
+	luaL_loadstring(lua(), code);
+	
 
+	if (0 == lua_pcall(lua(), 0, 1, 0) && !lua_isnil(lua(), -1))
+	{	
+		object = luabind::object(lua());
+		object.set();		
+		lua_settop(lua(), save_top);
+		return (object.type() == type);
+	}
+	else
+	{
+		lua_settop(lua(), save_top);
+		return (false);
+	}
+
+#else
+	string256				name_space, function;	
 	parse_script_namespace	(function_to_call,name_space,function);
 	if (xr_strcmp(name_space,"_G"))
 		process_file		(name_space);
@@ -342,6 +563,8 @@ bool CScriptEngine::function_object(LPCSTR function_to_call, luabind::object &ob
 	luabind::object			lua_namespace	= this->name_space(name_space);
 	object					= lua_namespace[function];
 	return					(true);
+#endif
+
 }
 
 #ifdef USE_DEBUGGER
@@ -381,9 +604,18 @@ void CScriptEngine::add_no_file		(LPCSTR file_name, u32 string_length)
 }
 
 void CScriptEngine::collect_all_garbage	()
-{
-	lua_gc					(lua(),LUA_GCCOLLECT,0);
-	lua_gc					(lua(),LUA_GCCOLLECT,0);
+{		
+	if (NULL == lua())		return;
+	__try
+	{
+		lua_gc(lua(), LUA_GCCOLLECT, 0);
+		lua_gc(lua(), LUA_GCCOLLECT, 0);
+	}
+	__except (SIMPLE_FILTER)
+	{
+		Msg("! #EXCEPTION: in CScriptEngine::collect_all_garbage	() for lua() = %s ", get_lvm_name(lua()));
+	}
+
 }
 
 ENGINE_API BOOL g_appLoaded;
@@ -393,33 +625,23 @@ LPCSTR CScriptEngine::try_call(LPCSTR func_name, LPCSTR param)
 	if (NULL == this || NULL == lua()) 
 		return "#ERROR: Script engine not ready";
 	// максимально быстрый вызов функции
-	int save_top = lua_gettop(lua());
-	lua_getglobal(lua(), func_name);
-	if (lua_isfunction(lua(), -1))
-	{
-		int args = 0;
-		if (param)
-		{
-			args++;
-			lua_pushstring(lua() , param);
-		}
+	MsgCB("$#CONTEXT: CScriptEngine::try_call('%s', '%s') with L = '%s' ", func_name, (param ? param : "(null"), get_lvm_name(lua()));
 
-		if (0 != lua_pcall(lua(), args, LUA_MULTRET, 0))
-			lua_pcall_failed(lua());
-
-		static string1024 result;
-		strcpy_s(result, "#OK");
-		if (lua_isstring(lua(), -1))
-			strcpy_s(result, 1023, lua_tostring(lua(), -1));
-		lua_settop(lua(), save_top);
-		return result;
-	}
+	PLUA_RESULT result;
+	if (param)
+		result = LuaExecute(lua(), func_name, "s", param);
 	else
-	{
-		lua_pop(lua(), 1);
-		return "#ERROR: function not found";
-	}
+		result = LuaExecute(lua(), func_name, "");
+
+	if (result->type == LUA_TSTRING)
+		return result->c_str();
+	else
+		if (0 == result->error)
+			return "OK";
+	return "undefined";
 }
+
+
 
 
 DLL_API void log_script_error(LPCSTR format, ...)
@@ -434,14 +656,43 @@ DLL_API void log_script_error(LPCSTR format, ...)
 	ai().script_engine().script_log(ScriptStorage::ELuaMessageType::eLuaMessageTypeError, line_buf);
 }
  
-DLL_API lua_State* game_lua()
+
+
+DLL_API lua_State* ActiveLua()
 {
-	if (!g_game_lua)
-		 g_game_lua = ai().script_engine().lua();
+	if (g_active_lua)
+		return g_active_lua;
+	else
+		return GameLua();
+}
+
+
+DLL_API lua_State* GameLua()
+{
 	return g_game_lua;
 }
 
-DLL_API LPCSTR try_call_luafunc(LPCSTR func_name, LPCSTR param)
+DLL_API lua_State* AuxLua()
+{
+	if (!g_aux_lua)
+	{
+		lua_State *L = GameLua();
+		if (!L) return NULL;
+		g_aux_lua = lua_newthread(L);  // глобальные переменные общие, многопоточное использование Ќ≈Ѕ≈«ќѕј—Ќќ!
+		// lua_pushlightuserdata(L, g_aux_lua);
+		lua_setglobal(L, "g_aux_lua");
+		g_aux_lua = L;					// debug test
+		set_lvm_name(g_aux_lua, "g_aux_lua");
+	}
+	return g_aux_lua;
+}
+
+DLL_API void SetActiveLua(lua_State* L)
+{
+	g_active_lua = L;
+}
+
+DLL_API LPCSTR TryCallLuafunc(LPCSTR func_name, LPCSTR param)
 {
 	return ai().script_engine().try_call(func_name, param);
 }

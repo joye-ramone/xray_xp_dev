@@ -12,7 +12,8 @@
 CUICursor::CUICursor()
 {    
 	bVisible				= false;
-	vPos.set				(0.f,0.f);
+	vPos.set				(512.f,384.f);
+	vPrevPos = vPos;
 	InitInternal			();
 	Device.seqRender.Add	(this,2);
 }

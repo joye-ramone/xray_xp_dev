@@ -24,6 +24,9 @@
 #include "PHDebug.h"
 #endif
 #include "../../build_config_defines.h"
+
+#pragma optimize("gyts", off)
+
 IC BOOL BE	(BOOL A, BOOL B)
 {
 	bool a = !!A;
@@ -43,6 +46,9 @@ void CActor::OnEvent		(NET_Packet& P, u16 type)
 	case GE_OWNERSHIP_TAKE:
 		{
 			P.r_u16		(id);
+			if (P.r_elapsed() >= 2 && 0 == P.r_u16())
+				m_silent_take = id; // вызов скриптовых колбеков запрещен при трансфере
+
 			CObject* O	= Level().Objects.net_Find	(id);
 			if (!O)
 			{
@@ -62,8 +68,15 @@ void CActor::OnEvent		(NET_Packet& P, u16 type)
 			if( inventory().CanTakeItem(smart_cast<CInventoryItem*>(_GO)) )
 			{
 				O->H_SetParent(smart_cast<CObject*>(this));
-
+#ifdef NLC_EXTENSIONS
+				PIItem item = _GO->cast_inventory_item();
+				bool no_activate = false;
+				if (item) 
+					no_activate = item->GetSlot() != inventory().GetPrevActiveSlot(); // разрешить активацию слота, если он был активен ранее
+				inventory().Take(_GO, no_activate, true); 
+#else
 				inventory().Take(_GO, false, true);
+#endif
 
 				CUIGameSP* pGameSP = NULL;
 				CUI* ui = HUD().GetUI();
@@ -98,6 +111,9 @@ void CActor::OnEvent		(NET_Packet& P, u16 type)
 	case GE_OWNERSHIP_REJECT:
 		{
 			P.r_u16		(id);
+			if (P.r_elapsed() >= 2 && 0 == P.r_u16())
+				m_silent_reject = id; // вызов скриптовых колбеков запрещен при трансфере
+
 			CObject* O	= Level().Objects.net_Find	(id);
 			if (!O)
 			{

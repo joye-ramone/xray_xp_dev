@@ -14,11 +14,45 @@
 #include "../XR_IOConsole.h"
 //#include "script_engine.h"
 #include "ui/UIInventoryUtilities.h"
+#include "../luaicp_events.h"
+
+#pragma optimize("gyts", off)
 
 #pragma warning(push)
 #pragma warning(disable:4995)
 #include <malloc.h>
 #pragma warning(pop)
+
+xr_map <u32, CSE_Abstract*> g_entity_garbage;
+
+void CollectEntityGarbage(bool bForce)
+{	
+	auto _cur   = g_entity_garbage.begin();
+	auto _end = g_entity_garbage.end();	
+	u32 frame = Device.dwFrame;
+	while (_cur != _end)
+	{
+		const auto _it = _cur++;
+		if (_it->first + 100 < frame || bForce)
+		__try
+		{
+			CSE_Abstract *P = (CSE_Abstract *) _it->second;				
+			if (P)
+			{
+				LPCSTR n = P->name_replace();
+				MsgCB("$#CONTEXT: destroying CSE_Abstract 0x%p, ID = %d, name ='%s' ", P, P->ID, (n ? n : "(null)"));
+				F_entity_Destroy(P);
+				_it->second = NULL;
+			}			
+			g_entity_garbage.erase(_it);
+		}
+		__except (SIMPLE_FILTER)
+		{
+			Log("!EXCEPTION: CollectEntityGarbage");
+		}
+	}
+}
+
 
 xrClientData::xrClientData	():IClient(Device.GetTimerGlobal())
 {
@@ -54,7 +88,7 @@ xrServer::xrServer():IPureServer(Device.GetTimerGlobal(), g_dedicated_server)
 }
 
 xrServer::~xrServer()
-{
+{	
 	while (net_Players.size())
 	{
 		client_Destroy(net_Players[0]);
@@ -66,6 +100,7 @@ xrServer::~xrServer()
 	}		
 	m_aUpdatePackets.clear();
 	m_aDelayedPackets.clear();
+	CollectEntityGarbage(true);
 }
 
 bool  xrServer::HasBattlEye()
@@ -281,10 +316,16 @@ void xrServer::Update	()
 	Flush_Clients_Buffers			();
 	csPlayers.Leave					();
 	
-	if( 0==(Device.dwFrame%100) )//once per 100 frames
+	u32 frame = Device.dwFrame;
+	if( 0==(frame % 100) )//once per 100 frames
 	{
 		UpdateBannedList();
+		CollectEntityGarbage(false);
+		busy_warn(DEBUG_INFO, 3);
+		// 
 	}
+
+
 }
 
 void xrServer::SendUpdatesToAll()
@@ -453,10 +494,14 @@ u32 xrServer::OnDelayedMessage	(NET_Packet& P, ClientID sender)			// Non-Zero me
 			{
 				string1024			buff;
 				P.r_stringZ			(buff);
+#ifndef LUAICP_COMPAT
 				SetLogCB			(console_log_cb);
-				_tmp_log.clear		();
+#endif
+				_tmp_log.clear		();			
 				Console->Execute	(buff);
+#ifndef LUAICP_COMPAT
 				SetLogCB			(NULL);
+#endif
 
 				NET_Packet			P_answ;			
 				for(u32 i=0; i<_tmp_log.size(); ++i)
@@ -585,6 +630,7 @@ u32 xrServer::OnMessage	(NET_Packet& P, ClientID sender)			// Non-Zero means bro
 		}break;
 	case M_CHANGE_LEVEL:
 		{
+			CollectEntityGarbage(true);	
 			if (game->change_level(P,sender))
 			{
 				SendBroadcast		(BroadcastCID,P,net_flags(TRUE,TRUE));
@@ -598,12 +644,14 @@ u32 xrServer::OnMessage	(NET_Packet& P, ClientID sender)			// Non-Zero means bro
 		}break;
 	case M_LOAD_GAME:
 		{
+			CollectEntityGarbage(true);
 			game->load_game			(P,sender);
 			SendBroadcast			(BroadcastCID,P,net_flags(TRUE,TRUE));
 			VERIFY					(verify_entities());
 		}break;
 	case M_RELOAD_GAME:
 		{
+			CollectEntityGarbage(true);
 			SendBroadcast			(BroadcastCID,P,net_flags(TRUE,TRUE));
 			VERIFY					(verify_entities());
 		}break;
@@ -751,20 +799,33 @@ void			xrServer::entity_Destroy	(CSE_Abstract *&P)
 	Msg							("xrServer::entity_Destroy : [%d][%s][%s]",P->ID,P->name(),P->name_replace());
 #elif defined(LUAICP_COMPAT)
 	MsgCB						("xrServer::entity_Destroy : [%d][%s][%s]",P->ID,P->name(),P->name_replace());	
+	process_object_event         (EVT_OBJECT_DESTROY | EVT_OBJECT_SERVER, P->ID, NULL, P, 0);
 #endif
 
 
 	R_ASSERT					(P);
 	entities.erase				(P->ID);
-	m_tID_Generator.vfFreeID	(P->ID,Device.TimerAsync());
+	m_tID_Generator.vfFreeID	(P->ID, Device.TimerAsync());
 
 	if(P->owner && P->owner->owner==P)
 		P->owner->owner		= NULL;
 
-	P->owner = NULL;
+	P->owner = NULL;		
+	auto *obj = P->cast_alife_object();
+	if (obj)
+		obj->m_bReleased = true;
+	
 	if (!ai().get_alife() || !P->m_bALifeControl)
 	{
-		F_entity_Destroy		(P);
+		static u32 index = 0;		
+		index = __max(index + 1, Device.dwFrame);
+		for (auto it = g_entity_garbage.begin(); it != g_entity_garbage.end(); it++)
+		{
+			if (it->second == P) 
+				index = it->first;
+		}
+		g_entity_garbage[index] = P;				
+		P = NULL;
 	}
 }
 

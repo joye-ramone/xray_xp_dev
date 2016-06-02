@@ -25,11 +25,17 @@ protected:
 	u64			qwPauseAccum	;
 	BOOL		bPause			;
 public:
-				CTimerBase		()		: qwStartTime(0),qwPausedTime(0),qwPauseAccum(0),bPause(FALSE)		{ }
+				CTimerBase		() : qwStartTime(0), qwPausedTime(0), qwPauseAccum(0), bPause(FALSE) { Start(); }
 	ICF	void	Start			()		{	if(bPause) return;	qwStartTime = CPU::QPC()-qwPauseAccum;		}
-	ICF u64		GetElapsed_ticks()const	{	if(bPause) return	qwPausedTime; else return CPU::QPC()-qwStartTime-CPU::qpc_overhead-qwPauseAccum; }
-	IC	u32		GetElapsed_ms	()const	{	return u32(GetElapsed_ticks()*u64(1000)/CPU::qpc_freq );	}
-	IC	float	GetElapsed_sec	()const	{
+	ICF u64		GetElapsed_ticks() const {	
+		if (bPause) return qwPausedTime; 		
+	    return CPU::QPC() - qwStartTime - CPU::qpc_overhead - qwPauseAccum; 
+	}
+	IC	u32		GetElapsed_ms	() const	{
+		u64 tickx1000 = GetElapsed_ticks() * 1000LL;
+		return u32( tickx1000 / CPU::qpc_freq );	
+	}
+	IC	float	GetElapsed_sec	() const	{
 #ifndef _EDITOR
 		FPU::m64r	()			;
 #endif        
@@ -60,7 +66,7 @@ private:
 		u64				delta = current_ticks - m_real_ticks;
 		double			delta_d = (double)delta;
 		double			time_factor_d = time_factor();
-		double			time = delta_d*time_factor_d + .5;
+		double			time = delta_d * time_factor_d + .5;
 		u64				result = (u64)time;
 		return			(m_ticks + result);
 	}
@@ -84,7 +90,7 @@ public:
 		return			(m_time_factor);
 	}
 
-	IC	void			time_factor		(const float &time_factor)
+	IC	void			time_factor		(const float &time_factor) // alpet: после смены тайм-фактора, происходит накопление тиков с старым тайм-фактором
 	{
 		u64				current = inherited::GetElapsed_ticks();
 		m_ticks			= GetElapsed_ticks(current);
@@ -109,18 +115,28 @@ public:
 
 	IC	u32				GetElapsed_ms	() const
 	{
-		return			(u32(GetElapsed_ticks()*u64(1000)/CPU::qpc_freq));
+		u64 ticksx1000 = GetElapsed_ticks() * 1000LL;
+		return			u32(ticksx1000 /CPU::qpc_freq);
 	}
 	
 	IC	float			GetElapsed_sec	() const
 	{
 #ifndef _EDITOR
 		FPU::m64r		();
-#endif        
-		float			result = float(double(GetElapsed_ticks())/double(CPU::qpc_freq )	)	;
+#endif      
+		u64 ticks	 = GetElapsed_ticks();
+		u64 micro    = ticks * 1000000LL  / CPU::qpc_freq; // сколько микросекунд
+		float result = float(micro) / 1e6f;  // в секунды
+
 #ifndef _EDITOR
 		FPU::m24r		();
 #endif
+		if (result > 1e7)
+		{
+			Msg("! #FAIL: GetElapsed_sec result = %.1f, start = %ull, real = %ull, m_ticks = %ull, now = %ull, freq = %ull, tf = %.3f ", 
+						  result, qwStartTime, m_real_ticks, m_ticks, ticks, CPU::qpc_freq, m_time_factor);
+		}
+
 		return			(result);
 	}
 

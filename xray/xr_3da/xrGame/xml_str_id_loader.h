@@ -174,7 +174,7 @@ typename void	CSXML_IdToIndex::InitInternal ()
 			R_ASSERT2			(item_name, buf);
 
 
-			//проверетить ID на уникальность
+			//проверить ID на уникальность
 			T_VECTOR::iterator t_it = m_pItemDataVector->begin();
 			for(;m_pItemDataVector->end() != t_it; t_it++)
 			{
@@ -196,6 +196,8 @@ typename void	CSXML_IdToIndex::InitInternal ()
 		}
 		if(0==items_num)
 			delete_data(uiXml);
+		if (items_num > 100)
+			Msg("# #PERF: CSXML_IdToIndex::InitInternal loaded %25s with %d items ", xml_file_full.c_str(), items_num);
 	}
 }
 

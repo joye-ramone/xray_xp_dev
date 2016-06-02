@@ -1,9 +1,10 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: base_client_classes_script.cpp
 //	Created 	: 20.12.2004
-//  Modified 	: 20.12.2004
+//  Modified 	: 17.02.2016
 //	Author		: Dmitriy Iassenev
 //	Description : XRay base client classes script export
+//  Modifed by  : Alexander Petrov aka alpet
 ////////////////////////////////////////////////////////////////////////////
 
 #include "pch_script.h"
@@ -483,7 +484,7 @@ const SLargeInteger get_bones_visible(CKinematics *K)
 
 bool get_bone_visible_by_id(CKinematics *K, u16 bone_id)
 {
-	if (bone_id != BI_NONE)	return K->LL_GetBoneVisible(bone_id);
+	if (bone_id != BI_NONE)	return !!K->LL_GetBoneVisible(bone_id);
 	return false;
 }
 
@@ -531,7 +532,9 @@ void CKinematicsAnimatedScript::script_register		(lua_State *L)
 		.def("LL_SetBoneVisible"				,				&set_bone_visible_by_name)
 		.def("LL_GetBonesVisible"				,				&get_bones_visible)
 		.def("LL_SetBonesVisible"				,				&set_bones_visible)
-		.def("bone_position"					,				&CalcBonePosition)
+		.def("CalculateBones"					,				&CKinematics::CalculateBones)
+		.def("CalculateBones_Invalidate"		,				&CKinematics::CalculateBones_Invalidate)
+		.def("bone_position"					,				&CalcBonePosition)		
 		,
 		class_<CKinematicsAnimated, CKinematics>("CKinematicsAnimated")
 		.def("PlayCycle"						,				&CKinematicsAnimated_PlayCycle)		
@@ -585,14 +588,44 @@ CTexture* script_object_get_texture (CScriptGameObject *script_obj, u32 n_child,
 }
 
 
-CTexture* script_texture_create(LPCSTR name)
+CTexture* script_texture_create(LPCSTR name, bool bLoadNow, u32 flags)
 {
-	return Device.Resources->_CreateTexture(name);
+	if (!flags)
+		 flags = TXLOAD_MANAGED; // флаги по умолчанию - максимальная совместимость с обработкой
+
+	BOOL dfl = Device.Resources->bDeferredLoad;
+	Device.Resources->DeferredLoad(TRUE); // чтобы текстура не грузилась при создании, с параметрами по умолчанию
+	CTexture *t = Device.Resources->_CreateTexture(name);
+	Device.Resources->DeferredLoad(dfl);
+	if (t && bLoadNow)
+		t->LoadImpl( { flags } );
+	return t;
 }
 
 CTexture* script_texture_find(LPCSTR name) 
 {
 	return Device.Resources->_FindTexture(name);
+}
+
+LPCSTR script_texture_format(CTexture *t)
+{
+	if (!t->flags.bLoaded || NULL == t->pSurface()) return "not_loaded";
+	auto &desc = *t->self_context.load_desc(0);
+	switch (desc.Format)
+	{
+	    case  D3DFMT_DXT1: return "DXT1";
+     	case  D3DFMT_DXT3: return "DXT3";
+		case  D3DFMT_DXT4: return "DXT4";
+	    case  D3DFMT_DXT5: return "DXT5";
+		case  D3DFMT_UYVY: return "UYVY";
+	  case  D3DFMT_R8G8B8: return "R8G8B8";	  
+	case  D3DFMT_A8R8G8B8: return "A8R8G8B8";
+	case  D3DFMT_X8R8G8B8: return "X8R8G8B8";
+	case  D3DFMT_A8B8G8R8: return "A8B8G8R8";
+	case  D3DFMT_X8B8G8R8: return "X8B8G8R8";
+	};
+
+	return "unknown";
 }
 
 void script_texture_delete(CTexture *t)
@@ -611,9 +644,129 @@ void script_texture_setname (CTexture *t, LPCSTR name)
 }
 
 
-void script_texture_load(CTexture *t)
+void script_texture_load(CTexture *t, u32 flags)
 {
-	t->Load();
+	if (!flags)
+		 flags = TXLOAD_MANAGED;
+
+	Flags32 load_flags = { flags };
+	t->LoadImpl(load_flags);
+	t->m_skip_prefetch = false;
+	t->m_count_apply++;
+}
+
+bool script_texture_loaded(CTexture *t)
+{
+	return (t && t->flags.bLoaded && t->pSurface());
+}
+bool script_texture_locked(CTexture *t)
+{
+	return (t && t->flags.bLoaded && t->pSurface() && NULL != t->get_context().m_rect.Pitch );
+}
+
+LPCSTR script_texture_last_error(CTexture *t)
+{
+	if (t) return *t->get_context().m_last_error;
+	return "Texture == NULL???";
+}
+
+shared_str lua_mapstr(lua_State *L, int tidx, LPCSTR key)
+{
+	shared_str result = NULL;
+	lua_getfield(L, tidx, key);
+	if (!lua_isnil(L, -1))
+		result = lua_tostring(L, -1);
+	lua_pop(L, 1);
+	return result;
+}
+
+extern void *lua_to_object(lua_State *L, int index, LPCSTR class_name);
+
+
+IC CTexture *lua_totexture(lua_State *L, int index)
+{	
+	return (CTexture*) lua_to_object(L, index, "CTexture");
+}
+
+IC Frect *lua_tofrect(lua_State *L, int index)
+{
+	return (Frect*) lua_to_object(L, index, "Frect");	
+}
+
+IC Irect *lua_toirect(lua_State *L, int index)
+{
+	return (Irect*) lua_to_object(L, index, "Irect");	
+}
+
+ICF bool check_range(int v, int v_min, int v_max)
+{
+	return (v >= v_min && v <= v_max);
+}
+
+bool validate_rect(Irect &r, int min_x, int min_y, int max_x, int max_y)
+{
+	if (check_range(r.x1, min_x, max_x) &&
+		check_range(r.y1, min_y, max_y) &&
+		check_range(r.x2, min_x, max_x) &&
+		check_range(r.y2, min_y, max_y)) return true;
+
+	Msg("! #WARN: Irect coordinates outbound = { %4d, %4d, %4d, %4d } ",
+												r.x1, r.y1, r.x2, r.y2);
+	return false;
+
+}
+
+
+void script_texture_combine(lua_State *L)
+{
+	CTexture *r = lua_totexture(L, 1);
+	if (!r)
+	{
+		Msg("!#ERROR: texture_combine need CTexture 1-st argument!");
+		return;
+	}
+	if (!lua_istable(L, 2))
+	{
+		Msg("!#ERROR: texture_combine need table 2-nd argument!");
+		return;
+	}	
+	int tidx = 2;	
+	shared_str op = lua_mapstr(L, tidx, "operation");
+	if (!op) op = "unpack";	
+	{
+		TEXTURE_COMBINE_CONTEXT context;
+		ZeroMemory(&context, sizeof(context));
+		string128 buff;
+		context.operation = op;
+
+		for (int i = 0; i < MAX_TEXTURES_COMBINE; i++)
+		{
+			sprintf_s(buff, sizeof(buff), "t%d", i);
+			lua_getfield(L, tidx, buff);
+			CTexture *t = lua_totexture(L, -1);
+			if (t)
+				context.source[i] = &t->get_context();
+
+			lua_pop(L, 1);
+			sprintf_s(buff, sizeof(buff), "r%d", i);
+			lua_getfield(L, tidx, buff);
+			Irect *r = lua_toirect(L, -1); 
+			if (r && validate_rect(*r, 0, 0, 4096, 4096) )							
+				context.i_coords [i].set(*r);
+			sprintf_s(buff, sizeof(buff), "i%d", i);
+			lua_getfield(L, tidx, buff);
+			if (lua_isnumber(L, -1) || lua_isstring(L, -1))
+			    context.i_params[i] = _atoi64(lua_tostring(L, -1));
+
+		}
+				
+		r->Combine(context); // позиция означает точку применения в результате для alpha-blend!
+	}
+}
+
+BOOL script_texture_lockr(CTexture *t, bool bLock, int Level)
+{
+	return t->LockRect(bLock, Level);
 }
 
 void script_texture_unload(CTexture *t)
@@ -621,10 +774,10 @@ void script_texture_unload(CTexture *t)
 	t->Unload();
 }
 
-void script_texture_reload(CTexture *t)
+void script_texture_reload(CTexture *t, bool bDefaultPool)
 {
 	t->Unload();
-	t->Load();
+	script_texture_load(t, bDefaultPool);
 }
 
 void script_texture_cast(lua_State *L)
@@ -637,6 +790,8 @@ void script_texture_cast(lua_State *L)
 		lua_pushnil(L);
 }
 
+int script_texture_w(CTexture *t) { return t->get_Width(); }
+int script_texture_h(CTexture *t) { return t->get_Height(); }
 
 
 void CTextureScript::script_register(lua_State *L)
@@ -645,17 +800,34 @@ void CTextureScript::script_register(lua_State *L)
 	module(L)
 		[
 			class_<CTexture>("CTexture")			
+			.def("combine",				&script_texture_combine, raw(_1))
 			.def("delete",				&script_texture_delete)
 			.def("find",				&script_texture_find)
 			.def("load",				&script_texture_load)
+			.def("lock_rect",			&script_texture_lockr)
 			.def("reload",				&script_texture_reload)
 			.def("unload",				&script_texture_unload)
 			.def("get_name",			&script_texture_getname)
 			.def("set_name",			&script_texture_setname)
 			.def("get_surface",			&CTexture::surface_get)
-			.def("cast_texture",		&script_texture_cast, raw(_1))	
+			.def("cast_texture",		&script_texture_cast, raw(_1))				
 			.def_readonly("ref_count",  &CTexture::dwReference)
-			
+			.def_readwrite("owner",		&CTexture::pOwner)
+			.property("format",			&script_texture_format)
+			.property("last_error",		&script_texture_last_error)
+			.property("loaded",			&script_texture_loaded)
+			.property("locked",			&script_texture_locked)	
+			.property("width",			&script_texture_w)
+			.property("height",			&script_texture_h)
+					
+			.enum_("load_flags")
+			[
+	// CUIWindow
+				value("TXLOAD_MANAGED",			int(TXLOAD_MANAGED)),
+				value("TXLOAD_DEFAULT_POOL",	int(TXLOAD_DEFAULT_POOL)),
+				value("TXLOAD_APPLY_LOD",		int(TXLOAD_APPLY_LOD)),
+				value("TXLOAD_UNPACKED",		int(TXLOAD_UNPACKED))				
+			]
 		];
 }
 
@@ -685,7 +857,6 @@ DLL_API void *get_textures_map(CResourceManager *mgr)
 void get_loaded_textures(CResourceManager *mgr, lua_State *L)
 {
 	CResourceManager::map_Texture &map = mgr->textures();
-
 	CResourceManager::map_Texture::iterator I = map.begin();
 	CResourceManager::map_Texture::iterator E = map.end();
 	
@@ -705,6 +876,35 @@ void get_loaded_textures(CResourceManager *mgr, lua_State *L)
 	}
 }
 
+#pragma optimize("gyt", off)
+
+void get_unused_textures(CResourceManager *mgr, lua_State *L)
+{
+	CResourceManager::map_Texture &map = mgr->textures();
+	CResourceManager::map_Texture::iterator I = map.begin();
+	CResourceManager::map_Texture::iterator E = map.end();
+	
+	size_t min_size = 0;
+	if (lua_gettop(L) > 1)
+		min_size = lua_tointeger(L, 2);
+
+	lua_createtable(L, 0, 0);
+	int tidx = lua_gettop(L);
+	for ( ; I != E; ++I)
+	if (I->first)
+	{
+		CTexture &t = *I->second;
+		float diff_time = Device.fTimeGlobal - t.m_time_apply;
+		if (t.m_count_apply > 0 || t.m_need_now) continue;
+		if (t.flags.bLoaded && t.flags.MemoryUsage < min_size) continue;
+		// если текстура не запрещена к префетчу и обновлялась недавно - пропустить.
+		if (!t.m_skip_prefetch && diff_time < 300.f) continue;	
+		shared_str name (I->first);
+		const str_value *v = name._get();
+		lua_pushinteger(L, v->dwCRC);
+		lua_setfield(L, tidx, name.c_str());
+	}	
+}
 
 void CResourceManagerScript::script_register(lua_State *L)
 {
@@ -713,9 +913,11 @@ void CResourceManagerScript::script_register(lua_State *L)
 		// added by alpet
 		class_<CResourceManager>("CResourceManager")
 		.def("get_loaded_textures",  &get_loaded_textures, raw(_2))
+		.def("get_unused_textures",  &get_unused_textures, raw(_2))
 		,
 		def("cast_ptr_CTexture",	&cast_ptr_CTexture, raw(_1)),
 		def("get_resource_manager", &get_resource_manager),
+		def("texture_combine",		&script_texture_combine, raw(_1)),
 		def("texture_create",		&script_texture_create),
 		def("texture_delete",		&script_texture_delete),
 		def("texture_find",			&script_texture_find),
@@ -723,7 +925,9 @@ void CResourceManagerScript::script_register(lua_State *L)
 		def("texture_from_visual",  &visual_get_texture),
 		def("texture_to_object",	&script_object_set_texture),
 		def("texture_to_visual",	&visual_set_texture),
+		def("texture_last_error",	&script_texture_last_error),
 		def("texture_load",			&script_texture_load),
+		def("texture_loaded",		&script_texture_loaded),
 		def("texture_unload",		&script_texture_unload),
 		def("texture_get_name",		&script_texture_getname),
 		def("texture_set_name",		&script_texture_setname)
@@ -791,6 +995,28 @@ void CCameraBaseScript::script_register(lua_State *L)
 }
 // alpet ======================== CAMERA SCRIPT OBJECT =================
 
+void CRandomScript::script_register(lua_State *L)
+{
+	module(L)
+		[
+			class_<CRandom>("CRandom")
+			.def(								constructor<>())
+			.def(								constructor<s32>())
+			.def("seed",						&CRandom::seed)
+			.def("randI",						(s32  (CRandom::*)(void))(&CRandom::randI))
+			.def("randI",						(s32  (CRandom::*)(s32))(&CRandom::randI))
+			.def("randI",						(s32  (CRandom::*)(s32, s32))(&CRandom::randI))
+			.def("randIs",						(s32  (CRandom::*)(s32))(&CRandom::randIs))
+			.def("randIs",						(s32  (CRandom::*)(s32, s32))(&CRandom::randIs))
+
+			.def("randF",						(float  (CRandom::*)(void))(&CRandom::randF))
+			.def("randF",						(float  (CRandom::*)(float))(&CRandom::randF))
+			.def("randF",						(float  (CRandom::*)(float, float))(&CRandom::randF))
+			.def("randFs",						(float  (CRandom::*)(float))(&CRandom::randFs))
+			.def("randFs",						(float  (CRandom::*)(float, float))(&CRandom::randFs))
+
+		];
+}
 
 
 /*

@@ -2296,6 +2296,18 @@
     <Filter Include="AI\AScript\ScriptClasses\DerivedClientClasses">
       <UniqueIdentifier>{2aa1b359-c9e1-44ab-ad25-d228887bebb4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="NLC6">
+      <UniqueIdentifier>{ec7c1338-ff85-43dd-a7a3-735a3d2746c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AI\AScript\ScriptClasses\ScriptVarsStorage">
+      <UniqueIdentifier>{95b9e6d2-c290-4052-8d52-f1358618ea00}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Client\Objects\inventory\InventoryContainer">
+      <UniqueIdentifier>{a794fb99-d9ae-4ae1-b23b-eeb927bc2b68}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Client\Objects\items &amp; weapons\Devices\NVD">
+      <UniqueIdentifier>{78a35143-ca35-4a52-a2de-b6e224b5aa42}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mt_config.h">
@@ -4503,9 +4515,6 @@
     <ClInclude Include="script_fmatrix.h">
       <Filter>AI\AScript\ScriptClasses\ScriptFmatrix</Filter>
     </ClInclude>
-    <ClInclude Include="script_fvector.h">
-      <Filter>AI\AScript\ScriptClasses\ScriptFvector</Filter>
-    </ClInclude>
     <ClInclude Include="script_game_object.h">
       <Filter>AI\AScript\ScriptClasses\ScriptGameObject</Filter>
     </ClInclude>
@@ -4664,9 +4673,6 @@
     </ClInclude>
     <ClInclude Include="script_stack_tracker_inline.h">
       <Filter>AI\AScript\ScriptThread\ScriptStackTracker</Filter>
-    </ClInclude>
-    <ClInclude Include="doug_lea_memory_allocator.h">
-      <Filter>AI\AScript\memory_allocator</Filter>
     </ClInclude>
     <ClInclude Include="ai_sounds.h">
       <Filter>AI\ASound</Filter>
@@ -6574,6 +6580,22 @@
     <ClInclude Include="script_vars_storage.h">
       <Filter>AI\AScript\ScriptClasses\ScriptVarsStorage</Filter>
     </ClInclude>
+    <ClInclude Include="InventoryContainer.h">
+      <Filter>Core\Client\Objects\inventory\InventoryContainer</Filter>
+    </ClInclude>
+    <ClInclude Include="ActorStats.h">
+      <Filter>Core\Client\Objects\actor\base</Filter>
+    </ClInclude>
+    <ClInclude Include="nvd.h">
+      <Filter>Core\Client\Objects\items &amp; weapons\Devices\NVD</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\UIIconParams.h">
+      <Filter>AI\AScript\ScriptClasses\UI\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="script_coords.h">
+      <Filter>AI\AScript\ScriptClasses\ScriptFvector</Filter>
+    </ClInclude>
+    <ClInclude Include="../common/doug_lea_memory_allocator.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="damage_manager.cpp">
@@ -7641,9 +7663,6 @@
     <ClCompile Include="script_fmatrix_script.cpp">
       <Filter>AI\AScript\ScriptClasses\ScriptFmatrix</Filter>
     </ClCompile>
-    <ClCompile Include="script_fvector_script.cpp">
-      <Filter>AI\AScript\ScriptClasses\ScriptFvector</Filter>
-    </ClCompile>
     <ClCompile Include="script_game_object.cpp">
       <Filter>AI\AScript\ScriptClasses\ScriptGameObject</Filter>
     </ClCompile>
@@ -7790,9 +7809,6 @@
     </ClCompile>
     <ClCompile Include="script_stack_tracker.cpp">
       <Filter>AI\AScript\ScriptThread\ScriptStackTracker</Filter>
-    </ClCompile>
-    <ClCompile Include="doug_lea_memory_allocator.c">
-      <Filter>AI\AScript\memory_allocator</Filter>
     </ClCompile>
     <ClCompile Include="ai_sounds.cpp">
       <Filter>AI\ASound</Filter>
@@ -9736,9 +9752,31 @@
     <ClCompile Include="derived_client_classes.cpp">
       <Filter>AI\AScript\ScriptClasses\DerivedClientClasses</Filter>
     </ClCompile>
+    <ClCompile Include="scripts_upgrade.cpp">
+      <Filter>NLC6</Filter>
+    </ClCompile>
     <ClCompile Include="script_vars_storage.cpp">
       <Filter>AI\AScript\ScriptClasses\ScriptVarsStorage</Filter>
     </ClCompile>
+    <ClCompile Include="InventoryContainer.cpp">
+      <Filter>Core\Client\Objects\inventory\InventoryContainer</Filter>
+    </ClCompile>
+    <ClCompile Include="ActorStats.cpp">
+      <Filter>Core\Client\Objects\actor\base</Filter>
+    </ClCompile>
+    <ClCompile Include="nvd.cpp">
+      <Filter>Core\Client\Objects\items &amp; weapons\Devices\NVD</Filter>
+    </ClCompile>
+    <ClCompile Include="nvd_script.cpp">
+      <Filter>Core\Client\Objects\items &amp; weapons\Devices\NVD</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\UIIconParams.cpp">
+      <Filter>AI\AScript\ScriptClasses\UI\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="script_coords_script.cpp">
+      <Filter>AI\AScript\ScriptClasses\ScriptFvector</Filter>
+    </ClCompile>
+    <ClCompile Include="../common/doug_lea_memory_allocator.c" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuildStep Include="graph_abstract.h">

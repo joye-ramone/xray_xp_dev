@@ -39,7 +39,7 @@ class CUsableScriptObject;
 struct SShootingEffector;
 struct SSleepEffector;
 class  CSleepEffectorPP;
-class CInventoryBox;
+class IInventoryBox;
 //class  CActorEffector;
 
 class	CHudItem;
@@ -75,7 +75,7 @@ class	CActor:
 	friend class CActorCondition;
 	friend class CScriptActor;
 private:
-	typedef CEntityAlive	inherited;
+	typedef CEntityAlive	inherited;	
 	//////////////////////////////////////////////////////////////////////////
 	// General fucntions
 	//////////////////////////////////////////////////////////////////////////
@@ -156,6 +156,7 @@ public:
 
 	virtual LPCSTR	Name        () const {return CInventoryOwner::Name();}
 
+
 public:
 	//PhraseDialogManager
 	virtual void ReceivePhrase				(DIALOG_SHARED_PTR& phrase_dialog);
@@ -188,6 +189,7 @@ public:
 			void						HitMark			(float P, Fvector dir,			CObject* who, s16 element, Fvector position_in_bone_space, float impulse,  ALife::EHitType hit_type);
 
 	virtual float						GetMass				() ;
+	virtual float						GetCarryWeight		() const; 
 	virtual float						Radius				() const;
 	virtual void						g_PerformDrop		();
 
@@ -259,6 +261,7 @@ public:
 	bool					m_bAllowDeathRemove;
 //	u32						m_u32RespawnTime;
 	
+	float					DropPower				() const { return f_DropPower; };
 	////////////////////////////////////////////////////////
 	void					SetZoomRndSeed			(s32 Seed = 0);
 	s32						GetZoomRndSeed			()	{ return m_ZoomRndSeed;	};
@@ -399,7 +402,7 @@ protected:
 	CInventoryOwner*		m_pPersonWeLookingAt;
 	CHolderCustom*			m_pVehicleWeLookingAt;
 	CGameObject*			m_pObjectWeLookingAt;
-	CInventoryBox*			m_pInvBoxWeLookingAt;
+	IInventoryBox*			m_pInvBoxWeLookingAt;
 
 	// Tip for action for object we're looking at
 	shared_str				m_sDefaultObjAction;
@@ -550,7 +553,8 @@ protected:
 	net_update				NET_Last;
 	BOOL					NET_WasInterpolating;	// previous update was by interpolation or by extrapolation
 	u32						NET_Time;				// server time of last update
-
+	u32						NET_SpawnFrame;
+	u32						NET_SpawnTime;
 	//---------------------------------------------
 	void					net_Import_Base				( NET_Packet& P);
 	void					net_Import_Physic			( NET_Packet& P);
@@ -595,6 +599,7 @@ virtual	bool				can_validate_position_on_spawn	(){return false;}
 	u32						m_dwIStartTime;
 	u32						m_dwIEndTime;
 	u32						m_dwILastUpdateTime;
+	u32						m_dwUpdateCount;
 
 	//---------------------------------------------
 	DEF_DEQUE		(PH_STATES, SPHNetState);

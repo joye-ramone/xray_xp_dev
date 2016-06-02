@@ -169,6 +169,8 @@ void CPEDef::ExecuteCollision(PAPI::Particle* particles, u32 p_cnt, float dt, CP
 //------------------------------------------------------------------------------
 // I/O part
 //------------------------------------------------------------------------------
+#pragma optimize("gyts", on)
+
 BOOL CPEDef::Load(IReader& F)
 {
 	R_ASSERT		(F.find_chunk(PED_CHUNK_VERSION));
@@ -200,7 +202,14 @@ BOOL CPEDef::Load(IReader& F)
 	}
 
 	if (m_Flags.is(dfTimeLimit)){
-		R_ASSERT(F.find_chunk(PED_CHUNK_TIMELIMIT));
+		s64 ncp = F.next_chunk();
+		if (!F.find_chunk(PED_CHUNK_TIMELIMIT))
+		{
+			F.find_chunk(PED_CHUNK_TIMELIMIT);
+			Debug.fatal(DEBUG_INFO, "cannot find chunk, ncp = %lld, length = %lld ", ncp, F.length64());
+		}
+
+		
 		m_fTimeLimit= F.r_float();
 	}
 

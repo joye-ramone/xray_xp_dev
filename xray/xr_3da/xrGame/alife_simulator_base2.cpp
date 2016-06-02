@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: alife_simulator_base2.cpp
 //	Created 	: 25.12.2002
-//  Modified 	: 12.05.2004
+//  Modified 	: 07.12.2014
 //	Author		: Dmitriy Iassenev
 //	Description : ALife Simulator base class
 ////////////////////////////////////////////////////////////////////////////
@@ -17,6 +17,7 @@
 #include "alife_schedule_registry.h"
 #include "alife_smart_terrain_registry.h"
 #include "alife_group_registry.h"
+#include "../luaicp_events.h"
 
 using namespace ALife;
 
@@ -52,6 +53,10 @@ void CALifeSimulatorBase::register_object	(CSE_ALifeDynamicObject *object, bool 
 
 	if (can_register_objects())
 		object->on_register				();
+#ifdef LUAICP_COMPAT
+	process_object_event(EVT_OBJECT_ADD | EVT_OBJECT_SERVER, object->ID, NULL, object);
+#endif
+
 }
 
 void CALifeSimulatorBase::unregister_object	(CSE_ALifeDynamicObject *object, bool alife_query)
@@ -61,7 +66,9 @@ void CALifeSimulatorBase::unregister_object	(CSE_ALifeDynamicObject *object, boo
 	CSE_ALifeInventoryItem				*item = smart_cast<CSE_ALifeInventoryItem*>(object);
 	if (item && item->attached())
 		graph().detach					(*objects().object(item->base()->ID_Parent),item,objects().object(item->base()->ID_Parent)->m_tGraphID,alife_query);
-
+#ifdef LUAICP_COMPAT
+	process_object_event(EVT_OBJECT_REMOVE | EVT_OBJECT_SERVER, object->ID, NULL, object);
+#endif
 	objects().remove					(object->ID);
 	story_objects().remove				(object->m_story_id);
 	smart_terrains().remove				(object);

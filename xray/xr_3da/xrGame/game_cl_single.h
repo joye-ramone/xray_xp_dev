@@ -28,6 +28,7 @@ enum ESingleGameDifficulty{
 
 extern ESingleGameDifficulty g_SingleGameDifficulty;
 xr_token		difficulty_type_token	[ ];
+extern shared_str			 g_game_balance;
 
 typedef enum_exporter<ESingleGameDifficulty> CScriptGameDifficulty;
 add_to_type_list(CScriptGameDifficulty)

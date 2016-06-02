@@ -23,6 +23,9 @@ class XRCORE_API		xrCriticalSection
 {
 private:
 	void*				pmutex;
+	DWORD				dwCreatorThread;
+	DWORD				dwOwnerThread;
+
 #ifdef PROFILE_CRITICAL_SECTIONS
 	LPCSTR				m_id;
 #endif // PROFILE_CRITICAL_SECTIONS
@@ -35,9 +38,11 @@ public:
 #endif // PROFILE_CRITICAL_SECTIONS
     ~xrCriticalSection	();
 
+	LPCSTR				Dump	();
     void				Enter	();
     void				Leave	();
 	BOOL				TryEnter();
+	
 };
 
 #endif // xrSyncronizeH

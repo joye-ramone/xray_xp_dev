@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 //	Module 		: movement_manager_game.cpp
 //	Created 	: 03.12.2003
-//  Modified 	: 03.12.2003
+//  Modified 	: 10.11.2014
 //	Author		: Dmitriy Iassenev
 //	Description : Movement manager for game paths
 ////////////////////////////////////////////////////////////////////////////
@@ -56,29 +56,44 @@ void CMovementManager::process_game_path()
 			);
 
 			if (game_path().failed()) {
+				auto &graph = ai().game_graph();
 				Msg			("! Cannot build GAME path! (object %s)",*object().cName());
-				Msg			("! CURRENT LEVEL : %s",*Level().name());
-				Fvector		temp = ai().game_graph().vertex(object().ai_location().game_vertex_id())->level_point();
-				Msg			("! CURRENT game point position : [%f][%f][%f]",VPUSH(temp));
-				const GameGraph::CVertex	*vertex = ai().game_graph().vertex(game_dest_vertex_id());
-				Msg			("! TARGET LEVEL : %s",*ai().game_graph().header().level(vertex->level_id()).name());
-				temp		= vertex->level_point();
-				Msg			("! TARGET  game point position : [%f][%f][%f]",VPUSH(temp));
-				const u8	*target_vertex_type = ai().game_graph().vertex(game_dest_vertex_id())->vertex_type();
-				Msg			(
-					"! Target point mask [%d][%d][%d][%d]",
-					target_vertex_type[0],
-					target_vertex_type[1],
-					target_vertex_type[2],
-					target_vertex_type[3]
-				);
-
+				LPCSTR name = *Level().name();
+				Msg			("! CURRENT LEVEL : %s", name);
+				GameGraph::_GRAPH_ID  gvid = object().ai_location().game_vertex_id();
+				Fvector		temp = graph.vertex(gvid)->level_point();
+				Msg			("! CURRENT game point position : gvid = %d [%f][%f][%f]", gvid, VPUSH(temp));				
+				if (graph.valid_vertex_id(game_dest_vertex_id()))
+				{
+					const GameGraph::CVertex	*vertex = graph.vertex(game_dest_vertex_id());
+					auto &hdr = graph.header();
+					if (hdr.valid_level(vertex->level_id()))
+						Msg("! TARGET LEVEL : %s", *hdr.level(vertex->level_id()).name());
+					else
+						Msg("! TARGET LEVEL ID INVALID : %d", vertex->level_id());
+					temp = vertex->level_point();
+					Msg("! TARGET  game point position : [%f][%f][%f]", VPUSH(temp));
+					const u8	*target_vertex_type = vertex->vertex_type();
+					Msg(
+						"! Target point mask [%d][%d][%d][%d]",
+						target_vertex_type[0],
+						target_vertex_type[1],
+						target_vertex_type[2],
+						target_vertex_type[3]
+						);
+				}
 				Msg			("! Object masks (%d) :",m_location_manager->vertex_types().size());
 				typedef GameGraph::TERRAIN_VECTOR::const_iterator	const_iterator;
 				const_iterator	I = m_location_manager->vertex_types().begin();
 				const_iterator	E = m_location_manager->vertex_types().end();
 				for ( ; I != E; ++I)
 					Msg		("!   [%d][%d][%d][%d]",(*I).tMask[0],(*I).tMask[1],(*I).tMask[2],(*I).tMask[3]);
+				if (!object().cast_stalker())
+				{
+					Msg("! #WARN: monster health decreazing");
+					object().SetHealth(-0.1f);
+				}
+
 				break;
 			}
 			

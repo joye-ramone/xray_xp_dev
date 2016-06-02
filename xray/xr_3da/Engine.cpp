@@ -3,6 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
+#include "api_defines.h"
 #include "Engine.h"
 
 CEngine				Engine;

@@ -5,6 +5,7 @@
 #include "stdafx.h"
 #include "EngineAPI.h"
 #include "xrXRC.h"
+#include "../../build_config_defines.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -32,7 +33,11 @@ void CEngineAPI::Initialize(void)
 {
 	//////////////////////////////////////////////////////////////////////////
 	// render
+#if defined(R1_EXCLUDE)
+	LPCSTR			r1_name	= "xrRender_R2.dll";
+#else
 	LPCSTR			r1_name	= "xrRender_R1.dll";
+#endif
 	LPCSTR			r2_name	= "xrRender_R2.dll";
 
 #ifndef DEDICATED_SERVER

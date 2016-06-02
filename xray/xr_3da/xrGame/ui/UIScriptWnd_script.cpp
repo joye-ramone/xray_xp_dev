@@ -13,15 +13,62 @@
 #include "UIFrameLineWnd.h"
 #include "UIProgressBar.h"
 #include "UITabControl.h"
-
+#include <lua.h>
+#include <lstate.h>
+#include "../script_storage.h"
 #include "uiscriptwnd_script.h"
 
 using namespace luabind;
+
+
+extern u32 last_dialog_destroy;
+u32 get_last_dialog_destroy() { return last_dialog_destroy; }
+
+#pragma optimize("gyts", off)
+void CUIDialogWndEx::Destroy()
+{
+	WrapType *self = smart_cast<WrapType*> (this);
+	lua_State *L = this->m_lua_vm;
+	if (self)
+	{
+		// weak_ref &ref = static_cast<weak_ref&> (detail::wrap_access::ref(*self));
+		// ref.~weak_ref();  // Debug trace only 
+		//  xr_delete(self);
+		self->~CWrapperBase();
+	}
+	else
+	{
+		auto *wnd = this;
+		xr_delete(wnd);
+	}
+
+	if (L)
+	__try {
+		lua_gc(L, LUA_GCCOLLECT, 0);
+		lua_gc(L, LUA_GCCOLLECT, 0);
+	}
+	__except (SIMPLE_FILTER) {
+		MsgCB("! #EXCEPTION: in CUIDialogWndEx::Destroy()");
+	}
+
+}
+
 
 extern export_class &script_register_ui_window1(export_class &);
 extern export_class &script_register_ui_window2(export_class &);
 
 #pragma optimize("s",on)
+void CUIDialogWndEx::ScriptInit(lua_State *L)
+{
+	if (!L) return;
+	self_name = "unknown";
+	int top = lua_gettop(L);
+	if (top && lua_isstring(L, 1))
+		self_name = lua_tostring(L, 1); // имя диалога в параметре	
+	SetWindowName(self_name.c_str());
+}
+
+
 void CUIDialogWndEx::script_register(lua_State *L)
 {
 	export_class				instance("CUIScriptWnd");
@@ -33,9 +80,13 @@ void CUIDialogWndEx::script_register(lua_State *L)
 				instance
 			)
 		)
-		.def("Load",			&BaseType::Load)
+		.def("Load",			&BaseType::Load),
+		def("last_dialog_dstr", &get_last_dialog_destroy)
 	];
 }
+
+
+extern void destroy_dialog(CUIDialogWnd* pDialog);
 
 export_class &script_register_ui_window1(export_class &instance)
 {
@@ -43,8 +94,8 @@ export_class &script_register_ui_window1(export_class &instance)
 		.def(					constructor<>())
 
 		.def("AddCallback",		(void(BaseType::*)(LPCSTR, s16, const luabind::functor<void>&))&BaseType::AddCallback)
-		.def("AddCallback",		(void(BaseType::*)(LPCSTR, s16, const luabind::functor<void>&, const luabind::object&))&BaseType::AddCallback)
-
+		.def("AddCallback",		(void(BaseType::*)(LPCSTR, s16, const luabind::functor<void>&, const luabind::object&))&BaseType::AddCallback)		
+		.def("Destroy",			&destroy_dialog)	
 		.def("Register",		(void (BaseType::*)(CUIWindow*))&BaseType::Register)
 		.def("Register",		(void (BaseType::*)(CUIWindow*,LPCSTR))&BaseType::Register)
 

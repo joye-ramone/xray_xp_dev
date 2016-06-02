@@ -14,6 +14,7 @@
 #include "ResourceManager.h"
 
 #include "xr_object.h"
+#include "../../build_config_defines.h"
 
 xr_token							snd_freq_token							[ ]={
 	{ "22khz",						sf_22K										},
@@ -466,7 +467,14 @@ public:
 #ifdef DEDICATED_SERVER
 		inherited::Execute	("renderer_r1");
 #else
+
+#if defined(R1_EXCLUDE)
+		inherited::Execute	("renderer_r2");
+		renderer_value = 2;
+#else
 		inherited::Execute	(args);
+#endif
+
 #endif // DEDICATED_SERVER
 
 		psDeviceFlags.set	(rsR2, (renderer_value>0) );

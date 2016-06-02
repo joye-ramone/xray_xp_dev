@@ -4,7 +4,15 @@
 #include "..\irenderable.h"
 #include "..\igame_persistent.h"
 #include "..\environment.h"
-#include "..\customhud.h"
+
+extern "C"
+{
+	void dlfatal(char *file, int line, char *function)
+	{
+		Debug.fatal(file, line, function, "Doug lea fatal error!");
+	}
+};
+
 
 using namespace		R_dsgraph;
 
@@ -57,7 +65,7 @@ void __fastcall sorted_L1		(mapSorted_Node *N)
 {
 	VERIFY (N);
 	IRender_Visual *V				= N->val.pVisual;
-	VERIFY (V && V->shader._get());
+	VERIFY (V && V->shader_ref._get());
 	RCache.set_Element				(N->val.se);
 	RCache.set_xform_world			(N->val.Matrix);
 	RImplementation.apply_object	(N->val.pObject);
@@ -359,68 +367,6 @@ void R_dsgraph_structure::r_dsgraph_render_graph	(u32	_priority, bool _clear)
 }
 
 //////////////////////////////////////////////////////////////////////////
-// HUD emissive render
-void R_dsgraph_structure::r_dsgraph_render_hud_emissive	()
-{
-#if	RENDER==R_R2
-	ENGINE_API extern float		psHUD_FOV;
-
-	// Change projection
-	Fmatrix Pold				= Device.mProject;
-	Fmatrix FTold				= Device.mFullTransform;
-	Device.mProject.build_projection(
-		deg2rad(psHUD_FOV*Device.fFOV /* *Device.fASPECT*/ ), 
-		Device.fASPECT, VIEWPORT_NEAR, 
-		g_pGamePersistent->Environment().CurrentEnv.far_plane);
-
-	Device.mFullTransform.mul	(Device.mProject, Device.mView);
-	RCache.set_xform_project	(Device.mProject);
-
-	// Rendering
-	rmNear						();
-	mapHUDEmissive.traverseLR	(sorted_L1);
-	mapHUDEmissive.clear		();
-	rmNormal					();
-
-	// Restore projection
-	Device.mProject				= Pold;
-	Device.mFullTransform		= FTold;
-	RCache.set_xform_project	(Device.mProject);
-#endif
-}
-
-//////////////////////////////////////////////////////////////////////////
-// HUD sorted render
-void R_dsgraph_structure::r_dsgraph_render_hud_sorted	()
-{
-#if	RENDER==R_R2
-	ENGINE_API extern float		psHUD_FOV;
-
-	// Change projection
-	Fmatrix Pold				= Device.mProject;
-	Fmatrix FTold				= Device.mFullTransform;
-	Device.mProject.build_projection(
-		deg2rad(psHUD_FOV*Device.fFOV /* *Device.fASPECT*/ ), 
-		Device.fASPECT, VIEWPORT_NEAR, 
-		g_pGamePersistent->Environment().CurrentEnv.far_plane);
-
-	Device.mFullTransform.mul	(Device.mProject, Device.mView);
-	RCache.set_xform_project	(Device.mProject);
-
-	// Rendering
-	rmNear						();
-	mapHUDSorted.traverseRL		(sorted_L1);
-	mapHUDSorted.clear			();
-	rmNormal					();
-
-	// Restore projection
-	Device.mProject				= Pold;
-	Device.mFullTransform		= FTold;
-	RCache.set_xform_project	(Device.mProject);
-#endif
-}
-
-//////////////////////////////////////////////////////////////////////////
 // HUD render
 void R_dsgraph_structure::r_dsgraph_render_hud	()
 {
@@ -567,9 +513,6 @@ void	R_dsgraph_structure::r_dsgraph_render_subspace	(IRender_Sector* _sector, CF
 				renderable->renderable_Render	();
 			}
 		}
-#if RENDER==R_R2
-		if (g_pGameLevel && (phase==RImplementation.PHASE_SMAP) && ps_common_flags.test(RFLAG_ACTOR_SHADOW))	g_pGameLevel->pHUD->Render_Actor_Shadow();		// ACtor Shadow
-#endif
 	}
 
 	// Restore
@@ -577,7 +520,7 @@ void	R_dsgraph_structure::r_dsgraph_render_subspace	(IRender_Sector* _sector, CF
 	View							= 0;
 }
 
-#include "../stdafx.h"
+#include "stdafx.h"
 #include "..\fhierrarhyvisual.h"
 #include "..\SkeletonCustom.h"
 #include "..\fmesh.h"

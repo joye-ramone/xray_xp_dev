@@ -15,6 +15,7 @@
 #include "gameobject.h"
 #include "physicsshellholder.h"
 #include "../skeletoncustom.h"
+#pragma optimize("gyts", on)
 #include "PHSimpleCharacterInline.h"
 #include "DamageSource.h"
 #include "PHCollideValidator.h"
@@ -1743,8 +1744,8 @@ void CPHSimpleCharacter::GetSmothedVelocity(Fvector& vvel)
 }
 ALife::EHitType	CPHSimpleCharacter:: HitType	()const	
 {
-	if(GMLib.GetMaterialByIdx(LastMaterialIDX())->Flags.test(SGameMtl::flInjurious)&&IsGameTypeSingle())
-		return ALife::eHitTypeRadiation;
+	if(GMLib.GetMaterialByIdx(LastMaterialIDX())->Flags.test(SGameMtl::flInjurious) && IsGameTypeSingle())
+		return ALife::eHitTypeChemicalBurn;
 	else									
 //		return ALife::eHitTypeStrike;
 	return (GameID() == GAME_SINGLE) ? ALife::eHitTypeStrike : ALife::eHitTypePhysicStrike;

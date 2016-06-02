@@ -36,6 +36,11 @@
 #include "ai/stalker/ai_stalker.h"
 #include "Torch.h"
 #include "customoutfit.h"
+#include "xrServer_Objects_ALife.h"
+#include "game_object_space.h"
+
+extern bool g_AllowSkipUpdate;
+extern CSE_ALifeDynamicObject *alife_object_by_id(u16 id);
 
 bool CScriptGameObject::GiveInfoPortion(LPCSTR info_id)
 {
@@ -278,7 +283,7 @@ void CScriptGameObject::DropItem			(CScriptGameObject* pItem)
 	CInventoryItem* item = smart_cast<CInventoryItem*>(&pItem->object());
 
 	// Real Wolf: Для ящиков тоже пусть работает. 02.08.2014.
-	auto box = smart_cast<CInventoryBox*>(&object());
+	auto box = smart_cast<IInventoryBox*>(&object());
 	if( (!box && !owner) || !item){
 		ai().script_engine().script_log		(ScriptStorage::eLuaMessageTypeError,"CScriptGameObject::DropItem non-CInventoryOwner object !!!");
 		return;
@@ -300,35 +305,181 @@ void CScriptGameObject::DropItemAndTeleport	(CScriptGameObject* pItem, Fvector p
 	CGameObject::u_EventSend		(PP);
 }
 
-//передаче вещи из своего инвентаря в инвентарь партнера
-void CScriptGameObject::TransferItem(CScriptGameObject* pItem, CScriptGameObject* pForWho)
+#pragma optimize("gyts", off)
+
+void DirectEvent (u16 item_id, u16 owner, u16 type, bool no_cb = true)
 {
+	NET_Packet P;
+	P.write_start();
+	P.read_start();
+	P.w_u16	(item_id);
+	if (no_cb)
+		P.w_u16 (0);
+	Level().cl_Process_Event (owner, type, P); // direct take/reject		
+}
+
+//передаче вещи из своего инвентаря в инвентарь партнера
+void CScriptGameObject::TransferItem(CScriptGameObject* pItem, CScriptGameObject* pForWho, bool bNoEvents)
+{
+	if (!pItem)
+	   	 pItem = this;
+
+	if (!pForWho) // alpet: сокращенный синтаксис по передаче объекта this
+	{
+		pForWho = pItem;
+		pItem = this;
+	}
+
 	if (!pItem || !pForWho) {
 		ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "cannot transfer NULL item");
 		return;
 	}
 
-	CInventoryItem* pIItem = smart_cast<CInventoryItem*>(&pItem->object());
+	CGameObject &obj = pItem->object();
+	CGameObject &who = pForWho->object();
+
+	CInventoryItem* pIItem = smart_cast<CInventoryItem*>(&obj);
 
 	if (!pIItem) {
 		ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "Cannot transfer not CInventoryItem item");
 		return;
 	}
+	
 
-	NET_Packet						P;
-	// выбросить у себя 
-	if (NULL != pItem->object().H_Parent() && this != pItem) // из скриптов часто подбираются "независимые" предметы
+	LPCSTR szItemName = obj.Name_script();	
+	CObject *source	  = obj.H_Parent();
+	CInventoryOwner *src_owner = smart_cast<CInventoryOwner*> (source); // если владение объектом установлено
+	CInventoryOwner *dst_owner = smart_cast<CInventoryOwner*> (&who);		
+
+	bool wf = Device.bWarnFreeze;
+	g_AllowSkipUpdate = false;
+	Device.bWarnFreeze = false;
+
+	__try
 	{
-		
-		CGameObject::u_EventGen(P, GE_OWNERSHIP_REJECT, object().ID());
-		P.w_u16(pIItem->object().ID());
+		u16 ID_Parent = (u16)-1;
+		if (source)
+			ID_Parent = source->ID();
+
+		auto *aobj = obj.alife_object();
+		if (aobj)
+			ID_Parent = aobj->ID_Parent;
+
+		NET_Packet						P;
+
+		if (source && ID_Parent != source->ID())
+		{
+			Msg("! #WARN: client-server object sync mistmatch, client-parent = %d, server-parent = %d for item %s", source->ID(), ID_Parent, szItemName);
+			source = Level().Objects.net_Find(ID_Parent);
+			if (!source) return;
+			src_owner = smart_cast<CInventoryOwner*> (source);
+			DirectEvent(obj.ID(), ID_Parent, GE_OWNERSHIP_TAKE);
+		}
+
+		if (ID_Parent == who.ID())
+		{
+			Msg("! #REJECT: invalid transfer, object %s already owned by %s ", obj.Name_script(), who.Name_script());
+			return;
+		}
+
+		if (src_owner) src_owner->BeginTransfer();
+		if (dst_owner) dst_owner->BeginTransfer();
+
+
+		Fvector pos = obj.Position();
+		pos.y -= 100.f;
+		obj.ChangePosition(pos); // чтобы владелец не подпрыгнул
+
+
+		// выбросить у себя 
+		if (ID_Parent < (u16)-1 && this != pItem) // из скриптов часто подбираются "независимые" предметы
+		{
+			if (source->ID() != object().ID())
+			{
+				Msg("! #WARNING(transfer_item): owner for %s = %s, but method used for %s ",
+					szItemName, source->Name_script(), object().Name());
+				MsgCB("$#DUMP_CONTEXT");
+			}
+
+			MsgCB("$#CONTEXT: TransferItem.reject %s from %s ", szItemName, source->Name_script());
+			CGameObject::u_EventGen(P, GE_OWNERSHIP_REJECT, ID_Parent);
+			P.w_u16(obj.ID());	P.w_u16(0);
+			CGameObject::u_EventSend(P);
+			if (aobj && 0xffff == aobj->ID_Parent)
+			    DirectEvent(obj.ID(), ID_Parent, GE_OWNERSHIP_REJECT);	// попытка ускорить события
+		}
+
+		R_ASSERT3(pItem != pForWho, "trying transfer object into self", szItemName);
+
+		MsgCB("$#CONTEXT: TransferItem.take %s to %s, current owner = %d ", szItemName, who.Name_script(), int(source ? source->ID() : 0xffff));
+		// отдать партнеру
+		CGameObject::u_EventGen(P, GE_OWNERSHIP_TAKE, who.ID());
+		P.w_u16(obj.ID());	P.w_u16(0);
 		CGameObject::u_EventSend(P);
+		if (aobj && who.ID() == aobj->ID_Parent)
+			DirectEvent(obj.ID(), who.ID(), GE_OWNERSHIP_TAKE); // попытка ускорить события
+
+		if (Level().net_msg_count() >= 31)  // alpet: чтобы не набухала очередь "сетевых" сообщений
+		{
+			MsgCB("$#CONTEXT: TransferItem processing %d messages from net_Queue <<--------------------", Level().net_msg_count());
+			Level().ClientReceive();
+			Level().ProcessGameEvents();
+		}
+	}
+	__finally
+	{
+		if (src_owner) src_owner->EndTransfer();
+		if (dst_owner) dst_owner->EndTransfer();
+		Device.bWarnFreeze = wf;
+		g_AllowSkipUpdate = true;
+	}
+}
+
+void CScriptGameObject::TransferItems(lua_State *L) // owner:transfer_items(table, who)
+{
+	if (!lua_istable(L, 2)) 
+	{
+		Msg("! #ERROR: TransferItems 1-st argument is not table = %s", lua_typename(L, 2));
+		return;
 	}
 
-	// отдать партнеру
-	CGameObject::u_EventGen			(P,GE_OWNERSHIP_TAKE, pForWho->object().ID());
-	P.w_u16							(pIItem->object().ID());
-	CGameObject::u_EventSend		(P);
+	CScriptGameObject *pForWho = lua_script_game_object(L, 3);
+	if (!pForWho)
+	{
+		Msg("! #ERROR: TransferItems 2-st argument is not game_object = %s", lua_typename(L, 3));
+		return;
+	}
+
+
+ 	int items = lua_objlen(L, 2);
+	for (int i = 1; i <= items; i++)
+	{
+		lua_pushinteger(L, i);
+		lua_gettable (L, 2);
+		CScriptGameObject *item = NULL;
+		if (lua_isnumber(L, -1))
+		{
+			u16 id = u16 ( lua_tointeger(L, -1) & 0xffff );			
+			CObject *obj = Level().Objects.net_Find(id);
+			if (obj)
+			{
+				CGameObject *go = smart_cast<CGameObject*> (obj);
+				if (go) item = go->lua_game_object();
+			}
+
+			if (!item)
+				Msg("! #ERROR: not found client object with id %d ", id);
+		}
+		if (lua_isuserdata(L, -1))
+		{
+		    item = lua_script_game_object(L, -1);			
+		}
+		lua_pop(L, 1);
+		if (!item) continue;		
+		TransferItem (item, pForWho, FALSE);
+	}
+
+
 }
 
 u32 CScriptGameObject::Money	()
@@ -653,21 +804,14 @@ void CScriptGameObject::add_restrictions		(LPCSTR out, LPCSTR in)
 		ai().script_engine().script_log		(ScriptStorage::eLuaMessageTypeError,"CRestrictedObject : cannot access class member add_restrictions!");
 		return;
 	}
-	
-//	xr_vector<ALife::_OBJECT_ID>			temp0;
-//	xr_vector<ALife::_OBJECT_ID>			temp1;
-
-//	construct_restriction_vector			(out,temp0);
-//	construct_restriction_vector			(in,temp1);
-
-//	if (!xr_strcmp(monster->cName(),"mil_freedom_stalker0004")) {
-//		int i = 0;
-//		if (!xr_strcmp(in,"mil_freedom_wall_restrictor")) {
-//			int j = 0;
-//		}
-//	}
-	
-	monster->movement().restrictions().add_restrictions(out,in);
+	__try
+	{
+		monster->movement().restrictions().add_restrictions(out, in);
+	}
+	__except (SIMPLE_FILTER)
+	{
+		MsgCB("! #EXCEPTION: in CScriptGameObject::add_restrictions('%s', '%s') for '%s' ", out, in, monster->Name_script());
+	}
 }
 
 void CScriptGameObject::remove_restrictions		(LPCSTR out, LPCSTR in)
@@ -754,8 +898,14 @@ bool CScriptGameObject::accessible_vertex_id(u32 level_vertex_id)
 		ai().script_engine().script_log		(ScriptStorage::eLuaMessageTypeError,"CRestrictedObject : cannot access class member accessible!");
 		return								(false);
 	}
-	THROW2									(ai().level_graph().valid_vertex_id(level_vertex_id),"Cannot check if level vertex id is accessible, because it is invalid");
-	return									(monster->movement().restrictions().accessible(level_vertex_id));
+	if (!ai().level_graph().valid_vertex_id(level_vertex_id))
+	{
+		MsgCB("# #WARN: Cannot check if level vertex id %d is accessible, because it is invalid", level_vertex_id);
+		return false;
+	}
+	bool result =							(monster->movement().restrictions().accessible(level_vertex_id));
+	// if (!result) MsgCB("# #DBG: vertex %7d not accessible for %s", level_vertex_id, monster->Name_script());
+	return result;
 }
 
 u32	 CScriptGameObject::accessible_nearest	(const Fvector &position, Fvector &result)
@@ -923,7 +1073,7 @@ float CScriptGameObject::GetAdditionalMaxWeight() const
 		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CCustomOutfit : cannot access class member GetAdditionalMaxWeight!");
 		return			(false);
 	}
-	return				(outfit->m_additional_weight2);
+	return				(outfit->GetAdditionalWeight(2));
 }
 float CScriptGameObject::GetAdditionalMaxWalkWeight() const
 {
@@ -932,7 +1082,7 @@ float CScriptGameObject::GetAdditionalMaxWalkWeight() const
 		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CCustomOutfit : cannot access class member GetAdditionalMaxWalkWeight!");
 		return			(false);
 	}
-	return				(outfit->m_additional_weight);
+	return				(outfit->GetAdditionalWeight());
 }
 void CScriptGameObject::SetAdditionalMaxWeight(float add_max_weight)
 {
@@ -941,7 +1091,7 @@ void CScriptGameObject::SetAdditionalMaxWeight(float add_max_weight)
 		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CCustomOutfit : cannot access class member SetAdditionalMaxWeight!");
 		return;
 	}
-	outfit->m_additional_weight2 = add_max_weight;
+	outfit->SetAdditionalWeight (2, add_max_weight);
 }
 void CScriptGameObject::SetAdditionalMaxWalkWeight(float add_max_walk_weight)
 {
@@ -950,7 +1100,7 @@ void CScriptGameObject::SetAdditionalMaxWalkWeight(float add_max_walk_weight)
 		ai().script_engine().script_log			(ScriptStorage::eLuaMessageTypeError,"CCustomOutfit : cannot access class member SetAdditionalMaxWalkWeight!");
 		return;
 	}
-	outfit->m_additional_weight = add_max_walk_weight;
+	outfit->SetAdditionalWeight (1, add_max_walk_weight);
 }
 
 #include "InventoryBox.h"

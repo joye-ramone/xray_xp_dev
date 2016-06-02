@@ -93,7 +93,7 @@ void CScriptBinder::reload			(LPCSTR section)
 	CGameObject				*game_object = smart_cast<CGameObject*>(this);
 
 	try {
-		lua_function		(game_object ? game_object->lua_game_object() : 0);
+		lua_function		(game_object ? game_object->lua_game_object() : 0);		
 	}
 	catch(...) {
 		clear				();

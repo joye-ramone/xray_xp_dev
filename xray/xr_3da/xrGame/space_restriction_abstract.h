@@ -14,6 +14,7 @@ protected:
 	bool							m_initialized;
 	xr_vector<u32>					m_accessible_neighbour_border;
 	bool							m_accessible_neighbour_border_actual;
+	bool							m_failed;
 
 private:
 	template <typename T>
@@ -28,6 +29,8 @@ public:
 	virtual	void					initialize							() = 0;
 	IC		const xr_vector<u32>	&border								();
 	IC		bool					initialized							() const;
+	IC		bool					is_failed							() const;
+	IC		bool					is_valid							() const;
 
 public:
 	template <typename T>

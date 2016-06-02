@@ -9,6 +9,8 @@
 #include "xr_object.h"
 #include "../xrNetServer/net_utils.h"
 #include "../../build_config_defines.h"
+#include "luaicp_events.h"
+#include "lua_tools.h"
 #include "CustomHUD.h"
 
 class fClassEQ {
@@ -18,9 +20,17 @@ public:
 	IC bool operator() (CObject* O) { return cls==O->CLS_ID; }
 };
 
-#pragma optimize("gyts", off)
+
+// #pragma optimize("gyts", off)
 
 xr_vector<CObject*>		deleted_objects;
+
+void SafeNetDestroy(CObject *O, LPCSTR context)
+{
+	__try  { O->net_Destroy(); }
+	__except (SIMPLE_FILTER) {  MsgCB("! #EXCEPTION: net_Destroy object %s, context = <%s> ", O->Name_script(), context); }	
+}
+
 
 bool chk_already_deleted(CObject *O, str_c context)
 {
@@ -39,6 +49,9 @@ CObjectList::CObjectList	( )
 	objects_dup_memsz		= 512;
 	objects_dup				= xr_alloc	<CObject*>	(objects_dup_memsz);
 	crows					= &crows_0	;	
+	m_items					= xr_alloc <CObject*> (65536);
+	Memory.mem_fill32	    (objects_dup, 0,  objects_dup_memsz);
+	Memory.mem_fill32	    (m_items, 0, 65536);
 }
 
 CObjectList::~CObjectList	( )
@@ -46,8 +59,11 @@ CObjectList::~CObjectList	( )
 	R_ASSERT				( objects_active.empty()	);
 	R_ASSERT				( objects_sleeping.empty()	);
 	R_ASSERT				( destroy_queue.empty()		);
+#ifndef FAST_OBJECT_MAP
 	R_ASSERT				( map_NETID.empty()			);
+#endif
 	xr_free					( objects_dup);
+	xr_free					( m_items );
 }
 
 CObject*	CObjectList::FindObjectByName	( shared_str name )
@@ -83,7 +99,8 @@ void	CObjectList::o_remove		( xr_vector<CObject*>&	v,  CObject* O)
 {
 #ifdef LUAICP_COMPAT
 	R_ASSERT(O);
-	MsgCB("$#CONTEXT: cl remove [%d][%p] %s, from v = %p, v.size = %d", O->ID(), O, O->Name_script(), &v, v.size());
+	// MsgCB("$#CONTEXT: cl remove [%d][%p] %s, from v = %p, v.size = %d", O->ID(), O, O->Name_script(), &v, v.size());
+	process_object_event(EVT_OBJECT_REMOVE | EVT_OBJECT_CLIENT, O->ID(), O, NULL);
 #endif
 	xr_vector<CObject*>::iterator _i	= std::find(v.begin(),v.end(),O);
 	if (_i != v.end())
@@ -112,6 +129,9 @@ void	CObjectList::o_activate		( CObject*		O		)
 	o_remove					(objects_sleeping,O);
 	objects_active.push_back	(O);
 	O->MakeMeCrow				();
+#ifdef LUAICP_COMPAT
+	process_object_event(EVT_OBJECT_ACTIVATE | EVT_OBJECT_CLIENT, O->ID(), O, NULL);
+#endif
 }
 void	CObjectList::o_sleep		( CObject*		O		)
 {
@@ -121,12 +141,17 @@ void	CObjectList::o_sleep		( CObject*		O		)
 	o_remove					(objects_active,O);
 	objects_sleeping.push_back	(O);
 	O->MakeMeCrow				();
+#ifdef LUAICP_COMPAT
+	process_object_event(EVT_OBJECT_SLEEP  | EVT_OBJECT_CLIENT, O->ID(), O, NULL);
+#endif
 }
 
 void	CObjectList::SingleUpdate	(CObject* O)
 {
 	if (O->processing_enabled() && (Device.dwFrame != O->dwFrame_UpdateCL))
 	{
+		R_ASSERT3(O != O->H_Parent(), " object.parent == object!!! ", O->Name_script());
+
 		if (O->H_Parent())		SingleUpdate(O->H_Parent());
 		Device.Statistic->UpdateClient_updated	++;
 		O->dwFrame_UpdateCL		=				Device.dwFrame;
@@ -237,7 +262,7 @@ void CObjectList::Update		(bool bForce)
 #ifdef DEBUG
 			Msg				("Destroying object[%x] [%d][%s] frame[%d]",O, O->ID(),*O->cName(), Device.dwFrame);
 #endif // DEBUG
-			O->net_Destroy	( );
+			SafeNetDestroy(O, "Update");			
 			Destroy			(O);
 		}
 		destroy_queue.clear	();
@@ -248,17 +273,33 @@ void CObjectList::net_Register		(CObject* O)
 {
 	// chk_already_deleted(O, "net_Register");		
 	R_ASSERT		(O);
+#ifdef FAST_OBJECT_MAP
+	if (0 == O->ID())
+		__asm nop;
+	m_items[O->ID()] = O;
+#ifdef LUAICP_COMPAT
+	process_object_event(EVT_OBJECT_SPAWN | EVT_OBJECT_CLIENT, O->ID(), O, NULL);
+#endif
+#else
 	map_NETID.insert(mk_pair(O->ID(),O));
+#endif
 	//Msg			("-------------------------------- Register: %s",O->cName());
 }
 
 void CObjectList::net_Unregister	(CObject* O)
 {
+#ifdef FAST_OBJECT_MAP
+	m_items[O->ID()] = NULL;
+#ifdef LUAICP_COMPAT
+	process_object_event(EVT_OBJECT_REMOVE  | EVT_OBJECT_CLIENT, O->ID(), NULL, NULL);
+#endif
+#else
 	xr_map<u32,CObject*>::iterator	it = map_NETID.find(O->ID());
 	if ((it!=map_NETID.end()) && (it->second == O))	{
 		// Msg			("-------------------------------- Unregster: %s",O->cName());
 		map_NETID.erase(it);
 	}
+#endif
 }
 
 int	g_Dump_Export_Obj = 0;
@@ -329,17 +370,33 @@ void CObjectList::net_Import		(NET_Packet* Packet)
 
 CObject* CObjectList::net_Find			(u32 ID)
 {
+#ifdef FAST_OBJECT_MAP
+	R_ASSERT		(m_items);
+	return m_items [(u16)ID];
+#else
 	xr_map<u32,CObject*>::iterator	it = map_NETID.find(ID);
 	return (it==map_NETID.end())?0:it->second;
+#endif
 }
 
 void CObjectList::Load		()
 {
-	R_ASSERT				(map_NETID.empty() && objects_active.empty() && destroy_queue.empty() && objects_sleeping.empty());	
+	
+#ifndef FAST_OBJECT_MAP
+	R_ASSERT				(map_NETID.empty());
+#endif
+	R_ASSERT				(m_items && objects_active.empty() && destroy_queue.empty() && objects_sleeping.empty());
+
 #ifdef LUAICP_COMPAT
+#ifdef FAST_OBJECT_MAP
+	LogXrayOffset("GameLevel.m_items",			g_pGameLevel, &this->m_items);
+	LogXrayOffset("GameLevel.map_NETID",		g_pGameLevel, g_pGameLevel);
+#else
+	LogXrayOffset("GameLevel.m_items",			g_pGameLevel, g_pGameLevel);
+	LogXrayOffset("GameLevel.map_NETID",		g_pGameLevel, &this->map_NETID);	
+#endif
 	// здесь переменная g_pGameLevel уже не должна быть NULL
 	LogXrayOffset("GameLevel.ObjectList",		g_pGameLevel, this);
-	LogXrayOffset("GameLevel.map_NETID",		g_pGameLevel, &this->map_NETID);
 	LogXrayOffset("GameLevel.destroy_queue",	g_pGameLevel, &this->destroy_queue);
 	LogXrayOffset("GameLevel.objects_active",	g_pGameLevel, &this->objects_active);
 	LogXrayOffset("GameLevel.objects_sleeping", g_pGameLevel, &this->objects_sleeping);
@@ -367,7 +424,7 @@ void CObjectList::Unload	( )
 #ifdef DEBUG
 		Msg				("Destroying object [%d][%s]",O->ID(),*O->cName());
 #endif
-		O->net_Destroy	(   );
+		SafeNetDestroy(O, "Unload sleeping");
 		Destroy			( O );
 	}
 	while (objects_active.size())
@@ -379,7 +436,7 @@ void CObjectList::Unload	( )
 #ifdef DEBUG
 		Msg				("Destroying object [%d][%s]",O->ID(),*O->cName());
 #endif
-		O->net_Destroy	(   );
+		SafeNetDestroy  (O, "Unload active");
 		Destroy			( O );
 	}
 }
@@ -388,6 +445,7 @@ CObject*	CObjectList::Create				( LPCSTR	name	)
 {
 	CObject*	O				= g_pGamePersistent->ObjectPool.create(name);
 //	Msg("CObjectList::Create [%x]%s", O, name);
+	process_object_event(EVT_OBJECT_ADD | EVT_OBJECT_CLIENT, O->ID(), O, NULL);	 
 	objects_sleeping.push_back	(O);
 	return						O;
 }
@@ -409,40 +467,47 @@ int  find_remove_object(xr_vector<CObject*> &from, CObject *O)
 void		CObjectList::Destroy			( CObject*	O		)
 {
 	if (0==O)								return;
-	
-	net_Unregister							(O);
+	__try
+	{
+		R_ASSERT(!IsBadReadPtr(O, 64));
+		net_Unregister(O);
+		// crows	
+		find_remove_object(crows_0, O);
+		find_remove_object(crows_1, O);
+		// active/inactive
+		int remove_set = 0;
+		remove_set += find_remove_object(objects_active, O)   * 0x1001;
+		remove_set += find_remove_object(objects_sleeping, O) * 0x1002;
 
-	
-	// crows	
-	find_remove_object	(crows_0, O);
-	find_remove_object	(crows_1, O);
-	// active/inactive
-	int remove_set = 0;
-	remove_set += find_remove_object(objects_active, O)   * 0x1001;	
-	remove_set += find_remove_object(objects_sleeping, O) * 0x1002;
+		/*
+		xr_vector<CObject*>::iterator _i1		= std::find(crows_1.begin(),crows_1.end(),O);
+		if	(_i1!=crows_1.end())				crows_1.erase	(_i1);
 
-	/*
-	xr_vector<CObject*>::iterator _i1		= std::find(crows_1.begin(),crows_1.end(),O);
-	if	(_i1!=crows_1.end())				crows_1.erase	(_i1);
 
-	
-	xr_vector<CObject*>::iterator _i		= std::find(objects_active.begin(),objects_active.end(),O);
-	if	(_i!=objects_active.end())			objects_active.erase	(_i);
-	else {
+		xr_vector<CObject*>::iterator _i		= std::find(objects_active.begin(),objects_active.end(),O);
+		if	(_i!=objects_active.end())			objects_active.erase	(_i);
+		else {
 		xr_vector<CObject*>::iterator _ii	= std::find(objects_sleeping.begin(),objects_sleeping.end(),O);
 		if	(_ii!=objects_sleeping.end())	objects_sleeping.erase	(_ii);
 		else	FATAL						("! Unregistered object being destroyed");
+		}
+		*/
+
+		if (0 == remove_set)
+			FATAL("! Unregistered object being destroyed");
+		if (remove_set > 0x2000)
+			Msg("! #ERROR: Destroying object '%s' remove_set = 0x%x ", O->Name_script(), remove_set);
+
+		process_object_event(EVT_OBJECT_DESTROY | EVT_OBJECT_CLIENT, O->ID(), O, NULL, 1);
+		deleted_objects.push_back(O);
+		g_pGamePersistent->ObjectPool.destroy(O);
 	}
-	*/
-
-	if (0 == remove_set)
- 		FATAL						("! Unregistered object being destroyed");
-	if (remove_set > 0x2000)
- 		Msg	 ("!ERROR: Destroying object '%s' remove_set = 0x%x ", O->Name_script(), remove_set);	
-
-
-	deleted_objects.push_back(O);
-	g_pGamePersistent->ObjectPool.destroy	(O);
+	__except (SIMPLE_FILTER)
+	{
+		string4096 info;
+		GetObjectInfo(O, info, NULL);
+		Msg("! #EXCEPTION: in CObjectList::Destroy, object = %s", info);
+	}
 
 }
 
@@ -495,6 +560,12 @@ void CObjectList::register_object_to_destroy(CObject *object_to_destroy)
 {
 	VERIFY					(!registered_object_to_destroy(object_to_destroy));
 	destroy_queue.push_back	(object_to_destroy);
+	if (IsDebuggerPresent() && object_to_destroy->cNameSect() == "zone_ice")  // 
+	{
+		LPCSTR tb = GetLuaTraceback();
+		Msg("##DBG: planed to destroy %s from %s", object_to_destroy->Name_script(), tb);
+	}
+
 
 	xr_vector<CObject*>::iterator it	= objects_active.begin();
 	xr_vector<CObject*>::iterator it_e	= objects_active.end();

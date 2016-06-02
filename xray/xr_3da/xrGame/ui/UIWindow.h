@@ -68,6 +68,17 @@ class	ui_list 		: public std::list<T,uialloc<T> >{ public: u32 size() const {ret
 
 class CUIWindow  : public CUISimpleWindow
 {
+
+protected:
+	// alpet: механизм скольжения кнопки от одной точки к другой
+	Frect					m_slide;
+	float					m_slide_stage;
+	float					m_slide_inc;
+public:
+	virtual void			SetSlideTrack  (float x1, float y1, float x2, float y2)  { m_slide.set(x1, y1, x2, y2); }
+	virtual void			StartSlide     (float from = 0, float inc = 0.1f)  { m_slide_stage = from; m_slide_inc = inc; }
+	virtual float			GetSlideStage  ()   const						   { return m_slide_stage; }
+
 public:
 	using CUISimpleWindow::Init;
 

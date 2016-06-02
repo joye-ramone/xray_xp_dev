@@ -121,6 +121,7 @@ public:
 		void*				ppErrorMsgs,
 		void*				ppConstantTable);
 
+	virtual IDirect3DBaseTexture9*	texture_blend			(IDirect3DBaseTexture9*, IDirect3DBaseTexture9*)	= 0;
 	virtual IDirect3DBaseTexture9*	texture_load			(LPCSTR	fname, u32& mem_size);
 	virtual HRESULT					shader_compile			(
 		LPCSTR							name,

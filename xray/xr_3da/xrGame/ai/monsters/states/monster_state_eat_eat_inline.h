@@ -34,7 +34,7 @@ void CStateMonsterEatingAbstract::execute()
 
 	// סתוסעü קאסעü
 	if (time_last_eat + u32(1000/object->db().m_fEatFreq) < Device.dwTimeGlobal) {
-		object->ChangeSatiety(object->db().m_fEatSlice);
+		object->ChangeSatiety( object->db().m_fEatSlice );
 		corpse->m_fFood -= object->db().m_fEatSliceWeight;
 		time_last_eat = Device.dwTimeGlobal;
 	}

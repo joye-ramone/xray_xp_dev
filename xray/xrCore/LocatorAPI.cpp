@@ -10,17 +10,27 @@
 #include <fcntl.h>
 #include <sys\stat.h>
 #pragma warning(default:4995)
-
+#include <Shlwapi.h>
+#include "FS64.h"
 #include "FS_internal.h"
 #include "stream_reader.h"
 #include "file_stream_reader.h"
+#include <inttypes.h>
+#include "../../build_config_defines.h"
 
 const u32 BIG_FILE_READER_WINDOW_SIZE	= 1024*1024;
-
+extern size_t mapping_mem_usage;
 #define PROTECTED_BUILD
 
 typedef void DUMMY_STUFF (const void*,const u32&,void*);
 XRCORE_API DUMMY_STUFF	*g_temporary_stuff = 0;
+XRCORE_API u32			 g_load_stage = 0;
+XRCORE_API string64		 g_szLastLevel;
+
+extern PVOID fs_alloc(size_t cb);
+extern PVOID fs_realloc(PVOID data, size_t cb);
+extern void  fs_free(PVOID data);
+
 
 #ifdef PROTECTED_BUILD
 #	pragma warning(push)
@@ -33,6 +43,7 @@ XRCORE_API DUMMY_STUFF	*g_temporary_stuff = 0;
 #endif // PROTECTED_BUILD
 
 CLocatorAPI*		xr_FS = NULL;
+#pragma optimize("gyts", off)
 
 #ifdef _EDITOR
 #	define FSLTX	"fs.ltx"
@@ -84,7 +95,52 @@ struct eq_fname_check{
 	}
 };
 
+#pragma pack(push, 2)
+#ifdef  LUAICP_COMPAT
+#define DESC_ENTRY_DIR			0x00001
+#define DESC_ENTRY_FILE			0x00002
+#define DESC_OFFSET_FIRST		0x00020
+#define DESC_OFFSET_64			0x00040
+#define DESC_OFFSET_ZERO		0x00080
+#define DESC_OFFSET_CHUNK		0x01000
+#define CFS_ChunkList			0x10000
+
+
+typedef struct _FILE_DESC_ENTRY {
+	u16			entry_size;
+	u16			flags;
+	u32			real_size;
+	u32			comp_size;
+	u32			crc;
+	__time64_t  upd_time;
+} FILE_DESC_ENTRY, *PFILE_DESC_ENTRY;
+#else
+typedef struct _FILE_DESC_ENTRY {
+	u16			entry_size;	
+	u32			real_size;
+	u32			comp_size;
+	u32			crc;	
+} FILE_DESC_ENTRY, *PFILE_DESC_ENTRY;
+#endif
+#pragma pack(pop)
+
 XRCORE_API xr_vector<_open_file>	g_open_files;
+#ifdef GATHER_FILE_STATS
+__time64_t start_gathering = 0;
+xr_map <const void*, shared_str>	    g_open_readers;
+
+ICF int rel_time(__time64_t t)
+{
+	if (t) t -= start_gathering;
+	return (int)t;
+}
+
+extern LPCSTR format_time(LPCSTR format, __time64_t t, bool add_ms = true);
+
+#endif
+
+
+
 
 void _check_open_file(const shared_str& _fname)
 {
@@ -140,10 +196,42 @@ void _unregister_open_file(T* _r)
 	_lock.Enter				();
 
 	xr_vector<_open_file>::iterator it	= std::find_if(g_open_files.begin(), g_open_files.end(), eq_pointer<T>(_r) );
-	VERIFY								(it!=g_open_files.end());
-	_open_file&	_of						= *it;
+	VERIFY								(it!=g_open_files.end());	
+	_open_file&	_of						= *it;	
 	_of._reader							= NULL;
 	_lock.Leave				();
+}
+
+XRCORE_API bool GetFileInfo(LPCSTR fname, CLocatorAPI::file &desc_f)
+{
+	HANDLE hFile = CreateFile(fname, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL, OPEN_ALWAYS, 0, NULL);			
+	if (hFile == INVALID_HANDLE_VALUE) return (false);
+	FILETIME wtime; __time64_t modtime;
+	GetFileTime(hFile, NULL, NULL, &wtime);
+	// FileTimeToLocalFileTime(&wtime, &wtime);			
+	Memory.mem_copy(&modtime, &wtime, sizeof(modtime));
+	modtime -= 	116444736000000000L;			 
+	modtime /= 10000000L;
+	// string32 str_time;
+	// ctime_s(str_time, sizeof(str_time), &modtime);
+	// Msg("# verify file %s modification time = %s ", fname, str_time);			
+	desc_f.size_real = GetFileSize(hFile, (LPDWORD) &desc_f.size_compressed);			
+	desc_f.modif = modtime;
+	CloseHandle(hFile);
+	return true;
+}
+
+
+XRCORE_API file_ptr GetFilePointer(HANDLE hFile)
+{
+	LARGE_INTEGER liOfs = { 0 }, liNew = { 0 };
+	if (SetFilePointerEx(hFile, liOfs, &liNew, FILE_CURRENT))
+		return (file_ptr)liNew.QuadPart;
+	else
+	{
+		Msg("!#ERROR(GetFilePointer): SetFilePointerEx failed with error %d ", GetLastError());
+		return 0;
+	}
 }
 
 XRCORE_API void _dump_open_files(int mode)
@@ -180,6 +268,87 @@ XRCORE_API void _dump_open_files(int mode)
 		Log("----total count=",g_open_files.size());
 }
 
+XRCORE_API bool check_position(const IFileSystemResource *R, const u64 ptr, const u64 size, LPCSTR context)
+{
+	void *P = (void*)R;
+	if (ptr > 0 && ptr > size)
+	{
+		shared_str name = "unknown";
+		if (R->m_resource_desc)
+			name = R->m_resource_desc->name_ref;
+		else
+		{
+#ifdef GATHER_FILE_STATS
+			auto it = g_open_readers.find(P);
+			if (it != g_open_readers.end())
+				name = it->second;
+#endif
+		}	
+
+		MsgCB("! #ERROR:~C07 check_position for 0x%p, ptr =~C0D %f~C07 MiB, size =~C0D %f~C07 MiB, context =~C0A %s~C07, name =~C0F %s~C07", 
+						R, size_in_mib(ptr), size_in_mib(size), context, *name);
+	}
+
+	return true;
+}
+
+#define FRD_READER		0x0001	
+#define FRD_STREAM		0x0002
+#define FRD_CLASS       0x000F
+
+CArchiveChunkDesc::CArchiveChunkDesc(const void *owner):
+			CResourceDesc(owner)
+{
+	vfs = -1;
+	pos = 0;
+}
+
+CFileResourceDesc::CFileResourceDesc(const void *owner):
+			CResourceDesc(owner)
+{	
+	self_desc = 0;
+	f_stat = NULL;
+	f_desc = NULL;
+}
+
+CFileResourceDesc::~CFileResourceDesc()
+{	
+	shared_str name;
+
+#ifdef GATHER_FILE_STATS
+	if (owner_ref)
+	{
+		auto it = g_open_readers.find(owner_ref);
+		if (it == g_open_readers.end()) return;
+		name = it->second;
+		g_open_readers.erase(it);
+	}
+
+
+	if (f_stat && f_desc)
+	{
+		FS.gather_file_stat(f_stat, f_desc, 'c', 0, 0);
+		return;
+	}
+	
+	if (owner_ref && FRD_READER == (self_desc & FRD_CLASS))
+	{
+		IReader *R = (IReader*)owner_ref;
+		FS.gather_file_stat(R, 'c', R->tell64(), limit32u (R->length64()));	
+		return;
+	}
+	if (owner_ref && FRD_STREAM == (self_desc & FRD_CLASS))
+	{
+		CStreamReader *R = (CStreamReader*)owner_ref;
+		FS.gather_file_stat(R, 'c', R->tell64(), limit32u(R->length64()));	
+		return;
+	}
+	FS.gather_file_stat(*name, 'c', 0, 0);	
+#endif
+
+}
+
+
 CLocatorAPI::CLocatorAPI()
 #ifdef PROFILE_CRITICAL_SECTIONS
 	:m_auth_lock			(MUTEX_PROFILE_ID(CLocatorAPI::m_auth_lock))
@@ -192,30 +361,200 @@ CLocatorAPI::CLocatorAPI()
 	dwAllocGranularity	= sys_inf.dwAllocationGranularity;
     m_iLockRescan		= 0; 
 	dwOpenCounter		= 0;
+	strcpy_s(g_szLastLevel, 64, "mainmenu");
 }
 
 CLocatorAPI::~CLocatorAPI()
 {
 	VERIFY				(0==m_iLockRescan);
 	_dump_open_files	(1);
+#ifdef GATHER_FILE_STATS
+	g_open_readers.clear ();
+#endif
 }
 
-void CLocatorAPI::Register		(LPCSTR name, u32 vfs, u32 crc, u32 ptr, u32 size_real, u32 size_compressed, u32 modif)
+FILE_ACCESS_STAT* CLocatorAPI::gather_file_stat(LPCSTR name, char op, file_ptr ptr, u32 cb)
+{
+	shared_str	  fname(name);
+	FILE_ACCESS_STAT* s = NULL;
+	
+	auto it = m_access_stat.find(fname);	
+	if (it != m_access_stat.end())
+	{
+		s = &it->second;
+	}
+	else
+	{
+		FILE_ACCESS_STAT fas;
+		Memory.mem_fill(&fas, 0, sizeof(fas));
+		m_access_stat[fname] = fas;
+		s = &m_access_stat[fname];
+	}
+	
+
+	gather_file_stat(s, NULL, op, ptr, cb);
+	return s;
+}
+
+void CLocatorAPI::gather_file_stat(FILE_ACCESS_STAT* s, const file* desc, char op, file_ptr ptr, u32 cb)
+
+{
+#ifdef GATHER_FILE_STATS
+	if (!start_gathering)
+		_time64(&start_gathering);
+	
+
+	if ('d' == op)
+	{   // несортированный дамп статистики
+			
+		string_path file_name;
+		string_path dump_name;		
+		string64    dts;
+		if (!start_gathering)
+			time(&start_gathering);		
+		struct tm * lt = localtime(&start_gathering);
+		strftime(dts, 63, "%y%m%d-%H%M", lt);
+		sprintf_s(file_name, 260, "file_stats_%s-%s.log", dts, g_szLastLevel);
+		// sprintf_s(file_name, 259, "file_stats %s.log", dump_name);
+		update_path(dump_name, "$logs$", file_name); // "file_stats.log"
+		// содержимое файла полностью затираетс€.
+		FILE *dump = fopen(dump_name, "w");			
+		LPCSTR format = "%H:%M:%S";
+		fprintf_s(dump, "%-80s  %15s  %15s  %15s  %12s  %12s %12s %12s\n", 
+					"file_name", "first_open", "first_read", "full_read", "total_read", "open/close", "open_time", "load_stage");
+
+		int rest_loops = m_access_stat.size() + 1;
+		int idx = 0;
+		FILE_ACCESS_STAT *pfs = NULL;
+
+		auto last = m_access_stat.end();
+		for (auto it = m_access_stat.begin(); it != last && rest_loops > 0; it++, rest_loops--)
+		{
+			FILE_ACCESS_STAT &fas = it->second;			
+			// printf support int64 as %lli
+			fprintf_s(dump, "%-80s, %15s, %15s, %15s, %12.1f, %-5d /%5d, %12d, %12d\n", *it->first, 
+							format_time(format, fas.first_open), 
+							format_time(format, fas.first_read), 
+							format_time(format, fas.full_read), 
+							(float)fas.total_read / 1024.f, 
+							fas.open_count, 
+							fas.extra[0], fas.extra[1], fas.extra[4]);
+			if (1 == fas.extra[3])
+				fprintf_s(dump, "------------------ records %d -------------\n", idx);
+
+			pfs = &fas;
+			idx++;
+		}
+		if (pfs) 
+		    pfs->extra[3] = 1;
+
+		fclose(dump);
+		return;
+	}
+
+	
+	__time64_t t;
+	_time64(&t);
+	// alpet: небольшой хак дл€ большей точности
+	SYSTEMTIME st;
+	GetLocalTime(&st);
+	t *= 1000;
+	t += st.wMilliseconds; 
+
+	file_size f_size = 0x7fffFFFF;
+	if (desc)
+		f_size = desc->size_real;
+
+	
+	switch (op)
+	{
+	case 'c':
+		s->extra[0]++;  // close count
+		if (!s->first_read)
+			 s->total_read = ptr;
+		break;
+	case 'o': 
+		if (!s->first_open)
+		{
+			s->first_open = t;
+			s->extra[4] = g_load_stage;
+		}
+		s->open_count++; 
+		
+		break;
+	case 'O':
+		if (1 == s->open_count)
+			s->extra[1] = (u32) (t - s->first_open);
+		break;
+	case 'r': 
+		if (!s->first_read) s->first_read = t; 
+		s->total_read += cb;
+		if (f_size && ptr + cb >= f_size && !s->full_read)  // детект завершени€ чтени€
+			s->full_read = t;
+		break;
+	};
+#endif
+
+}
+
+void CLocatorAPI::gather_file_stat(CStreamReader *R, char op, file_ptr ptr, u32 cb)
+{
+#ifdef GATHER_FILE_STATS			 	
+	CFileResourceDesc *desc = (CFileResourceDesc*)R->m_resource_desc;
+	if (desc)
+		gather_file_stat(desc->f_stat, desc->f_desc, op, ptr, cb);
+	else
+	{
+		if (!m_Flags.test(flDumpFileActivity) && 'r' == op) return; // alpet: очень тормозит чтение (!)	
+		auto it = g_open_readers.find(R);
+		if (it != g_open_readers.end())		
+			desc->f_stat = gather_file_stat(*it->second, op, ptr, cb);		
+	}
+#endif
+}
+
+
+void CLocatorAPI::gather_file_stat(IReader *R, char op, file_ptr ptr, u32 cb)
+{
+#ifdef GATHER_FILE_STATS			 	
+	CFileResourceDesc *desc = (CFileResourceDesc*)R->m_resource_desc;
+	if (desc && desc->f_stat)
+		gather_file_stat(desc->f_stat, desc->f_desc, op, ptr, cb);
+	else
+	{
+		if (!m_Flags.test(flDumpFileActivity) && 'r' == op) return; // alpet: очень тормозит чтение (!)
+		auto it = g_open_readers.find(R);
+		if (it != g_open_readers.end())		
+			desc->f_stat = gather_file_stat(*it->second, op, ptr, cb);		
+	}
+#endif
+}
+
+
+
+void CLocatorAPI::Register(LPCSTR name, u32 vfs, u32 crc, file_ptr ptr, file_size size_real, u32 size_compressed, __time64_t modif)
 {
 	string256			temp_file_name;
-	strcpy_s			(temp_file_name,sizeof(temp_file_name),name);
-	xr_strlwr			(temp_file_name);
-
+	strcpy_s(temp_file_name, sizeof(temp_file_name), name); // for lower_case
+	_Trim(temp_file_name);
+	xr_strlwr(temp_file_name);	
 	// Register file
 	file				desc;
-//	desc.name			= xr_strlwr(xr_strdup(name));
-	desc.name			= temp_file_name;
-	desc.vfs			= vfs;
-	desc.crc			= crc;
-	desc.ptr			= ptr;
-	desc.size_real		= size_real;
-	desc.size_compressed= size_compressed;
-    desc.modif			= modif & (~u32(0x3));
+	//	desc.name			= xr_strlwr(xr_strdup(name));
+	desc.name = temp_file_name;
+	desc.flags = 0;
+	desc.vfs = vfs;
+	desc.crc = crc;
+	desc.ptr = ptr;
+	desc.size_real = size_real;
+	desc.size_compressed = size_compressed;
+	desc.modif = modif; // &(~__time64_t(0x3));
+	desc.chunk = 0;
+	Register (desc);
+}
+
+void CLocatorAPI::Register		(file  &desc)
+{
 //	Msg("registering file %s - %d", name, size_real);
 //	if file already exist - update info
 	files_it			I = files.find(desc);
@@ -260,41 +599,100 @@ void CLocatorAPI::Register		(LPCSTR name, u32 vfs, u32 crc, u32 ptr, u32 size_re
 	}
 }
 
-IReader* open_chunk(void* ptr, u32 ID)	
+void CheckRead(LPCSTR srcname, void *ptr, BOOL res, DWORD read_byte, DWORD need)
+{
+	if (!res || read_byte < need)
+	{
+		LARGE_INTEGER size;			
+		u32 error = GetLastError();
+
+		GetFileSizeEx(ptr, &size);
+		/*string1024 buff;		
+		sprintf_s(buff, 1024, "Ќе удаетс€ произвести чтение %u байт из %s по смещению %llu/%llu, проверьте права доступа.  од ошибки %u ",
+					srcname, GetFilePointer(ptr), size.QuadPart, error);
+		MessageBox(0, buff, "‘атальна€ ошибка", MB_ICONERROR | MB_OK);
+		*/
+		Debug.fatal(DEBUG_INFO, "Ќе удаетс€ прочитать %u bytes из %s, по смещению %llu/%llu, дескриптор %p, код ошибки = %u", need, srcname, GetFilePointer(ptr), size.QuadPart, ptr, error);
+	}
+
+}
+
+IReader* open_chunk(const shared_str srcname, void* ptr, u32 ID, file_ptr *chunk_pos = NULL)	
 {
 	BOOL			res;
 	u32				dwType, dwSize;
 	DWORD			read_byte;
-	u32 pt			= SetFilePointer(ptr,0,0,FILE_BEGIN); VERIFY(pt!=INVALID_SET_FILE_POINTER);
+	// LARGE_INTEGER liOfs = { 0 }, liNew = { 0 };
+	// seek start
+ 	u32 pt			= SetFilePointer(ptr,0,0,FILE_BEGIN); VERIFY(pt!=INVALID_SET_FILE_POINTER);
 	while (true){
+		SetLastError(0);
 		res			= ReadFile	(ptr,&dwType,4,&read_byte,0); 
-		VERIFY(res&&(read_byte==4));
+		CheckRead(srcname.c_str(), ptr, res, read_byte, 4);
+		
+		FORCE_VERIFY(res&&(read_byte==4));
 		res			= ReadFile	(ptr,&dwSize,4,&read_byte,0); 
-		VERIFY(res&&(read_byte==4));
+		CheckRead(srcname.c_str(), ptr, res, read_byte, 4);
+		FORCE_VERIFY(res&&(read_byte==4));		
 		if ((dwType&(~CFS_CompressMark)) == ID) {
-			u8* src_data	= xr_alloc<u8>(dwSize);
-			res				= ReadFile	(ptr,src_data,dwSize,&read_byte,0); VERIFY(res&&(read_byte==dwSize));
-			if (dwType&CFS_CompressMark) {
+			CTempReader *result = NULL;
+
+			if (chunk_pos)
+			{				
+				// SetFilePointerEx (ptr, liOfs, &liNew, FILE_CURRENT);
+				*chunk_pos = GetFilePointer(ptr);
+			}		    
+
+			// этот механизм активно расходует пам€ть! 
+			u8* src_data	= (u8*) fs_alloc(dwSize);
+			res				= ReadFile	(ptr, src_data, dwSize, &read_byte,0); VERIFY(res&&(read_byte==dwSize));
+			CheckRead(srcname.c_str(), ptr, res, read_byte, dwSize);
+			if (dwType&CFS_CompressMark) 
+			{
 				BYTE*			dest;
 				unsigned		dest_sz;
-				if (g_temporary_stuff)
+				if (g_temporary_stuff && 0 == rtc_check_fastpack(src_data, dwSize))
 					g_temporary_stuff	(src_data,dwSize,src_data);
-				_decompressLZ	(&dest,&dest_sz,src_data,dwSize);
-				xr_free			(src_data);
-				return xr_new<CTempReader>(dest,dest_sz,0);
-			} else {
-				return xr_new<CTempReader>(src_data,dwSize,0);
-			}
+
+				dest_sz = rtc_check_fastpack(src_data, dwSize);
+				if (dest_sz)
+				{				
+					dest = (BYTE*) fs_alloc(dest_sz);
+					dest_sz = rtc_decompress(dest, dest_sz, src_data, dwSize);
+				}
+				else
+					_decompressLZ	(&dest,&dest_sz,src_data,dwSize);				
+				fs_free			(src_data);
+				result = xr_new<CTempReader>(dest,dest_sz,0);
+			} else 
+				result = xr_new<CTempReader>(src_data,dwSize,0);
+
+			CFileResourceDesc *fdesc = xr_new<CFileResourceDesc>(result);
+			fdesc->self_desc = FRD_READER;
+			fdesc->name_ref = srcname;			
+			result->m_resource_desc = fdesc;			
+#ifdef GATHER_FILE_STATS
+			g_open_readers[result] = srcname;
+#endif
+			return result;
 		}else{ 
-			pt		= SetFilePointer(ptr,dwSize,0,FILE_CURRENT); 
-			if (pt==INVALID_SET_FILE_POINTER) return 0;
+			pt	= SetFilePointer(ptr, dwSize, 0, FILE_CURRENT); 
+
+			if (pt == INVALID_SET_FILE_POINTER) {
+				u32 error = GetLastError();
+				LARGE_INTEGER liSize = { 0 };
+				if ( GetFileSizeEx(ptr, &liSize) ) // PRIi64 = %lli				
+					 MsgCB("$#CONTEXT: #ERROR(open_chunk): SetFilePointer failed set position to +%d [curr=%lli, size=%lli], Win32 error = %d ",
+ 								dwSize, GetFilePointer(ptr), liSize.QuadPart, error);
+				return 0;
+			}
 		}
 	}
 	return 0;
 };
 
 
-void CLocatorAPI::ProcessArchive(LPCSTR _path, LPCSTR base_path)
+void CLocatorAPI::ProcessArchive(LPCSTR _path, LPCSTR base_path) // парсит архив и регистрирует все файлы из него
 {
 	// find existing archive
 	if (strstr(_path, "gamedata\\") || strstr(_path, "bin\\")) 
@@ -321,15 +719,25 @@ void CLocatorAPI::ProcessArchive(LPCSTR _path, LPCSTR base_path)
 	archive& A				= archives.back();
 	A.path					= path;
 	// Open the file
-	A.hSrcFile		= CreateFile		(*path, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, 0, OPEN_EXISTING, 0, 0);
-	R_ASSERT							(A.hSrcFile!=INVALID_HANDLE_VALUE);
+	A.hSrcFile		= CreateFile		(*path, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+	if (A.hSrcFile == INVALID_HANDLE_VALUE)
+		Debug.fatal(DEBUG_INFO, "Cannot open file %s for read, LastError = %d", *path, GetLastError());
+
 	A.hSrcMap		= CreateFileMapping	(A.hSrcFile, 0, PAGE_READONLY, 0, 0, 0);
-	R_ASSERT							(A.hSrcMap!=INVALID_HANDLE_VALUE);
-	A.size			= GetFileSize		(A.hSrcFile,0);
-	R_ASSERT							(A.size>0);
-	Msg("CLocatorAPI::ProcessArchive, path = %s ", *path);
+	R_ASSERT							(A.hSrcMap != INVALID_HANDLE_VALUE);
+	LARGE_INTEGER	size;
+	GetFileSizeEx		(A.hSrcFile, &size);
+	A.src_size = size.QuadPart;
+	R_ASSERT							(A.src_size > 0);
+	
+	string_path			base = { 0 };
+	file desc_a;
+    GetFileInfo(*path, desc_a);		
+	struct tm *_tm = _localtime64( &desc_a.modif );
+	strftime(base, 64, "%d.%m.%Y %H:%M", _tm);
+	Msg("CLocatorAPI::ProcessArchive, path = %s, size = %11.6f MiB, modified %s ", *path, size_in_mib(A.src_size), base);
 	// Create base path
-	string_path			base;
+	
 	if(!base_path)
 	{
 		strcpy_s			(base,sizeof(base),*path);
@@ -341,49 +749,95 @@ void CLocatorAPI::ProcessArchive(LPCSTR _path, LPCSTR base_path)
 	strcat				(base,"\\");
 
 	// Read headers
-	IReader* hdr		= open_chunk(A.hSrcFile,1); R_ASSERT(hdr);
+	IReader* hdr		= open_chunk(A.path, A.hSrcFile,1); R_ASSERT(hdr);
 	RStringVec	fv;
-	while (!hdr->eof())
+	try
 	{
-		string_path		name,full;
+		string_path		name = { 0 }, full = { 0 };
+		file_ptr		prev_ptr = 0;
+
+		while (!hdr->eof())
+		{
+			FILE_DESC_ENTRY	entry;
+#define	FILE_ENTRY_SIZE sizeof(FILE_DESC_ENTRY)
 #ifndef PROTECTED_BUILD
-		hdr->r_stringZ	(name,sizeof(name));
-		u32 crc			= hdr->r_u32();
-		u32 ptr			= hdr->r_u32();
-		u32 size_real	= hdr->r_u32();
-		u32 size_compr	= hdr->r_u32();
-#else // PROTECTED_BUILD
-		string1024		buffer_start;
-		u16				buffer_size	= hdr->r_u16();
-		VERIFY			(buffer_size < sizeof(name) + 4*sizeof(u32));
-		VERIFY			(buffer_size < sizeof(buffer_start));
-		u8				*buffer = (u8*)&*buffer_start;
-		hdr->r			(buffer,buffer_size);
-
-		u32 size_real	= *(u32*)buffer;
-		buffer			+= sizeof(size_real);
-
-		u32 size_compr	= *(u32*)buffer;
-		buffer			+= sizeof(size_compr);
-
-		u32 crc			= *(u32*)buffer;
-		buffer			+= sizeof(crc);
-
-		u32				name_length = buffer_size - 4*sizeof(u32);
-		Memory.mem_copy	(name,buffer,name_length);
-		name[name_length] = 0;
-		buffer			+= buffer_size - 4*sizeof(u32);
-
-		u32 ptr			= *(u32*)buffer;
-		buffer			+= sizeof(ptr);
+			hdr->r_stringZ	(name,sizeof(name));
+			entry.crc		= hdr->r_u32();
+			entry.ptr		= hdr->r_u32();
+			entry.real_size	= hdr->r_u32();
+			entry.comp_size	= hdr->r_u32();
+#else // PROTECTED_BUILD					
+			hdr->r(&entry, FILE_ENTRY_SIZE);
+			const u32		name_length = entry.entry_size - FILE_ENTRY_SIZE + 2; // два байта размера заголовка не учитываютс€!
+			if (entry.entry_size > sizeof(name) + FILE_ENTRY_SIZE - 2)
+			{
+				Msg("! chunk pointer at %d / %d", hdr->tell(), hdr->length());
+				Debug.fatal(DEBUG_INFO, " to large entry_size = %d for %s after %s ", entry.entry_size, _path, full);
+			}
 #endif // PROTECTED_BUILD
-		strconcat		(sizeof(full),full,base,name);
-		size_t vfs		= archives.size()-1;
+			size_t vfs = archives.size() - 1;			
+#ifdef  LUAICP_COMPAT			
+			file desc;
+			Memory.mem_fill(&desc, 0, sizeof(desc));
 
-		Register		(full,(u32)vfs,crc,ptr,size_real,size_compr,0);
+			if (0 != (entry.flags & DESC_OFFSET_CHUNK))
+			{
+				desc.chunk = hdr->r_u32();
+				R_ASSERT2(desc.chunk, "chunk id = 0 for file entry");
+			}
+
+			if (0 != (entry.flags & DESC_OFFSET_FIRST) && 0 == (entry.flags & DESC_OFFSET_ZERO) )
+				desc.ptr = (entry.flags & DESC_OFFSET_64) ? hdr->r_u64() : hdr->r_u32();
+			
+			hdr->r(name, name_length);
+			name[name_length] = 0;
+			strconcat(sizeof(full), full, base, name);
+			if (strstr(name, "system.ltx"))
+				__asm  nop;
+			 
+			if (0 == (entry.flags & DESC_OFFSET_FIRST) && 0 == (entry.flags & DESC_OFFSET_ZERO) )
+				desc.ptr = (entry.flags & DESC_OFFSET_64) ? hdr->r_u64() : hdr->r_u32();
+
+			
+			if (0 != (entry.flags & DESC_ENTRY_FILE) && 0 == (entry.flags & DESC_OFFSET_CHUNK) && desc.size_compressed != 0) // is file and not in chunk relative
+			{   // не предвиденна€ ситуаци€, если данные файла обнаружатьс€ раньше заголовочных. Ќо дл€ файлов пустышек... это бывает				 
+				if (desc.ptr < (u64)hdr->tell64())
+				{
+					Msg("! #WARN: absolute data offset %llu < current %llu for %s previous position = %llu ", desc.ptr, hdr->tell64(), name, prev_ptr);
+					Msg("! #WARN: detected header after data placement. Content size = %llu (cmp:%u) end offset = %llu", desc.size_real, desc.size_compressed, desc.ptr + desc.size_compressed);
+				}
+				if (desc.ptr >= A.src_size)			
+					Debug.fatal(DEBUG_INFO, "#FATAL: content offset %llu >= file size %llu for %s ", desc.ptr, A.src_size, name);
+			}
+
+			prev_ptr = hdr->tell64();
+			// Register(full, (u32)vfs, entry.crc, ptr, entry.real_size, entry.comp_size, entry.upd_time);
+			xr_strlwr (full);
+			desc.name = full;
+			desc.vfs = vfs;			
+			desc.crc = entry.crc;
+			desc.flags = entry.flags;
+			desc.modif = entry.upd_time;
+			desc.size_compressed = entry.comp_size;
+			desc.size_real		 = entry.real_size;
+			Register(desc);
+			
+
+#else
+			hdr->r(name, name_length);
+			name[name_length] = 0;
+			strconcat(sizeof(full), full, base, name);
+			u32 ptr = hdr->r_u32();
+			Register		(full,(u32)vfs,  entry.crc, ptr, entry.real_size, entry.comp_size, 0);
+#endif
+		}
+		hdr->close();
 	}
-	hdr->close			();
-
+	catch (...)
+	{
+		Msg("!#EXCEPTION: catched in CLocatorAPI::ProcessArchive(\"%s\")", _path);
+	}
+		
 	if(g_temporary_stuff_subst)
 		g_temporary_stuff		= g_temporary_stuff_subst;
 }
@@ -530,7 +984,7 @@ void CLocatorAPI::_initialize	(u32 flags, LPCSTR target_folder, LPCSTR fs_name)
 	IReader* pFSltx		= 0;
 	// append working folder
 	LPCSTR fs_ltx	= NULL;
-
+		
 	// append application path
 	if (m_Flags.is(flScanAppRoot))
 	{
@@ -542,6 +996,7 @@ void CLocatorAPI::_initialize	(u32 flags, LPCSTR target_folder, LPCSTR fs_name)
 	else
 	{ //find nearest fs.ltx and set fs_root correctly
 		fs_ltx					= (fs_name && fs_name[0])?fs_name:FSLTX;
+		MsgCB("$#CONTEXT: fs_ltx = %s", fs_ltx);
 		pFSltx						= r_open(fs_ltx); 
 		
 		if (!pFSltx && m_Flags.is(flScanAppRoot) )
@@ -692,13 +1147,27 @@ void CLocatorAPI::_initialize	(u32 flags, LPCSTR target_folder, LPCSTR fs_name)
 
 	rec_files.clear	();
 	//-----------------------------------------------------------
-
+		
 	CreateLog		(0!=strstr(Core.Params,"-nolog"));
-
 }
 
 void CLocatorAPI::_destroy		()
 {
+	gather_file_stat("x", 'd', 0, 0); // dump stats
+
+	for				(auto m_it = m_chunk_map.begin(); m_it!=m_chunk_map.end(); m_it++)
+	{
+		FILE_CHUNK_LIST &list = m_it->second;
+		for (auto c_it = list.begin(); c_it != list.end(); c_it++)
+		{
+			IReader *chunk = *c_it;
+			if (chunk) 
+				r_close(chunk);
+		}
+		list.clear();
+	}
+	m_chunk_map.clear();
+
 	CloseLog		();
 
 	for				(files_it I=files.begin(); I!=files.end(); I++)
@@ -720,12 +1189,13 @@ void CLocatorAPI::_destroy		()
 		CloseHandle	(a_it->hSrcFile);
     }
     archives.clear	();
+	
 }
 
 const CLocatorAPI::file* CLocatorAPI::exist			(const char* fn)
 {
 	files_it it		= file_find_it(fn);
-	return (it!=files.end())?&(*it):0;
+	return (it != files.end()) ? &(*it) : NULL;
 }
 
 const CLocatorAPI::file* CLocatorAPI::exist			(const char* path, const char* name)
@@ -808,11 +1278,18 @@ xr_vector<char*>* CLocatorAPI::file_list_open			(const char* _path, u32 flags)
 
 void	CLocatorAPI::file_list_close	(xr_vector<char*>* &lst)
 {
-	if (lst) 
+	__try
 	{
-		for (xr_vector<char*>::iterator I=lst->begin(); I!=lst->end(); I++)
-			xr_free	(*I);
-		xr_delete	(lst);
+		if (lst)
+		{
+			for (xr_vector<char*>::iterator I = lst->begin(); I != lst->end(); I++)
+				xr_free(*I);
+			xr_delete(lst);
+		}
+	}
+	__except (SIMPLE_FILTER)
+	{
+		MsgCB("!#EXCEPTION: catched in CLocatorAPI::file_list_close ");
 	}
 }
 
@@ -933,7 +1410,7 @@ void CLocatorAPI::check_cached_files	(LPSTR fname, const file &desc, LPCSTR &sou
 		xr_delete			(_dst);
 		xr_delete			(_src);
 		set_file_age		(fname_in_cache,desc.modif);
-		Register			(fname_in_cache,0xffffffff,0,0,desc.size_real,desc.size_real,desc.modif);
+		Register			(fname_in_cache,0xffffffff,0,0,desc.size_real, (u32)desc.size_real,desc.modif);
 	}
 
 	// Use
@@ -975,20 +1452,33 @@ void CLocatorAPI::file_from_archive	(IReader *&R, LPCSTR fname, const file &desc
 	// Archived one
 	archive& A					= archives[desc.vfs];
 #if 0
-	u8*							dest = xr_alloc<u8>(desc.size_real);
+	u8*							dest = fs_alloc(desc.size_real);
 	DWORD						bytes_read;
 	SetFilePointer				(A.hSrcFile,desc.ptr,0,FILE_BEGIN);
 	ReadFile					(A.hSrcFile,dest,desc.size_real,&bytes_read,0);
 	R							= xr_new<CTempReader>(dest,desc.size_real,0));
 	return;
-#else // 0
-	u32 start					= (desc.ptr/dwAllocGranularity)*dwAllocGranularity;
-	u32 end						= (desc.ptr+desc.size_compressed)/dwAllocGranularity;
-	if ((desc.ptr+desc.size_compressed)%dwAllocGranularity)	end+=1;
+#else // 0	
+#ifdef LUAICP_COMPAT
+	if (0 != (desc.flags & DESC_OFFSET_CHUNK))
+	{			
+		IReader *chunk = get_file_chunk(fname, desc);
+		chunk->seek( (int) desc.ptr);		
+		void *data = chunk->pointer();		
+		R = xr_new<IReader>(data, desc.size_real); // данные этого объекта уничтожать не требуетс€, потому он пригоден дл€ пула (!)		 
+		return;
+	}
+
+#endif
+
+	u64 start					= (desc.ptr / dwAllocGranularity) * dwAllocGranularity;
+	u64 end						= (desc.ptr + desc.size_compressed ) / dwAllocGranularity;	
+	if  ((desc.ptr+desc.size_compressed)%dwAllocGranularity) end += 1;
 	end							*= dwAllocGranularity;
-	if (end>A.size)				end = A.size;
-	u32 sz						= (end-start);
-	u8* ptr						= (u8*)MapViewOfFile(A.hSrcMap, FILE_MAP_READ, 0, start, sz); VERIFY3(ptr,"cannot create file mapping on file",fname);
+	if (end>A.src_size)			end = A.src_size;
+	u64 sz						= (end-start);
+
+	u8* ptr						= (u8*)MapViewOfFile(A.hSrcMap, FILE_MAP_READ, HIDWORD(start), LODWORD(start), (u32)sz); VERIFY3(ptr,"cannot create file mapping on file",fname);
 
 	string512					temp;
 	sprintf_s					(temp, sizeof(temp),"%s:%s",*A.path,fname);
@@ -996,16 +1486,17 @@ void CLocatorAPI::file_from_archive	(IReader *&R, LPCSTR fname, const file &desc
 	register_file_mapping		(ptr,sz,temp);
 #	endif // DEBUG
 
-	u32 ptr_offs				= desc.ptr-start;
+	u32 ptr_offs				= LODWORD(desc.ptr - start);
 	if (desc.size_real == desc.size_compressed) {
-		R						= xr_new<CPackReader>(ptr,ptr+ptr_offs,desc.size_real);
+		R						= xr_new<CPackReader>(ptr,ptr+ptr_offs, (u32)desc.size_real);
+		mapping_mem_usage += (size_t) desc.size_real;
 		return;
 	}
 
 	// Compressed
-	u8*							dest = xr_alloc<u8>(desc.size_real);
-	rtc_decompress				(dest,desc.size_real,ptr+ptr_offs,desc.size_compressed);
-	R							= xr_new<CTempReader>(dest,desc.size_real,0);
+	u8*							dest = (u8*) fs_alloc ( (u32)desc.size_real);
+	rtc_decompress				(dest, (u32)desc.size_real, ptr+ptr_offs, desc.size_compressed);
+	R							= xr_new<CTempReader>(dest, (u32)desc.size_real,0);
 	UnmapViewOfFile				(ptr);
 #	ifdef DEBUG
 	unregister_file_mapping		(ptr,sz);
@@ -1023,16 +1514,79 @@ void CLocatorAPI::file_from_archive	(CStreamReader *&R, LPCSTR fname, const file
 			fname
 		)
 	);
+	
 
 	R							= xr_new<CStreamReader>();
+	file_ptr at					= desc.ptr;		
+
+
+	if (0 != (desc.flags & DESC_OFFSET_CHUNK))
+	{					
+		IReader *chunk = get_file_chunk (fname, desc);
+		R_ASSERT2(chunk, make_string("get_file_chunk(%s, %d) failed", fname, desc));
+		at += ((CArchiveChunkDesc*)chunk->m_resource_desc)->pos;				
+	}
+
 	R->construct				(
 		A.hSrcMap,
-		desc.ptr,
-		desc.size_compressed,
-		A.size,
+		at,	desc.size_compressed,
+		A.src_size,
 		BIG_FILE_READER_WINDOW_SIZE
 	);
 }
+
+IReader* CLocatorAPI::get_file_chunk		(LPCSTR fname, const file &desc)
+{
+	archive& A					= archives[desc.vfs];
+
+	FILE_CHUNK_LIST *pList = NULL;
+
+
+	while (!pList)
+	{   // поиск или создание нового списка чанков закрепленных за архивом
+		auto it = m_chunk_map.find(A.path);
+		if (it != m_chunk_map.end())
+		{
+			pList = &it->second;
+			break;
+		}
+		else
+		{
+			pList = xr_new<FILE_CHUNK_LIST>();
+			m_chunk_map[A.path] = *pList;
+			xr_delete(pList); 
+			pList = NULL;
+		}
+	}
+	FILE_CHUNK_LIST &list = *pList; // = NULL;
+	u32 chunk_id = desc.chunk & (~CFS_CompressMark);
+
+	IReader  *chunk = NULL;
+	if (chunk_id < list.size())
+		chunk = list[chunk_id]; //  list->at(desc.chunk);
+
+	if (!chunk) 
+	{   // открытие и запоминание чанка в кэше
+		string_path full;
+		update_path(full, "$fs_root$", *A.path);		
+		file_ptr chunk_pos = 0;
+		// из чанков допускаетс€ читать лишь упакованные данные, т.к. дл€ них выдел€етс€ пам€ть
+		chunk = open_chunk (A.path, A.hSrcFile, chunk_id, &chunk_pos);
+		R_ASSERT2(chunk, make_string("cannot open chunk 0x%x in archive %s ", desc.chunk, *A.path));
+		if (list.size() <= chunk_id)
+			list.resize(chunk_id + 1);
+
+		list[chunk_id] = chunk;
+		CArchiveChunkDesc *cdesc = xr_new <CArchiveChunkDesc>(chunk);
+		chunk->m_resource_desc = cdesc;
+		cdesc->vfs = desc.vfs;
+		cdesc->pos = chunk_pos;
+
+	}
+
+	return chunk;
+}
+
 
 void CLocatorAPI::copy_file_to_build	(IWriter *W, IReader *r)
 {
@@ -1068,7 +1622,7 @@ void CLocatorAPI::copy_file_to_build	(T *&r, LPCSTR source_name)
 
 	copy_file_to_build	(W,r);
     w_close				(W);
-    set_file_age(cpy_name,get_file_age(source_name));
+    set_file_age (cpy_name, get_file_age(source_name));
     if (!m_Flags.is(flEBuildCopy))
 		return;
 
@@ -1132,8 +1686,15 @@ bool CLocatorAPI::check_for_file	(LPCSTR path, LPCSTR _fname, string_path& fname
 
 	files_it				I = files.find(desc_f);
 	if (I == files.end())
-	{
-		Msg("!WARNING: CLocatorAPI::check_for_file not found file %s in files list (size = %d) ", desc_f.name, files.size () );		
+	{		
+#ifdef  LUAICP_COMPAT
+		if (PathFileExists(fname) && GetFileInfo(fname, desc_f))
+		{			
+			Register(fname, 0xffffffff, 0, 0, desc_f.size_real, (u32)desc_f.size_real, desc_f.modif);
+			return check_for_file(path, _fname, fname, desc);			
+		}
+#endif
+		Msg("! #WARN: CLocatorAPI::check_for_file not found file %s in files list (size = %d) ", desc_f.name, files.size () );		
 		return				(false);
 	}
 		
@@ -1154,11 +1715,25 @@ T *CLocatorAPI::r_open_impl	(LPCSTR path, LPCSTR _fname)
 	if (!check_for_file(path,_fname,fname,desc))
 		return				(0);
 
+	CFileResourceDesc *r_desc = xr_new<CFileResourceDesc>(R);
+#ifdef GATHER_FILE_STATS
+	r_desc->f_stat = gather_file_stat(fname, 'o', 0, 0);	 // before open
+	g_open_readers[R] = r_desc->name_ref;
+#endif	
+
 	// OK, analyse
 	if (0xffffffff == desc->vfs)
 		file_from_cache		(R,fname,*desc,source_name);
 	else
 		file_from_archive	(R,fname,*desc);
+	
+	R->m_resource_desc = r_desc;	
+	r_desc->owner_ref = R;
+	r_desc->name_ref = fname;
+	r_desc->f_desc = (file*)desc;
+#ifdef GATHER_FILE_STATS
+	gather_file_stat(r_desc->f_stat, desc, 'O', 0, 0); // calc open time
+#endif
 
 #ifdef DEBUG
 	if (R && m_Flags.is(flBuildCopy|flReady))
@@ -1167,6 +1742,7 @@ T *CLocatorAPI::r_open_impl	(LPCSTR path, LPCSTR _fname)
 
 	if (m_Flags.test(flDumpFileActivity))
 		_register_open_file	(R,fname);
+				
 
 	return					(R);
 }
@@ -1177,15 +1753,18 @@ CStreamReader* CLocatorAPI::rs_open	(LPCSTR path, LPCSTR _fname)
 }
 
 IReader *CLocatorAPI::r_open	(LPCSTR path, LPCSTR _fname)
-{
-	return					(r_open_impl<IReader>(path,_fname));
+{	
+	IReader *R =			(r_open_impl<IReader>(path,_fname));
+
+	if (R)
+		R_ASSERT3(!IsBadReadPtr(R->pointer(), R->elapsed()), "Non-readable pointer in IReader for file ", _fname);
+	return R;
 }
 
 void	CLocatorAPI::r_close	(IReader* &fs)
 {
 	if( m_Flags.test(flDumpFileActivity) )
 		_unregister_open_file	(fs);
-
 	xr_delete					(fs);
 }
 
@@ -1193,7 +1772,6 @@ void	CLocatorAPI::r_close	(CStreamReader* &fs)
 {
 	if( m_Flags.test(flDumpFileActivity) )
 		_unregister_open_file	(fs);
-
 	fs->close					();
 }
 
@@ -1234,9 +1812,9 @@ void	CLocatorAPI::w_close(IWriter* &S)
 
 		if(bReg)
 		{
-			struct _stat st;
-			_stat		(fname,&st);
-			Register	(fname,0xffffffff,0,0,st.st_size,st.st_size,(u32)st.st_mtime);
+			struct _stat64 st;
+			_stat64		(fname,&st);
+			Register	(fname,0xffffffff,0,0,st.st_size, (u32)st.st_size, st.st_mtime);
 		}
     }
 }
@@ -1245,16 +1823,27 @@ CLocatorAPI::files_it CLocatorAPI::file_find_it(LPCSTR fname)
 {
 	// проверить нужно ли пересканировать пути
     check_pathes	();
-
 	file			desc_f;
+	ZeroMemory(&desc_f, sizeof(desc_f));
+
 	string_path		file_name;
-	VERIFY			(xr_strlen(fname)*sizeof(char) < sizeof(file_name));
-	strcpy_s		(file_name,sizeof(file_name),fname);
+	VERIFY			(xr_strlen(fname) * sizeof(char) < sizeof(file_name));
+	strcpy_s		(file_name, sizeof(file_name), fname);
 	desc_f.name		= file_name;
 //	desc_f.name		= xr_strlwr(xr_strdup(fname));
     files_it I		= files.find(desc_f);
-//	xr_free			(desc_f.name);
+	return I;
+	/*
+	for (I = files.begin(); I != files.end(); I++)
+	{
+		if (0 == strcmp(I->name, fname))
+		{
+			Msg("! #WARN: slow method found file %s ", fname);
+			break;
+		}
+	}
 	return			(I);
+	*/
 }
 
 BOOL CLocatorAPI::dir_delete(LPCSTR path,LPCSTR nm,BOOL remove_files)
@@ -1356,10 +1945,10 @@ void CLocatorAPI::file_rename(LPCSTR src, LPCSTR dest, bool bOwerwrite)
 	}
 }
 
-int	CLocatorAPI::file_length(LPCSTR src)
+file_size CLocatorAPI::file_length(LPCSTR src)
 {
-	files_it	I		= file_find_it(src);
-	return (I!=files.end())?I->size_real:-1;
+	files_it  I	= file_find_it(src);
+	return (I != files.end()) ?I->size_real :-1;
 }
 
 bool CLocatorAPI::path_exist(LPCSTR path)
@@ -1372,7 +1961,21 @@ FS_Path* CLocatorAPI::append_path(LPCSTR path_alias, LPCSTR root, LPCSTR add, BO
 {
 	VERIFY			(root/**&&root[0]/**/);
 	VERIFY			(false==path_exist(path_alias));
-	FS_Path* P		= xr_new<FS_Path>(root,add,LPCSTR(0),LPCSTR(0),0);
+	/*
+	if (!xr_strlen(root) || !strstr(root, ":"))
+	{   // попытка решить странности с пут€ми, когда исчезает $fs_root$
+		static string_path temp;
+		GetModuleFileName(0, temp, sizeof(temp));
+		LPSTR p = strstr(temp, "\\bin");
+		if (p)
+		{
+			p[1] = 0;
+			root = temp;
+		}
+	}
+	*/
+
+	FS_Path* P		= xr_new<FS_Path>(root, add, LPCSTR(0), LPCSTR(0), 0);
 	bNoRecurse		= !recursive;
 	Recurse			(P->m_Path);
 	pathes.insert	(mk_pair(xr_strdup(path_alias),P));
@@ -1381,8 +1984,10 @@ FS_Path* CLocatorAPI::append_path(LPCSTR path_alias, LPCSTR root, LPCSTR add, BO
 
 FS_Path* CLocatorAPI::get_path(LPCSTR path)
 {
+	// MsgCB("$#CONTEXT: CLocatorAPI::get_path %s", path);
+	R_ASSERT(pathes.size());
     PathPairIt P 			= pathes.find(path); 
-    R_ASSERT2(P!=pathes.end(),path);
+    R_ASSERT2(P != pathes.end(), make_string("path = '%s', pathes.size() = %d ", path, pathes.size()));
     return P->second;
 }
 
@@ -1396,25 +2001,25 @@ void CLocatorAPI::update_path(xr_string& dest, LPCSTR initial, LPCSTR src)
     return get_path(initial)->_update(dest,src);
 }*/
 
-u32 CLocatorAPI::get_file_age(LPCSTR nm)
+__time64_t  CLocatorAPI::get_file_age(LPCSTR nm)
 {
 	// проверить нужно ли пересканировать пути
     check_pathes	();
-
 	files_it I 		= file_find_it(nm);
-    return (I!=files.end())?I->modif:u32(-1);
+
+    return (I!=files.end()) ? I->modif: __time64_t(-1);
 }
 
-void CLocatorAPI::set_file_age(LPCSTR nm, u32 age)
+void CLocatorAPI::set_file_age(LPCSTR nm, __time64_t age)
 {
 	// проверить нужно ли пересканировать пути
     check_pathes	();
 
     // set file
-    _utimbuf	tm;
+    __utimbuf64	tm;
     tm.actime	= age;
     tm.modtime	= age;
-    int res 	= _utime(nm,&tm);
+    int res 	= _utime64(nm,&tm);
     if (0!=res){
     	Msg			("!Can't set file age: '%s'. Error: '%s'",nm,_sys_errlist[errno]);
     }else{
@@ -1555,3 +2160,5 @@ void CLocatorAPI::ProcessExternalArch()
 		ProcessArchive		(full_mod_name, _path);
 	}
 }
+
+

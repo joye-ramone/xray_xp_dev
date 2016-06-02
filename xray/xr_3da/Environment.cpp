@@ -35,6 +35,7 @@ static const float			MAX_NOISE_FREQ	= 0.03f;
 
 // real WEATHER->WFX transition time
 #define WFX_TRANS_TIME		5.f
+#pragma optimize("gyts", off)
 
 //////////////////////////////////////////////////////////////////////////
 // environment
@@ -363,8 +364,12 @@ void CEnvironment::OnFrame()
 	IDirect3DBaseTexture9*	e0	= CurrentEnv.sky_r_textures[0].second->surface_get();
 	IDirect3DBaseTexture9*	e1	= CurrentEnv.sky_r_textures[1].second->surface_get();
 	
-	tsky0->surface_set		(e0);	_RELEASE(e0);
-	tsky1->surface_set		(e1);	_RELEASE(e1);
+	// tsky0->get_context().assign_texture((PDIRECT3DTEXTURE9)e0, true); _RELEASE(e0);
+	// tsky1->get_context().assign_texture((PDIRECT3DTEXTURE9)e1, true); _RELEASE(e1);
+	tsky0->surface_upd(e0);
+	tsky1->surface_upd(e1);
+	_RELEASE(e0);
+	_RELEASE(e1);
 
 	PerlinNoise1D->SetFrequency		(wind_gust_factor*MAX_NOISE_FREQ);
 	wind_strength_factor			= clampr(PerlinNoise1D->GetContinious(Device.fTimeGlobal)+0.5f,0.f,1.f); 

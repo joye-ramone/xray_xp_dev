@@ -15,6 +15,9 @@
 #include "mainmenu.h"
 #include "object_factory.h"
 #include "../../build_config_defines.h"
+#include "../xrTextures/SH_Texture.h"
+#include "../lua_tools.h"
+
 LPCSTR alife_section = "alife";
 
 extern void destroy_lua_wpn_params	();
@@ -27,6 +30,7 @@ void restart_all				()
 	destroy_lua_wpn_params		();
 	MainMenu()->DestroyInternal	(true);
 	xr_delete					(g_object_factory);
+	lua_finalize ();
 	ai().script_engine().init	();
 }
 
@@ -63,11 +67,14 @@ CALifeSimulator::CALifeSimulator		(xrServer *server, shared_str *command_line) :
 	*command_line				= temp;
 	
 	LPCSTR						start_game_callback = pSettings->r_string(alife_section,"start_game_callback");
-	luabind::functor<void>		functor;
-	R_ASSERT2					(ai().script_engine().functor(start_game_callback,functor),"failed to get start game callback");
-	functor						();
+	PLUA_RESULT res				= LuaExecute(GameLua(), start_game_callback, "");
+	if (res->error)
+		Debug.fatal(DEBUG_INFO, "error executing start_game_callback %s, result: %d. %s ", start_game_callback, res->error, res->c_str());
+	//luabind::functor<void>		functor;
+	//R_ASSERT2					(ai().script_engine().functor(start_game_callback,functor),"failed to get start game callback");
+	//functor						();
 
-	load						(p.m_game_or_spawn,!xr_strcmp(p.m_new_or_load,"load") ? false : true, !xr_strcmp(p.m_new_or_load,"new"));
+	load						(p.m_game_or_spawn, !xr_strcmp(p.m_new_or_load,"load") ? false : true, !xr_strcmp(p.m_new_or_load,"new"));
 }
 
 CALifeSimulator::~CALifeSimulator		()

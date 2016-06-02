@@ -95,7 +95,7 @@ void CHairsZone::Affect(SZoneObjectInfo* O)
 		m_dwDeltaTime = 0;
 		position_in_bone_space.set(0.f,0.f,0.f);
 
-		CreateHit(pGameObject->ID(),ID(),hit_dir,power,0,position_in_bone_space,impulse,m_eHitTypeBlowout);
+		CreateHit(pGameObject->ID(),ID(),hit_dir,power,BI_NONE,position_in_bone_space,impulse,m_eHitTypeBlowout);
 
 		PlayHitParticles(pGameObject);
 	}

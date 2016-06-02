@@ -126,8 +126,7 @@ void CALifeSpawnRegistry::load				(IReader &file_stream, xrGUID *save_guid)
 
 	chunk						= file_stream.open_chunk(1);
 	m_spawns.load				(*chunk);
-	chunk->close				();
-
+	chunk->close				();	
 #if 0
 	SPAWN_GRAPH::vertex_iterator			I = m_spawns.vertices().begin();
 	SPAWN_GRAPH::vertex_iterator			E = m_spawns.vertices().end();

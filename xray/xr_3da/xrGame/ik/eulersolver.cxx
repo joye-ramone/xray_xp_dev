@@ -224,8 +224,8 @@ inline EulerTableEntry *euler_entry(int euler_type)
 {
     if (euler_type < 0 || euler_type >= (sizeof(EulerTable) / sizeof(EulerTable[0])))
     {
-	fprintf(stderr, "bad euler entry %d detected\n", euler_type);
-	exit(0);
+		Msg("! #FATAL: bad euler entry %d detected\n", euler_type);
+		abort();
     }
     return EulerTable + euler_type;
 } 
@@ -277,8 +277,8 @@ void EulerEval(int euler_type, const float t[3], Matrix R)
 	break;
 
     default:
-	fprintf(stderr, "bad euler entry %d detected\n", euler_type);
-	exit(0);
+		Msg("! #FATAL: bad euler entry %d detected\n", euler_type);
+		abort();
     }
 
     Matrix r;

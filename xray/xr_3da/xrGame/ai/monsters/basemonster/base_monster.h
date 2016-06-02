@@ -361,6 +361,8 @@ public:
 IC	void					fall_asleep			(){m_bSleep = true;}
 IC	void					wake_up				(){m_bSleep = false;}
 
+	bool					RandomIgnoreSound   (u32 sound_type) const;	// alpet: HARDCORE extreme
+
 	// Temp
 	u32						m_time_last_attack_success;
 	int						m_rank;

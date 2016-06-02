@@ -37,9 +37,6 @@
     <Filter Include="shared memory/string library">
       <UniqueIdentifier>{0e8d13db-9b0d-48f5-b89d-80442a752244}</UniqueIdentifier>
     </Filter>
-    <Filter Include="intrusive_ptr">
-      <UniqueIdentifier>{8c0b93f8-63e4-4abd-b6ab-ffb508cd22ad}</UniqueIdentifier>
-    </Filter>
     <Filter Include="memory_monitor">
       <UniqueIdentifier>{5a1305f9-9311-4144-b242-b7a402b3eeda}</UniqueIdentifier>
     </Filter>
@@ -69,6 +66,12 @@
     </Filter>
     <Filter Include="Compression\lzo">
       <UniqueIdentifier>{dda72662-18b0-4e41-b8f8-9084e81f3fc7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FS\intrusive_ptr">
+      <UniqueIdentifier>{8c0b93f8-63e4-4abd-b6ab-ffb508cd22ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AntiCheat">
+      <UniqueIdentifier>{863797d3-1a4a-4be1-92c6-e25a1c6d5f56}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -118,12 +121,6 @@
       <Filter>FS</Filter>
     </ClCompile>
     <ClCompile Include="LocatorAPI_defs.cpp">
-      <Filter>FS</Filter>
-    </ClCompile>
-    <ClCompile Include="LocatorAPI_Notifications.cpp">
-      <Filter>FS</Filter>
-    </ClCompile>
-    <ClCompile Include="log.cpp">
       <Filter>FS</Filter>
     </ClCompile>
     <ClCompile Include="Xr_ini.cpp">
@@ -250,6 +247,12 @@
       <Filter>Compression\lzo</Filter>
     </ClCompile>
     <ClCompile Include="xrSyncronize.cpp" />
+    <ClCompile Include="ComplexVar.cpp">
+      <Filter>AntiCheat</Filter>
+    </ClCompile>
+    <ClCompile Include="log.cpp">
+      <Filter>Debug core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FTimer.h">
@@ -378,9 +381,6 @@
     <ClInclude Include="LocatorAPI_defs.h">
       <Filter>FS</Filter>
     </ClInclude>
-    <ClInclude Include="log.h">
-      <Filter>FS</Filter>
-    </ClInclude>
     <ClInclude Include="xr_ini.h">
       <Filter>FS</Filter>
     </ClInclude>
@@ -457,10 +457,10 @@
       <Filter>shared memory/string library</Filter>
     </ClInclude>
     <ClInclude Include="intrusive_ptr.h">
-      <Filter>intrusive_ptr</Filter>
+      <Filter>FS\intrusive_ptr</Filter>
     </ClInclude>
     <ClInclude Include="intrusive_ptr_inline.h">
-      <Filter>intrusive_ptr</Filter>
+      <Filter>FS\intrusive_ptr</Filter>
     </ClInclude>
     <ClInclude Include="memory_monitor.h">
       <Filter>memory_monitor</Filter>
@@ -520,6 +520,15 @@
       <Filter>Compression\lzo</Filter>
     </ClInclude>
     <ClInclude Include="xrSyncronize.h" />
+    <ClInclude Include="FS64.h">
+      <Filter>FS</Filter>
+    </ClInclude>
+    <ClInclude Include="ComplexVar.h">
+      <Filter>AntiCheat</Filter>
+    </ClInclude>
+    <ClInclude Include="log.h">
+      <Filter>Debug core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="xrCore.rc">

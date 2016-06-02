@@ -58,6 +58,10 @@ DEFINE_VECTOR	(Fvector,					FVECTOR_VECTOR,					FVECTOR_IT);
 #ifdef DECLARE_ENTITY_DESTROY
 template <class T> void	F_entity_Destroy	(T *&P)
 {
+#ifdef LUAICP_COMPAT
+		
+#endif
+
 	xr_delete	(P);
 };
 #endif

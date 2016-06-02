@@ -24,7 +24,7 @@ public:
 	float			range		;
 	float			cone		;
 	Fcolor			color		;
-
+	u32				light_id	;			// alpet: unique id for debugging
 	vis_data		hom			;
 	u32				frame_render;
 
