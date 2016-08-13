@@ -797,6 +797,14 @@ static int str_format (lua_State *L) {
           addquoted(L, &b, arg);
           continue;  /* skip the 'addsize' at the end */
         }
+		// Charsi: add pattern %b in string.format for boolean type support
+		case 'b': {
+			int res = 0;
+			luaL_checktype(L, arg, LUA_TBOOLEAN);
+			res = lua_toboolean(L, arg);
+			sprintf(buff, "%s", res?"true":"false");
+			break;
+		}
         case 's': {
           size_t l;
           const char *s = luaL_checklstring(L, arg, &l);
